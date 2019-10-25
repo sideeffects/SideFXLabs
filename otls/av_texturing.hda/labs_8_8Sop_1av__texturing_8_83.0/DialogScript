@@ -1,0 +1,219 @@
+# Dialog script for gamedev::sop_av_texturing::3.0 automatically generated
+
+{
+    name	gamedev::sop_av_texturing::3.0
+    script	AV_Texturing
+    label	"GameDev AV Texturing"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Meshing"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Textured Geometry"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "reload"
+        label   "Reload"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual Mode"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Texturing"
+
+        parm {
+            name    "side"
+            label   "Texture Side"
+            type    integer
+            default { "8192" }
+            help    "Output texture size."
+            menu usetokenvalue {
+                "1024"  "1024"
+                "2048"  "2048"
+                "4096"  "4096"
+                "8192"  "8192"
+                "16384" "16384"
+            }
+            range   { 0 10 }
+        }
+        parm {
+            name    "down"
+            label   "Texture Downscale"
+            type    integer
+            default { "1" }
+            help    "Texture downscale factor."
+            menu usetokenvalue {
+                "1" "1"
+                "2" "2"
+                "4" "4"
+                "8" "8"
+            }
+            range   { 0 10 }
+        }
+        parm {
+            name    "file"
+            label   "Texture File Type"
+            type    string
+            default { "png" }
+            menu {
+                "jpg"   "jpg"
+                "png"   "png"
+                "tiff"  "tiff"
+                "exr"   "exr"
+            }
+        }
+        parm {
+            name    "unwrap"
+            label   "Unwrap Method"
+            type    string
+            default { "Basic" }
+            help    "Method to unwrap input mesh if it does not have UV coordinates. \\n*Basic (> 600k faces): fast and simple. Can generate multiple atlases. \\n*LSCM (<= 600k faces): optimize space. Generates one atlas. \\n*ABF (<=300k faces): optimize space and stretch. Generates one atlas."
+            menu {
+                "Basic" "Basic"
+                "LSCM"  "LSCM"
+                "ABF"   "ABF"
+            }
+        }
+        parm {
+            name    "holes"
+            label   "Fill Holes"
+            type    toggle
+            default { "0" }
+            help    "Fill texture holes with plausible values."
+        }
+        parm {
+            name    "flipN"
+            label   "Flip Normals"
+            type    toggle
+            default { "0" }
+            help    "Option to flip face normals. "
+        }
+        parm {
+            name    "useUDIM"
+            label   "Use UDIM UVs"
+            type    toggle
+            default { "1" }
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "pad"
+                label   "Padding"
+                type    integer
+                default { "15" }
+                help    "Texture edge padding size in pixels."
+                range   { 0 100 }
+            }
+            parm {
+                name    "score"
+                label   "Best Score Threshold"
+                type    float
+                default { "0" }
+                help    "Value of 0 disables filtering. Based on threshold to relative best score"
+                range   { 0 1 }
+            }
+            parm {
+                name    "angle"
+                label   "Angle Hard Threshold"
+                type    float
+                default { "90" }
+                help    "Value of 0 disables filtering."
+                range   { 0 180 }
+            }
+            parm {
+                name    "force"
+                label   "Force Visible By All Vertices"
+                type    toggle
+                default { "0" }
+                help    "Triangle visibility is based on the union of vertices visibility."
+            }
+            parm {
+                name    "visRemap"
+                label   "Visibility Remapping Method"
+                type    string
+                default { "PullPush" }
+                help    "Method to remap visibilities from the reconstruction to the input mesh."
+                menu {
+                    "Pull"      "Pull"
+                    "Push"      "Push"
+                    "PullPush"  "PullPush"
+                }
+            }
+            parm {
+                name    "bCustomImages"
+                label   "Use Custom Images for Texturing"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "customTextureImages"
+                label   "Custom Texturing Images"
+                type    directory
+                default { "" }
+                disablewhen "{ bCustomImages == 0 }"
+            }
+            parm {
+                name    "correctEV"
+                label   "Correct Exposure"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "useScore"
+                label   "Use Score"
+                type    toggle
+                default { "1" }
+            }
+            parm {
+                name    "processColorspace"
+                label   "Process Colorspace"
+                type    string
+                default { "sRGB" }
+                menu {
+                    "sRGB"  "sRGB"
+                    "LAB"   "LAB"
+                    "XYZ"   "XYZ"
+                }
+            }
+            parm {
+                name    "multiBandDownscale"
+                label   "Multi Band Downscale"
+                type    integer
+                default { "4" }
+                range   { 0! 8 }
+            }
+        }
+
+    }
+
+}

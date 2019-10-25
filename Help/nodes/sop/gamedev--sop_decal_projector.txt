@@ -1,0 +1,51 @@
+= GameDev Decal Projector =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_decal_projector
+#icon: PRIMITIVES/pastesurf
+#tags: tech, model
+
+""" Project a decal (localised piece of geometry and a texture) onto geometry."""
+
+:video:
+    #src:/movies/decalprojector.mp4
+
+Decals are a common feature in game engines. For example, say a small manhole cover texture is required at a single location on a large floor. Applying a massive texture across the entire floor to get enough resolution for the manhole cover is inefficient. To require re-uving the floor to define a region for the manhole is possible, but will require further edits if the location of the cover has to change.
+
+Instead, game engines will provide a decal, providing a wireframe box as a GUI element to the user. The manhole cover is assigned to the decal, and the box UI is rotated, scaled, and intersected with the floor to represent where it needs to go. The manhole cover will be composited into the floor texture.
+
+The gamedev decal projector sop replicates this workflow. Rather than composite the texture, a perfectly fitting polygon 'sticker' or 'decal' is made containing the required texture. This will adapt to to any changes of the underlying geometry, and can be merged with the original geometry.
+
+
+
+@parameters
+    == Transform ==
+    Translate:
+        Position of projection plane.
+    Rotate:
+        Rotation of projection plane.
+    Scale:
+        Scale of projection plane.
+    == Pivots ==
+    Pivot Rotate:
+        Position of rotation pivot of projection plane.
+    Pivot Translate:
+        Position of translation pivot of projection plane.
+    Uniform Scale:
+        Scale of projection plane.
+    Height Map:
+        Texture map used for projection, ideally a grayscale 'heightmap' image. Note that this refers to a texture to be used as a heightmap, not a houdini heightfield node!
+    Strength:
+        Multiplier to alter the strength of the heightmap.
+    Use Inverted Height as AO:
+        When enabled the lowest parts of the heightmap will be darkened with a 2d ambient occlusion filter, useful to enhance detail and visually separate high and low parts of the heightmap.
+    Max Distance:
+        Maximum distance the surface can be away from the projector handle. If the projection is further than this distance, the projection will be clipped.
+    Floating Distance:
+        Distance to float the projection above the target surface. Ideally this should be as close as possible, but not so close that it causes flickering or Z-fighting issues.
+    Clip X:
+        Clip or 'barn doors' for the left and right side of the projection.
+    Clip Z:
+        Clip or 'barn doors' for the top and bottom of the projection.
+    

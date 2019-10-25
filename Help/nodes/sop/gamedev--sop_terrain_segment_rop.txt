@@ -1,0 +1,55 @@
+= GameDev Terrain Mesh ROP =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_terrain_segment_rop
+#icon: terrainsegmentrop
+#tags: tech, model
+
+""" The Terrain Segment SOP allows you to convert the plugged in heightfield into geometry. """
+
+The Terrain Segment SOP allows you to convert the plugged in heightfield into geometry. The tool allows for adaptive meshing based on heightfield details.
+
+@parameters
+    == Segmenting ==
+    Height Layer:
+        This allows you to override which layer is used for the height information. Generally this value is "height".
+    Tile Count:
+        This allows you to control how many chunks have to be generated from the input heightfield.
+    Visualize:
+        When this toggle is enabled, the tool will color code all separate chunks for you.
+    == Meshing ==
+    Base Density:
+        This parameter controls the base density of your generated mesh. A value of 1.0 will generate an equal amount of quads as there are voxels in the heightfield. Lower this value prior to enabling adaptive density.
+    Adaptive Density:
+        Enabling this toggle will have the tool calculate adaptive quad density based on heightfield details.
+    Num Density Levels:
+        This allows you to control how many levels of adaptive density the tool has to generate. Higher will produce more adaptive detail. Please note that increasing this value will exponentially increase the cooking time.
+    Density Disribution:
+        The density distribution controls smoothing iterations prior to dividing the heightfield into adaptive quads.
+    Density Falloff:
+        This ramp allows you to control how the adaptive density gets distributed over the heightfield details.
+    == UVs ==
+    0-1 UV per segment:
+        Enabling this toggle will force the UVs for all chunks to be distributed from 0-1 in total.
+    == Extrusion ==
+    Extrude Base:
+        Enabling this toggle will create a closed extruded chunk rather than an open planar surface. This might be useful if you plan on using this geometry for simulations.
+    Depth:
+        This controls the depth of the extrusion produced by the "Extrude Base" toggle.
+    Base Normal:
+        This controls the direction of the extruded base.
+    Flatten Base:
+        This controls if the extruded bottom needs to be flat for all chunks, or if it should keep the shape of the heightfield.
+    == Output ==
+    Single File:
+	Enabling this toggle will store all chunks in a single file as sub-objects inside the FBX.
+    Output File(s):
+        This specifies the output file on disk.
+    Export in ASCII Format:
+        Controls if the exported FBX should be binary or ASCII format.
+    FBX SDK Version:
+        This allows you to override the used FBX SDK version for export. Default is usually best.
+    Export:
+        Pressing this button will export the heightfield to disk as geometry using the above settings.
+    

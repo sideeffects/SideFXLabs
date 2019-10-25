@@ -1,0 +1,105 @@
+= GameDev Games Baker =
+
+#type: node
+#context: sop
+#internal: gamedev::rop_games_baker::2.0
+#icon: COMMON/bake
+#tags: tech, model
+
+""" Generate Textures based on a High Poly to Low Poly match """
+
+This node will Bake Geometry and Material information from a High Resolution mesh to a Low Resolution Mesh. 
+
+It is a helper wrapper around the [Bake Texture ROP|Node:out/baketexture] in order to simplify the interface. 
+
+This is the foundational ROP for the [Simple Baker SOP|Node:sop/gamedev--sop_simple_baker]
+
+One main feature that the ROP version has is that you can bake several mesh pairs in the same bake. You can do this by adding more High Low Pairs on the Meshes MultiParm
+
+WARNING: 
+    The preferred node to use for baking is the [Maps Baker SOP|Node:sop/gamedev--sop_maps_baker]
+
+@parameters
+    == Channels == 
+    Render:
+        Triggers the Render Execution
+    Controls...:
+        Optional ROP Settings
+    Meshes:
+        Number of High > Low Pairs 
+    Target Mesh (LOW):
+        Path to the Low Resolution SOP (Target) 
+    Source Mesh (HIGH):
+        Path to the High Resolution SOP (Source) 
+    Resolution:
+        Size of the output textures
+    Base Path:
+        Path for the output textures. $(CHANNEL) is necessary here and will be replaced with the type of texture (basecolor, normal, etc)
+    Temp Directory:
+        Path for temporary files to be placed, some files are generated and then deleted in the process of baking all of the maps
+    Base Color:
+        Enable baking Vertex Colors (and Diffuse Textures) and specify the suffix
+    Normal Map:
+        Enable baking Tangent Space normal maps  and specify the suffix
+    Opacity Map:
+        Enable baking an Opacity/Transparency/Alpha map  and specify the suffix
+    Roughness Map:
+        Enable baking Roughness that is sampled from the source's material and specify the suffix
+    Metallic Map:
+        Enable baking Metallic that is sampled from the source's material and specify the suffix
+    World Normal Map:
+        Enable baking World Space normal maps  and specify the suffix
+    Ambient Occlusion:
+        Enable baking Ambient Occlusion maps and specify the suffix
+    Curvature:
+        Enable baking Curvature (Substance Style) and specify the suffix
+    Thickness:
+        Enable baking Thickness maps  and specify the suffix
+    Position:
+        Enable baking Position maps  and specify the suffix
+    Height:
+        Enable baking Height/Displacement maps  and specify the suffix
+    Custom Channels:
+        Number of Custom Maps to be baked 
+    Attribute Name:
+        Point Attribute to be baked 
+    Suffix:
+        `CHANNEL` value for the texture name
+        
+    == Advanced == 
+    Valid Frame Range:
+        Determines if a single frame should be baked or several frames. (Useful for baking oceans and other animated effects) 
+        
+        NOTE:
+            If baking a frame range, make sure to remember to add a $F to your filenames, otherwise it will overwrite the same textures every frame. 
+        
+    Start/End/Inc:
+        Start and End Frame, and what steps to skip         
+        
+    Use MikkT Tangent Space:
+        Use the MikkT calculations to bake out the Tangent Normal Maps.
+        
+        NOTE:
+            The Viewport shader doesn't have MikkT capabilities, so you might see some bruising that won't occur on a game engine. 
+            You can use the GameDev PBR Shader in combination with the PolyFrame node if you would like to view the correct MikkT values. We understand this isn't optimal. 
+        
+    Output basecolor in Linear Space:
+        Gamma correct the BaseColor maps
+        
+    Tangent Normal Flip Y:
+        Invert the Green Channel in the Normal Map. 
+    Disable Lighting/Emission:
+        Ignore any lighting information. Disabling this will allow you to bake light information into your objects (just make them white) 
+        
+    Cage Mesh:
+        Optional cage mesh. Must have the same topology and UVs as the UV Object. Typically a dupicate of UV Object whose vertices are slightly pushed outward. Used to determine the projection direction.
+    Border Padding:
+        Additional pixels at the border of each UV island 
+    Baking Samples:
+        Number of Samples used for raytraced shading
+    Ray Bias:
+        Determine how much to offset the rays from the surface of the object along the normal vector. 
+    Ray Distance:
+        Maximum Distance to trace for nearby surfaces. -1 means infinite distance.
+
+    

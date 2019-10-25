@@ -1,0 +1,43 @@
+= GameDev Straighten =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_straighten
+#icon: 
+#tags: tech, model, photogrammetry, cleanup
+
+""" Orients a mesh based on UP and FRONT groups """
+
+During photogrammetry workflows it is common to be faced with a mesh that is oriented arbitrarily. 
+
+Traditionally the best way of dealing with that is with a transform node and manually orienting the mesh and visually ensuring that it is oriented properly. 
+
+The Straighten SOP aims to assist in that workflow by letting the user define a group of polygons that are facing up, and an optional group of polygons facing forward. 
+
+The node will then figure out all of the appropriate rotations, in order for the *average of the normals* of the up group be facing up, and the same for the front group. 
+
+TIP: 
+	Selecting different disconnected areas that have similar normals helps with the orientation
+
+:col:
+	[Image:/images/straighten_before.png]
+	
+	Mesh before straightening 
+
+:col:
+	[Image:/images/straighten_after.png]
+	
+	Mesh after straightening
+
+@parameters
+    Group Type:
+        Type of Primitive for the group, Primitive, Edge or Point
+    Up Group:
+        Group Name or Geometry Selection that defines what UP means in this mesh
+    Invert Up Axis:
+        Toggle to orients the mesh towards -Y instead of +Y 
+    Align Forward:
+        Toggle to additionally orient the mesh forward as well as up. Controls the Y rotation of the mesh
+    Forward Group:
+        Group Name or Geometry Selection that defines what FORWARD means in this mesh
+    

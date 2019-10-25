@@ -1,0 +1,47 @@
+= GameDev Voxel Mesh =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_voxelmesh
+#icon: voxel_mesh_alt
+#tags: tech, model, gamedev, voxel, photogrammetry
+
+""" Convert a Polygon Mesh into a Volume and back into Polygons """
+
+A very common node chain is [VDB From Polygons|Node:sop/vdbfrompolygons], followed immediately by a  [Convert VDB|Node:sop/convertvdb]
+
+This converts your mesh into a Volume and then back to a Mesh. It has a positive side effects. It can close small holes in the mesh, give you new even topology and remove interior geometry. 
+
+VoxelMesh is often used to sanitize photogrammetry data, as it will often fix small imperfections on the mesh. 
+
+
+NOTE: 
+    UVs are generally destroyed while going through the VDB roundtrip. If you would like to transfer UVs from the original mesh back onto the Voxelized, take a look at the [UV Transfer Node|Node:gamedev--sop_uv_transfer.txt]
+
+
+@parameters
+    Resolution Preset:
+        Helpful Presets for the Resolution, instead dealing with numbers, use some good presets for Low, Medium and High Quality 
+        [Image:/images/voxelmesh_presets.png]
+    Resolution:
+        If Resolution Preset is set to Custom, this will let you explicitly control the Voxel Resolution 
+    Bounding Box Relative:
+        Do the Voxel Calculations as if the mesh was 1 unit large. 
+    Adaptivity:
+        Controls how even the topology of the resulting mesh is. High Adaptivity values mean concentration around areas of high curvature, low curvature means even distribution of polygons
+        [Image:/images/voxelmesh_adaptivity.png]
+    Dilate/Erode:
+        Voxels have an great ability of growing and shrinking, which can be used for better eroding and growing the mesh. It is similar to the Peak SOP but doesn't generate bad geometry when geometry crashed into itself.
+    Smooth Iterations:
+        A common trick is to smooth after dilation steps, which removes small problem areas on the mesh. 
+    Project to Original:
+        Optionally Ray the resulting mesh back onto the original 
+    Post Smooth Iterations:
+        The Projection step can generate some undesirably overlapping polygons, this step can relax some of those polygons
+    Sharpen Features:
+		Geometry tends to soften when being voxelized, because some features might sit in between voxels. This strengthens the features and is helpful on hard surfaces.
+        [Image:/images/voxelmesh_sharpenfeatures.png]
+    Edge Tolerance:
+        Tolerance for what edges to consider for the Sharpen Features toggle. 
+
+    

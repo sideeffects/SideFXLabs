@@ -14,16 +14,23 @@ half _Shininess;
 
 //--------------------------------------
 // Declare shader properties
-uniform float _boundingMax;
-uniform float _boundingMin;
+uniform float _posMax;
+uniform float _posMin;
 uniform int _numOfFrames;
-// uniform int _pack_normal;
+uniform int _pack_normal;
 uniform float _speed;
-
+uniform int _doubleTex;
+uniform int _padPowTwo;
+uniform float _textureSizeX;
+uniform float _textureSizeY;
+uniform float _paddedSizeX;
+uniform float _paddedSizeY;
 CBUFFER_END
 
 TEXTURE2D(_posTex);
 SAMPLER(sampler_posTex);
+TEXTURE2D(_posTex2);
+SAMPLER(sampler_posTex2);
 TEXTURE2D(_nTex);
 SAMPLER(sampler_nTex);
 TEXTURE2D(_colorTex);
@@ -37,39 +44,58 @@ struct VATAttributes
     float4 colorVAT;
 };
 
-VATAttributes GetAttributesFromTexture(TEXTURE2D_PARAM(_posTex, samplerPosTex), 
-    TEXTURE2D_PARAM(_nTex, samplerNTex), TEXTURE2D_PARAM(_colorTex, samplerColorTex), 
-    float4 uv, float4 uv2, float4 vertexCd, float4 vertexPos, float3 vertexN)
+VATAttributes GetAttributesFromTexture(TEXTURE2D_PARAM(_posTex, samplerPosTex),
+    TEXTURE2D_PARAM(_posTex2, samplerPosTex2), TEXTURE2D_PARAM(_nTex, samplerNTex), 
+    TEXTURE2D_PARAM(_colorTex, samplerColorTex), float4 uv, float4 uv2, float4 vertexCd, 
+    float4 vertexPos, float3 vertexN)
 {
     VATAttributes output;
     //calculate uv coordinates
     float FPS = 24.0;
     float FPS_div_Frames = FPS / _numOfFrames;
     //Use the line below if you want to use time to animate the object
-    float timeInFrames = frac(FPS_div_Frames * _speed * _Time.y);
+    float timeInFrames = frac(_speed * _Time.y);
     //The line below is particle age to drive the animation. Comment it out if you want to use time above.
     // timeInFrames = uv.z;
 
     timeInFrames = ceil(timeInFrames * _numOfFrames);
     timeInFrames /= _numOfFrames;
+
+    float x_ratio = _textureSizeX/_paddedSizeX;
+    float y_ratio = _textureSizeY/_paddedSizeY;
+    float uv2y = 0;
+    float uv2x = 0;
+    if (_padPowTwo) {
+        uv2x = uv2.x * x_ratio;
+        uv2y = (1 - (timeInFrames * y_ratio)) + (1 - ((1 - uv2.y) * y_ratio));
+    }
+    else {
+        uv2y = (1 - timeInFrames) + uv2.y;
+        uv2x = uv2.x;
+    }
     //get position, normal and colour from textures
     float4 texturePos = SAMPLE_TEXTURE2D_LOD(_posTex, samplerPosTex,
-        float2(uv2.x, (1 - timeInFrames) + uv2.y),0);
+        float2(uv2x, uv2y),0);
     float3 textureN = SAMPLE_TEXTURE2D_LOD(_nTex, samplerNTex,
-        float2(uv2.x, (1 - timeInFrames) + uv2.y),0);
+        float2(uv2x, uv2y),0);
     float4 textureCd = SAMPLE_TEXTURE2D_LOD(_colorTex, samplerColorTex,
-        float2(uv2.x, (1 - timeInFrames) + uv2.y),0);
+        float2(uv2x, uv2y),0);
+    if (_doubleTex){
+        float3 texturePos2 = SAMPLE_TEXTURE2D_LOD(_posTex2, samplerPosTex2,
+        float2(uv2x, uv2y),0);
+        texturePos.xyz += (texturePos2 * 0.01);
+    }
 
     //expand normalised position texture values to world space
-    float expand = _boundingMax - _boundingMin;
+    float expand = _posMax - _posMin;
     texturePos.xyz *= expand;
-    texturePos.xyz += _boundingMin;
-    texturePos.x *= -1;  //flipped to account for right-handedness of unity
-    output.positionVAT = texturePos.xzy;  //swizzle y and z because textures are exported with z-up
+    texturePos.xyz += _posMin;
+    // texturePos.x *= -1;  //flipped to account for right-handedness of unity
+    output.positionVAT = texturePos.xyz;  //swizzle y and z because textures are exported with z-up
 
     //calculate normal
     //packed normals aren't working and I don't know why
-    if (0){ 
+    if (_pack_normal){ 
         //decode float to float2
         float alpha = texturePos.w * 1024;
         // alpha = 0.8286 * 1024;
@@ -95,10 +121,10 @@ VATAttributes GetAttributesFromTexture(TEXTURE2D_PARAM(_posTex, samplerPosTex),
         // output.colorVAT = float4(fitTexturePos, 1.0 - fitTexturePos, 0.0, 1.0);
         output.colorVAT = float4(f3.x, 0.0, 0.0, 1.0);
     } else {
-        textureN = textureN.xzy;
+        // textureN = textureN.xzy;
         textureN *= 2;
         textureN -= 1;
-        textureN.x *= -1;
+        // textureN.x *= -1;
         output.normalVAT = textureN;
     }
 

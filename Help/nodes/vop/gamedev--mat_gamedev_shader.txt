@@ -1,0 +1,109 @@
+= GameDev PBR Shader =
+
+#type: node
+#context: sop
+#internal: gamedev::mat_gamedev_shader
+#icon: VOP/pbrmetallic
+#tags: tech, model, gamedev
+
+""" Physically Based Viewport Shader """
+
+This shader was developed as the precursor for the new High Quality Lighting shader in Houdini 17.5 a lot of the calculations are the same with a few differences
+
+* Ambient Occlusion Map Support 
+* Realtime Environment Cube Map Blurring 
+
+
+@parameters
+    == Surface ==
+    
+    === Albedo ===
+    Base Color:
+        Basic Tint on the Albedo, defaults to .8 to avoid pure whites. 
+    Use Texture:
+        Enable AO Map
+    Texture:
+        Albedo Map
+    === Roughness ===
+    IOR:
+        Index of Refraction, similar to the base PBR value of 0.04. High Values refract more light
+        
+        Note:
+            Formula used to convert ior to spec is 
+            
+            `pow((ior-1)/(ior+1),2)`
+            
+    Roughness:
+        Multiplier over the roughness texture 
+    Horizon Smoothing:
+        Fade the lighting at steep glancing angles in order to reduce light bleeding (Not reflected in Mantra)
+    Invert Roughness:
+        Inverts the roughness so it behaves like Gloss (Not reflected in Mantra Shader)
+    Use Texture:
+        Enable Roughness Map
+    Texture:
+        Roughness Map
+    Channel:
+        Which channel from the texture to use as roughness. Helpful if you have packed textures. 
+        
+    === Metallic ===
+    Metallic:
+        1 means fully metallic, 0 means dialetric. Generally speaking in between values shouldn't exist in the real world. 
+    Use Texture:
+        Enable Metallic Map
+    Texture:
+        Metallic Map
+    Channel:
+        Which channel from the texture to use as metallic. Helpful if you have packed textures. 
+      
+        
+    === Normal ===
+    Enable:
+        Enable Normal Mapping
+    Texture Path:
+        Path for the Normal Map Texture 
+    Effect Scale:
+        Strength Multiplier
+    Flip X:
+        Invert the Red Channel 
+    Flip Y:
+        Invert the Green Channel 
+    Use Model's Tangent :
+        Use the Model's TangentU Attribute for MikkT Calculations 
+        
+    === Occlusion ===
+    Occlusion:
+        Controls the intensity of the AO map
+    Use Texture:
+        Enable Ambient Occlusion Map
+    Texture:
+        Ambient Occlusion Map
+    Channel:
+        Which channel from the texture to use as Ambient Occlusion. Helpful if you have packed textures.        
+        
+    === Emissive ===
+    Emission Intensity:
+        How Strong is the emissive(glowing) parts 
+    Emission Color:
+        The color of the glow
+    Use Texture:
+        Enable Emissive Map
+    Texture:
+        Emissive Multiplier (Mask w/ Color)      
+        
+    === Transparency ===
+    Transparency:
+        Toggle alpha (transparency) 
+        
+    == Advanced ==
+    Importance Sampled Ambient:
+        Use a fancier way of sampling the diffuse information from Environment Lights
+    Number of Diffuse Samples:
+        Number of Samples of the Environment Light during diffuse calculations
+    Importance Sampled Reflections:
+        Realtime blurring of the cubemap based on the roughness of the object
+    Number of Specular Samples:
+        Number of Samples of the Environment Light during specular calculations
+    Shade Both Sides As Front:
+        Reverses the backsides to ensure they are shaded like the front
+    

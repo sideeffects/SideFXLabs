@@ -1,0 +1,383 @@
+# Dialog script for gamedev::procedural_smoke automatically generated
+
+{
+    name	gamedev::procedural_smoke
+    script	gamedev::procedural_smoke
+    label	"Gamedev Procedural Smoke"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "size"
+        label   "Size"
+        type    vector
+        size    3
+        default { "5" "5" "1" }
+        range   { -1 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "t"
+        label   "Center"
+        type    vector
+        size    3
+        default { "0" "0" "0" }
+        range   { -1 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "particlesep"
+        label   "Point Separation"
+        type    float
+        default { "0.1" }
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "densityboost"
+        label   "Density Boost"
+        type    float
+        default { "3.5" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "pointpreview"
+        label   "Preview"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "basenoisetab"
+        label   "Base Noise"
+
+        groupsimple {
+            name    "folder0"
+            label   "Base Noise 1"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "pulseduration"
+                label   "Pulse Duration"
+                type    float
+                default { "6" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "elementsize"
+                label   "Element Size"
+                type    float
+                default { "1.2" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "elementscale"
+                label   "Element Scale"
+                type    vector
+                size    3
+                default { "1" "1.4" "1" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "bn1horizontalspeed"
+                label   "Horizontal Speed"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "bn1verticalspeed"
+                label   "Vertical Speed"
+                type    float
+                default { "1" }
+                disablewhen "{ bn1oscillate == 1 }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "bn1oscillate"
+                label   "Oscillate"
+                type    toggle
+                default { "1" }
+            }
+            parm {
+                name    "bn1oscillateamplitude"
+                label   "Amplitude"
+                type    float
+                default { "0.5" }
+                disablewhen "{ bn1oscillate == 0 }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "bn1oscillatespeed"
+                label   "Speed"
+                type    float
+                default { "1.25" }
+                disablewhen "{ bn1oscillate == 0 }"
+                range   { 0 10 }
+            }
+        }
+
+        groupsimple {
+            name    "folder1"
+            label   "Base Noise 2"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "pulseduration2"
+                label   "Pulse Duration"
+                type    float
+                default { "3" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "elementsize2"
+                label   "Element Size"
+                type    float
+                default { "1.2" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "elementscale2"
+                label   "Element Scale"
+                type    vector
+                size    3
+                default { "1" "1.4" "1" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "bn2horizontalspeed"
+                label   "Horizontal Speed"
+                type    float
+                default { "1.25" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "bn2verticalspeed"
+                label   "Vertical Speed"
+                type    float
+                default { "1" }
+                disablewhen "{ bn2oscillate == 1 }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "bn2oscillate"
+                label   "Oscillate"
+                type    toggle
+                default { "1" }
+            }
+            parm {
+                name    "bn2oscillateamplitude"
+                label   "Amplitude"
+                type    float
+                default { "0.5" }
+                disablewhen "{ bn2oscillate == 0 }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "bn2oscillatespeed"
+                label   "Speed"
+                type    float
+                default { "1.25" }
+                disablewhen "{ bn2oscillate == 0 }"
+                range   { 0 10 }
+            }
+        }
+
+    }
+
+    group {
+        name    "basenoisetab_1"
+        label   "Detail"
+
+        parm {
+            name    "detailenable"
+            label   "Add Detail"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "type"
+            label   "Noise Type"
+            type    string
+            default { "anoise" }
+            menu {
+                "pnoise"        "Perlin Noise"
+                "onoise"        "Original Perlin Noise"
+                "snoise"        "Sparse Convolution Noise"
+                "anoise"        "Alligator Noise"
+                "xnoise"        "Simplex Noise"
+                "correctnoise"  "Zero Centered Perlin Noise"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "freq"
+            label   "Frequency"
+            type    float
+            size    3
+            default { "3" "3" "3" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "amp"
+            label   "Amplitude"
+            type    float
+            default { "1" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "rough"
+            label   "Roughness"
+            type    float
+            default { "0.5" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "turb"
+            label   "Turbulence"
+            type    integer
+            default { "3" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "ramp"
+            label   "ramp"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "ramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( linear ) 2pos ( 0.10301507264375687 ) 2value ( 1 ) 2interp ( linear ) 3pos ( 0.36432161927223206 ) 3value ( 0 ) 3interp ( linear ) 4pos ( 0.99623113870620728 ) 4value ( 0 ) 4interp ( linear )" }
+            parmtag { "rampkeys_var" "ramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "1" }
+            parmtag { "rampvalues_var" "ramp_the_key_values" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "horizontalspeed"
+            label   "Horizontal Speed"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "verticalspeed"
+            label   "Vertical Speed"
+            type    float
+            default { "4" }
+            disablewhen "{ oscillate == 1 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "oscillate"
+            label   "Oscillate"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "oscillateamplitude"
+            label   "Oscillate Amplitude"
+            type    float
+            default { "0.35" }
+            disablewhen "{ oscillate == 0 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "oscillatespeed"
+            label   "Oscillate Speed"
+            type    float
+            default { "4" }
+            disablewhen "{ oscillate == 0 }"
+            range   { 0 10 }
+        }
+    }
+
+    group {
+        name    "basenoisetab_2"
+        label   "Falloff"
+
+        parm {
+            name    "falloffenable"
+            label   "Enable Falloff"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "x_ramp"
+            label   "x_ramp"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "x_ramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( catmull-rom ) 2pos ( 0.20351758599281311 ) 2value ( 1 ) 2interp ( linear ) 3pos ( 0.80150753259658813 ) 3value ( 1 ) 3interp ( catmull-rom ) 4pos ( 1 ) 4value ( 0 ) 4interp ( linear )" }
+            parmtag { "rampkeys_var" "x_ramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "1" }
+            parmtag { "rampvalues_var" "x_ramp_the_key_values" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "y_ramp"
+            label   "y_ramp"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "y_ramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( catmull-rom ) 2pos ( 0.19849246740341187 ) 2value ( 1 ) 2interp ( linear ) 3pos ( 0.7964823842048645 ) 3value ( 1 ) 3interp ( catmull-rom ) 4pos ( 1 ) 4value ( 0 ) 4interp ( linear )" }
+            parmtag { "rampkeys_var" "y_ramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "1" }
+            parmtag { "rampvalues_var" "y_ramp_the_key_values" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "z_ramp"
+            label   "z_ramp"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "z_ramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( catmull-rom ) 2pos ( 0.17964823544025421 ) 2value ( 1 ) 2interp ( linear ) 3pos ( 0.82914572954177856 ) 3value ( 1 ) 3interp ( catmull-rom ) 4pos ( 1 ) 4value ( 0 ) 4interp ( linear )" }
+            parmtag { "rampkeys_var" "z_ramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "1" }
+            parmtag { "rampvalues_var" "z_ramp_the_key_values" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+    }
+
+}

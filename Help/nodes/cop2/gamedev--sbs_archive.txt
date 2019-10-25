@@ -1,0 +1,85 @@
+= Substance Archive (BETA) =
+
+#type: node
+#context: cop2
+#internal: sbs_archive
+#icon: sbs_archive
+#tags: tech, 3rdparty, cop
+
+""" Load Substance Archive (SBSAR) Files into COPs """
+
+== Instructions: ==
+
+=== Loading a Substance File ===
+
+Loading a Substance File is as easy as entering the path to your SBAR file into the File Path Parameter. 
+
+:note:
+	This plugin works with Substance Archive Files, not Substance Files. Archive files can be generated from Substance Designer as [Publishing the Substance|https://docs.substance3d.com/sddoc/publish-a-substance-102400072.html]
+
+Once a Substance has been loaded, parameters will be populated dynamically based on the graph. 
+
+[Image:/images/substance_cop_loading.png]
+
+=== Viewing the Outputs ===
+
+The Substance Archive node will generate a new image plane per Output in Substance. 
+
+The easiest way to visualize this is by clicking the image plane dropdown in the Composite View Tab. 
+
+[Image:/images/substance_cop_image_planes.png]
+
+
+=== Loading Inputs into the Substance File ===
+
+Despite the COP node only having one input, we do support multiple substance inputs. Those come in as different image planes in the input node. 
+
+By Default they are name matched, so an input looking for *roughness* will look for an image plane of the same name in the input node. 
+
+Parameters for inputs are exposed and you can override which image plane you want to go into what input. 
+[Image:/images/substance_cop_input_channels.png]
+
+To have 2 File nodes come in properly into a Substance, you will need to use the [Rename COP|Node:cop2/rename]
+
+ node to change the C image plane to the appropriate name and merge the nodes together. 
+
+:note: 
+	You might also need to gamma correct your inputs with the gamma node. 
+
+Below is the image of a sample network where 2 files are being read from disk, renamed, gamma'd and sent to the Substance Node. 
+[Image:/images/substance_cop_input_network.png]
+
+
+=== Working with Substance Files with Multiple Graphs ===
+
+In the case of multiple graphs inside of a single SBAR file, a new graph parameter will show up. Allowing you to choose which graph you'd like to work with. 
+
+[Image:/images/substance_cop_multigraph.png]
+
+
+=== Hooking Substances into other parts of Houdini ===
+
+To use the contents of a Substance Node in other parts of Houdini, you can make use of the [Op Syntax|/io/op_syntax]
+
+:note:
+	The `{channel_name}` syntax does not work with Mantra. To use channels with Mantra you will need to use the [Rename COP|Node:cop2/rename] and rename your target channel to C and do the [Op Syntax|/io/op_syntax] to the rename node. 
+
+== Known Issues ==
+
+	* Animated Inputs Images are not supported
+	* *Visible If* Parameter Expressions for Outputs are not supported
+	* Windows Only during Beta
+	
+ 
+   
+@parameters
+    File Path:
+        The path for your SBSAR file
+    Reload:
+		Reloads the current SBSAR File
+	Size:
+        Override the output size of the SBSAR
+    Substance Parameters:
+        This area will populate dynamically based on the parameters in your Substance Graph. 
+    Name Image Plane from Usage:
+        Uses the Usage type as the name of the Image planes, instead of using the Labels. This is useful if you are hooking your substances into a material, and don't care about what the graph output was named, just what channel it should link to. 

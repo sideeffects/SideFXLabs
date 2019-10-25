@@ -1,0 +1,45 @@
+= GameDev Snow Buildup =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_snow_buildup
+#icon: snow_buildup
+#tags: tech, model, gamedev
+
+""" Adds geometry to an input mesh that mimics snow buildup """
+
+This is a sample node for a common Houdini use case, modify at will to fit your needs. 
+
+One of the classic Houdini problems is to generate Snow Caps over objects. But there was no built in solution for this until now. 
+
+This works by scattering points on up facing polygons of the incoming mesh, copying some spheres onto those points and then voxelizing and smoothing the result. 
+
+This was original designed and used on our GDC 2019 Unity demo and subsequently released to the public. 
+
+[Image:/images/snow_buildup.png]
+
+@parameters
+    == Scattering Options ==
+    Spread Angle:
+        How far the snow will wrap around the object. 180 means full hemisphere, 0 means only surfaces perfectly facing up. 
+    Number of Snow Points:
+        How many snow drops to generate on the surface 
+    Point Size (Min/Max):
+        Size range on each snow drop, which turns into a sphere. 
+    == Meshing Options ==
+    Smooth Iterations:
+        Blur the snow volume 
+    Dilate/Erode:
+        Grow or Shrink the snow volume
+    Blurring Iterations:
+        Blur the final generated snow mesh 
+    Color:
+        Vertex Colors on the output mesh
+    == Clean Up ==
+    Reduce to # Polys:
+        Limit the snow mesh to this polycount
+    Boolean Against Original:
+        Remove faces that are inside the interior mesh by boolean the 2 meshes together
+    Keep Original:
+        Output the original input mesh merged in as well 
+    

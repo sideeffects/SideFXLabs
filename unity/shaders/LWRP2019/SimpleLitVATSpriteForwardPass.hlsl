@@ -88,9 +88,10 @@ Varyings LitPassVertexSimple(Attributes input)
     UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
 
     //Fetch vertex position from pos and rot VAT textures
-    VATAttributes outputVAT = GetAttributesFromTexture(TEXTURE2D_ARGS(_posTex, sampler_posTex), 
-                    TEXTURE2D_ARGS(_nTex, sampler_nTex), TEXTURE2D_ARGS(_colorTex, sampler_colorTex),
-                    input.texcoord, input.texcoord1, input.color, input.positionOS, input.normalOS);
+    VATAttributes outputVAT = GetAttributesFromTexture(TEXTURE2D_ARGS(_posTex, sampler_posTex),
+                    TEXTURE2D_ARGS(_posTex2, sampler_posTex2), TEXTURE2D_ARGS(_nTex, sampler_nTex), 
+                    TEXTURE2D_ARGS(_colorTex, sampler_colorTex), input.texcoord, input.texcoord1, 
+                    input.color, input.positionOS, input.normalOS);
 
     VertexPositionInputs vertexInput = GetVertexPositionInputs(outputVAT.positionVAT.xyz);
     // VertexNormalInputs normalInput = GetVertexNormalInputs(input.normalOS, input.tangentOS);

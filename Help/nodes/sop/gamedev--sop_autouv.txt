@@ -1,0 +1,78 @@
+= GameDev Auto UV  =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_autouv
+#icon: auto_uv_circle
+#tags: tech, model, gamedev
+
+""" Automatically Generates UV Attributes """
+
+One of our top nodes in our toolsset. 
+
+Several different methods for automatically generating UVs on input meshes. 
+
+
+@parameters
+    == Method ==
+    UV Attribute:
+        Name of the output attribute
+    Method:
+        Algorithm used to generate the UVs
+        
+    === Shortest Path ===
+    The Shortest Path method, will identify areas of high curvature on a mesh and then draw shortest paths between those points. 
+    
+    Collapse Distance:
+        Fuse Threshold in case paths are too close together
+    Number of Paths:
+        Number of high curvature points to use as path points
+    Convex Multiplier:
+        Attract the seams based on high convexity (helpful for hard surface models) 
+    Occlusion Multiplier:
+        Attract the seams based on Ambient Occlusion (helpful for organic models)
+        
+    === Cluster ===    
+    Clusters primitives based on position and normal attributes to generate islands  
+    
+    Number of Clusters:
+        Number of Islands to be generated
+    Normal Blur:
+        Blur the Normals a bit when considering which normals are close together (will merge islands together)
+    Random Seed:
+        Randomly change the clustering
+        
+    === UV Unwrap ===   
+    Use the build in UV Unwrap node. While usually not the best solution, this combined with Merge Small Islands is generally one of the best solutions. 
+    
+    Planes:
+        Number of Projection Planes. 
+        
+    === UV AutoSeam ===   
+    Use the new [UV Autoseam|Node:sop/uvautoseam] node  
+    
+    Grain Tolerance:
+        When Splitting is "Curvature based", controls how sensitive grains are to changes in normal direction across surfaces. A value of zero is very sensitive and produces tiny grains. Larger values up to 1 are less sensitive and produce larger grains.
+    Merge Threshold:
+        Controls how often smaller grains merge to become larger islands. 0 never merges (giving the initial grains as output), 1 merges all connected grains together (giving no seams in the output). You can tweak this control, centering around 0.5, to get more or fewer seams.
+        
+        
+    == Packing Options ==
+    Merge Small Islands:
+        Consolidates Small UV Islands into Larger Neighbors
+    Small Island CutOff:
+        Size threshold of the islands that will be merged back into larger pieces
+    Optimize UV Border:
+        Attempts to cleanup triangles that are sticking to the side of the UV island. May cause small islands to reappear
+    Flattening Method:
+        Defines how to flatten the Islands. 
+    Orientation Mode:
+        How to rotate the islands when packing 
+    Packing Iterations:
+        How many times to attempt fitting the islands together 
+    Island Padding:
+        How many pixels to pad the islands by 
+    Padding Resolution:
+        Reference Resolution for Island Padding
+
+    

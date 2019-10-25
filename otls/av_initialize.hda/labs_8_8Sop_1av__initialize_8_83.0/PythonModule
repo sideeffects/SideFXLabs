@@ -1,0 +1,79 @@
+from PySide2.QtWidgets import *
+import subprocess, os, hou
+
+def add_images(node):
+    files = QFileDialog.getOpenFileNames(
+                        None,
+                        "Select one or more files to open",
+                        "",
+                        "Images (*.png *.xpm *.jpg *.cr2 *.bmp *.gif *.ico *.jpeg *.tif *.tiff *.dng *.wmphoto *.dds *.raw)");
+    
+    if not len(files[0]):
+        return 
+        
+    parm = node.parm("src_img")
+    length = parm.evalAsInt()
+    for i in range(length):
+        parm.removeMultiParmInstance(0)
+    
+    for i, filename in enumerate(files[0]):
+        parm.insertMultiParmInstance(i)
+        instance = parm.multiParmInstances()[i]
+        instance.set(filename)
+
+def log(cmd, cache, folder, node):
+
+    Log = hou.pwd().parent().parm("bExportLog").evalAsInt()
+
+    with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
+        if Log:
+            print("--------")
+            print(node.name())
+
+        logfile = open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a')
+        errorlogfile = open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'a')
+
+        StartupInfo = None
+        if os.name == 'nt':
+            StartupInfo = subprocess.STARTUPINFO()
+            subprocess.STARTF_USESHOWWINDOW = 1
+            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo)
+
+        # Process is still running
+        while Process.poll() == None:
+            try:
+                Operation.updateProgress(0.0)
+            # User interrupted
+            except hou.OperationInterrupted:
+                Process.kill()
+
+        # Close log file, because Process has ended
+        logfile.close()
+        errorlogfile.close()
+
+        with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'r') as myfile:
+            data = myfile.read()
+            if len(data) > 0:
+                hou.ui.displayMessage(data, buttons=('OK',), severity=hou.severityType.Error, title="%s AliceVision Processing Failed!" % node.name())
+            else:
+                myfile.close()
+                os.remove(os.path.join(cache, folder, node.name()+"_errorlog.txt"))
+
+        if Log:
+            print(node.name() + " completed")
+        
+    
+def cookNode(node):
+    node.node("Atrribute_Creation").cook(force=True)
+    node.node("error1").cook(force=True)
+    node.node("File_Setup").cook(force=True)
+
+    avnodes = ["01_Camera_Init"]
+    for process in avnodes:
+            try:
+                node.node(process).cook(force=True)
+            except:
+                hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
+                return

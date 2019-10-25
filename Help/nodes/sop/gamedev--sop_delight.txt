@@ -1,0 +1,71 @@
+= GameDev Delight =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_delight
+#icon: VIEW/lighting_none
+#tags: tech, model
+
+""" Remove light and shadow variation from photogrammetry textures."""
+
+:video:
+    #src:/movies/delight.mp4
+
+
+When textures are generated from photogrammetry, they will have lighting information from the source photos baked into them. This can make those textures difficult to use in other environments. 
+
+The Delight HDA can remove a lot of the light and shadow variation from textures, ideal for PBR materials in games and offline rendering.
+
+
+== Using Delight ==
+                    
+# Ensure the photogrammetry textures are stored as @Cd of the mesh, an attribute from map sop is ideal for this. A subdivide sop might be required to ensure there's enough points to capture all the detail visible in the texture.
+            
+# Append a Delight SOP.
+            
+# Enable the 'Visualise Lighting' toggle, disable 'AO Brightening'.
+
+# Turn 'Blurring Iterations' to 0.
+
+# Set 'Number of Samples' to a number that captures the overall lighting information. This result can be blotchier than expected as it will be blurred in the next step.
+
+# Turn 'Blurring iterations' up to blend the samples together into a smooth result.
+
+# Disable 'Visualise lighting', see that most of the average lighting information has been removed, but crevices and ground contact are still too dark.
+
+# Enable 'AO Brightening'.
+
+# Set the AO sliders to their defaults (Strength 1, Blend Strength 0.75, Tint 0.75). Occluded areas will be masked and 'lifted', better blending them with unoccluded areas.
+
+# Adjust the sliders to better blend the occluded regions with their neighbours.
+
+# The delit textures can be converted back into images using the Gamedev Map Baker HDA.
+        
+NOTE:
+    Delight works best with footage captured with diffused lighting, like an overcast day. 
+    Sharp shadows from clear sunlight or small light sources can be minimised, but will probably require further touch up when baked into texture maps.
+
+NOTE:
+    Photogrammetry models with large amounts of uv islands may get artifacts along the uv seams when using attribute from map.
+    A Vertex Split Sop set to split on uv can minimise these seams.
+    
+
+
+@parameters
+    Number of Samples:
+        Density of samples over surface. Higher sample numbers generate more accurate results, at a cost of computation time. 50 is a resonable starting number.
+    Blurring Iterations:
+        How much to blur the sample colours. At low values the sample regions will be visible as patches. At high values the samples will be overblurred, missing lighting detail. Ideally aim for enough blur to blend the sample patches together. Enabling 'visualize lighting' can help to see how much the patches are being blurred together.
+    AO Brightening:
+        Toggle to enable the brightening of crevices and overhangs via interted ambient occlusion.
+    AO Strength:
+        How much to brighten occluded areas. Aim to make crevices blend in with unoccluded neighbouring areas. Values which are too low will appear shadowed, values which are too high will make crevices glow.
+    AO Blend Strength:
+        An additional mixing control to blend the edges of the AO regions.
+    AO Tint:
+        Amount to increase the brightness of the AO regions, adjust this until the dark crevices blend into their neighbours.
+    Visualize Lighting:
+        Display the blurred and extracted lighting result only. Useful for debugging to determine if the amount of samples is appropriate, and if the sample blurring iterations is working as expected.
+    Lighting Exposure:
+        Multiplier for the lighting visualizer if it is too overexposed or underexposed in the viewport.
+    

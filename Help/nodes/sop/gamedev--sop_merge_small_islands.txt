@@ -1,0 +1,40 @@
+= GameDev Merge Small Islands =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_merge_small_islands
+#icon: merge_small_islands
+#tags: tech, model, uv, gamedev
+
+""" Consolidates Small UV Islands into Larger Neighbors """
+
+[UV Unwrap|Node:sop/uvunwrap] is a great way of getting automatic UVs on your models, but tends to generate a lot of small disconnected islands in the process. 
+
+This SOP aims to combat those small islands, and iteratively merge them back up to the closest largest neighboring island.
+
+:col:
+	[Image:/images/merge_small_islands_before.png]
+	Before Merge
+:col:
+	[Image:/images/merge_small_islands_after.png]
+	After Merge
+
+@parameters
+    UV Attribute:
+        UV attribute to operate on
+    Initial Fuse Dist:
+        There is a built in intial Fuse Node to ensure good island connectivity, this is the distance threshold for that operation. 
+    Cutoff:
+        Size threshold of the islands that will be merged back into larger pieces
+    Flattening Method:
+        Method for reflattening the islands based on the new seams
+    Iterations:
+        Attempts at merging the islands together. Higher values produce smoother results
+    Optimize UV Border:
+        Attempts to cleanup triangles that are sticking to the side of the UV island. May cause small islands to reappear
+	:col:
+		[Image:/images/merge_small_islands_optimize_border_before.png]
+		Optimize Off 
+	:col:
+		[Image:/images/merge_small_islands_optimize_border_after.png]
+		Optimize On 

@@ -1,0 +1,209 @@
+import xml.etree.ElementTree as ET
+import subprocess, os
+
+
+def ValidateGaeaInstalled(a_dir):
+    if os.path.isdir(a_dir):
+        if os.path.isfile(os.path.join(a_dir, "Gaea.Build.exe").replace("\\", "/")):
+            return
+    raise hou.Error("Cannot Find Gaea at specified location")
+
+# This is the main function to process a Gaea Graph inside of Houdini
+def ProcessTor(a_node):
+
+    # Start Collection of Command Line Arguments
+    gaea_dir = os.path.normpath(a_node.parm("gaea_exe").evalAsString()).replace("\\", "/")
+    ValidateGaeaInstalled(gaea_dir)
+    gaea_path = os.path.join(gaea_dir, "Gaea.Build.exe").replace("\\", "/")
+    automation_file = a_node.parm("automation_file").evalAsString().replace("\\", "/")
+
+    if automation_file == "":
+        raise hou.Error("Missing Automation Tor File.")
+
+    if a_node.parm("generated_gaeaparms") == None:
+        LoadXML(a_node)
+
+    # Export All Maps
+    a_node.node("Export_Layers").cook(force=True)
+    
+
+    # Get landscape resolution
+    resolution = 512 # default of 512
+    for prim in hou.node(a_node.path()+"/in").geometry().iterPrims():
+        if (prim.type() == hou.primType.Volume):
+            resolution = prim.resolution()[0]
+            break
+
+    cmd = ['"'+gaea_path+'"']
+    cmd.append('"'+automation_file+'"')
+    cmd.append("--silent")
+    cmd.append("--unclamped")
+    cmd.append("--resolution%s" % resolution)
+
+
+    # These are the From and To parameter folders. All parms found here will be used for dynamic maps export/import
+    ToGaeaParms = a_node.parmsInFolder(("Gaea Controls", "To Gaea"))
+    FromGaeaParms = a_node.parmsInFolder(("Gaea Controls", "From Gaea"))
+
+    # Dynamically Construct Command Line Arguments from parameter values
+    for parm in a_node.parmsInFolder(("Gaea Controls", )):
+        name = parm.name()
+        value = parm.eval()
+
+        # Check for Toggle
+        if parm.parmTemplate().type() == hou.parmTemplateType.Toggle:
+            value = "true" if value == 1 else "false"
+
+        # Generating a name for the maps saved FROM Houdini
+        if parm in ToGaeaParms:
+            value = '"'+os.path.join(a_node.parm("sTempDir").evalAsString(), "render_%s_%s.png" % (a_node.name(), value)).replace("\\", "/")+'"'
+            if parm.evalAsString() == "":
+                raise hou.NodeError('Missing "%s" input mapping in "To Gaea" parameter group.' % parm.description())
+
+        # Generating a name for the maps read FROM Gaea
+        if parm in FromGaeaParms:
+            value = '"'+os.path.join(a_node.parm("sTempDir").evalAsString(), "read_%s_%s.png" % (a_node.name(), value)).replace("\\", "/")+'"'
+            if parm.evalAsString() == "":
+                raise hou.NodeError('Missing "%s" input mapping in "From Gaea" parameter group.' % parm.description())
+
+        cmd.append("%s:%s" % (name, value))
+
+    # Run Gaea with the provided Tor file and parameter values
+    RunGaea(a_node, cmd, gaea_dir)
+    
+    # Forcing some node cooks
+    a_node.node("extract_inputmaps").cook(force=True)
+    a_node.node("reimport_maps_loop").cook(force=True)
+
+# Optional parameter callback. Not used
+def ParmCallback(a_node):
+    return
+
+# Run Gaea with specified command line arguments
+def RunGaea(a_node, cmd, gaea_dir):
+    hide_gaea_dialog = a_node.parm("hide_gaea_dialog").eval()
+    si = None
+    if os.name == 'nt':  
+        si = subprocess.STARTUPINFO()
+        if hide_gaea_dialog:
+            si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            
+    with hou.InterruptableOperation(a_node.name(), open_interrupt_dialog=True) as Operation:
+        Process = subprocess.Popen(" ".join(cmd), startupinfo=si, cwd=gaea_dir)
+        
+        # Process is still running
+        while Process.poll() == None:
+            try:
+                Operation.updateProgress(0.0)
+            # User interrupted
+            except hou.OperationInterrupted:
+                Process.kill()
+
+
+# Resets entire interface with Gaea Parms
+def ResetInterface(a_node):
+    ParmGroup = a_node.parmTemplateGroup()
+
+    if a_node.parm("generated_gaeaparms") != None:
+        for spareparm in ParmGroup.find("generated_gaeaparms").parmTemplates():
+            ParmGroup.remove(spareparm.name())
+        ParmGroup.remove("generated_gaeaparms")
+        a_node.setParmTemplateGroup(ParmGroup)
+    
+    LoadXML(a_node)
+
+
+# Extract an XML file from a .Tor file, and dynamically generate a parameter interface for it
+def LoadXML(a_node):
+
+
+    # Mandatory Stuff
+    gaea_dir = os.path.normpath(a_node.parm("gaea_exe").evalAsString()).replace("\\", "/")
+    ValidateGaeaInstalled(gaea_dir)
+    gaea_path = os.path.join(gaea_dir, "Gaea.Build.exe").replace("\\", "/")
+    automation_file = a_node.parm("automation_file").evalAsString().replace("\\", "/")
+
+    if not os.path.isfile(os.path.abspath("".join(automation_file))):
+        return
+
+    cmd = ['"'+gaea_path+'"']
+    cmd.append('"'+automation_file+'"')
+    cmd.append("--nodemap")
+    cmd.append("--silent")
+
+    # Extract XML parm File
+    RunGaea(a_node, cmd, gaea_dir)
+
+    if not os.path.isfile(os.path.abspath("".join(automation_file.split(".")[:-1])+".xml")):
+        return
+
+    XMLTree = ET.parse(os.path.abspath("".join(automation_file.split(".")[:-1])+".xml"))
+    XMLRoot = XMLTree.getroot()
+    ParmGroup = a_node.parmTemplateGroup()
+    FolderGroup = a_node.parm("generated_gaeaparms")
+
+    if FolderGroup == None:
+        FolderGroup = hou.FolderParmTemplate("generated_gaeaparms", "Gaea Controls", folder_type=hou.folderType.Simple, ends_tab_group=True)
+        ParmGroup.insertAfter(ParmGroup.findIndices("sepparm"), FolderGroup)
+
+        HoudiniOutputFolder = hou.FolderParmTemplate("generated_houdinioutputfolder", "To Gaea", folder_type=hou.folderType.Simple, ends_tab_group=True)
+        ParmGroup.appendToFolder(ParmGroup.find("generated_gaeaparms"), HoudiniOutputFolder)
+
+        HoudiniInputFolder = hou.FolderParmTemplate("generated_houdiniinputfolder", "From Gaea", folder_type=hou.folderType.Simple, ends_tab_group=True)
+        ParmGroup.appendToFolder(ParmGroup.find("generated_gaeaparms"), HoudiniInputFolder)# (ParmGroup.findIndices("sepparm"), HoudiniOutputFolder)
+
+
+    # CREATE SIMPLE FOLDER FOR PARMS IN AND OUT (But out = in, and in = out)
+
+
+    for x, item in enumerate(XMLRoot):
+        if item.tag == "Parameter":
+            LineEntry = item.attrib
+            
+            name = LineEntry['Variable']
+            label = LineEntry['Name']
+            type = LineEntry['Type']
+            default = LineEntry['Default']
+
+
+            # If these parms don't exist yet.. Create them
+            if a_node.parm(name) == None:
+                SpareParm = None
+
+                if type == "int":
+                    SpareParm = hou.IntParmTemplate(name, label, 1, default_value=(int(default),), min=int(LineEntry['Min']), max=int(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
+                    ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
+
+                elif type == "double":
+                    SpareParm = hou.FloatParmTemplate(name, label, 1, default_value=(float(default),), min=float(LineEntry['Min']), max=float(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
+                    ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
+
+                elif type == "bool":
+                    SpareParm = hou.ToggleParmTemplate(name, label, default_value=eval(default), script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
+                    ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
+
+                elif type == "choice":
+                    MenuValues = tuple(LineEntry['Choices'].split(','))
+                    SpareParm = hou.MenuParmTemplate(name, label, menu_items=MenuValues, default_value=int(default), menu_type=hou.menuType.Normal, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
+                    ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
+
+                elif type == "in":
+                    SpareParm = hou.StringParmTemplate(name, label, 1, default_value=(default,), string_type=hou.stringParmType.Regular, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
+                    SpareParm.setMenuType(hou.menuType.StringReplace)
+                    SpareParm.setItemGeneratorScript("import hou\nAllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))\nModulePairs = [[x, x] for x in AllModuleNames]\nreturn sum(ModulePairs, [])")
+                    SpareParm.setItemGeneratorScriptLanguage(hou.scriptLanguage.Python)
+
+                    ParmGroup.appendToFolder(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
+
+                elif type == "out":
+                    SpareParm = hou.StringParmTemplate(name, label, 1, default_value=(default,), string_type=hou.stringParmType.Regular, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
+                    SpareParm.setItemGeneratorScript("import hou\nAllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))\nModulePairs = [[x, x] for x in AllModuleNames]\nreturn sum(ModulePairs, [])")
+                    SpareParm.setItemGeneratorScriptLanguage(hou.scriptLanguage.Python)
+                    SpareParm.setMenuType(hou.menuType.StringReplace)
+
+                    ParmGroup.appendToFolder(ParmGroup.find("generated_houdiniinputfolder"), SpareParm)
+
+                else:
+                    raise hou.Error("%s %s %s %s cannot be processed." % (name, label, type, default))
+
+    a_node.setParmTemplateGroup(ParmGroup)

@@ -1,5 +1,5 @@
-import hou
 import pprint
+import hou
 
 MULTIPARM_TYPES = [hou.folderType.MultiparmBlock,
                    hou.folderType.ScrollingMultiparmBlock,

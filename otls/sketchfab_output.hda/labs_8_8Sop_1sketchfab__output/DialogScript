@@ -1,0 +1,143 @@
+# Dialog script for gamedev::sop_sketchfab_output automatically generated
+
+{
+    name	gamedev::sop_sketchfab_output
+    script	gamedev::sop_sketchfab_output
+    label	"GameDev Sketchfab Output"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry to Export"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "execute"
+        label   "Render"
+        type    button
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "takecontrol" "always" }
+    }
+    groupsimple {
+        name    "model_details"
+        label   "Model Details"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "model_title"
+            label   "Title"
+            type    string
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "model_description"
+            label   "Description"
+            type    string
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "model_category"
+            label   "Category"
+            type    ordinal
+            default { "0" }
+            menu {
+                ""                          "No Category"
+                "animals-pets"              "Animals & Pets"
+                "architecture"              "Architecture"
+                "art-abstract"              "Art & Abstract"
+                "cars-vehicles"             "Cars & vehicles"
+                "characters-creatures"      "Characters & Creatures"
+                "cultural-heritage-history" "Cultural Heritage & History"
+                "electronics-gadgets"       "Electronics & Gadgets"
+                "fashion-style"             "Fashion & Style"
+                "food-drink"                "Food & Drink"
+                "furniture-home"            "Furniture & Home"
+                "music"                     "Music"
+                "nature-plants"             "Nature & Plants"
+                "news-politics"             "News & Politics"
+                "people"                    "People"
+                "places-travel"             "Places & Travel"
+                "sciene-technology"         "Science & Technology"
+                "sports-fitness"            "Sports & Fitness"
+                "weapons-military"          "Weapons & Military"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "model_tags"
+            label   "Tags"
+            type    string
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "model_publish"
+            label   "Publish"
+            type    toggle
+            default { "0" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Settings"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "authentication_method"
+            label   "Authentication Method"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "API key"
+                "1" "Password"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "api_key"
+            label   "API Key"
+            type    string
+            joinnext
+            default { "" }
+            hidewhen "{ authentication_method != 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "launch_page"
+            label   "Find API token"
+            type    button
+            default { "0" }
+            hidewhen "{ authentication_method != 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "import webbrowser;webbrowser.open_new(\"https://sketchfab.com/settings/password\")" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "username"
+            label   "username"
+            type    string
+            joinnext
+            default { "" }
+            hidewhen "{ authentication_method != 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "login"
+            label   "Login"
+            type    button
+            default { "0" }
+            hidewhen "{ authentication_method != 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "hou.pwd().node(\"ropnet1/rop_sketchfab1\").hdaModule().onAccount()" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

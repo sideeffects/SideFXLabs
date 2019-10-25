@@ -1,0 +1,124 @@
+# Dialog script for gamedev::sop_trace_psd_file::2.0 automatically generated
+
+{
+    name	gamedev::sop_trace_psd_file::2.0
+    script	gamedev::sop_trace_psd
+    label	"GameDev Trace PSD File"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"PSD Curves"
+
+    parm {
+        name    "file"
+        label   "File"
+        type    image
+        joinnext
+        default { "" }
+        parmtag { "filechooser_pattern" "*.psd" }
+    }
+    parm {
+        name    "reload"
+        label   "Reload PSD"
+        type    button
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    multiparm {
+        name    "folder0"
+        label    "Layers To Extract"
+        default 0
+
+        parm {
+            name    "layer_name#"
+            label   "Layer Name"
+            type    string
+            default { "" }
+            menureplace {
+                [ "import hou" ]
+                [ "" ]
+                [ "try:" ]
+                [ "    AllModuleNames = set(kwargs['node'].node('cop2net/remove_default_planes').planes())" ]
+                [ "    ModulePairs = [[x, x] for x in AllModuleNames]" ]
+                [ "    return sum(ModulePairs, [])" ]
+                [ "except:" ]
+                [ "    return ['', '']" ]
+                language python
+            }
+        }
+        parm {
+            name    "thresh#"
+            label   "Brightness Threshold"
+            type    float
+            default { "0.01" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupcollapsible {
+            name    "folder1_#"
+            label   "Advanced"
+            grouptag { "group_type" "collapsible" }
+
+            parm {
+                name    "step#"
+                label   "Resample Step"
+                type    float
+                default { "10" }
+                range   { 0.001! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inlinepointremoval#"
+                label   "Inline Point Threshold"
+                type    float
+                default { "1" }
+                range   { 0 2 }
+            }
+            parm {
+                name    "shrink_uvs#"
+                label   "Shrink UVs"
+                type    float
+                default { "0.005" }
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "shapeexpand#"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "op#"
+                label   "Shape"
+                type    ordinal
+                default { "expand" }
+                disablewhen "{ shapeexpand# == 0 }"
+                menu {
+                    "expand"    "Expand"
+                    "shrink"    "Shrink"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "size#"
+                label   "Size"
+                type    float
+                default { "0" }
+                hidewhen "{ shapeexpand# == 0 }"
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+}

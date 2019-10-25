@@ -1,0 +1,51 @@
+= GameDev Calculate Occlusion =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_calculate_occlusion::2.0
+#icon: ambient_occlusion
+#tags: tech, model
+
+""" Vertex Based Ambient Occlusion Calculation """
+
+Ambient Occlusion is a common operation where areas that are self occluded become darker. Traditionally this is done as a rendering step, but we've added this node to do it at the geometry level. 
+
+This is very handy for doing several biased operations, like choosing the cost for a [shortest path algorithm|Node:sop/findshortestpath], biasing less [poly reduction|Node:sop/polyreduce] on occluded areas or increasing [scatter|Node:sop/scatter] density. 
+
+[Image:/images/calculate_occlusion.png]
+
+@inputs
+
+Object To Recieve Occlusion:
+    First Input, object to operate on.
+
+Optional Occlusion Object:
+    Additional Input that contributes to the occlusion calculation, but is not added to the geometry. Like an invisible shadow caster
+
+@parameters
+    == Occlusion Settings ==
+    Number of Rays:
+        How many samples to generate. Higher number means higher quality at the cost of speed. 
+    Bias:
+        Shifts the value fo the output, similar to an intensity sliders, but values closer to 0 means a stronger AO 
+    == Advanced ==
+    Maximum Ray Distance:
+        Stop the AO Ray from going beyond this distance. Useful for removing artifacts of AO happening because of a far away object.
+    Cone Width:
+        How wide is the sampling, smaller numbers means tighter falloffs. 
+    == Output ==
+    Output Occlusion as Color ( Cd ):
+        Toggle for the Occlusion to be written to the Cd (color) channel on Points. 
+    Occlusion Attribute:
+        If the above value is off, this is the override name for the output attribute. 
+    Output curve:
+        This curve lets you do basic levels operations on the AO to fine tune the results without needing to rerun the expensive AO calculations. 
+    == Smoothing ==
+    Method:
+        Lets you choose the different blurring methods 
+    Influence Type:
+        This parameter determines how points see their neighbors 
+    Blurring Iterations:
+        Number of times the input geometry is blurred
+    Blur Size:
+        Size of each blurring iteration. 

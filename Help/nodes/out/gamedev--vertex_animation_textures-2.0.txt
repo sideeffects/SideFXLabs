@@ -1,0 +1,209 @@
+= GameDev Vertex Animation Textures =
+
+#type: node
+#context: out
+#internal: gamedev::vertex_animation_textures::2.0
+#icon: vertexanimationtextures
+#tags: gamedev 
+
+""" The Vertex Animation Textures ROP will export a mesh and textures to be used with a realtime material that can playback complex animations for cloth, rigid body destruction, fluids and particles. """
+
+Vertex Animation Textures are an alternative method for playing back complex simulations in your game engine. The advantage to these textures is that they are read from the GPU making them ideal candidates for playing back complex animation. The downside is in order for the results to be accurate, these textures need to be uncompressed which can take up signifcant memory.
+
+@parameters
+    User Interface:
+        Reveals different levels of UI control in the interface to minimize options for different use cases.
+    Start/End:
+        This is the begining and end frame of the export. Please account for the one frame offset of the start frame to the end frame. By default the exporter will break the dynamic variables on creation.
+    Set Play Range:
+        Sets the play range based on the start and end frames.
+    Render With Take:
+        If you are using takes you can change the exporter options.
+    Method:
+        What primary method to export for: 
+        
+        Soft - Consistant Topology throughout the Simulation.
+        
+        Rigid - Packed Primitive style Rigid Body Simulation.
+        
+        Fluid - Changing Topology throughout the Simulation.
+        
+        Sprite - Camera facing cards, points moving through space.
+    Engine:
+        Different components of the exporter and for the preset system are known to be different for different engines, this will set the best option for each engine.
+    Initialize for Engine:
+        Applies the preset option for each engine. Do this prior to setting all your options, this will be destructive.
+    SOP Path:
+        The path to your geometry in sops.
+    == Data For Realtime Material ==
+    Frame Range:
+        The number of calculated frames. Your end position minus your start.
+    Speed:
+        The rate in houdini of your frames per second divided by your frame range. In your engine this may vary if your frame rate is different or varying.
+    Position Max/Min:
+        Remaps the max and min position delta over the course of the entire time range.
+    Pivot Max/Min:
+        Pivot can not be unormalized as it passes through the Cd Attribute. This is the min and max values of all the static pivots.
+    Scale Max/Min:
+        Remaps the max and min scale over the course of the entire time range.
+    Width/Height:
+        Set width and height from houdini for your sprite scale.
+    Active Pixels:
+        When Pad to Power of 2 is activated these values represent the pixel dimensions of the original texture.
+    Padded Size:
+        When Pad to Power of 2 is activated this is the smallest power of 2 value for each axis. The material will use these numbers to calculate a ratio for the uv lookup.
+    Normalize data range to 0-1 space:
+        Normalize your data ranges to 0-1 space in your exported maps.
+    Pack normals into Position Alpha:
+        Stores the normal data in the alpha channel of the position map to save texture space.
+    Pack Pscale into Position Alpha:
+        Stores the pscale data into the alpha channel of the position map to save texture space.
+    Pad to Power of 2:
+        When activated all textures will be exported to the nearest power of 2 value in each axis. Power of two textures allows for texture streaming on the GPU.
+    Double Textures (Higher Precision):
+        If your engine is limited to 8bit textures a second texture can be used for higher precision.
+    == Paths ==
+    enable_project:
+        Enable asset name override.
+    Project:
+        Your parent project directory, by default this is the $JOB for those studios that use it.
+    Component Enable:
+        This allows you to override the Asset name in the file path. This is typically 'opname("..")', the parent node of this sop area. This allows you to copy and paste this render object or unique asset as many times as you need. If within a subnet this will reflect the subnet name.
+    Component:
+        By default this will refer to the name of the parent object, or subnet of this node, so you can perform a lot of copy and paste name space tricks to duplicate assets. If you need you can override the Asset name and enter any string or expression you need in there.
+    enable_geo:
+        Enable export of geometry.
+    Geometry:
+        Path on disk to save the geometry.
+    Browse Path:
+        Opens an explorer window to the listed directory
+    enable_pos:
+        Enable export of position.
+    Position:
+        Path on disk to save the position map.
+    Position2:
+        If Double Textures is enabled, the path on disk to save the second position map.
+    enable_rot:
+        Enable export of rotation.
+    Rotation:
+        Path on disk to save the rotation map.
+    enable_scale:
+        Enable export of scale.
+    Scale:
+        Allow your exported mesh to have pre-scale to the mesh, besides defaulting at origin.
+    enable_normal:
+        If disabled Normal is packed into Alpha. Enable export of normal map.
+    Normal:
+        Path on disk to save normal map, when not using the packed normals in the alpha of the position map.
+    Export Color Map:
+        Enable export of color.
+    Color:
+        Path on disk to save the color map.
+    Update Mat:
+        Enable export of material instance for engines that support it, and this will update the values in the material instances for engines that allow it.
+    Material:
+        The copy and paste material code for the engine.
+    Create Data:
+        Enable export of data for the realtime shader to a json library so you can source control it.
+    Realtime Data:
+        Path on disk to save the data for the real time shader.
+    Create Shader:
+        Enable creation of the shader for engine that allow it.
+    Shader Path:
+        Path on disk to save the shader.
+    == Settings ==
+    Initialize Simulation OPs:
+        Triggers all simulation contexts to run in the cook chain prior to export.
+    Equalize Edges:
+        This will even the edges of the triangles for the best compression.
+    Reverse Normals:
+        Reverses the normals on the mesh. Helpful for one side meshes like sprites.
+    Convert to Image Format's Colorspace:
+        This removes any sRGB lookup that are default for the formats.
+    Raster Depth:
+        Adjust the bitdepth for the image to be exported.
+    Depth Menu:
+        Selection menu for an array of different bit depth presets.
+    Use Custom Black/White Points:
+        Enables to change the black and white value.
+    Black/White Points:
+        The min and max white pixels values for the exported image. This does not remap the textures to fit.
+    BC 4Channel Split:
+        Renders the channels separately for different data formats.
+    Position Coord:
+        Re-order the components for different coordinate systems.
+    Position Invert:
+        Invert a channel for different exported coordinate systems.
+    Rotation Coord:
+        Re-order the components for different coordinate systems.
+    Color Coord:
+        Re-order the components for different coordinate systems. For color this maybe be helpful if you are hijacking this map for other purposes besides color.
+    Color Invert:
+        Invert a channel for different exported coordinate systems. Only used for colors when you are hijacking this map for other uses.
+    Target Prim Count:
+        The number of primitives to poly reduce the mesh to try and maintain a constant level of prims. Due to different topologies this number is not allways exactly the same, so make sure you pad your texture size slightly above.
+    Check Polycount:
+        This will check the primitive count on the current frame and set the value to it. You should probably pad this value by a few frames encase your margin goes into the negative.
+    Target Texture Size:
+        This defines the maximum number of transform vertical columns. For Fluid this is the exact number of points to use to compensate for changing topology, extra points are scaled as zero.
+    enable_name:
+        Allows you to override the name of the object that is exported.
+    Name:
+        The name of the geometry object to be exported as, as opposed to being called MESH.1
+    == Position ==
+    Translate:
+        Allow your exported mesh to have pre-transform to the mesh, besides defaulting at origin.
+    Rotate:
+        Allow your exported mesh to have pre-rotation to the mesh, besides defaulting at origin.
+    Pivot:
+        Allow your exported mesh to have pre-pivot to the mesh, besides defaulting at origin.
+    Delta (P.xyz):
+        The expected position attribute coming into the exporter.
+    Normal (N.xyz):
+        The expected normal attribute coming into the exporter.
+    Rest (rest.xyz):
+        The expected rest attribute coming into the exporter.
+    Rotation (orient.abcd):
+        The expected rotation attribute coming into the exporter.
+    scale (scale.xyz):
+        The expected scale attribute going to the engine.
+    pscale (pscale.x):
+        The expected point scale attribute coming into the exporter.
+    Pivot (pivot.xyz):
+        The expected pivot attribute coming into the exporter.
+    Color (Cd.xyz):
+        The expected color attribute coming into the exporter.
+    Alpha (Alpha.xyz):
+        The expected alpha attribute coming into the exporter.
+    Delta (P):
+        The expected position attribute going to the engine.
+    Normal (N):
+        The expected normal attribute going to the engine.
+    uv (uv.xy):
+        The expected uv attribute going to the engine.
+    Tiling Coord (uv2.xy):
+        The expected uv2 attribute going to the engine.
+    uv3 (uv3.xy):
+        The expected values going to the engine.
+    pscale (P.w):
+        The expected point scale attribute going to the engine.
+    Pivot (Cd.xyz):
+        The expected pivot attribute going to the engine.
+    Color (Cd.rgb):
+        The expected color attribute going to the engine.
+    Alpha (Cd.a):
+        The expected alpha attribute going to the engine.
+    == Scripts ==
+    Pre-Render Script:
+        Enables the pre-render script.
+    Pre-Render:
+        Run this code before any rendering.
+    Pre-Render Script Language:
+        Set the language to Hscript or Python.
+    Post-Render Script:
+        Enables the post-render script.
+    Post-Render:
+        Run this code after all rendering.
+    Post-Render Script Language:
+        Set the language to Hscript or Python.
+    

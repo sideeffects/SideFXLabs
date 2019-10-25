@@ -1,0 +1,125 @@
+# Dialog script for gamedev::sop_gaea_tor_processor::2.0 automatically generated
+
+{
+    name	gamedev::sop_gaea_tor_processor::2.0
+    script	gamedev::sop_gea_bridge
+    label	"GameDev Gaea Tor Processor"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Heightfield In"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Heightfield Out"
+
+    parm {
+        name    "automation_file"
+        label   "Gaea Automation File"
+        type    file
+        joinnext
+        default { "" }
+        disablewhen "{ bUseEmbeddedPreset == 1 }"
+        range   { 0 1 }
+        parmtag { "script_callback" "kwargs['node'].hm().ResetInterface(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "bResetNode"
+        label   "Reset Parameters"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().ResetInterface(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "execute"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().ProcessTor(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "bAutoCook"
+        label   "Auto Cook"
+        type    toggle
+        default { "0" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupsimple {
+        name    "mesh_settings_1"
+        label   "Settings"
+
+        parm {
+            name    "gaea_exe"
+            label   "Gaea Location"
+            type    file
+            invisible
+            default { "C:/Program Files/QuadSpinner/Gaea" }
+            range   { 0 1 }
+        }
+        parm {
+            name    "sExtraData"
+            label   "Extra Data"
+            type    string
+            default { "" }
+        }
+        parm {
+            name    "sTempDir"
+            label   "Cache Dir"
+            type    directory
+            default { "$HIP/render" }
+        }
+        parm {
+            name    "hide_gaea_dialog"
+            label   "Hide Gaea Dialog"
+            type    toggle
+            default { "1" }
+            range   { 0 1 }
+        }
+        parm {
+            name    "sUniqueID"
+            label   "Unique Hash"
+            type    string
+            invisible
+            default { [ "import hou\nreturn hash(hou.getenv(\"HIPNAME\") + hou.pwd().path())" python ] }
+        }
+        parm {
+            name    "bUseEmbeddedPreset"
+            label   "Use"
+            type    toggle
+            invisible
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "gaeapreset"
+            label   "Embedded Preset"
+            type    string
+            invisible
+            default { "" }
+            menureplace {
+                [ "import hou" ]
+                [ "" ]
+                [ "AllModuleNames = set(kwargs['node'].type().definition().sections())" ]
+                [ "AllModuleNames = [x for x in AllModuleNames if x.endswith(\".tor\")]" ]
+                [ "ModulePairs = [[x, x] for x in AllModuleNames]" ]
+                [ "return sum(ModulePairs, [])" ]
+                language python
+            }
+            range   { 0 1 }
+            parmtag { "script_callback" "kwargs['node'].hm().ExtractEmbeddedTOR(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

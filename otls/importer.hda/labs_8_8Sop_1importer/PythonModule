@@ -1,0 +1,25 @@
+
+def LoadMTL(node):
+    node.node("python1").cook(force=True)
+
+    datapoints = node.node("python1").geometry().points()
+    QuickMat = node.node("mesh_materials")
+    QuickMat.parm("mMaterialEntries").set(len(datapoints))
+
+    for x in range(len(datapoints)):
+        QuickMat.parm("materialname_%s" % (x+1)).set(datapoints[x].attribValue('newmtl'))
+        QuickMat.parm("groupselection_%s" % (x+1)).set("@shop_materialpath=/mat/%s" % datapoints[x].attribValue('newmtl'))
+
+        parms = [["basecolor_texture_", "map_Kd"], ["opaccolor_texture_", "map_d"], ["ior_", "Ni"], ["baseBump_bumpTexture_", "map_bump"]]
+        parmtuples = [["basecolor_", "Kd"]]
+
+        for parm in parms:
+            try:
+                QuickMat.parm(parm[0]+str(x+1)).set(datapoints[x].attribValue(parm[1]))
+            except: pass
+        for parm in parmtuples:
+            try:
+                QuickMat.parmTuple(parm[0]+str(x+1)).set(datapoints[x].attribValue(parm[1]))
+            except: pass
+
+    QuickMat.hm().OnMultiparmChange(QuickMat)

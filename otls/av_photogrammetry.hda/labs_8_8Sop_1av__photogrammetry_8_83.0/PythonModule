@@ -1,0 +1,31 @@
+from PySide2.QtWidgets import *
+
+def ManualCook(node):
+    node.node("sop_av_initialize1").hm().cookNode(node.node("sop_av_initialize1"))
+    node.node("sop_av_analyze_images1").hm().cookNode(node.node("sop_av_analyze_images1"))
+    node.node("sop_av_structure_from_motion1").hm().cookNode(node.node("sop_av_structure_from_motion1"))
+    node.node("sop_av_depth_map1").hm().cookNode(node.node("sop_av_depth_map1"))
+    node.node("sop_av_meshing1").hm().cookNode(node.node("sop_av_meshing1"))
+
+    if node.parm("mColorMode").evalAsString() == "0":
+        node.node("sop_av_texturing1").hm().cookNode(node.node("sop_av_texturing1"))
+
+def add_images(node):
+    files = QFileDialog.getOpenFileNames(
+                        None,
+                        "Select one or more files to open",
+                        "",
+                        "Images (*.png *.xpm *.jpg *.cr2 *.bmp *.gif *.ico *.jpeg *.tif *.tiff *.dng *.wmphoto *.dds *.raw)");
+    
+    if not len(files[0]):
+        return 
+        
+    parm = node.parm("src_img")
+    length = parm.evalAsInt()
+    for i in range(length):
+        parm.removeMultiParmInstance(0)
+    
+    for i, filename in enumerate(files[0]):
+        parm.insertMultiParmInstance(i)
+        instance = parm.multiParmInstances()[i]
+        instance.set(filename)

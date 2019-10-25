@@ -1,0 +1,38 @@
+= GameDev Curve Sweep =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_curve_sweep
+#icon: curvesweep
+#tags: tech, model
+
+""" Sweep a profile along input curves, with simple controls for profile type, width, and twist behavior. """
+
+[Image:/movies/curve_sweep.gif]
+
+A polywire sop is traditionally used to extrude curves into polygons, but often requires extra nodes before and after to achieve useful results, and even then can sometimes create over complex geometry.
+
+The curve sweep sop takes most of the messy details and wraps it in a clean interface. It maintains most of the useful controls from polywire, adds clean uv’s, and provides a ramp to control the profile along the curve.
+
+The second input can be used to define a custom profile if a circle or line isn't sufficient. The cross section should be centered at the origin, and sit on the XY plane.
+
+The third input can be used to defined an up vector, often a copy of the input curve that has been translated or deformed away from the original cuve.
+
+@parameters
+    == Cross Section ==
+    Mesh Type:
+        Dropdown to choose between a circular profile to generate tubes, or a line profile to generate ribbons.
+    Divisions:
+        Number of divisions used for the profile.
+    Cap Ends:
+        Toggle to cap the ends of the sweep shapes.
+    == Sweep Settings ==
+    Uniform Scale:
+        Base scale of cross section/ribbon width. 
+    Scale Ramp:
+        Ramp to control the width of the curve profile along the length of the curve. These ramp values are multiplied against the Uniform Scale. Left side of ramp is start of curve, right side is end.
+    Normal Angle:
+        Cusp angle used to threshold smooth or sharp vertex normals, default is 180.
+    Up Vector:
+        Vector used as an up vector if @up attribute doesn't exist on the input geometry. This controls the twist of the cross section along the curves.
+

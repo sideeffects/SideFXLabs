@@ -1,0 +1,265 @@
+# Dialog script for gamedev::sop_autouv automatically generated
+
+{
+    name	gamedev::sop_autouv
+    script	gamedev::sop_autouv
+    label	"GameDev Auto UV "
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to UV"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Method"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "uvattrib"
+            label   "UV Attribute"
+            type    string
+            default { "uv" }
+            menureplace {
+                [ "opmenu -l uvflatten4 uvattrib" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "sidefx::attrib_access" "write" }
+        }
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "3" }
+            menu {
+                "0" "Shortest Path"
+                "1" "Cluster"
+                "3" "UV Unwrap"
+                "4" "UV AutoSeam"
+            }
+        }
+        parm {
+            name    "fuse_distance"
+            label   "Collapse Distance"
+            type    float
+            default { "0.01" }
+            hidewhen "{ method != 0 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "num_points"
+            label   "Number of Paths"
+            type    integer
+            default { "25" }
+            hidewhen "{ method != 0 }"
+            range   { 1 100 }
+        }
+        parm {
+            name    "convex_multiplier"
+            label   "Convex Multiplier"
+            type    float
+            default { "0.1" }
+            hidewhen "{ method != 0 }"
+            range   { -10 10 }
+        }
+        parm {
+            name    "occlusion_multiplier"
+            label   "Occlusion Multiplier"
+            type    float
+            default { "1" }
+            hidewhen "{ method != 0 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "num_clusters"
+            label   "Number of Clusters"
+            type    integer
+            default { "30" }
+            hidewhen "{ method != 1 }"
+            range   { 1 100 }
+        }
+        parm {
+            name    "normal_blur_cluster"
+            label   "Normal Blur"
+            type    integer
+            default { "1" }
+            hidewhen "{ method != 1 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "random_seed"
+            label   "Random Seed"
+            type    integer
+            default { "0" }
+            hidewhen "{ method != 1 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "blur_amount"
+            label   "Normal Blur Ammount"
+            type    integer
+            default { "0" }
+            hidewhen "{ method != 2 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "nplanes"
+            label   "Planes"
+            type    ordinal
+            default { "planes6" }
+            hidewhen "{ method != 3 }"
+            menu {
+                "planes4"   "4"
+                "planes5"   "5"
+                "planes6"   "6"
+                "planes8"   "8"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "graintol"
+            label   "Grain Tolerance"
+            type    float
+            default { "0.12" }
+            hidewhen "{ method != 4 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "mergethreshold"
+            label   "Merge Threshold"
+            type    float
+            default { "0.5" }
+            hidewhen "{ method != 4 }"
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Packing Options"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "merge_small_islands"
+            label   "Merge Small Islands"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "small_island_cutoff"
+            label   "Small Island CutOff"
+            type    float
+            default { "0.01" }
+            disablewhen "{ merge_small_islands == 0 }"
+            range   { 0 0.5 }
+        }
+        parm {
+            name    "optimize_uv_border"
+            label   "Optimize UV Border"
+            type    toggle
+            default { [ "on" hscript-expr ] }
+            help    "Attempts to remove triangles that are sticking to the side of the UV island. May cause small islands to reappear"
+            disablewhen "{ merge_small_islands == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "method2"
+            label   "Flattening Method"
+            type    ordinal
+            default { "abf" }
+            menu {
+                "scp"   "Spectral (SCP)"
+                "abf"   "Angle-Based (ABF)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "orientation_mode"
+            label   "Orientation Mode"
+            type    ordinal
+            default { "2" }
+            menu {
+                "1"     "Min"
+                "4"     "Axis Aligned"
+                "20"    "Optimal"
+                "360"   "Best"
+            }
+        }
+        parm {
+            name    "packing_iterations"
+            label   "Packing Iterations"
+            type    integer
+            default { "1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "layout_padding"
+            label   "Island Padding"
+            type    integer
+            joinnext
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "resolution"
+            label   "Padding Resolution"
+            type    ordinal
+            default { "res3" }
+            help    "Reference Resolution for Island Padding"
+            menu {
+                "res1"  "256"
+                "res2"  "512"
+                "res3"  "1024"
+                "res4"  "2048"
+                "res5"  "4096"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    parm {
+        name    "spacer"
+        label   "_"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "like_tool"
+        label   "Like Tool"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        help    "Let us know that you're enjoying this Tool"
+        parmtag { "button_icon" "heart.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.like_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "dont_like"
+        label   "Thumbs Down"
+        type    button
+        nolabel
+        default { "0" }
+        help    "Let us know you don't like this tool. Ideally also send us a mail at support@sidefx.com"
+        parmtag { "button_icon" "thumbs-down.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.dislike_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "cusp_angle"
+        label   "__UNUSED"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+}

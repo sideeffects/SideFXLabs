@@ -1,0 +1,180 @@
+= GameDev Fire Presets =
+
+#type: node
+#context: obj
+#internal: gamedev::fire_presets
+#icon: firepreset
+
+""" Quickly generate and render fire simulations using presets for size varying from torch to small to 1m high and low """
+
+The fire presets asset is designed to simplify the process of managing a fire setup. It includes a source, pyro simulation and shaders with the essential parameters exposed. If you want to quickly generate a fire sim for your game or background element this asset removes a lot of the guess work while still giving you control over the look. You can also use your own input as a source.
+
+@parameters
+    == Cache ==
+    Load from Disk:
+        Switches between importing fields from DOPs and loading the fields from the geometry file.
+    Reload Geometry:
+        Clear the cache and load the geometry.
+    Geometry File:
+        Where to load the fields from when in Load from Disk mode. This also controls where the [Geometry ROP|Node:out/geometry] will save the fields.
+    Save to Disk:
+        Save a file to the specified location. 
+    Save to Disk in Background:
+        Start a new process to save the geometry so that you can continue to work in Houdini.
+    Valid Frame Range:
+        Limits the rendering of frames, when set to __Render frame range__
+        or __Render frame range only__.
+
+
+        Render any frame:
+            Allow the renderer to render any and all frames.
+        Render frame range:
+            Only render the frames in the range set below, but allow the
+            renderer to render other frames if they are referenced by
+            in-range frames.
+        Render frame range only (strict):
+            Only render the frames in the range set below, and don't
+            allow the renderer to render other frames, even if they are
+            referenced by in-range frames.
+    Start/End/Inc:
+        Specifies the range of frames to render (start frame, end frame, and increment). All values may be floating point values. The range is inclusive. 
+
+        These parameters determine the values of the local variables for the output driver.
+    Render With Take:
+        Uses the settings in a particular take while rendering. Choose
+        __Current__ to use the current take when rendering.
+    Presets:
+        Choose from four different sizes of fire. 
+
+        Small - A single flame that's a little bigger than a candle flame
+
+        Torch - It's the size of flame that you'd see on the end of a makeshift torch that Lara Craft or Indiana Jones would be holding.
+
+        1m wide low - The base of the fire is 1 metre wide and rises to about knee height.
+
+        1m wide high - The base of the fire is 1 metre wide and rises to about chest height.
+    == Simulation ==
+    Reset Simulation:
+        Clears the entire simulation cache. When viewing a DOP Network in the viewport, a button will be made active above the viewport on the right hand side. Pressing that button performs exactly the same action as pressing this Reset Simulation button.
+    Division Size:
+        The explicit size of the voxels. The number of voxels will be computed by fitting an integer number of voxels of this size into the given bounds.
+    Display Simulation:
+        Toggle the display of the simulation. It's useful to turn this off when tuning the source.
+    === Source ===
+    Scale Source Volume:
+        Controls the scale of the (scalar) volume specified as a source volume to be added to scalar field (fuel and temperature).
+    === Pyro Solver ===
+    Flame Height:
+        Scaling factor for flames. Higher values give taller flames, lower values give smaller flames. This value is not measured in any unit (it is not the height of the flames in Houdini units), it simply affects the amount of cooling applied to the flames. Very low values will not necessarily result in very small flames, since the cooling factor will often not be enough to counteract a hot temperature field. The inverse of this value (multiplied by the cooling field, see below) is subtracted from the heat field, so lower values give more cooling and smaller flames. You can use the cooling field controls below to vary the flame height value based on the value in a field (by default the temperature field).
+    Dissipation:
+        Causes smoke (density) to disappear over time. Low values cause smoke to disappear slowly, high values cause smoke to disappear quickly. For example, a value of 0.1 means 10% of the smoke will disappear every twenty-fourth of a second. A value of 1 will make all smoke disappear immediately.
+    === Shape ===
+    Disturbance:
+        Introduces detail of a certain size in the smoke or fire without changing the general motion or shape of the simulation.
+    Shredding:
+        Pushes and pulls the velocity field based on gradient of the heat field to create the the streaks, separation, and "licks" typical of fire. Very high values tend to give a random, fractal look, while very low values or no shredding gives blobby flames without much character. Since shredding works on the gradient of the temperature field, lower temperature diffusion results in a more noticeable shred effect. When temperature diffuses more, the gradient becomes less dynamic, resulting in bigger streaks. The higher the grid resolution, the more detailed the gradient becomes.
+    Turbulence:
+        Adds "churning" noise to the velocity field. You should generally use this to add powerful, large-scale/low-frequency noise and rely on shredding for smaller features. This is especially useful when you have a very fast-moving fire and you want to add more character to it.
+    Turbulence Swirl Size:
+        Sets the rough size of the swirls, in Houdini units.
+    === Advanced ===
+    Use OpenCL:
+        Caching is enabled by default in DOPs.     Resizing is enabled by default. Resizing has to go through the CPU to manage the field changes. It can also fragment the GPU memory resulting in out-of-memory errors.
+    Min Substeps:
+        Forces the solver to run a minimum number of substeps. Normally the pyro solver works best with no substeps. If you have smoke and unusual forces you may want to increase this parameter for better stability. Increasing this will usually make the simulation much slower.
+    Max Substeps:
+        Forces the solver to not run more substeps than this maximum. Normally the pyro solver works best with no substeps. If you have smoke and unusual forces you may want to increase this parameter for better stability. Increasing this will usually make the simulation much slower.
+    == Source ==
+    Display Source:
+        Toggle the visibility of the source volume. Turn off the visibility of the simulation and turn on the visibility of the source to tune the source values.
+    Half Sphere:
+        Creates a dome shaped sphere for the source.
+    Source Geometry:
+        You can override the source shape in the asset by choosing a path to a closed surface or point cloud.
+    Method:
+        Choose the method for interpreting your customm source object.
+
+        Build SDF From Geometry should be used with a closed surface.
+
+        Stamp points should be used with a point cloud. It will rasterize the points into a volume.
+
+        Sample Volumes will take a volume as an input and read the fields directly.
+    === Source Size ===
+    Scale:
+        The size of the bounding box of the volume source for each axis xyz.
+    Uniform Scale:
+        Scale the entire volume.
+    Container Padding:
+        Extra padding added to volume bounds. Measured in world units.
+    === Noise ===
+    Cell Influence:
+        How much influence the cellular pattern has on the previously created volume.
+    Pulse Duration:
+        How fast the noise moves. Higher values result in slower movement.
+    Offset:
+        Offsets turbulence pattern.
+    Element Size:
+        Initialized (base) element size, measured in world units. The value is derived from frequency (1/FQ).
+    == Visualisation ==
+    Volume Resolution:
+        The current voxel resolution of the simulation. 
+    Density Scale:
+        Fixed multiplier on the density field to control how opaque the 
+        volume is. If you are using a larger scene scale, you may need a 
+        smaller density scale.
+
+        NOTE:
+            Fog density is density per unit, and is independent of the 
+            resolution. So the same sized box, at 100 or 10 divisions, 
+            should be the same opacity. This means very small boxes will 
+            become transparent, especially if HDR rendering isn't on. You 
+            can enable HDR rendering on the __Effects__ tab of the 
+            [Display Options|/ref/windows/displayopts_3d] dialog.
+    
+    Shadow Scale:
+        An additional multiplier on the density field, applied after the 
+        density scale, when the volume is used for lighting. This is the 
+        equivalent of multiplying the shadow intensity of all the lights 
+        by this value.
+        
+    Max Vis Res:
+        By default volumes are restricted to a maximum of 128 voxels on 
+        each side. This ensures reasonably fast shading times for lighting 
+        and avoids running into texture memory problems. This parameter 
+        lets you override this, either to make a lower res volume for 
+        faster previsualization, or to allow the volume to render with full
+        resolution.
+
+    Field:
+        The name of the volume primitive to use for this operation. The 
+        value will be matched against the name attribute of the volume 
+        primitives to determine a match. * and ? can be used to allow for 
+        looser matches, the result will be the first matched primitive.
+        
+        If this is a color field (diffuse, emission color), then if one 
+        volume is specified it is treated as a monochromatic field. If 
+        multiple volumes are specified, they are tied to the red, green, 
+        and blue channels.
+        
+    Range:
+        Each field can have its own mapping range. The volume will be 
+        linearly remapped from this range into the 0..1 range.
+        
+    Mode:
+        Controls the use of the ramp. If set to No Ramp, the volume's 
+        values are used unclamped and unaffected by the ramp. Clamped Ramp 
+        will clamp the volume's values to the 0..1 range and then apply 
+        the ramp. Perioidic Ramp will take the modulus of the volume's 
+        values with 1 and send that to the ramp. This can be useful to 
+        create checkerboard or striped effect to better see large ranges 
+        of values.
+        
+    Ramp:
+        The volume's values, after converting by the range specification, 
+        are looked up in the ramp to get the final value. If it is a color 
+        ramp then if there is one volume bound, that volume's value is 
+        looked up to get the color. If two or three volumes are bound, 
+        each volume in turn is looked up to get the red, green, and blue 
+        values independently.
+
+    

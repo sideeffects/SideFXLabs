@@ -1,0 +1,247 @@
+# Dialog script for gamedev::sop_av_analyze_images::3.0 automatically generated
+
+{
+    name	gamedev::sop_av_analyze_images::3.0
+    script	AV_Analyze_Images
+    label	"GameDev AV Analyze Images"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Initialize"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"AV Structure From Motion"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Feature Extraction"
+
+        parm {
+            name    "dsc_type"
+            label   "Describer Types"
+            type    string
+            default { "sift" }
+            help    "Describer types used to describe an image."
+            menutoggle {
+                "sift"          "sift"
+                "sift_float"    "sift_float"
+                "sift_upright"  "sift_upright"
+                "akaze"         "akaze"
+                "akaze_liop"    "akaze_liop"
+                "akaze_midb"    "akaze_midb"
+                "cctag3"        "cctag3"
+                "cctag4"        "cctag4"
+                "sift_ocv"      "sift_ocv"
+                "akaze_ocv"     "akaze_ocv"
+            }
+        }
+        parm {
+            name    "dsc_pre"
+            label   "Describer Preset"
+            type    string
+            default { "normal" }
+            help    "Control the ImageDescriber configuration. Ultra can take a long time."
+            menu {
+                "low"       "low"
+                "medium"    "medium"
+                "normal"    "normal"
+                "high"      "high"
+                "ultra"     "ultra"
+            }
+        }
+        parm {
+            name    "cpu"
+            label   "Force CPU Extraction"
+            type    toggle
+            default { "1" }
+            help    "Use only CPU feature extraction."
+        }
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Image Matching"
+
+        parm {
+            name    "minNImg"
+            label   "Min Number of Images"
+            type    integer
+            default { "200" }
+            help    "Minimum number of images to use the vocabulary tree. If there are fewer features than this threshold, all matching combinations will be computed."
+            range   { 0 500 }
+        }
+        parm {
+            name    "max_desc"
+            label   "Max Descriptors"
+            type    integer
+            default { "500" }
+            help    "Limit the number of descriptors loaded per image. Zero means no limit."
+            range   { 0 10000 }
+        }
+        parm {
+            name    "nMatch"
+            label   "Number of Matches"
+            type    integer
+            default { "50" }
+            help    "The number of matches to retrieve for each image. A value of 0 will retrieve all matches."
+            range   { 0 1000 }
+        }
+    }
+
+    group {
+        name    "folder0_2"
+        label   "Feature Matching"
+
+        parm {
+            name    "dsc_type2"
+            label   "Describer Types"
+            type    string
+            default { "sift" }
+            help    "Describer types used to describe an image."
+            menutoggle {
+                "sift"          "sift"
+                "sift_float"    "sift_float"
+                "sift_upright"  "sift_upright"
+                "akaze"         "akaze"
+                "akaze_liop"    "akaze_liop"
+                "akaze_midb"    "akaze_midb"
+                "cctag3"        "cctag3"
+                "cctag4"        "cctag4"
+                "sift_ocv"      "sift_ocv"
+                "akaze_ocv"     "akaze_ocv"
+            }
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "photo"
+                label   "Photometric Matching Method"
+                type    string
+                default { "ANN_L2" }
+                help    "For scalar based regions descriptor: \\n*BRUTE_FORCE_L2: L2 BruteForce Matching \\n*ANN_L2: L2 approximate nearest neighbor matching \\n*CASCADE_HASHING_L2: L2 Cascade Hasing matching \\n*FAST_CASCADE_HASHING_L2: L2 Cascade Hasing with precomputed hashed regions (faster than CASCADE_HASHING_L2 but uses more memory) \\nFor binary based descriptor: \\n*BRUTE_FORCE_HAMMING: BruteForce Hamming matching"
+                menu {
+                    "BRUTE_FORCE_L2"            "BRUTE_FORCE_L2"
+                    "ANN_L2"                    "ANN_L2"
+                    "CASCADE_HASHING_L2"        "CASCADE_HASHING_L2"
+                    "FAST_CASCADE_HASHING_L2"   "FAST_CASCADE_HASHING_L2"
+                    "BRUTE_FORCE_HAMMING"       "BRUTE_FORCE_HAMMING"
+                }
+            }
+            parm {
+                name    "geometricError"
+                label   "Geometric Error"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "geoEst"
+                label   "Geometric Estimator"
+                type    string
+                default { "acransac" }
+                help    "Geometric estimator: (acransac: A-Contrario Ransac, loransac: LO-Ransac (only available for \"fundamental_matrix\" model))"
+                menu {
+                    "acransac"  "acransac"
+                    "loransac"  "loransac"
+                }
+            }
+            parm {
+                name    "geoFilter"
+                label   "Geometric Filter type"
+                type    string
+                default { "fundamental_matrix" }
+                help    "Geometric validation method to filter features matches: \\n*fundamental_matrix \\n*essential_matrix \\n*homography_matrix \\n*homography_growing \\n*no_filtering"
+                menu {
+                    "fundamental_matrix"    "fundamental_matrix"
+                    "essential_matrix"      "essential_matrix"
+                    "homography_matrix"     "homography_matrix"
+                    "homography_growing"    "homography_growing"
+                    "no_filtering"          "no_filtering"
+                }
+            }
+            parm {
+                name    "dist"
+                label   "Distance Ratio"
+                type    float
+                default { "0.8" }
+                help    "Distance ratio to discard non meaningful matches."
+                range   { 0 1 }
+            }
+            parm {
+                name    "maxIter"
+                label   "Max Iteration"
+                type    integer
+                default { "2048" }
+                help    "Maximum number of iterations allowed in ransac step."
+                range   { 1 20000 }
+            }
+            parm {
+                name    "maxMatch"
+                label   "Max Matches"
+                type    integer
+                default { "0" }
+                help    "Maximum number of matches to keep."
+                range   { 0 10000 }
+            }
+            parm {
+                name    "savePut"
+                label   "Save Putative Matches"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "matchFilePerImage"
+                label   "Match File Per Image"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "useGridSort"
+                label   "Use Grid Sort"
+                type    toggle
+                default { "1" }
+            }
+            parm {
+                name    "guide"
+                label   "Guided Matching"
+                type    toggle
+                default { "0" }
+                help    "The found model to improvise the pairwise correspondences."
+            }
+            parm {
+                name    "expDebug"
+                label   "Export Debug Files"
+                type    toggle
+                default { "0" }
+            }
+        }
+
+    }
+
+}

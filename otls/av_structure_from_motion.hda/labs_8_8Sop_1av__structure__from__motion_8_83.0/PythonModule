@@ -1,0 +1,56 @@
+import subprocess, os
+
+def log(cmd, cache, folder, node):
+
+    Log = hou.pwd().parent().parm("bExportLog").evalAsInt()
+    with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
+        if Log:
+            print("--------")
+            print(node.name())
+
+        logfile = open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a')
+        errorlogfile = open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'a')
+
+        StartupInfo = None
+        if os.name == 'nt':
+            StartupInfo = subprocess.STARTUPINFO()
+            subprocess.STARTF_USESHOWWINDOW = 1
+            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo)
+
+        # Process is still running
+        while Process.poll() == None:
+            try:
+                Operation.updateProgress(0.0)
+            # User interrupted
+            except hou.OperationInterrupted:
+                Process.kill()
+
+        # Close log file, because Process has ended
+        logfile.close()
+        errorlogfile.close()
+
+        with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'r') as myfile:
+            data = myfile.read()
+            if len(data) > 0:
+                hou.ui.displayMessage(data, buttons=('OK',), severity=hou.severityType.Error, title="%s AliceVision Processing Failed!" % node.name())
+            else:
+                myfile.close()
+                os.remove(os.path.join(cache, folder, node.name()+"_errorlog.txt"))
+
+        if Log:
+            print(node.name() + " completed")
+    
+def cookNode(node):
+    avnodes = ["05_Structure_from_Motion", "06_Prepare_Dense_Scene"]
+    for process in avnodes:
+        try:
+            node.node(process).cook(force=True)
+        except:
+            hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
+            return
+
+    node.node("Force_Reload").cook(force=True)
+    node.node("Force_Unload").cook(force=True)
+    

@@ -1,0 +1,45 @@
+= GameDev PolyDeform =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_polydeform
+#icon: SOP/lattice
+#tags: tech, model, gamedev
+
+""" Warps a source mesh to match the shape of a target  """
+
+This node will deform a source mesh towards the shape of a target. 
+
+[Image:/images/polydeform.png]
+
+In this image we have the pig head being deformed into a sphere, cube and tube. 
+
+This is very helpful in generating variations of one asset towards another asset. It is similar to a wrap deform, but without the need of a deforming cage. 
+
+@parameters
+    == Base Settings ==
+    Retain Features:
+        Mantain High Frequency details while doing low frequency modifications to the mesh. 0 means match the target entirely, 1 means retain all of the details 
+    Shape Blend:
+        Scalar from 0-1 to control the transition and ease out in case the deformation is too aggressive
+    Low Res Preview:
+        In case of high res inputs, this toggle will do a low res remesh of the input mesh in order to generate a valid preview representation of the operation
+    Equalize Input Scale:
+        Make both the source and target meshes the same size
+    == Smoothing ==
+    Smoothing Method:
+        Set the method for weighing neighbor contributions on position and normal smoothing options.
+
+        Uniform:
+            Smooth evenly regardless of their distance from one another.
+        Edge Length:
+            Smooth accounting for the fact that some points may be closer than others. This option preserves relative distances between points, which is especially useful when points on the input are unevenly distributed.
+    Global Iterations:
+        The number of times the input geometry is smoothed. This works as in Delta Mush where only the displacement is smoothed, preserving initial detail in the skin mesh.
+    Falloff Iterations:
+        Smooth the area of skin where the skin drapes away from the peak displacement. In contrast to Global Iterations this type of smoothing will not reduce the amount of displacement.
+    Normal Iterations:
+        Smooth the point normals used for projection. Note that this will have no effect if displacement is computed purely from muscle centers (when Normal Projection Mixing is set to 0).
+    Step Size:
+        This controls the size of each smoothing step for all types of smoothing iterations.
+    

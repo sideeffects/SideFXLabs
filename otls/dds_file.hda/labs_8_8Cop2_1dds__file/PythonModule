@@ -1,0 +1,19 @@
+from PySide2.QtGui import QImage
+
+def reloadCallback(node):
+    image_file = node.evalParm("image")
+    
+    if not image_file:
+        return
+        
+    dds_file = QImage()
+    dds_file.load(image_file)
+    
+    if dds_file.isNull():
+        return
+        
+    size_x = dds_file.width()
+    size_y = dds_file.height()
+    
+    node.parm("sizex").set(size_x)
+    node.parm("sizey").set(size_y)

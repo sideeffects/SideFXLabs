@@ -1,0 +1,45 @@
+= GameDev Calculate Slope =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_calculate_slope
+#icon: calculateslope
+#tags: gamedev
+
+""" Calculate the slope of a surface by comparing to a direction, and optionally blur and remap the result. """
+
+:video:
+    #src:/movies/calculateslope.mp4
+
+The slope of a surface can be calculated by comparing geometry normals to a vector. Eg, compare the normals of a sphere to a vector that points straight up along the Y-axis, ie a vector of {0,1,0}. Points at the top
+of the sphere will be parallel to {0,1,0}, so get a value of 1. Points at the equator are perpendicular to the Y-axis, so get a value of 0. Any points with a normal below the equator will get negative values, going to -1 at the south pole, but for the slope those values are clamped to 0.
+
+If this slope is stored as an attribute, it can be used as a mask for a variety of effects. For example, upwards facing regions to reveal dust or snow.
+
+The base result can be further maniupulated to fine tune the shape of the mask, the ramp parameter on this sop can be used to add or remove contrast, or invert the mask.
+
+The blur controls can be used to soften the mask, at high blur values it can be used to approximate subsurface scattering effects in the mask.
+
+
+@parameters
+    == Output ==
+    Use Mesh Normal:
+        Use @N when enabled, otherwise calculate normals to then calculate slope.
+    Up Vector:
+        Vector used to compare slope. Normals that are parallel to this slope vector will get a value of 1, normals that are perpendicular or facing away from the vector will get a slope of 0.
+    Output Slope Mask as Color (Cd):
+        Output slope to color when enabled, otherwise write to the attribute specified by the next parameter.
+    Slope Attribute:
+        Attribute name to store the calculated slope.
+    Slope:
+        Ramp to adjust the calculated slope. For example, moving the first point to the top left, and second point to the bottom right will invert the slope values, or extra points can be inserted into the ramp to increase contrast or bias the results.
+    == Smoothing ==
+    Method:
+        Lets you choose different blurring models that have different effects on the point attributes.
+    Influence Type:
+        Burring relies on each point being able to see what its neighbors' attributes are. This parameter determines how points see their neighbors.
+    Blurring Iterations:
+        The number of times the input geometry is blurred. The higher the number, the more blurring.
+    Blur Size:
+        Radius of slope blur, high values when Influece Type is 'connectivity' can look like subsurface effects.
+    

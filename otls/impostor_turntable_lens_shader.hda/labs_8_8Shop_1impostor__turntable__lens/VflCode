@@ -1,0 +1,99 @@
+#pragma opname          fisheyelens
+#pragma oplabel         "Fisheye Lens"
+
+#pragma hint    x       hidden
+#pragma hint    y       hidden
+#pragma hint    Time    hidden
+#pragma hint    dofx    hidden
+#pragma hint    dofy    hidden
+#pragma hint    aspect  hidden
+#pragma hint    P       hidden
+#pragma hint    I       hidden
+#pragma hint    fixed_z  toggle
+
+#pragma hint   fov             hidden
+#pragma range   rows            1 16
+#pragma range   columns         1 16
+#pragma range   camera_width    0 100
+#pragma hint   camera_zoom     hidden
+
+#include "math.h"
+
+cvex
+fisheyelens(
+        // Inputs
+        float x = 0;
+        float y = 0;
+        float Time = 0;
+        float dofx = 0;
+        float dofy = 0;
+        float aspect = 1;
+        int fixed_z = 1;
+
+        // Outputs
+        export vector P = 0;
+        export vector I = 0;
+
+        // Shader arguments
+        float fov = 180;
+        float rows = 2;
+        float columns = 2;
+        float camera_width = 1;
+        float camera_zoom = 1.1;
+        )
+{
+    float r = sqrt(x*x + y*y);
+    float phi = atan2(y, x);
+    float rfov = radians(fov);
+    float theta = r * (rfov / 2.0);
+    float front = x;
+    float px = x * camera_width;
+    float py = y * camera_width;
+    float TAU = PI*2;
+    
+    float fx = fit(x, -1, 1, 0, 1);
+    float fy = 1 - fit(y, -1, 1, 0, 1);
+    float frames = rows * columns;
+    fx = fx * rows;
+    fy = fy * columns;
+    float floorx = floor(fx);
+    float floory = floor(fy);
+    float fracx = frac(fx);
+    float fracy = frac(fy);
+    fracx = (fracx*2-1) * camera_width;
+    fracy = (fracy*2-1) * camera_width;
+    float currentFrame = floory * rows + ceil(fx);
+    
+    float xx, yy;
+    if (fixed_z){
+        xx = -(currentFrame/frames)*2-1;
+        yy = 0;
+    } else {
+        xx = -(currentFrame/rows)*2-1;
+        yy = (((floor((currentFrame/columns)-(1/columns))/(columns-1)))*2-1);
+    }
+    float xa = -PI*(xx);
+    float ya = (0.5*PI) * -yy;
+    float yc = 0;
+    float p = 1000;
+    float sx = sin(xa);
+    float cx = cos(xa);
+    float sy = sin(ya);
+    float cy = cos(ya);
+    float sy0 = sin(yc);
+    float cy0 = cos(yc);
+    
+    float step = TAU/rows;
+    float angle = (step * -(currentFrame-1)) + step;
+    matrix m3 = ident();
+    
+    rotate(m3, angle, set(0,1,0));
+    vector crossx = set(0,0,1) * m3;
+    
+    vector dir = set(sx*cy, sy, cx*cy);
+    crossx = cross(set(0,1,0),set(sx*cy0, sy0, cx*cy0));
+
+    vector crossy = cross(dir, crossx);
+    P = (dir * p) + crossx*fracx + crossy*-fracy; // pos or neg fracy
+    I = normalize(-dir);
+}

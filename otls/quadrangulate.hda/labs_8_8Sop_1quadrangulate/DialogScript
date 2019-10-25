@@ -1,0 +1,96 @@
+# Dialog script for gamedev::sop_quadrangulate automatically generated
+
+{
+    name	gamedev::sop_quadrangulate
+    script	gamedev::sop_quadrangulate
+    label	"GameDev Quadrangulate"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Triangulated Mesh"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "ignore_edges"
+        label   "Ignore Edges"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "node = hou.pwd()" ]
+            [ "geo = node.geometry()" ]
+            [ "" ]
+            [ "edge_groups = geo.edgeGroups()" ]
+            [ "groups = []" ]
+            [ "" ]
+            [ "for group in edge_groups:" ]
+            [ "    groups.append(group.name()) " ]
+            [ "    groups.append(group.name())" ]
+            [ "    " ]
+            [ "return groups" ]
+            language python
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Edges,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "force_remove_edges"
+        label   "Force Remove Edges"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "node = hou.pwd()" ]
+            [ "geo = node.geometry()" ]
+            [ "" ]
+            [ "edge_groups = geo.edgeGroups()" ]
+            [ "groups = []" ]
+            [ "" ]
+            [ "for group in edge_groups:" ]
+            [ "    groups.append(group.name()) " ]
+            [ "    groups.append(group.name())" ]
+            [ "    " ]
+            [ "return groups" ]
+            language python
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Edges,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "fast_mode"
+        label   "Fast Mode"
+        type    toggle
+        default { "0" }
+        help    "Fast Mode skips a second pass to resolve quads where the longest edge isn't agreed upon by 2 neighborhing triangles."
+    }
+    parm {
+        name    "ignore_boundaries"
+        label   "Ignore Boundary Edges"
+        type    toggle
+        default { "0" }
+    }
+    parm {
+        name    "ensure_max_edges"
+        label   "Ensure Max Edges"
+        type    toggle
+        joinnext
+        default { "0" }
+    }
+    parm {
+        name    "max_edges"
+        label   "Max Edges"
+        type    integer
+        nolabel
+        default { "4" }
+        disablewhen "{ ensure_max_edges == 0 }"
+        range   { 0 10 }
+    }
+}

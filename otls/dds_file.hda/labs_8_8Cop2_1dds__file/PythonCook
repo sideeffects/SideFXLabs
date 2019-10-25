@@ -1,0 +1,53 @@
+# This code assumes the node has the following parameters:
+#     res: an integer vector of size 2 with default (640, 480)
+#     stillimage: a toggle with default on
+#     start: an integer with default 1
+#     length: an integer with default 240
+
+import array
+import inlinecpp
+from PySide2.QtGui import QImage
+
+def resolution(cop_node):
+    return cop_node.parmTuple("size").eval()
+
+def output_planes_to_cook(cop_node):
+    return ("C", "A")
+
+def frame_range(cop_node):
+    return None 
+
+def cook(cop_node, plane, resolution):
+    
+    num_pixels = resolution[0] * resolution[1]
+    image_file = cop_node.evalParm("image")
+    if not image_file:
+        return
+        
+    dds_file = QImage()
+    dds_file.load(image_file)
+    
+    if dds_file.isNull():
+        return
+        
+    size_x = dds_file.width()
+    size_y = dds_file.height()
+
+    dds_file = dds_file.scaled(resolution[0], resolution[1])
+    dds_file = dds_file.mirrored(0,1)
+    if plane == "A":
+        pixels = array.array("f", [0.0] * num_pixels)
+        for x in range(resolution[0]):
+            for y in (range(resolution[1])):
+                color = dds_file.pixelColor(x, y).alpha()
+                pixels[ ((x + (y * resolution[0]))) ] = float(color)/255
+    else:
+        pixels = array.array("f", [0.0] * num_pixels * 3)
+        for x in range(resolution[0]):
+            for y in (range(resolution[1])):
+                color = dds_file.pixelColor(x, y).getRgb()
+                for z in range(3): 
+                    pixels[ ((x + (y * resolution[0])))  * 3 + z] = float(color[z])/255
+                
+
+    cop_node.setPixelsOfCookingPlaneFromString(pixels)

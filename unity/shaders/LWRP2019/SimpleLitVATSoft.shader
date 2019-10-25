@@ -16,12 +16,19 @@ Shader "sidefx/lwrp/VAT Soft Simple Lit"
     Properties
     {
         //VAT Properties
-        _boundingMax("Bounding Max", Float) = 1.0
-        _boundingMin("Bounding Min", Float) = 1.0
+        _posMax("Position Max", Float) = 1.0
+        _posMin("Position Min", Float) = 1.0
         _numOfFrames("Number Of Frames", int) = 240
         _speed("Speed", Float) = 0.33
-        _pack_normal ("Pack Normal", Float) = 1.0
+        _packNorm ("Pack Normal", Float) = 1.0
+        _doubleTex ("Double Texture (Higher Precision)", Float) = 0.0
+        _padPowTwo ("Power of 2", Float) = 0.0
+        _textureSizeX ("Active Pixels X", Int) = 128
+        _textureSizeY ("Active Pixels Y", Int) = 128
+        _paddedSizeX ("Padded Size X", Int) = 128
+        _paddedSizeY ("Padded Size Y", Int) = 128
         _posTex ("Position Map (RGB)", 2D) = "white" {}
+        _posTex2 ("Position Map 2 (RGB)", 2D) = "white" {}
         _nTex ("Normal Map (RGB)", 2D) = "grey" {}
         _colorTex ("Colour Map (RGB)", 2D) = "white" {}
 

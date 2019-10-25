@@ -1,0 +1,227 @@
+# Dialog script for gamedev::rop_sketchfab automatically generated
+
+{
+    name	gamedev::rop_sketchfab
+    script	gamedev::rop_sketchfab
+    label	Sketchfab
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Export"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "trange"
+            label   "Valid Frame Range"
+            type    ordinal
+            default { "off" }
+            menu {
+                "off"       "Render Current Frame"
+                "normal"    "Render Frame Range"
+                "on"        "Render Frame Range Only (Strict)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "f"
+            label   "Start/End/Inc"
+            type    float
+            size    3
+            default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+            disablewhen "{ trange == off }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "soppath"
+            label   "Geo Path"
+            type    oppath
+            default { "" }
+            parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
+            parmtag { "oprelative" "." }
+        }
+    }
+
+    parm {
+        name    "parm"
+        label   "Model Type"
+        type    ordinal
+        invisible
+        default { "0" }
+        menu {
+            ""  "Static Model"
+            ""  "RBD Animation"
+            ""  "FBX Animation"
+            ""  "Alembic Animation"
+        }
+    }
+    groupsimple {
+        name    "model_details"
+        label   "Model Details"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "model_title"
+            label   "Title"
+            type    string
+            default { "" }
+        }
+        parm {
+            name    "model_description"
+            label   "Description"
+            type    string
+            default { "" }
+        }
+        parm {
+            name    "model_category"
+            label   "Category"
+            type    ordinal
+            default { "0" }
+            menu {
+                ""                          "No Category"
+                "animals-pets"              "Animals & Pets"
+                "architecture"              "Architecture"
+                "art-abstract"              "Art & Abstract"
+                "cars-vehicles"             "Cars & vehicles"
+                "characters-creatures"      "Characters & Creatures"
+                "cultural-heritage-history" "Cultural Heritage & History"
+                "electronics-gadgets"       "Electronics & Gadgets"
+                "fashion-style"             "Fashion & Style"
+                "food-drink"                "Food & Drink"
+                "furniture-home"            "Furniture & Home"
+                "music"                     "Music"
+                "nature-plants"             "Nature & Plants"
+                "news-politics"             "News & Politics"
+                "people"                    "People"
+                "places-travel"             "Places & Travel"
+                "sciene-technology"         "Science & Technology"
+                "sports-fitness"            "Sports & Fitness"
+                "weapons-military"          "Weapons & Military"
+            }
+        }
+        parm {
+            name    "model_tags"
+            label   "Tags"
+            type    string
+            default { "" }
+        }
+        parm {
+            name    "model_publish"
+            label   "Publish"
+            type    toggle
+            default { "0" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Settings"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "authentication_method"
+            label   "Authentication Method"
+            type    ordinal
+            default { "0" }
+            hidewhen "{ access_token != \"\" }"
+            menu {
+                "0" "API key"
+                "1" "Password"
+            }
+        }
+        parm {
+            name    "api_key"
+            label   "API Key"
+            type    string
+            joinnext
+            default { "" }
+            hidewhen "{ authentication_method != 0 }"
+        }
+        parm {
+            name    "launch_page"
+            label   "Find API token"
+            type    button
+            default { "0" }
+            hidewhen "{ authentication_method != 0 }"
+            parmtag { "script_callback" "import webbrowser;webbrowser.open_new(\"https://sketchfab.com/settings/password\")" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "access_token"
+            label   "Access Token"
+            type    string
+            invisible
+            default { "" }
+            hidewhen "{ authentication_method != 1 }"
+        }
+        parm {
+            name    "logged_in"
+            label   "Logged In: "
+            type    label
+            default { "" }
+            hidewhen "{ access_token == \"\" }"
+        }
+        parm {
+            name    "username"
+            label   "username"
+            type    string
+            joinnext
+            default { "" }
+            hidewhen "{ authentication_method != 1 } { access_token != \"\" }"
+        }
+        parm {
+            name    "login"
+            label   "Login"
+            type    button
+            default { "0" }
+            hidewhen "{ authentication_method != 1 } { access_token != \"\" }"
+            parmtag { "script_callback" "hou.pwd().hdaModule().onAccount()" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "tmp_filename"
+        label   "Label"
+        type    string
+        invisible
+        nolabel
+        default { "" }
+    }
+    parm {
+        name    "tmp_jpg_path"
+        label   "Label"
+        type    string
+        invisible
+        nolabel
+        default { "" }
+    }
+    parm {
+        name    "tmp_fbx_path"
+        label   "Label"
+        type    string
+        invisible
+        nolabel
+        default { "" }
+    }
+}

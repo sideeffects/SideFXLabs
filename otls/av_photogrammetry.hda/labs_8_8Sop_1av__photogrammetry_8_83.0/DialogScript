@@ -1,0 +1,317 @@
+# Dialog script for gamedev::sop_av_photogrammetry::3.0 automatically generated
+
+{
+    name	gamedev::sop_av_photogrammetry::3.0
+    script	gamedev::sop_av_photogrammetry::3.0
+    label	"GameDev AV Photogrammetry"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Textured Geometry"
+    outputlabel	2	Pointcloud
+    outputlabel	3	Cameras
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback" "kwargs['node'].hm().ManualCook(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual Mode"
+        type    toggle
+        joinnext
+        default { "on" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "off" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    group {
+        name    "folder3"
+        label   "Initialize"
+
+        parm {
+            name    "proj"
+            label   "Project Name"
+            type    string
+            default { "$HIPNAME" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "cache_dir"
+            label   "Cache Directory"
+            type    directory
+            default { "$HIP/AV_Cache/" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "alice_dir"
+            label   "Alice Vision Directory"
+            type    directory
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "dof"
+            label   "Default Field of View"
+            type    float
+            default { "45" }
+            help    "Empirical value for the field of view in degrees."
+            range   { 0 180 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "mColorMode"
+            label   "Color Mode"
+            type    string
+            default { "0" }
+            menu {
+                "0" "Textures"
+                "1" "Vertex Color"
+            }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "add_img"
+            label   "Add Images"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "kwargs['node'].hm().add_images(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        multiscroll {
+            name    "src_img"
+            label    "Images"
+            default 0
+            parmtag { "autoscope" "0000000000000000" }
+
+            parm {
+                name    "filename__#"
+                label   "File"
+                type    image
+                default { "" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder3_1"
+        label   "Meshing"
+
+        parm {
+            name    "filterTri"
+            label   "Filter Large Triangles Factor"
+            type    float
+            default { "60" }
+            help    "Removes all large triangles. A large triangle has one edge bigger than N times the average edge length. A value of 0 disables this."
+            range   { 1 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "numIter"
+            label   "Num of Iterations"
+            type    integer
+            default { "5" }
+            range   { 0 50 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "keepLrg"
+            label   "Keep Only the Largest Mesh"
+            type    toggle
+            default { "on" }
+            help    "Keep only the largest connected triangles group."
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    group {
+        name    "folder3_2"
+        label   "Texturing"
+
+        parm {
+            name    "side"
+            label   "Texture Side"
+            type    integer
+            default { "8192" }
+            help    "Output texture size."
+            menu usetokenvalue {
+                "1024"  "1024"
+                "2048"  "2048"
+                "4096"  "4096"
+                "8192"  "8192"
+                "16384" "16384"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "down"
+            label   "Texture Downscale"
+            type    integer
+            default { "1" }
+            help    "Texture downscale factor."
+            menu usetokenvalue {
+                "1" "1"
+                "2" "2"
+                "4" "4"
+                "8" "8"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "file"
+            label   "Texture File Type"
+            type    string
+            default { "png" }
+            menu {
+                "jpg"   "jpg"
+                "png"   "png"
+                "tiff"  "tiff"
+                "exr"   "exr"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "maxImg"
+            label   "Max Num of Images for Fusion"
+            type    integer
+            default { "3" }
+            help    "Max number of images to combine to create final texture."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "holes"
+            label   "Fill Holes"
+            type    toggle
+            default { "on" }
+            help    "Fill texture holes with plausible values."
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "useUDIM"
+            label   "Use UDIM UVs"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    group {
+        name    "folder3_3"
+        label   "Advanced"
+
+        group {
+            name    "folder3_4"
+            label   "Analyze Images"
+
+            parm {
+                name    "dsc_type"
+                label   "Describer Types"
+                type    string
+                default { "sift" }
+                help    "Describer types used to describe an image."
+                menutoggle {
+                    "sift"          "sift"
+                    "sift_float"    "sift_float"
+                    "sift_upright"  "sift_upright"
+                    "akaze"         "akaze"
+                    "akaze_liop"    "akaze_liop"
+                    "akaze_midb"    "akaze_midb"
+                    "cctag3"        "cctag3"
+                    "cctag4"        "cctag4"
+                    "sift_ocv"      "sift_ocv"
+                    "akaze_ocv"     "akaze_ocv"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "dsc_pre"
+                label   "Describer Preset"
+                type    string
+                default { "normal" }
+                help    "Control the ImageDescriber configuration. Ultra can take a long time."
+                menu {
+                    "low"       "low"
+                    "medium"    "medium"
+                    "normal"    "normal"
+                    "high"      "high"
+                    "ultra"     "ultra"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "cpu"
+                label   "Force CPU Extraction"
+                type    toggle
+                default { "on" }
+                help    "Use only CPU feature extraction."
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+        group {
+            name    "folder3_4_1"
+            label   "Structure from Motion"
+
+            parm {
+                name    "maxN"
+                label   "Max Num of Matches"
+                type    integer
+                default { "0" }
+                help    "Maximum number of matches per image pair (and per feature type). This can be useful to have a quick reconstruction overview. A value of 0 is no limit."
+                range   { 0 50000 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+        group {
+            name    "folder3_4_2"
+            label   "Depth Map"
+
+            parm {
+                name    "down2"
+                label   "Downscale"
+                type    integer
+                default { "2" }
+                help    "Image downscale factor."
+                menu usetokenvalue {
+                    "1"     "1"
+                    "2"     "2"
+                    "4"     "4"
+                    "8"     "8"
+                    "16"    "16"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+}

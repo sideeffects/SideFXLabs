@@ -1,0 +1,166 @@
+= GameDev LOD Create =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_lod_create::2.0
+#icon: lodcreate
+#tags: tech, model
+
+""" The LOD Create SOP allows for easy LOD generation. """
+
+The LOD Create SOP allows for easy LOD generation. The tool is a one node pipeline consisting of all the other tools in the toolset such as baking, polyreduction, geometry cleanup, uvs and more.
+The output of this tool is an FBX containing Level of Details that can be used in other DCCs or Game Engines.
+
+
+:col:
+	[Image:/images/lod_create_UI.png]
+
+@parameters
+    == Processing ==
+    Generate LODs:
+        Bake textures and meshes to disk.
+    == Decimation Settings ==
+    Visualizer:
+        Enable text label in viewport to display current LOD and polygon count.
+    Debug All LOD:
+        Display all LOD levels side by side.
+    LOD Viewing Mode:
+        Choose to select the viewed LOD with the LOD slider, or based on distance to a camera, or don't display.
+    Camera:
+        Camera to use to select which LOD level to display.
+    LOD:
+        Slider to select what LOD level to display.
+    Preset:
+        This menu is driven by a JSON file containing preset values for LOD settings. These presets can be modified in the Extra Files section of this HDA.
+    Consolidate Shader At:
+        This controls at which LOD level all attached shaders get consolidated into a single material.
+    Last LOD is Impostor:
+        Enables/Disables the use of an impostor for the last LOD.
+    Remove Insides:
+        This enables the automatic removal of inside faces.
+    Preserve Quads:
+        This enables / disables the preservation of quads during polyreduction.
+    Equalize Lengths:
+        This controls the equalization of edge lengths during polyreduction.
+    Recalculate Normals:
+        Enables/Disables the recalculation of vertex normals after polyreduction.
+    Cusp Angle:
+        When Recalculate Normals is on, this sets the desired cusping angle.
+    Weighting Method:
+        The weighting method for recalculating the vertex normals.
+    Attribute:
+        An optional attribute used for polyreducing based on attribute values.
+    Weight:
+        This drives the polyreduction based on attribute values as a scalar.
+    Mode:
+        How the size is determined
+    Threshold:
+        Pieces with the Area or Perimeter smallest than this will be removed 
+    Delete Non Selected:
+        Invert the operation
+	UV Attribute:
+        UV attribute to operate on
+    Initial Fuse Dist:
+        There is a built in intial Fuse Node to ensure good island connectivity, this is the distance threshold for that operation. 
+    Cutoff:
+        Size threshold of the islands that will be merged back into larger pieces
+    Flattening Method:
+        Method for reflattening the islands based on the new seams
+    Iterations:
+        Attempts at merging the islands together. Higher values produce smoother results
+    Optimize UV Border:
+        Attempts to remove triangles that are sticking to the side of the UV island. May cause small islands to reappear
+    == LOD Settings ==     
+    LODs:
+        This sets the number of LODs in the multiparm, which allows you to specify LOD settings on a per entry basis.
+    Custom Mesh:
+        This allows you to specify a custom piece of geometry to swap this LOD for.
+    Percent Triangles:
+        The desired target percentage of triangles from the original mesh.
+    Threshold Distance:
+        The threshold distance at which this LOD starts.
+    == Shader Consolidation ==
+    Correct Area Proportions:
+        Enabling this will correct the area proportions of the UV shells compared to the geometry it belongs to.
+    Axis-Align:
+        This will try to axis align your UV shells as best as possible.
+    Padding:
+        Controls the padding between UV shells.
+    Orientations:
+        Drives the number of possible orientation iterations during the UV layout solve.
+    Use MikkT Tangent Space:
+        Enables/Disables the use of MikkT tangent space normals during the baking.
+    Output basecolor in Linear Space:
+        Allows for the baking of the basecolor textures in linear space instead of gamma 2.2.
+    Tangent Normal Flip Y:
+        Flips the Y axis of the normalmap.
+    Cage Mesh:
+        Optional cage mesh. Must have the same topology and UVs as the UV Object. Typically a dupicate of UV Object whose vertices are slightly pushed outward. Used to determine the projection direction.
+    Border Padding:
+        Additional pixels at the border of each UV island 
+    Baking Samples:
+        Number of Samples used for raytraced shading
+    Ray Bias:
+        Determine how much to offset the rays from the surface of the object along the normal vector. 
+    Ray Distance:
+        Maximum Distance to trace for nearby surfaces. -1 means infinite distance.
+    Vertex Color:
+        Sets the map name used for Vertex Color.
+    Roughness Map:
+        Sets the map name used for Roughness Map.
+    Metallic Map:
+        Sets the map name used for Metallic Map.
+    Normal Map:
+        Sets the map name used for Normal Map.
+    Ambient Occlusion:
+        Sets the map name used for Ambient Occlusion Map.
+    Opacity Map:
+        Sets the map name used for Opacity Map.
+    Custom Channels:
+        This multiparm allows you to add any additional maps you'd like to bake based on attribute names.
+    == Impostor Settings == 
+    Render in One Image:
+        When this toggle is enabled, all frames of the impostor texture are generated with a lens shader instead of on a per frame basis.
+    Impostor Type:
+        This allows you to set the impostor type that has to be generated.
+    Sprite Resolution:
+        This sets the sprite resolution. (Ex: If you have 8x8 frames at 128x128 pixels, this means a combined 1024x1024 pixel texture)
+    XY Frames:
+        Sets the number of XY frames that need to be generated for the impostor texture.
+    Atlas Resolution:
+        When Impostor Type is set to Octahedron, this controls the overall impostor texture resolution.
+    Octahedron Zoom:
+        This controls the camera zoom amount for the Octahedron impostor camera lens.
+    Animation Frames:
+        When Impostor Type is set to Animation, this controls how many frames you want to encode in the impostor.
+    == Export Settings ==
+    Export in ASCII Format:
+        This controls if the FBX should be exported in Binary or ASCII format.
+    FBX SDK Version:
+        Allows you to override the FBX SDK used for export. Typically the default value is the best.
+    LOD Group Name:
+        This allows you to override the container name for the generated LOD Hierarchy.
+    LOD Mesh Name Prefix:
+        This allows you to override the Mesh name prefix for the LOD levels.
+    Output:
+        This specifies the location of the FBX that gets exported.
+    Export Source Textures:
+        When this toggle is enabled, any embedded textures or procedural materials attached will get exported to disk aswell.
+    Resolution:
+        This sets the resolution of the exported textures.
+    Pre Multiply:
+        This controls if the basecolor/beauty map alpha channel should be premultiplied.
+    Beauty Map:
+        Enables/Disables the generation of the Beauty Atlas for the impostor.
+    Beauty Atlas:
+        This specifies where the Beauty Atlas should be saved to.
+    Base Color Map:
+        Enables/Disables the generation of the Base Color Atlas for the impostor.
+    Base Color Atlas:
+        This specifies where the Base Color Atlas should be saved to.
+    Normals Map:
+        Enables/Disables the generation of the Normal Atlas for the impostor.
+    Normals Atlas:
+        This specifies where the Normal Atlas should be saved to.
+
+    
