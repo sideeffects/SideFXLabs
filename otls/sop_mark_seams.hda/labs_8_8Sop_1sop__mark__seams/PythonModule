@@ -1,0 +1,19 @@
+import toolutils
+def get_points():
+
+    selection = toolutils
+    viewer = selection.sceneViewer()
+    selected_geo = selection.sceneViewer().selectGeometry()
+    node = hou.pwd()
+    string_select = selected_geo.selectionStrings()
+    if selected_geo.geometryType() == hou.geometryType.Points:
+        return 
+    
+    curr_count = node.parm("selections").eval()   
+
+    node.parm("selections").set(curr_count + 1) 
+    node.parm("basegroup_" + str(curr_count+1)).set(string_select[0])
+    if selected_geo.geometryType() == hou.geometryType.Primitives:
+        node.parm("group_type_" + str(curr_count+1)).set(1)
+   
+    viewer.setCurrentState("select")

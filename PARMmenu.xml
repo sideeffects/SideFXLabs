@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+-->
+
+<menuDocument>
+    <!-- menuDocument can only contain 1 menu element, whose id is 
+         implicitly "root_menu"
+      -->
+    <menu>
+
+      <!-- External Editor -->
+      
+      <addScriptItem id="open_external_editor">
+			  <label>Edit in External Editor</label>
+        <parent>expression_menu</parent>
+        <insertAfter>edit_expression</insertAfter>
+			  <context>
+				  <expression>
+  <![CDATA[
+try:
+  import houdini_external_editor
+  return houdini_external_editor.is_valid_parm(kwargs["parms"][0])
+except:
+  return False]]></expression>
+			  </context>
+			  <scriptCode>
+          <![CDATA[
+import houdini_external_editor
+reload(houdini_external_editor)
+houdini_external_editor.add_watcher(kwargs["parms"][0])]]>
+			  </scriptCode>
+		  </addScriptItem>
+
+      <!-- Remove watcher -->
+
+      <addScriptItem id="remove_file_watcher">
+        <label>Remove File Watcher</label>
+        <parent>expression_menu</parent>
+        <insertAfter>open_external_editor</insertAfter>
+        <context>
+          <expression>
+            <![CDATA[
+try:
+  import houdini_external_editor
+  return houdini_external_editor.parm_has_watcher(kwargs["parms"][0])
+except:
+  return False]]>
+          </expression>
+        </context>
+        <scriptCode>
+          <![CDATA[
+import houdini_external_editor
+reload(houdini_external_editor)
+houdini_external_editor.remove_file_watched(kwargs["parms"][0])]]>
+        </scriptCode>
+      </addScriptItem>
+
+    </menu>
+</menuDocument>

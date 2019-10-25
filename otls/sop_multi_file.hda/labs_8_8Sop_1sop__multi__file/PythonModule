@@ -1,0 +1,13 @@
+from PySide2 import QtWidgets
+import os, hou
+
+
+def on_button_click():
+    fileNames = QtWidgets.QFileDialog.getOpenFileNames(None,
+        ("Open Image"), hou.getenv("HIP"), ("Geometry Files (*.obj *.fbx *.bmp)"))
+        
+    for filename in fileNames[0]: 
+        cur_count = hou.pwd().parm("filecount").eval()
+        hou.pwd().parm("filecount").set(cur_count+1)
+        hou.pwd().parm("file_" + str(cur_count+1)).set(filename)
+        

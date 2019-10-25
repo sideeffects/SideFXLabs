@@ -1,0 +1,77 @@
+# Dialog script for gamedev::rop_vector_field automatically generated
+
+{
+    name	gamedev::rop_vector_field
+    script	gamedev::vectorFieldROP
+    label	"GameDev ROP Vector Field"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Points or Volume"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "render"
+        label   "Render"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().renderFile()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "outputFile"
+        label   "Output File"
+        type    file
+        default { "$HIP/${OS}.fga" }
+    }
+    parm {
+        name    "input_type"
+        label   "Input Type"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Volume"
+            "1" "Particles"
+        }
+    }
+    parm {
+        name    "velocity_volumes"
+        label   "Velocity Volumes"
+        type    string
+        default { "@name=vel.*" }
+        hidewhen "{ input_type == 1 }"
+    }
+    parm {
+        name    "velocity_attr"
+        label   "Velocity Attribute"
+        type    string
+        default { "v" }
+        hidewhen "{ input_type == 0 }"
+    }
+    parm {
+        name    "override_res"
+        label   "Override Resolution"
+        type    toggle
+        default { "0" }
+        hidewhen "{ input_type == 1 }"
+    }
+    parm {
+        name    "div"
+        label   "Sampling Divs"
+        type    vector
+        size    3
+        default { "10" "10" "10" }
+        disablewhen "{ override_res == 0 input_type == 0 }"
+        range   { -1 1 }
+    }
+    parm {
+        name    "visualise"
+        label   "Visualise"
+        type    toggle
+        default { "0" }
+    }
+}

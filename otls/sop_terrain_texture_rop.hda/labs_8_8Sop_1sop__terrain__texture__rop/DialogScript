@@ -1,0 +1,230 @@
+# Dialog script for gamedev::sop_terrain_texture_rop automatically generated
+
+{
+    name	gamedev::sop_terrain_texture_rop
+    script	gamedev::sop_terrain_texture_rop
+    label	"GameDev Terrain Texture ROP"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Polygon Geometry"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Normal Map"
+
+        parm {
+            name    "vm_bake_tangentnormalflipy"
+            label   "Tangent Normal Flip Y"
+            type    toggle
+            default { "off" }
+            disablewhen "{ bExportNormal == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "spare_category" "Baking" }
+        }
+        parm {
+            name    "vm_bake_tangentnormalflipx"
+            label   "Tangent Normal Flip X"
+            type    toggle
+            default { "off" }
+            disablewhen "{ bExportNormal == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "spare_category" "Baking" }
+        }
+        parm {
+            name    "vm_bake_usemikkt"
+            label   "Use MikkT Tangent Space"
+            type    toggle
+            default { "off" }
+            disablewhen "{ bExportNormal == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "mantra_class" "renderer" }
+            parmtag { "mantra_name" "bake_usemikkt" }
+            parmtag { "spare_category" "Baking" }
+        }
+        parm {
+            name    "copoutput2"
+            label   "Output File"
+            type    image
+            joinnext
+            default { "$HIP/render/Terrain_N.tga" }
+            disablewhen "{ bExportNormal == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp1 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "bExportNormal"
+            label   "Export"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Height Map"
+
+        parm {
+            name    "bNormalize"
+            label   "Normalize Range 0-1"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "bSingleChannel"
+            label   "Single Channel"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "iRasterDepth"
+            label   "Raster Depth"
+            type    ordinal
+            default { "3" }
+            menu {
+                "0" "8 Bit Integer"
+                "1" "16 Bit Integer"
+                "2" "16 Bit Floating Point"
+                "3" "32 Bit Floating Point"
+            }
+        }
+        parm {
+            name    "copoutput"
+            label   "Output File"
+            type    image
+            joinnext
+            default { "$HIP/render/Terrain_H.tga" }
+            disablewhen "{ bExportHeight == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp2 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "bExportHeight"
+            label   "Export"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+    groupsimple {
+        name    "folder3"
+        label   "Cavity Map"
+
+        parm {
+            name    "copoutput3"
+            label   "Output File"
+            type    image
+            joinnext
+            default { "$HIP/render/Terrain_CA.tga" }
+            disablewhen "{ bExportCavity == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp2 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "bExportCavity"
+            label   "Export"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Occlusion Map"
+
+        parm {
+            name    "copoutput4"
+            label   "Output File"
+            type    image
+            joinnext
+            default { "$HIP/render/Terrain_OC.tga" }
+            disablewhen "{ bExportOcclusion == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp4 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "bExportOcclusion"
+            label   "Export"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Output"
+
+        parm {
+            name    "bDivideTiles"
+            label   "Divide into tiled maps"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "iNumTiles"
+            label   "Number of Tiles"
+            type    intvector2
+            size    2
+            default { "4" "4" }
+            disablewhen "{ bDivideTiles == 0 }"
+            range   { -1 1 }
+        }
+        parm {
+            name    "vm_uvunwrapres"
+            label   "Render Resolution"
+            type    intvector2
+            size    2
+            default { "2048" "2048" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tile_offset"
+            label   "TileOffset_Hidden"
+            type    vector2
+            invisible
+            size    2
+            default { "0" "0" }
+            range   { -1 1 }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "execute"
+            label   "Export"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "takecontrol" "always" }
+        }
+    }
+
+    parm {
+        name    "sFileOutputName"
+        label   "OutputName_Hidden"
+        type    string
+        invisible
+        default { "" }
+    }
+}

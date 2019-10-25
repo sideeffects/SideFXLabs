@@ -1,0 +1,21 @@
+import hou
+
+
+def AddCustomFloor(a_node):
+    Index = a_node.parm("mpFloorOverrides").evalAsInt()
+    
+    # DEFAULT PARMS
+    Parms = ['bFacadeCorner','bTopLedgeCorner', 'bBottomLedgeCorner', 'sTopLedgePattern', 'sBottomLedgePattern','fFloorHeight', 'bTopLedge', 'fTopLedgeHeight', 'bBottomLedge', 'fBottomLedgeHeight', 'sFacadePattern', 'sSideSlopID']
+    ParmsMulti = [['sConvexCornerID', 2], ['sConcaveCornerID', 2], ['sTopLedgeConvexCorner', 2], ['sTopLedgeConcaveCorner', 2], ['sBottomLedgeConvexCorner', 2], ['sBottomLedgeConcaveCorner', 2]]
+
+    if Index > 0:
+        for parm in Parms:
+            ParmToSet = a_node.parm(parm+"Override%s" % Index)
+            if ParmToSet != None:
+                ParmToSet.setFromParm(a_node.parm(parm))
+               
+        for parm in ParmsMulti:
+            for x in range(parm[1]):
+                ParmToSet = a_node.parm(parm[0]+"Override%s%s" % (Index,x+1))
+                if ParmToSet != None:
+                    ParmToSet.setFromParm(a_node.parm(parm[0]+str(x+1)))

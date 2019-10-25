@@ -1,0 +1,117 @@
+# Dialog script for gamedev::sop_repair automatically generated
+
+{
+    name	gamedev::sop_repair
+    script	gamedev::sop_repair
+    label	"GameDev Repair"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to be Cleaned up"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "basegroup"
+        label   "Base Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l group2 basegroup" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].parmTuple('grouptype')\nkwargs['inputindex'] = 0\nkwargs['ordered'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "fillmode"
+        label   "Fill Mode"
+        type    ordinal
+        default { "none" }
+        menu {
+            "none"      "Single Polygon"
+            "tris"      "Triangles"
+            "trifan"    "Triangle Fan"
+            "quadfan"   "Quadrilateral Fan"
+            "quads"     "Quadrilaterals"
+            "gridquads" "Quadrilateral Grid"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "grouptype"
+        label   "Group Type"
+        type    ordinal
+        invisible
+        default { "primitive" }
+        menu {
+            "primitive" "Primitives"
+            "point"     "Points"
+            "edge"      "Edges"
+            "vertex"    "Vertices"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    groupsimple {
+        name    "folder1"
+        label   "Remesh"
+        disablewhentab "{ fillmode != none }"
+
+        parm {
+            name    "post_remesh"
+            label   "Post Remesh"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "target_edge"
+            label   "Target Edge Length"
+            type    float
+            default { "0.05" }
+            disablewhen "{ post_remesh == 0 }"
+            range   { 0.001! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    parm {
+        name    "reproject_onto_original"
+        label   "Reproject onto Original"
+        type    toggle
+        default { "0" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Smoothing"
+
+        parm {
+            name    "smooth_borders"
+            label   "Smooth Borders"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "influence"
+            label   "Influence"
+            type    integer
+            default { "1" }
+            disablewhen "{ smooth_borders == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "iterations"
+            label   "Blurring Iterations"
+            type    integer
+            default { "3" }
+            disablewhen "{ smooth_borders == 0 }"
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}

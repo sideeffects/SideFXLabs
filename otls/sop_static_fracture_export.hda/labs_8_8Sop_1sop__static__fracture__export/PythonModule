@@ -1,0 +1,51 @@
+def CreateNewSubnet(a_ContainerName):
+    a_ContainerName = a_ContainerName if a_ContainerName != "" else "FRACTURE_CONTAINER"
+    return hou.node("/obj").createNode("subnet", a_ContainerName)
+
+def CreateGeoFracContainer(a_Source, a_ContainerDir, a_ContainerName, a_PieceIndex, a_GroupName, a_Frame):
+    Geometry = hou.node(a_ContainerDir).createNode("geo", "%s" % a_ContainerName)
+    ObjMerge = Geometry.createNode("object_merge")
+    ObjMerge.parm("objpath1").set(a_Source)
+    ObjMerge.parm("group1").set(str(a_GroupName))
+
+    TimeShift = Geometry.createNode("timeshift")
+    TimeShift.parm("frame").deleteAllKeyframes()
+    TimeShift.parm("frame").set(a_Frame)
+    TimeShift.setNextInput(ObjMerge)
+
+    Output = Geometry.createNode("output")
+    Output.setNextInput(TimeShift)
+    Output.setDisplayFlag(True)
+    Output.setRenderFlag(True)
+    Output.setHardLocked(1)
+
+    Geometry.layoutChildren()
+
+def Main():
+    # Parm Data
+    Frame = hou.pwd().parm("iFrame").evalAsInt()
+    ContainerName = hou.pwd().parm("sContainerName").evalAsString()
+    ExportMode = hou.pwd().parm("mExportMode").evalAsInt()
+    PieceAttribute = hou.pwd().parm("sPieceAttribute").evalAsString()
+
+    # Geometry Data
+    GeometrySource = hou.node("%s/FRACTURE_OBJECT" % hou.pwd().path())
+    Geometry = GeometrySource.geometry()
+    
+    # Export Container
+    ExportContainer = CreateNewSubnet(ContainerName)
+
+    # Just export Packed Prims
+    if ExportMode == 0:
+        for i, point in enumerate(Geometry.points()):
+            name = point.attribValue("name")
+            CreateGeoFracContainer(GeometrySource.path(), ExportContainer.path(), name, i, i, Frame)
+
+    # Export Based on Attr
+    elif ExportMode == 1:
+        SourceArray = list(hou.node("%s/UniqueVals" % hou.pwd().path()).geometry().stringListAttribValue("UniqueDetVals"))
+
+        for i, attr in enumerate(SourceArray):
+            CreateGeoFracContainer(GeometrySource.path(), ExportContainer.path(), attr, i, "@%s=%s" % (PieceAttribute, attr), Frame)
+
+    ExportContainer.layoutChildren()

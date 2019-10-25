@@ -1,0 +1,32 @@
+import os
+import subprocess
+
+zbrush_dir = "C:\Users\Public\Pixologic\GoZBrush"
+zbrush_proj_dir = "C:\Users\Public\Pixologic\GoZProjects\Default"
+
+def read_goz_path_from_list():
+    object_list_file = os.path.join(zbrush_dir, "GoZ_ObjectList.txt")
+    goz_files = []
+    f = open(object_list_file, "r")
+    for line in f.readlines():
+        goz_files.append(line.strip() + ".GoZ")
+    f.close()
+    
+    return goz_files
+
+
+def load(kwargs):
+    node = kwargs["node"]
+    node.setHardLocked(False)
+    goz_files = read_goz_path_from_list()
+    node.parm("filecount").set(len(goz_files))
+
+    for i, goz_file in enumerate(goz_files):
+        node.parm("goz_file" + str(i+1)).set(goz_file)
+    node.setHardLocked(True)
+
+def install():
+    temp_goz_node = hou.node("/obj").createNode("geo", "tmp_zbrush")
+    temp_goz_node.createNode("sop_goz_export")
+    temp_goz_node.destroy()
+    

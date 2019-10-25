@@ -1,0 +1,291 @@
+#version 330
+
+
+#line 1
+
+layout(triangles) in;
+layout(triangle_strip, max_vertices=3) out;
+
+in parms
+{
+    vec4  pos;
+    vec3  normal;
+    vec4  color;
+    vec2  texcoord0;
+    float selected;
+    vec3 tangent; 
+} gsIn[];
+
+out wparms {
+    vec4 pos;
+    vec3 normal;
+    vec4 color;
+    vec2 texcoord0;
+    noperspective out vec3 edgedist;
+    flat out int edgeflags;
+    float selected;
+    vec3 tangent; 
+} gsOut;
+
+#if defined(VENDOR_NVIDIA) && DRIVER_MAJOR >= 343
+in gl_PerVertex
+{
+    vec4 gl_Position;
+    float gl_ClipDistance[2];
+} gl_in[];
+out gl_PerVertex
+{
+    vec4 gl_Position;
+    float gl_ClipDistance[2];
+};
+#endif
+
+uniform int     attrmodeN;
+uniform int     attrmodeCd;
+uniform int     attrmodeuv;
+uniform int     attrmodeAlpha;
+uniform int     attrmodetangent;
+
+uniform samplerBuffer attrN;
+uniform samplerBuffer attrCd;
+uniform samplerBuffer attruv;
+uniform samplerBuffer attrAlpha;
+uniform samplerBuffer attrtangent;
+
+uniform int           glH_SelectMode;
+
+uniform mat4    glH_ObjectMatrix;
+uniform mat3    glH_NormalMatrix;
+uniform int     glH_WireOver;
+
+layout(std140) uniform glH_Material
+{
+    vec3            ambient_color;
+    vec3            diffuse_color;
+    vec3            emission_color;
+    vec3            specular_color;
+    vec3            metallic_color;
+    float           metal;
+    float           material_alpha;
+    float           material_alpha_parallel;
+    float           roughness;
+    float           diffuse_roughness;
+    float           ior;
+    float           reflection;
+    float           coat_intensity;
+    float           coat_roughness;
+    int             specular_model;
+    int             coat_spec_model;
+    float           specular_tint;
+
+    bool            use_geo_color;
+    bool            use_packed_color;
+
+    bool            has_textures;
+    bool            has_diffuse_map;
+    bool            has_spec_map;
+    bool            has_opacity_map;
+    bool            has_emission_map;
+    bool            has_normal_map;
+    bool            has_rough_map;
+    bool            has_displace_map;
+    bool            has_occlusion_map;
+    bool            has_metallic_map;
+    bool            has_coat_int_map;
+    bool            has_coat_rough_map;
+    bool            has_reflection_int_map;
+    bool            has_reflect_map;
+    
+    ivec4           diffuse_udim_area;
+    ivec4           spec_udim_area;
+    ivec4           opacity_udim_area;
+    ivec4           emission_udim_area;
+    ivec4           normal_udim_area;
+    ivec4           rough_udim_area; 
+    ivec4           displace_udim_area;
+    ivec4           occlusion_udim_area;
+    ivec4           metallic_udim_area;
+    ivec4           coat_int_udim_area;
+    ivec4           coat_rough_udim_area;
+    ivec4           reflection_udim_area;
+    
+    bool            has_env_map;
+    vec3            envScale;
+    mat3            envRotate;
+
+    vec2            normalMapScaleShift;
+    vec2            normalMapScale;
+    vec3            normalMapXYZScale;
+    int             normal_map_type; // space: 0=tangent, 1=world  
+    int             normal_map_ncomps; // 2 or 3 component
+
+    int             displace_space;
+    float           displace_scale;
+    float           displace_offset;
+    bool            displace_y_up; // vs. z-up
+
+    bool            invert_opacitymap;
+    
+    bool            invert_roughmap;
+    vec4            rough_comp;
+    
+    vec4            occlusion_comp;
+    vec4            metallic_comp;
+    vec4            coat_int_comp;
+    vec4            coat_rough_comp;
+
+    bool            reflection_as_ior;
+    vec4            reflection_comp;
+};
+
+vec3 nxform(vec3 n)
+{
+    return normalize(glH_NormalMatrix *
+                     (glH_ObjectMatrix * vec4(n,0.0)).xyz);
+}
+
+vec3 HOUedgeDistance(vec4 v0, vec4 v1, vec4 v2, out int edges);
+int  HOUprimitiveInfo(out ivec3 vertex);
+bool HOUfrustumCull(vec4 v0, vec4 v1, vec4 v2);
+bool HOUprimSelection();
+
+void main()
+{
+    int prim;
+    ivec3 vertex;
+    vec3 dist;
+    int  edgeflags;
+    bool prim_selected;
+
+    // quick frustum cull
+    if(HOUfrustumCull(gl_in[0].gl_Position,
+                      gl_in[1].gl_Position,
+                      gl_in[2].gl_Position))
+       return;
+    
+    bool pnt_uv;
+
+    pnt_uv = (attrmodeuv == 0 || !has_textures);
+    prim = HOUprimitiveInfo(vertex);
+
+    if(glH_WireOver == 1)
+    {
+        dist = HOUedgeDistance(gl_in[0].gl_Position,
+                               gl_in[1].gl_Position,
+                               gl_in[2].gl_Position,
+                               edgeflags);
+    }
+    else
+    {
+        dist = vec3(0.0);
+        edgeflags = 0;
+    }
+
+    prim_selected = HOUprimSelection();
+    if(prim_selected)
+        dist.xyz *= 0.8;
+
+    // Point 1 ---------------------------
+    if(attrmodeN == 0) // point
+        gsOut.normal = gsIn[0].normal;
+    else if(attrmodeN == 1) // prim
+        gsOut.normal = nxform(texelFetch(attrN, prim).xyz);
+    else // vertex
+        gsOut.normal = nxform(texelFetch(attrN, vertex.r).xyz);
+        
+    gsOut.color = gsIn[0].color;
+    if(attrmodeCd == 1) // prim
+        gsOut.color.rgb = texelFetch(attrCd, prim).rgb;
+    else if(attrmodeCd == 2) // vertex
+        gsOut.color.rgb = texelFetch(attrCd, vertex.r).rgb;
+        
+    if(attrmodeAlpha == 1) // prim
+        gsOut.color.a = texelFetch(attrAlpha, prim).r;
+    else if(attrmodeAlpha == 2) // vertex
+        gsOut.color.a = texelFetch(attrAlpha, vertex.r).r;
+        
+    if(pnt_uv) // point
+        gsOut.texcoord0 = gsIn[0].texcoord0;
+    else // vertex
+        gsOut.texcoord0 = texelFetch(attruv, vertex.r).rg;
+        
+    gsOut.tangent = gsIn[0].tangent.rgb;
+    if(attrmodetangent == 1) // prim
+        gsOut.tangent = texelFetch(attrtangent, prim).rgb;
+    else if(attrmodeAlpha == 2) // vertex
+        gsOut.tangent = texelFetch(attrtangent, vertex.r).rgb;
+        
+    gsOut.pos       = gsIn[0].pos;
+    gsOut.selected  = prim_selected ? 1.0 : gsIn[0].selected;
+    gsOut.edgedist  = vec3(dist.x, 0.0, 0.0);
+    gsOut.edgeflags = edgeflags;
+    gl_Position     = gl_in[0].gl_Position;
+    gl_ClipDistance[0] = gl_in[0].gl_ClipDistance[0];
+    gl_ClipDistance[1] = gl_in[0].gl_ClipDistance[1];
+    EmitVertex();
+
+    // Point 2 -------------------------------
+    if(attrmodeN == 0) // point
+        gsOut.normal = gsIn[1].normal;
+    // 1, prim stays constant
+    else if(attrmodeN == 2) // vertex
+        gsOut.normal = nxform(texelFetch(attrN, vertex.g).xyz);
+        
+    if(attrmodeCd == 0) // point
+        gsOut.color.rgb = gsIn[1].color.rgb;
+    else if(attrmodeCd == 2) // vertex
+        gsOut.color.rgb = texelFetch(attrCd, vertex.g).rgb;
+        
+    if(attrmodeAlpha == 0) // point
+        gsOut.color.a = gsIn[1].color.a;
+    else if(attrmodeAlpha == 2) // vertex
+        gsOut.color.a = texelFetch(attrAlpha, vertex.g).r;
+    
+    if(pnt_uv) // point
+        gsOut.texcoord0 = gsIn[1].texcoord0;
+    else if(attrmodeuv == 2) // vertex
+        gsOut.texcoord0 = texelFetch(attruv, vertex.g).rg;
+        
+    gsOut.selected  = prim_selected ? 1.0 : gsIn[1].selected;
+    gsOut.pos       = gsIn[1].pos;
+    gsOut.edgedist  = vec3(0.0, dist.y, 0.0);
+    gsOut.edgeflags = edgeflags;
+    gl_Position     = gl_in[1].gl_Position;
+    gl_ClipDistance[0] = gl_in[1].gl_ClipDistance[0];
+    gl_ClipDistance[1] = gl_in[1].gl_ClipDistance[1];
+    EmitVertex();
+
+    // Point 3 --------------------------------
+    if(attrmodeN == 0) // point
+        gsOut.normal = gsIn[2].normal;
+    // 1, prim stays constant
+    else if(attrmodeN == 2) // vertex
+        gsOut.normal = nxform(texelFetch(attrN, vertex.b).xyz);
+        
+    if(attrmodeCd == 0) // point
+        gsOut.color.rgb = gsIn[2].color.rgb;
+    // 1, prim stays constant
+    else if(attrmodeCd == 2) // vertex
+        gsOut.color.rgb = texelFetch(attrCd, vertex.b).rgb;
+        
+    if(attrmodeAlpha == 0) // point
+        gsOut.color.a = gsIn[2].color.a;
+    else if(attrmodeAlpha == 2) // vertex
+        gsOut.color.a = texelFetch(attrAlpha, vertex.b).r;
+    
+    if(pnt_uv) // point
+        gsOut.texcoord0 = gsIn[2].texcoord0;
+    else if(attrmodeuv == 2) // vertex
+        gsOut.texcoord0 = texelFetch(attruv, vertex.b).rg;
+    
+    gsOut.selected  = prim_selected ? 1.0 : gsIn[2].selected;
+    gsOut.pos       = gsIn[2].pos;
+    gsOut.edgedist  = vec3(0.0, 0.0, dist.z);
+    gsOut.edgeflags = edgeflags;
+    gl_Position     = gl_in[2].gl_Position;
+    gl_ClipDistance[0] = gl_in[2].gl_ClipDistance[0];
+    gl_ClipDistance[1] = gl_in[2].gl_ClipDistance[1];
+    EmitVertex();
+
+    EndPrimitive();
+}

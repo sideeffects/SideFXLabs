@@ -1,0 +1,304 @@
+# Dialog script for gamedev::sop_destruction_cleanup automatically generated
+
+{
+    name	gamedev::sop_destruction_cleanup
+    script	DestructionCleanup
+    label	"GameDev Destruction Cleanup"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Static Geometry Input"
+    inputlabel	2	"Animation Data Import (DOP or Cache)"
+    inputlabel	3	"Bounding Box (Optional)"
+    inputlabel	4	"Constraint Relationship Geometry (Optional)"
+    outputlabel	1	"Optimized Destruction Simulation"
+
+    parm {
+        name    "alwaysTrue"
+        label   "True"
+        type    integer
+        invisible
+        default { "1" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "thirdinput"
+        label   "ThirdIsConnected"
+        type    integer
+        invisible
+        default { "opexist(opinputpath('.',2))" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "fourthinput"
+        label   "FourthIsConnected"
+        type    integer
+        invisible
+        default { "opexist(opinputpath('.',3))" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "sepparm5"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "inputMode"
+        label   "Input Mode"
+        type    integer
+        invisible
+        default { "0" }
+        help    "The input mode specifies what kind of data is being fed into the tool. If you get displaced objects on the first frame, select another option."
+        menu {
+            "0" "DOP"
+            "1" "Cache"
+        }
+        range   { 0 10 }
+    }
+    parm {
+        name    "outputMode"
+        label   "Output Mode"
+        type    integer
+        default { "0" }
+        help    "The output mode determines what kind of data the tool gives back to you after being processed."
+        menu {
+            "0" "Animated Optimized Geometry"
+            "1" "Static Optimized Geometry"
+            "2" "Animated Transforms"
+        }
+        range   { 0 10 }
+        parmtag { "script_callback" "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "simulationRange"
+        label   "Simulation Range"
+        type    intvector2
+        size    2
+        default { "$RFSTART" "$RFEND" }
+        help    "The simulation range determines what the framerange is that will be used for the data analysis. It is recommended to leave these to the start and end frame of your simulation."
+        range   { -1 1 }
+    }
+    parm {
+        name    "sepparm6"
+        label   "Separator"
+        type    separator
+        default { "" }
+        range   { 0 1 }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Optimization Mode"
+
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            invisible
+            default { "" }
+            range   { 0 1 }
+        }
+        groupradio {
+            name    "tab_"
+            label   "Proximity Based"
+
+            parm {
+                name    "sepparm11"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "bExcludeDisconnected"
+                label   "Exclude Disconnected Chunks"
+                type    toggle
+                default { "0" }
+                help    "This checkbox allows the user to exclude any chunks which are completely isolated at the last frame (Simulation Range) from being batched by proximity cleanup."
+                disablewhen "{ fourthinput == 0 }"
+            }
+            parm {
+                name    "clusterSearchRadius"
+                label   "Cluster Search Radius"
+                type    float
+                default { "0.21" }
+                help    "The cluster search radius specifies the maximum difference in units between chunks in a simulation. A lower value means chunks have to be closer to eachother throughout their animation to be batched together, while a higher value will increase the allowed distance."
+                range   { 0.0001! 1 }
+            }
+        }
+
+        groupradio {
+            name    "tab__1"
+            label   "Constraint Based"
+            tabbreak
+
+            parm {
+                name    "sepparm"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "labelparm"
+                label   "Label"
+                type    label
+                nolabel
+                default { "USES CONSTRAINT NETWORK FROM INPUT 4" }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Shared Settings"
+
+        parm {
+            name    "sepparm16"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bFuseSurface"
+            label   "Fuse"
+            type    toggle
+            default { "1" }
+            help    "This controls if surface points should be fused together. This will also trigger the removal of inside faces."
+            range   { 0 1 }
+        }
+        parm {
+            name    "fuseDistance"
+            label   "Fuse Distance"
+            type    float
+            default { "0.001" }
+            help    "This controls the fusing threshold in units for surface points close to eachother"
+            disablewhen "{ bFuseSurface == 0 }"
+            range   { 0 0.005 }
+        }
+        parm {
+            name    "removeInline"
+            label   "Remove Inline Points"
+            type    toggle
+            default { "0" }
+            disablewhen "{ bFuseSurface == 0 }"
+        }
+        parm {
+            name    "sepparm9"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bFreezeThreshold"
+            label   "Freeze Threshold"
+            type    toggle
+            default { "0" }
+            help    "This controls the freeze threshold optimization. Chunks that move less than the specified threshold will be batched together."
+        }
+        parm {
+            name    "freezeThreshold"
+            label   "Freeze Threshold"
+            type    float
+            default { "0" }
+            help    "This is the threshold in units used to determine freezing of chunks. See checkbox tooltip for more."
+            disablewhen "{ bFreezeThreshold == 0 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "sepparm8"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bCuspPolygons"
+            label   "Cusp Polygons"
+            type    toggle
+            default { "1" }
+            help    "This controls if polygon cusping should be applied to the newly generated geometry."
+            range   { 0 1 }
+        }
+        parm {
+            name    "cuspAngle"
+            label   "Cusp Angle"
+            type    angle
+            default { "30" }
+            help    "This controls the polygon cusping angle."
+            disablewhen "{ bCuspPolygons == 0 }"
+            range   { 0 180 }
+        }
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bGenerateName"
+            label   "Generate Name"
+            type    toggle
+            default { "1" }
+            help    "This controls whether or not a new name attribute should be generated per unique optimized packed primitive"
+        }
+        parm {
+            name    "newName"
+            label   "Name"
+            type    string
+            default { "piece" }
+            help    "This controls the prefix applied to packed primitives coming out of the output."
+            disablewhen "{ bGenerateName == 0 }"
+        }
+        parm {
+            name    "sepparm17"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bVisChunks"
+            label   "Visualize Chunks"
+            type    toggle
+            default { "1" }
+            help    "This controls whether or not unique chunks should be colorcoded."
+            range   { 0 1 }
+        }
+        parm {
+            name    "explodeView"
+            label   "Explode View"
+            type    float
+            default { "0" }
+            help    "NOTE: Requires Output Mode to be set to \"Static Optimized Geometry\". This parameter controls the scale at which each piece has to be expanded from the geometry it's center."
+            disablewhen "{ bVisChunks == 0 } { outputMode != 1 }"
+            range   { 0 3 }
+        }
+        parm {
+            name    "sepparm7"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bBoundsAdjust"
+            label   "Clamped Bounds"
+            type    toggle
+            default { "0" }
+            help    "This controls whether or not to apply bound optimization."
+            disablewhen "{ thirdinput == 0 }"
+            range   { 0 1 }
+        }
+        parm {
+            name    "clampPos"
+            label   "Clamp Position"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            help    "This controls the where bound clamped chunks will be moved to."
+            disablewhen "{ bBoundsAdjust == 0 } { thirdinput == 0 }"
+            range   { -1 1 }
+        }
+    }
+
+}

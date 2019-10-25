@@ -1,0 +1,539 @@
+# Dialog script for gamedev::sop_quickmaterial::2.0 automatically generated
+
+{
+    name	gamedev::sop_quickmaterial::2.0
+    script	gamedev::sop_quickmaterial
+    label	"GameDev Quick Material"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry To Add Material To"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    multiswitcher {
+        name    "mMaterialEntries"
+        label    "Materials"
+        parmtag { "script_callback" "kwargs['node'].hm().OnMultiparmChange(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+
+        parm {
+            name    "sMaterialType#"
+            label   "Material Type"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Principledshader"
+                "1" "GameDev PBR"
+                "2" "GameDev Matcap"
+            }
+            parmtag { "script_callback" "kwargs['node'].hm().OnMultiparmChange(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "materialname_#"
+            label   "Material Name"
+            type    string
+            default { "Material_#" }
+            parmtag { "script_callback" "kwargs['node'].hm().OnMultiparmChange(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "groupselection_#"
+            label   "Group"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "opmenu -l material1 group1" ]
+            }
+            parmtag { "script_action" "import soputils\nsoputils.selectMaterialGroupParm(kwargs)\n" }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        groupsimple {
+            name    "folder0_#"
+            label   "Principledshader"
+            hidewhentab "{ sMaterialType# != 0 }"
+
+            groupsimple {
+                name    "basecolorfolder_#"
+                label   "Base Color"
+
+                parm {
+                    name    "basecolor_texture_#"
+                    label   "BaseColor Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "basecolor_#"
+                    label   "Tint"
+                    type    color
+                    size    3
+                    default { "1" "1" "1" }
+                    range   { 0 1 }
+                }
+            }
+
+            groupsimple {
+                name    "opacityfolder_#"
+                label   "Opacity"
+
+                parm {
+                    name    "opaccolor_texture_#"
+                    label   "Opacity Texture"
+                    type    image
+                    default { "" }
+                }
+            }
+
+            groupsimple {
+                name    "normalfolder_#"
+                label   "Normal"
+
+                parm {
+                    name    "baseBump_bumpTexture_#"
+                    label   "Normal Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "baseNormal_flipY_#"
+                    label   "Flip Y"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "roundedEdge_enable_#"
+                    label   "Rounded Edge"
+                    type    toggle
+                    joinnext
+                    default { "0" }
+                }
+                parm {
+                    name    "roundedEdge_radius_#"
+                    label   "Radius"
+                    type    float
+                    joinnext
+                    default { "0" }
+                    disablewhen "{ roundedEdge_enable_# == 0 }"
+                    range   { 0 0.1 }
+                }
+                parm {
+                    name    "roundedEdge_mode_#"
+                    label   "Mode"
+                    type    integer
+                    default { "0" }
+                    disablewhen "{ roundedEdge_enable_# == 0 }"
+                    menu {
+                        "both"      "Concave and Convex Edges"
+                        "concave"   "Concave Edges"
+                        "convex"    "Convex Edges"
+                    }
+                    range   { 0 10 }
+                }
+            }
+
+            groupsimple {
+                name    "roughnessfolder_#"
+                label   "Roughness"
+
+                parm {
+                    name    "rough_texture_#"
+                    label   "Roughness Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "rough_#"
+                    label   "Roughness"
+                    type    float
+                    default { "0.652" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "ior_#"
+                    label   "IOR"
+                    type    float
+                    default { "1.1" }
+                    range   { 0 3 }
+                }
+            }
+
+            groupsimple {
+                name    "metallicfolder_#"
+                label   "Metallic"
+
+                parm {
+                    name    "metallic_texture_#"
+                    label   "Metallic Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "metallic_#"
+                    label   "Metallic"
+                    type    float
+                    default { "0" }
+                    range   { 0 1 }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "folder0_#_3"
+            label   "GameDev PBR"
+            hidewhentab "{ sMaterialType# != 1 }"
+
+            groupsimple {
+                name    "basecolorfolder_#_2"
+                label   "Albedo"
+
+                parm {
+                    name    "pbr_basecolor_#"
+                    label   "Base Color"
+                    type    color
+                    size    3
+                    default { "1" "1" "1" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "pbr_basecolor_useTexture_#"
+                    label   "Use Texture"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_basecolor_texture_#"
+                    label   "Albedo Texture"
+                    type    image
+                    default { "" }
+                    hidewhen "{ pbr_basecolor_useTexture_# == 0 }"
+                }
+            }
+
+            groupsimple {
+                name    "roughnessfolder_#_2"
+                label   "Roughness"
+
+                parm {
+                    name    "pbr_IOR_#"
+                    label   "IOR"
+                    type    float
+                    default { "1.5" }
+                    range   { 0 3 }
+                }
+                parm {
+                    name    "pbr_rough_#"
+                    label   "Roughness"
+                    type    float
+                    default { "0.3" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "pbr_horizon_fade_#"
+                    label   "Horizon Smoothing"
+                    type    float
+                    default { "1" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "pbr_invert_rough_#"
+                    label   "Invert Roughness"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_rough_useTexture_#"
+                    label   "Use Texture"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_rough_texture_#"
+                    label   "Roughness Texture"
+                    type    image
+                    default { "" }
+                    hidewhen "{ pbr_rough_useTexture_# == 0 }"
+                }
+                parm {
+                    name    "pbr_rough_monoChannel_#"
+                    label   "Channel"
+                    type    integer
+                    default { "0" }
+                    hidewhen "{ pbr_rough_useTexture_# == 0 }"
+                    menu {
+                        "0" "Luminance"
+                        "1" "Red"
+                        "2" "Green"
+                        "3" "Blue"
+                    }
+                    range   { 0 10 }
+                    parmtag { "ogl_occlusionmap_comp" "1" }
+                }
+            }
+
+            groupsimple {
+                name    "metallicfolder_#_2"
+                label   "Metallic"
+
+                parm {
+                    name    "pbr_metallic_#"
+                    label   "Metallic"
+                    type    float
+                    default { "0" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "pbr_metallic_useTexture_#"
+                    label   "Use Texture"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_metallic_texture_#"
+                    label   "Metallic Texture"
+                    type    image
+                    default { "" }
+                    hidewhen "{ pbr_metallic_useTexture_# == 0 }"
+                }
+                parm {
+                    name    "pbr_metallic_monoChannel_#"
+                    label   "Channel"
+                    type    integer
+                    default { "0" }
+                    hidewhen "{ pbr_metallic_useTexture_# == 0 }"
+                    menu {
+                        "0" "Luminance"
+                        "1" "Red"
+                        "2" "Green"
+                        "3" "Blue"
+                    }
+                    range   { 0 10 }
+                    parmtag { "ogl_occlusionmap_comp" "1" }
+                }
+            }
+
+            groupsimple {
+                name    "shading_16_#"
+                label   "Normal"
+
+                parm {
+                    name    "pbr_baseBumpAndNormal_enable_#"
+                    label   "Enable"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_baseNormal_texture_#"
+                    label   "Normal Texture"
+                    type    image
+                    default { "" }
+                    hidewhen "{ pbr_baseBumpAndNormal_enable_# == 0 }"
+                }
+                parm {
+                    name    "pbr_baseNormal_scale_#"
+                    label   "Effect Scale"
+                    type    float
+                    joinnext
+                    default { "1" }
+                    hidewhen "{ pbr_baseBumpAndNormal_enable_# == 0 }"
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "pbr_baseNormal_flipX_#"
+                    label   "Flip X"
+                    type    toggle
+                    joinnext
+                    default { "0" }
+                    hidewhen "{ pbr_baseBumpAndNormal_enable_# == 0 }"
+                }
+                parm {
+                    name    "pbr_baseNormal_flipY_#"
+                    label   "Flip Y"
+                    type    toggle
+                    default { "0" }
+                    hidewhen "{ pbr_baseBumpAndNormal_enable_# == 0 }"
+                }
+                parm {
+                    name    "pbr_use_mikkt_#"
+                    label   "Use Model's Tangent"
+                    type    toggle
+                    default { "0" }
+                    hidewhen "{ pbr_baseBumpAndNormal_enable_# == 0 }"
+                }
+            }
+
+            groupsimple {
+                name    "folder14_#"
+                label   "Occlusion"
+
+                parm {
+                    name    "pbr_occlusion_#"
+                    label   "Occlusion"
+                    type    float
+                    default { "0" }
+                    help    "Controls the intensity of the AO map"
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "pbr_occlusion_useTexture_#"
+                    label   "Use Texture"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_occlusion_texture_#"
+                    label   "Texture"
+                    type    image
+                    default { "" }
+                    help    "Ambient Occlusion Map"
+                    hidewhen "{ pbr_occlusion_useTexture_# == 0 }"
+                    parmtag { "ogl_occlusionmap" "1" }
+                }
+                parm {
+                    name    "pbr_occlusion_monoChannel_#"
+                    label   "Channel"
+                    type    integer
+                    default { "0" }
+                    hidewhen "{ pbr_occlusion_useTexture_# == 0 }"
+                    menu {
+                        "0" "Luminance"
+                        "1" "Red"
+                        "2" "Green"
+                        "3" "Blue"
+                    }
+                    range   { 0 10 }
+                    parmtag { "ogl_occlusionmap_comp" "1" }
+                }
+            }
+
+            groupsimple {
+                name    "folder9_#"
+                label   "Emissive"
+
+                parm {
+                    name    "pbr_emitint_#"
+                    label   "Emission Intensity"
+                    type    float
+                    default { "0" }
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "pbr_emitcolor_#"
+                    label   "Emission Color"
+                    type    color
+                    size    3
+                    default { "0" "0" "0" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "pbr_emitcolor_useTexture_#"
+                    label   "Use Texture"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_emitcolor_texture_#"
+                    label   "Emission Texture"
+                    type    image
+                    default { "" }
+                    hidewhen "{ pbr_emitcolor_useTexture_# == 0 }"
+                }
+            }
+
+            groupsimple {
+                name    "folder13_#"
+                label   "Transparency"
+
+                parm {
+                    name    "pbr_transparency_#"
+                    label   "Transparency"
+                    type    float
+                    default { "0" }
+                    range   { 0! 1! }
+                }
+                parm {
+                    name    "pbr_opaccolor_useTexture_#"
+                    label   "Use Texture"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "pbr_opaccolor_#"
+                    label   "Transparency Texture"
+                    type    image
+                    default { "" }
+                    hidewhen "{ pbr_opaccolor_useTexture_# == 0 }"
+                }
+            }
+
+            groupcollapsible {
+                name    "diffuse_folder_15_1_#"
+                label   "Advanced"
+
+                parm {
+                    name    "pbr_importance_sampling_diffuse_#"
+                    label   "Importance Sampled Ambient"
+                    type    toggle
+                    default { "0" }
+                    help    "Use a fancier way of sampling the diffuse information from Environment Lights"
+                }
+                parm {
+                    name    "pbr_nbSamples_diff_#"
+                    label   "Number of Diffuse Samples"
+                    type    integer
+                    default { "32" }
+                    help    "Number of Samples of the Environment Light during diffuse calculations"
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "pbr_importance_sampling_#"
+                    label   "Importance Sampled Reflections"
+                    type    toggle
+                    default { "1" }
+                    help    "Realtime blurring of the cubemap based on the roughness of the object"
+                }
+                parm {
+                    name    "pbr_nbSamples_#"
+                    label   "Number of Specular Samples"
+                    type    integer
+                    default { "32" }
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "pbr_frontface_#"
+                    label   "Shade Both Sides As Front"
+                    type    toggle
+                    default { "1" }
+                    help    "Realtime blurring of the cubemap based on the roughness of the object"
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "folder0_#_2"
+            label   "GameDev Matcap"
+            hidewhentab "{ sMaterialType# != 2 }"
+
+            parm {
+                name    "matcap_basecolor_texture_#"
+                label   "MatCap Texture"
+                type    image
+                default { "opdef:gamedev::Vop/mat_matcap_shader?matcap_orange.exr" }
+            }
+            parm {
+                name    "matcap_use_texture_alpha_#"
+                label   "Use MatCap Alpha"
+                type    toggle
+                default { "0" }
+            }
+        }
+
+    }
+
+}

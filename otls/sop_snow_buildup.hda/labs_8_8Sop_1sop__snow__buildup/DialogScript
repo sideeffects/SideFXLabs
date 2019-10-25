@@ -1,0 +1,114 @@
+# Dialog script for gamedev::sop_snow_buildup automatically generated
+
+{
+    name	gamedev::sop_snow_buildup
+    script	gamedev::sop_snow_buildup
+    label	"GameDev Snow Buildup"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to Accumulate Snow On"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Snow Accumulation"
+
+    groupsimple {
+        name    "scattering_options"
+        label   "Scattering Options"
+
+        parm {
+            name    "angle"
+            label   "Spread Angle"
+            type    angle
+            default { "60" }
+            range   { 0! 180! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "npts"
+            label   "Number of Snow Points"
+            type    integer
+            default { "5000" }
+            range   { 1 100000 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "snowflake_min_max"
+            label   "Point Size (Min/Max)"
+            type    vector2
+            size    2
+            default { "0" "1" }
+            range   { -1 1 }
+        }
+    }
+
+    groupsimple {
+        name    "meshing_options"
+        label   "Meshing Options"
+
+        parm {
+            name    "smooth_iterations"
+            label   "Smooth Iterations"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "dilate_erode"
+            label   "Dilate/Erode"
+            type    float
+            default { "0" }
+            range   { -10 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "iterations"
+            label   "Blurring Iterations"
+            type    integer
+            default { "22" }
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "cleanup"
+        label   "Clean Up"
+
+        parm {
+            name    "polyreduce"
+            label   "Reduce to # Polys"
+            type    toggle
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "reduction_count"
+            label   "reduction_count"
+            type    integer
+            nolabel
+            default { "10000" }
+            disablewhen "{ polyreduce == 0 }"
+            range   { 1! 10000 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "boolean_against_original"
+            label   "Boolean Against Original"
+            type    toggle
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "keep_original"
+            label   "Keep Original"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+}

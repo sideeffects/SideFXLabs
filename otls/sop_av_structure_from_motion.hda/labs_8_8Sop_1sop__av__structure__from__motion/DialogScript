@@ -1,0 +1,184 @@
+# Dialog script for gamedev::sop_av_structure_from_motion automatically generated
+
+{
+    name	gamedev::sop_av_structure_from_motion
+    script	AV_Structure_from_Motion
+    label	"GameDev AV Structure from Motion"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Analyze Images"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"AV Depth Map"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "reload"
+        label   "Reload"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Structure from Motion"
+
+        parm {
+            name    "dsc_type"
+            label   "Describer Types"
+            type    string
+            default { "sift" }
+            help    "Describer types used to describe an image."
+            menutoggle {
+                "sift"          "sift"
+                "sift_float"    "sift_float"
+                "sift_upright"  "sift_upright"
+                "akaze"         "akaze"
+                "akaze_liop"    "akaze_liop"
+                "akaze_midb"    "akaze_midb"
+                "cctag3"        "cctag3"
+                "cctag4"        "cctag4"
+                "sift_ocv"      "sift_ocv"
+                "akaze_ocv"     "akaze_ocv"
+            }
+        }
+        parm {
+            name    "locl_es"
+            label   "Localizer Estimator"
+            type    string
+            default { "acransac" }
+            help    "Estimator type used to localize cameras (acransac, ransac, lsmeds, loransac, maxconsensus)."
+            menu {
+                "acransac"      "acransac"
+                "ransac"        "ransac"
+                "lsmeds"        "lsmeds"
+                "loransac"      "loransac"
+                "maxconsensus"  "maxconsensus"
+            }
+        }
+        parm {
+            name    "maxN"
+            label   "Max Num of Matches"
+            type    integer
+            default { "0" }
+            help    "Maximum number of matches per image pair (and per feature type). This can be useful to have a quick reconstruction overview. A value of 0 is no limit."
+            range   { 0 50000 }
+        }
+        parm {
+            name    "fileExt"
+            label   "Inter File Extension"
+            type    string
+            default { ".abc" }
+            menu {
+                ".abc"  ".abc"
+                ".ply"  ".ply"
+            }
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "lock"
+                label   "Lock Scene Previously Reconstructed"
+                type    toggle
+                default { "0" }
+                help    "This option is useful for SfM augmentation. Lock previous reconstructed poses and intrinsics."
+            }
+            parm {
+                name    "local"
+                label   "Local Bundle Adjustment"
+                type    toggle
+                default { "1" }
+                help    "Reduces the reconstruction time, especially for large datasets (500+ images), by avoiding computation of the Bundle Adjustment on areas that are not changing."
+            }
+            parm {
+                name    "ba"
+                label   "LocalBA Graph Distance"
+                type    integer
+                default { "1" }
+                help    "Graph-distance limit to define the active region in the Local Bundle Adjustment strategy."
+                range   { 1 10 }
+            }
+            parm {
+                name    "minInput"
+                label   "Min Input Track Length"
+                type    integer
+                default { "2" }
+                help    "Minimum track length in input of SfM."
+                range   { 2 10 }
+            }
+            parm {
+                name    "minTri"
+                label   "Min Observation for Triangulation"
+                type    integer
+                default { "2" }
+                help    "Minimum number of observations to triangulate a point. Setting to 3 (or more) drastically reduces the noise in the point cloud, but the number of final poses is reduced."
+                range   { 2 10 }
+            }
+            parm {
+                name    "minAngle"
+                label   "Min Angle for Triangulation"
+                type    float
+                default { "3" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "minLandmark"
+                label   "Min Angle for Landmark"
+                type    float
+                default { "2" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "maxReprEr"
+                label   "Max Reprojection Error"
+                type    float
+                default { "4" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "minAngInit"
+                label   "Min Angle Initial Pair"
+                type    float
+                default { "5" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "maxAngInit"
+                label   "Max Angle Initial Pair"
+                type    float
+                default { "40" }
+                range   { 0.1 60 }
+            }
+        }
+
+    }
+
+}

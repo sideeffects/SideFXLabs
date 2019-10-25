@@ -1,0 +1,240 @@
+# Dialog script for gamedev::simple_rbd automatically generated
+
+{
+    name	gamedev::simple_rbd
+    script	gamedev::simple_rbd
+    label	"Simple RBD"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Dynamic Objects"
+    inputlabel	2	"Static Objects"
+    inputlabel	3	"Static Volume"
+    inputlabel	4	Impulse
+
+    parm {
+        name    "stashimpulse"
+        label   "Stash"
+        type    button
+        default { "0" }
+    }
+    parm {
+        name    "resetsim"
+        label   "Reset Simulation"
+        type    button
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "animatestatic"
+        label   "Set Frame to Activate"
+        type    toggle
+        default { "on" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "activatestaticframe"
+        label   "Activate at Frame:"
+        type    integer
+        default { "10" }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "visstatic"
+        label   "Visualise Static"
+        type    toggle
+        default { "off" }
+        disablewhen "{ staticvolumeinput == 0 }"
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "staticobjectinput"
+        label   "Static Object Input"
+        type    integer
+        invisible
+        default { [ "npoints(opinputpath(\".\",1))!=0" hscript-expr ] }
+        range   { 0 10 }
+    }
+    parm {
+        name    "staticvolumeinput"
+        label   "Static Volume Input"
+        type    integer
+        invisible
+        default { [ "npoints(opinputpath(\".\",2))!=0" hscript-expr ] }
+        range   { 0 10 }
+    }
+    parm {
+        name    "impulseinput"
+        label   "Imupulse Input"
+        type    integer
+        invisible
+        default { [ "npoints(opinputpath(\".\",3))!=0" hscript-expr ] }
+        range   { 0 10 }
+    }
+    group {
+        name    "forcesfolder"
+        label   "Forces"
+
+        parm {
+            name    "applyforceactivate"
+            label   "Apply Force on Activation"
+            type    toggle
+            default { "on" }
+            disablewhen "{ impulseinput == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "forceframerange"
+            label   "Force Frame Range"
+            type    vector2
+            size    2
+            default { "35" "45" }
+            disablewhen "{ applyforceactivate == 1 }"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "force"
+            label   "Force"
+            type    float
+            default { "20" }
+            disablewhen "{ impulseinput == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "impulse"
+            label   "Impulse"
+            type    string
+            default { "v" }
+            disablewhen "{ impulseinput == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "normalizeforce"
+            label   "Normalize Force"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "adduniformforce"
+            label   "Add Uniform Force"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "uniformforce"
+            label   "Uniform Force"
+            type    vector
+            size    3
+            default { "0" "100" "0" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    group {
+        name    "forcesfolder_1"
+        label   "Physics"
+
+        parm {
+            name    "dynamiclabel"
+            label   "Dynamic Object"
+            type    label
+            default { "" }
+        }
+        parm {
+            name    "dynamicbounce"
+            label   "Bounce"
+            type    float
+            default { "0.25" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "dynamicfriction"
+            label   "Friction"
+            type    float
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "staticlabel"
+            label   "Static Objects"
+            type    label
+            default { "" }
+        }
+        parm {
+            name    "staticbounce"
+            label   "Bounce"
+            type    float
+            default { "0.5" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "staticfriction"
+            label   "Friction"
+            type    float
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "gplabel"
+            label   "Ground Plane"
+            type    label
+            default { "" }
+        }
+        parm {
+            name    "gpbounce"
+            label   "Bounce"
+            type    float
+            default { "0.5" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "gpfriction"
+            label   "Friction"
+            type    float
+            default { "1" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    group {
+        name    "forcesfolder_2"
+        label   "Ground Plane"
+
+        parm {
+            name    "addgroundplane"
+            label   "Add Ground Plane"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "gpheight"
+            label   "Height"
+            type    float
+            default { "0" }
+            range   { -10 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}

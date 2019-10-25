@@ -1,0 +1,185 @@
+#version 330
+
+
+#line 1
+
+#ifdef GL_ARB_explicit_attrib_location
+#extension GL_ARB_explicit_attrib_location : require
+layout(location=0) in vec3 P;
+layout(location=1) in vec3 Cd;
+layout(location=2) in float Alpha;
+layout(location=3) in vec3 N;
+layout(location=4) in vec2 uv;
+layout(location=6) in uint pointSelection;
+layout(location=7) in vec3 tangentu;
+
+#else
+in vec3 P;
+in vec3 Cd;
+in float Alpha;
+in vec3 N;
+in vec2 uv;
+in uint pointSelection;
+in vec3 tangentu;
+
+#endif
+
+layout(std140) uniform glH_Material
+{
+    vec3            ambient_color;
+    vec3            diffuse_color;
+    vec3            emission_color;
+    vec3            specular_color;
+    vec3            metallic_color;
+    float           metal;
+    float           material_alpha;
+    float           material_alpha_parallel;
+    float           roughness;
+    float           diffuse_roughness;
+    float           ior;
+    float           reflection;
+    float           coat_intensity;
+    float           coat_roughness;
+    int             specular_model;
+    int             coat_spec_model;
+    float           specular_tint;
+
+    bool            use_geo_color;
+    bool            use_packed_color;
+
+    bool            has_textures;
+    bool            has_diffuse_map;
+    bool            has_spec_map;
+    bool            has_opacity_map;
+    bool            has_emission_map;
+    bool            has_normal_map;
+    bool            has_rough_map;
+    bool            has_displace_map;
+    bool            has_occlusion_map;
+    bool            has_metallic_map;
+    bool            has_coat_int_map;
+    bool            has_coat_rough_map;
+    bool            has_reflection_int_map;
+    bool            has_reflect_map;
+    
+    ivec4           diffuse_udim_area;
+    ivec4           spec_udim_area;
+    ivec4           opacity_udim_area;
+    ivec4           emission_udim_area;
+    ivec4           normal_udim_area;
+    ivec4           rough_udim_area; 
+    ivec4           displace_udim_area;
+    ivec4           occlusion_udim_area;
+    ivec4           metallic_udim_area;
+    ivec4           coat_int_udim_area;
+    ivec4           coat_rough_udim_area;
+    ivec4           reflection_udim_area;
+    
+    bool            has_env_map;
+    vec3            envScale;
+    mat3            envRotate;
+
+    vec2            normalMapScaleShift;
+    vec2            normalMapScale;
+    vec3            normalMapXYZScale;
+    int             normal_map_type; // space: 0=tangent, 1=world  
+    int             normal_map_ncomps; // 2 or 3 component
+
+    int             displace_space;
+    float           displace_scale;
+    float           displace_offset;
+    bool            displace_y_up; // vs. z-up
+
+    bool            invert_opacitymap;
+    
+    bool            invert_roughmap;
+    vec4            rough_comp;
+    
+    vec4            occlusion_comp;
+    vec4            metallic_comp;
+    vec4            coat_int_comp;
+    vec4            coat_rough_comp;
+
+    bool            reflection_as_ior;
+    vec4            reflection_comp;
+};
+
+out parms
+{
+    vec4  pos;
+    vec3  normal;
+    vec4  color;
+    vec2  texcoord0;
+    float selected;
+    vec3 tangentu; 
+
+} vsOut;
+
+#if defined(VENDOR_NVIDIA) && DRIVER_MAJOR >= 343
+out gl_PerVertex
+{
+    vec4 gl_Position;
+    float gl_ClipDistance[2];
+};
+#endif
+
+uniform mat4    glH_ViewMatrix;
+uniform mat4    glH_ProjectMatrix;
+uniform mat4    glH_ObjectMatrix;
+uniform mat3    glH_NormalMatrix;
+uniform vec2    glH_DepthRange;
+
+float HOUpointSelection(uint point_attrib, int instance_id);
+mat4  HOUfetchInstance(out vec3 Cd, out float texlayer, out int instID,
+                       out bool has_cd, out bool is_selected);
+
+void main()
+{
+    vec4 vpos;
+    mat4 objinst;
+    mat3 objinst_n;
+    vec3 instCd;
+    float texlayer;
+    int instID;
+    bool isSel, hasCd;
+    mat4  instmat = HOUfetchInstance(instCd, texlayer, instID, hasCd, isSel);
+
+    // Object transform and instancing transform
+    objinst = glH_ObjectMatrix * instmat;
+    objinst_n = mat3(objinst);
+    objinst_n = transpose( inverse( objinst_n ));
+
+    // view position
+    vpos = vec4(P, 1.0);
+    vpos = glH_ViewMatrix * (objinst * vpos);
+    
+    vsOut.pos       = vpos / vpos.w;
+
+    // Point color and alpha
+    vsOut.color     = vec4( Cd * instCd, Alpha );
+
+    // Point UVs
+    if(has_textures)
+        vsOut.texcoord0 = uv;
+    else
+        vsOut.texcoord0 = vec2(0.0);
+
+    // Adjust normals if object/instance transform flips them
+    vsOut.normal    = glH_NormalMatrix *
+                       (objinst_n * N) *sign(determinant(objinst_n));
+    if(all(equal(vsOut.normal.xyz, vec3(0.0))))
+        vsOut.normal.z = -1.0;
+    vsOut.selected  = isSel ? 1.0
+                            : HOUpointSelection(pointSelection, instID);
+    
+    vsOut.tangentu    = glH_NormalMatrix *
+                       (objinst_n * tangentu) *sign(determinant(objinst_n)); ;
+                       
+                            
+    // projected position
+    gl_Position = glH_ProjectMatrix * vpos;
+
+    // near/far clip, in case zbuffer near/far are different
+    gl_ClipDistance[0] = -vsOut.pos.z - glH_DepthRange.x;
+    gl_ClipDistance[1] = glH_DepthRange.y + vsOut.pos.z;
+}

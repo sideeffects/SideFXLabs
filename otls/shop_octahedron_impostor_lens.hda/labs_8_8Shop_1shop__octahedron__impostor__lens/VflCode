@@ -1,0 +1,141 @@
+#pragma opname          octahedronimpostor
+#pragma oplabel         "Fisheye Lens"
+ 
+#pragma hint    x       hidden
+#pragma hint    y       hidden
+#pragma hint    Time    hidden
+#pragma hint    dofx    hidden
+#pragma hint    dofy    hidden
+#pragma hint    aspect  hidden
+#pragma hint    P       hidden
+#pragma hint    I       hidden
+ 
+#pragma range   xy_size         1 16
+#pragma range   camera_width    0 100
+#pragma range   camera_zoom     0 5
+#pragma choice  imposter_mode   hemi "Hemi-Octahedron"
+#pragma choice  imposter_mode   full "Full-Octahedron"
+ 
+#include "math.h"
+ 
+cvex
+octahedronimpostor(
+    // Inputs
+    float x = 0;
+    float y = 0;
+    float Time = 0;
+    float dofx = 0;
+    float dofy = 0;
+    float aspect = 1;
+ 
+    // Outputs
+    export vector P = 0;
+    export vector I = 0;
+ 
+    // Shader arguments
+    float xy_size = 6;
+    float camera_width = 0.25;
+    float camera_zoom = 0.5;
+    string imposter_mode = "hemi";
+    )
+{
+ 
+    int nFrames = int(xy_size * xy_size);
+    int ImpostorMode = (imposter_mode == "hemi") ? 2 : 1;
+ 
+    float fx = fit(x, -1, 1, 0, 1) * float(xy_size);
+    float fy = (1 - fit(y, -1, 1, 1, 0)) * float(xy_size);
+
+    float floorx = clamp(float(xy_size) - trunc(fx) - 1.0, 0, xy_size-1);
+    float floory = clamp(float(xy_size) - trunc(fy) - 1.0, 0, xy_size-1);
+
+    float fracx = (frac(fx) * 2.0 - 1) * camera_width;
+    float fracy = (frac(fy) * 2.0 - 1) * camera_width;
+ 
+    vector ImpostorVector(vector2 Coord; int Mode){
+
+        vector2 CoordModify = Coord;
+        CoordModify.x *= 2.0;
+        CoordModify.x -= 1.0;
+        CoordModify.y *= 2.0;
+        CoordModify.y -= 1.0;
+
+        vector ImpostorRenderVector;
+
+        // Octahedron
+        if(Mode == 1){
+
+            float ZComponent = 1.0 - dot(abs(CoordModify), {1.0,1.0});
+           
+            if(ZComponent < 0.0 ) {
+
+                float XComponent = (CoordModify.x >= 0) ? 1.0 : -1.0;
+                float YComponent = (CoordModify.y >= 0) ? 1.0 : -1.0;
+
+                XComponent *= (1.0 - abs(CoordModify.y));
+                YComponent *= (1.0 - abs(CoordModify.x));
+
+                ImpostorRenderVector = set(XComponent, YComponent, ZComponent);
+
+            } else {
+
+                 ImpostorRenderVector = set(CoordModify.x, CoordModify.y, ZComponent);
+
+            }
+
+        }
+
+        // Hemi Octahedron
+        else if (Mode == 2) {
+
+            vector2 HemiOct = set(CoordModify.x + CoordModify.y, CoordModify.x - CoordModify.y);
+            HemiOct.x *= 0.5;
+            HemiOct.y *= 0.5;
+            ImpostorRenderVector = set(HemiOct.x, HemiOct.y, 0);
+            ImpostorRenderVector.z = 1.0 - dot(abs(HemiOct), {1.0, 1.0});
+        }
+
+        return normalize(ImpostorRenderVector);
+
+    }
+ 
+    vector2 Input = set(float(int(floorx)) / float(xy_size-1), float(int(floory)) / float(xy_size-1));
+    P = swizzle(ImpostorVector(Input, ImpostorMode), 0, 2, 1);
+    
+    vector N = -normalize(P);
+    vector2 Coord = set(floorx, floory);
+    vector XDir = normalize(cross(set(0,1,0), N));
+
+    if (xy_size%2==1) {
+
+        
+        if(Coord == set(ceil(float(xy_size-1)/2.0), ceil(float(xy_size-1)/2.0)))
+            if (ImpostorMode == 2) {
+                XDir = set(-1,0,0);
+            } else {
+                XDir = set(0,0,1);
+            }
+    }
+
+    if (ImpostorMode == 1)  {
+
+        if (Coord == set(0, 0)){
+            XDir = set(0, 0, 1);
+        } else if (Coord == set(0, xy_size-1)) {
+            XDir = set(0, 0, 1);
+        } else if (Coord == set(xy_size-1, 0)) {
+            XDir = set(0, 0, 1);
+        } else if (Coord == set(xy_size-1, xy_size-1)){
+            XDir = set(0, 0, 1); 
+        }
+
+
+    }
+ 
+    vector YDir = normalize(cross(XDir, N));
+    
+    P += ((XDir*fracx) + (YDir*-fracy));
+    P = P + (P * camera_zoom);
+    I = N;
+ 
+}

@@ -1,0 +1,119 @@
+import hou
+
+MaterialTypes = ['principledshader::2.0', 'gamedev::mat_gamedev_shader', 'gamedev::mat_matcap_shader']
+
+def OnMultiparmChange(HDA):
+        MaterialNetwork = hou.node(HDA.path()+'/matnet/')
+        NumberMaterials = HDA.parm('mMaterialEntries').evalAsInt()
+        MaterialAssignment = HDA.node(HDA.path()+'/materialassignment/')
+        MaterialAssignment.parm('num_materials').set(0)
+        try:
+            MaterialAssignment.cook(force=True)
+        except: pass
+        MaterialAssignment.parm('num_materials').set(NumberMaterials)
+
+        MaterialNetwork.deleteItems(MaterialNetwork.children())
+
+        for x in range(NumberMaterials):
+                val = x+1
+
+                MaterialType = HDA.parm('sMaterialType%s' % val).evalAsInt()
+                MaterialName = HDA.parm('materialname_%s' % val).evalAsString()
+                NewMaterial = MaterialNetwork.createNode(MaterialTypes[MaterialType], MaterialName)
+                NewMaterial.moveToGoodPosition()
+                MaterialAssignment.parm('shop_materialpath%s' % val).set("../matnet/%s" % NewMaterial.name())
+                MaterialAssignment.parm('group%s' % val).set(HDA.parm('groupselection_%s' % val), follow_parm_reference=False)
+
+                if MaterialType == 0: # Principledshader::2.0
+                    # basecolor
+                    NewMaterial.parm('basecolor_useTexture').set(1)
+                    NewMaterial.parm('basecolor_texture').set(HDA.parm('basecolor_texture_%s' % val))
+                    NewMaterial.parm('basecolorr').set(HDA.parm('basecolor_%sr' % val))
+                    NewMaterial.parm('basecolorg').set(HDA.parm('basecolor_%sg' % val))
+                    NewMaterial.parm('basecolorb').set(HDA.parm('basecolor_%sb' % val))
+
+                    # opacity
+                    NewMaterial.parm('opaccolor_useTexture').set(1)
+                    NewMaterial.parm('opaccolor_texture').set(HDA.parm('opaccolor_texture_%s' % val))
+
+                    # normal
+                    NewMaterial.parm('baseBumpAndNormal_enable').set(1)
+                    NewMaterial.parm('baseNormal_texture').set(HDA.parm('baseBump_bumpTexture_%s' % val))
+                    NewMaterial.parm('baseNormal_flipY').set(HDA.parm('baseNormal_flipY_%s' % val))
+                    NewMaterial.parm('roundedEdge_enable').set(HDA.parm('roundedEdge_enable_%s' % val))
+                    NewMaterial.parm('roundedEdge_radius').set(HDA.parm('roundedEdge_radius_%s' % val))
+                    NewMaterial.parm('roundedEdge_mode').set(HDA.parm('roundedEdge_mode_%s' % val))
+
+                    # roughness
+                    NewMaterial.parm('rough_useTexture').set(1)
+                    NewMaterial.parm('rough_texture').set(HDA.parm('rough_texture_%s' % val))
+
+                    NewMaterial.parm('rough').set(HDA.parm('rough_%s' % val))
+                    NewMaterial.parm('ior').set(HDA.parm('ior_%s' % val))
+
+                    # Metallic
+                    NewMaterial.parm('metallic_useTexture').set(1)
+                    NewMaterial.parm('metallic_texture').set(HDA.parm('metallic_texture_%s' % val))
+                    NewMaterial.parm('metallic').set(HDA.parm('metallic_%s' % val))
+
+                elif MaterialType == 1: # GameDev PBR
+                    # albedo
+                    NewMaterial.parm('basecolorr').set(HDA.parm('pbr_basecolor_%sr' % val))
+                    NewMaterial.parm('basecolorg').set(HDA.parm('pbr_basecolor_%sg' % val))
+                    NewMaterial.parm('basecolorb').set(HDA.parm('pbr_basecolor_%sb' % val))
+                    NewMaterial.parm('basecolor_useTexture').set(HDA.parm('pbr_basecolor_useTexture_%s' % val))
+                    NewMaterial.parm('basecolor_texture').set(HDA.parm('pbr_basecolor_texture_%s' % val))
+
+                    # roughness
+                    NewMaterial.parm('IOR').set(HDA.parm('pbr_IOR_%s' % val))
+                    NewMaterial.parm('rough').set(HDA.parm('pbr_rough_%s' % val))
+                    NewMaterial.parm('horizon_fade').set(HDA.parm('pbr_horizon_fade_%s' % val))
+                    NewMaterial.parm('invert_rough').set(HDA.parm('pbr_invert_rough_%s' % val))
+                    NewMaterial.parm('rough_useTexture').set(HDA.parm('pbr_rough_useTexture_%s' % val))
+                    NewMaterial.parm('rough_texture').set(HDA.parm('pbr_rough_texture_%s' % val))
+                    NewMaterial.parm('rough_monoChannel').set(HDA.parm('pbr_rough_monoChannel_%s' % val))
+
+                    # metallic
+                    NewMaterial.parm('metallic').set(HDA.parm('pbr_metallic_%s' % val))
+                    NewMaterial.parm('metallic_useTexture').set(HDA.parm('pbr_metallic_useTexture_%s' % val))
+                    NewMaterial.parm('metallic_texture').set(HDA.parm('pbr_metallic_texture_%s' % val))
+                    NewMaterial.parm('metallic_monoChannel').set(HDA.parm('pbr_metallic_monoChannel_%s' % val))
+
+                    # normal
+                    NewMaterial.parm('baseBumpAndNormal_enable').set(HDA.parm('pbr_baseBumpAndNormal_enable_%s' % val))
+                    NewMaterial.parm('baseNormal_texture').set(HDA.parm('pbr_baseNormal_texture_%s' % val))
+                    NewMaterial.parm('baseNormal_scale').set(HDA.parm('pbr_baseNormal_scale_%s' % val))
+                    NewMaterial.parm('baseNormal_flipX').set(HDA.parm('pbr_baseNormal_flipX_%s' % val))
+                    NewMaterial.parm('baseNormal_flipY').set(HDA.parm('pbr_baseNormal_flipY_%s' % val))
+                    NewMaterial.parm('use_mikkt').set(HDA.parm('pbr_use_mikkt_%s' % val))
+
+                    # occlusion
+                    NewMaterial.parm('occlusion').set(HDA.parm('pbr_occlusion_%s' % val))
+                    NewMaterial.parm('occlusion_useTexture').set(HDA.parm('pbr_occlusion_useTexture_%s' % val))
+                    NewMaterial.parm('occlusion_texture').set(HDA.parm('pbr_occlusion_texture_%s' % val))
+                    NewMaterial.parm('occlusion_monoChannel').set(HDA.parm('pbr_occlusion_monoChannel_%s' % val)) 
+
+                    # emission
+                    NewMaterial.parm('emitint').set(HDA.parm('pbr_emitint_%s' % val))
+                    NewMaterial.parm('emitcolorr').set(HDA.parm('pbr_emitcolor_%sr' % val))
+                    NewMaterial.parm('emitcolorg').set(HDA.parm('pbr_emitcolor_%sg' % val))
+                    NewMaterial.parm('emitcolorb').set(HDA.parm('pbr_emitcolor_%sb' % val))
+                    NewMaterial.parm('emitcolor_useTexture').set(HDA.parm('pbr_emitcolor_useTexture_%s' % val))
+                    NewMaterial.parm('emitcolor_texture').set(HDA.parm('pbr_emitcolor_texture_%s' % val))
+
+                    # transparency
+                    NewMaterial.parm('transparency').set(HDA.parm('pbr_transparency_%s' % val))
+                    NewMaterial.parm('opaccolor_useTexture').set(HDA.parm('pbr_opaccolor_useTexture_%s' % val))
+                    NewMaterial.parm('opaccolor_texture').set(HDA.parm('pbr_opaccolor_%s' % val))   
+
+                    # advanced
+                    NewMaterial.parm('importance_sampling_diffuse').set(HDA.parm('pbr_importance_sampling_diffuse_%s' % val))
+                    NewMaterial.parm('nbSamples_diff').set(HDA.parm('pbr_nbSamples_diff_%s' % val))
+                    NewMaterial.parm('importance_sampling').set(HDA.parm('pbr_importance_sampling_%s' % val))
+                    NewMaterial.parm('nbSamples').set(HDA.parm('pbr_nbSamples_%s' % val))
+                    NewMaterial.parm('frontface').set(HDA.parm('pbr_frontface_%s' % val))
+
+
+                elif MaterialType == 2: # MatCap Shader
+                    NewMaterial.parm('basecolor_texture').set(HDA.parm('matcap_basecolor_texture_%s' % val))
+                    NewMaterial.parm('use_texture_alpha').set(HDA.parm('matcap_use_texture_alpha_%s' % val))

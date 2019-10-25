@@ -1,0 +1,178 @@
+# Dialog script for gamedev::sop_path_deform automatically generated
+
+{
+    name	gamedev::sop_path_deform
+    script	gamedev::sop_path_deform
+    label	"GameDev Path Deform"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Mesh"
+    inputlabel	2	"Input Curve"
+    inputlabel	3	"Banking Curve (determines up direction) "
+    inputlabel	4	End
+
+    groupsimple {
+        name    "folder0"
+        label   "Base Settings"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "axis"
+            label   "Axis"
+            type    ordinal
+            default { "0" }
+            help    "Which axis to align along the curve. Eg, the tommy sop has his head pointing up on Y, so the axis to choose is +Y."
+            menu {
+                "0" "+X"
+                "1" "+Y"
+                "2" "+Z"
+                "3" "-X"
+                "4" "-Y"
+                "5" "-Z"
+            }
+        }
+        parm {
+            name    "curve_offset"
+            label   "Curve Offset"
+            type    float
+            default { "0" }
+            help    "Where to place geometry on the curve. 0 is the start, 1 is the end. Animate this value to move your geo down the curve."
+            range   { 0 1 }
+        }
+        parm {
+            name    "curve_resolution"
+            label   "Curve Resolution"
+            type    float
+            default { "0.1" }
+            help    "Quality of the curve resample used internally. Higher values will deform the geometry more accurately, but can slow performance."
+            range   { 0 10 }
+        }
+        parm {
+            name    "normal_blur"
+            label   "Normal Blur Strength"
+            type    integer
+            default { "0" }
+            help    "Softens some of the extreme deformation when the curve is too noisy"
+            range   { 0 10 }
+        }
+        parm {
+            name    "clip_min"
+            label   "Clip Bottom End"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Toggle to clip the geo if it extends before the start of the curve."
+        }
+        parm {
+            name    "clip_max"
+            label   "Clip Top End"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Toggle to clip the geo if it extends beyond the end of the curve."
+        }
+        parm {
+            name    "collapse"
+            label   "Collapse Instead of Clip"
+            type    toggle
+            default { "1" }
+            help    "Toggle to 'crunch' the geo at the ends rather than clip it and change the point count."
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Scale Controls"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "scale_to_length"
+            label   "Scale To Curve Length"
+            type    float
+            default { "0" }
+            help    "Stretch the geo along the curve. A value of 1 will make the geo take up the entire length of the curve."
+            range   { 0 1 }
+        }
+        parm {
+            name    "scale"
+            label   "Scale"
+            type    float
+            default { "1" }
+            help    "Scale the input geometry perpendicular to the curve."
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "scaleramp"
+            label   "Scale Ramp"
+            type    ramp_flt
+            default { "2" }
+            help    "Ramp to control scale along the length of the curve, left side of the ramp represents the start of the curve, right side the end. This value is multiplied against the scale parameter."
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Twist Controls"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "twist"
+            label   "Twist"
+            type    float
+            default { "0" }
+            help    "Twist the geometry along the tangent of the curve. Note that more controllable results can be achieved by pre-rotating the input geometry."
+            range   { 0 100 }
+        }
+        parm {
+            name    "twist_ramp"
+            label   "Twist Ramp"
+            type    ramp_flt
+            default { "2" }
+            help    "Ramp to drive twist along the length of the curve."
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+        }
+    }
+
+    parm {
+        name    "spacer"
+        label   "_"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "like_tool"
+        label   "Like Tool"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        help    "Let us know that you're enjoying this Tool"
+        parmtag { "button_icon" "heart.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.like_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "dont_like"
+        label   "Thumbs Down"
+        type    button
+        nolabel
+        default { "0" }
+        help    "Let us know you don't like this tool. Ideally also send us a mail at support@sidefx.com"
+        parmtag { "button_icon" "thumbs-down.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.dislike_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

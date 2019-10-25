@@ -1,0 +1,105 @@
+# Dialog script for gamedev::sop_lot_subdivision automatically generated
+
+{
+    name	gamedev::sop_lot_subdivision
+    script	gamedev::sop_lot_subdivision
+    label	"GameDev Lot Subdivion"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"2D Polygon"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Base Settings"
+
+        parm {
+            name    "alignment"
+            label   "Alignment"
+            type    ordinal
+            default { "0" }
+            help    "Method of orientating the cuts. Bounding box is for worldspace cutting, longest edge is relative to the shape. "
+            menu {
+                "0" "Longest Edge"
+                "1" "Bounding Box XZ"
+            }
+        }
+        parm {
+            name    "min_lot_size"
+            label   "Minimum Lot Size"
+            type    float
+            default { "5" }
+            help    "Primitives smaller than this size will no longer be considered for cutting"
+            range   { 0 1 }
+        }
+        parm {
+            name    "iterations"
+            label   "Iterations"
+            type    integer
+            default { "10" }
+            help    "Number of Subdivisions of cutting. 1 will give you 2 primitives, 2 will give you 4, etc etc "
+            range   { 1! 10 }
+        }
+        parm {
+            name    "seed"
+            label   "Random Seed"
+            type    float
+            default { "0" }
+            help    "Randomization control"
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Shape Settings"
+
+        parm {
+            name    "irregularity"
+            label   "Irregularity"
+            type    float
+            default { "0.3" }
+            help    "Smaller values mean the cuts will be halfway along a primitive, higher values will yield primitives of different sizes. "
+            range   { 0 1 }
+        }
+        parm {
+            name    "vertical_bias"
+            label   "Vertical Bias"
+            type    float
+            default { "0" }
+            help    "Negative numbers will generate horizontal slivers, Positive numbers will generate vertical slivers"
+            range   { -10 10 }
+        }
+        parm {
+            name    "vertical_packing"
+            label   "Vertical Packing"
+            type    float
+            default { "0" }
+            help    "Strength on a Gradient that clumps lots together towards the top (or bottom)"
+            range   { 1! 10 }
+        }
+        parm {
+            name    "cluster_lots"
+            label   "Cluster Lots"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Enables joining of lots into clusters"
+        }
+        parm {
+            name    "number_of_clusters"
+            label   "Number of Clusters"
+            type    integer
+            default { "50" }
+            help    "Final Number of Lots after merging them into clusters"
+            disablewhen "{ cluster_lots == 0 }"
+            range   { 1! 200 }
+        }
+    }
+
+}

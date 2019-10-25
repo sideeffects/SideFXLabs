@@ -1,0 +1,268 @@
+# Dialog script for gamedev::sop_av_depth_map::2.0 automatically generated
+
+{
+    name	gamedev::sop_av_depth_map::2.0
+    script	AV_Depth_Map
+    label	"GameDev AV Depth Map"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Structure From Motion"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"AV Meshing"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Depth Map"
+
+        parm {
+            name    "down"
+            label   "Downscale"
+            type    integer
+            default { "2" }
+            help    "Image downscale factor."
+            menu usetokenvalue {
+                "1"     "1"
+                "2"     "2"
+                "4"     "4"
+                "8"     "8"
+                "16"    "16"
+            }
+            range   { 0 10 }
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "sNumCam"
+                label   "SGM: Num Neighbor Cameras"
+                type    integer
+                default { "10" }
+                help    "Semi Global Matching: number of neighbor cameras"
+                range   { 1 100 }
+            }
+            parm {
+                name    "sWSH"
+                label   "SGM: WSH"
+                type    integer
+                default { "4" }
+                help    "Semi Global Matching: Half-size of the patch used to compute similarity."
+                range   { 1 20 }
+            }
+            parm {
+                name    "sGamC"
+                label   "SGM: GammaC"
+                type    float
+                default { "5.5" }
+                help    "Semi Global Matching: GammaC threshold."
+                range   { 0 30 }
+                parmtag { "export_disable" "1" }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"sGamC\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sGamP"
+                label   "SGM: GammaP"
+                type    float
+                default { "5.5" }
+                help    "Semi Global Matching: GammaP threshold."
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"sGamP\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rNumSamp"
+                label   "Refine: Num of Samples"
+                type    integer
+                default { "150" }
+                range   { 1 500 }
+            }
+            parm {
+                name    "rNumDepth"
+                label   "Refine: Num of Depths"
+                type    integer
+                default { "30" }
+                range   { 1 100 }
+            }
+            parm {
+                name    "rNumIter"
+                label   "Refine: Num of Iterations"
+                type    integer
+                default { "100" }
+                range   { 1 500 }
+            }
+            parm {
+                name    "rWSH"
+                label   "Refine: WSH"
+                type    integer
+                default { "3" }
+                help    "Refine: Half-size of the patch used to compute similarity."
+                range   { 1 20 }
+            }
+            parm {
+                name    "rNumCam"
+                label   "Refine: Num Neighbor Cameras"
+                type    integer
+                default { "3" }
+                help    "Refine: Number of neighbor cameras"
+                range   { 1 20 }
+            }
+            parm {
+                name    "rSigma"
+                label   "Refine: Sigma"
+                type    float
+                default { "15" }
+                help    "Refine: Sigma threshold"
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"rSigma\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rGamC"
+                label   "Refine: GammaC"
+                type    float
+                default { "15.5" }
+                help    "Refine: GammaC threshold"
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"rGamC\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rGamP"
+                label   "Refine: GammaP"
+                type    float
+                default { "8" }
+                help    "Refine: GammaP threshold"
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"rGamP\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rTcRc"
+                label   "Refine: Tc or Rc Pixel Size"
+                type    toggle
+                default { "0" }
+                help    "Refine: use minimum pixel size of neighbor cameras (Tc) or current camera pixel size (Rc)"
+            }
+            parm {
+                name    "minViewAngle"
+                label   "Min View Angle"
+                type    float
+                default { "2" }
+                help    "Minimum angle between two views"
+                range   { 0! 10! }
+            }
+            parm {
+                name    "maxViewAngle"
+                label   "Max View Angle"
+                type    float
+                default { "70" }
+                help    "Maximum angle between two views"
+                range   { 10! 120! }
+            }
+            parm {
+                name    "nbGPUs"
+                label   "Number of GPUs"
+                type    integer
+                default { "0" }
+                help    "Number of GPUs to use (0 means use all available GPUs)."
+                range   { 0! 5! }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Depth Map Filter"
+
+        groupcollapsible {
+            name    "folder2"
+            label   "Advanced"
+
+            parm {
+                name    "numCam"
+                label   "Number of Nearest Cameras"
+                type    integer
+                default { "10" }
+                help    "Nearest cameras used for filtering."
+                range   { 0 20 }
+            }
+            parm {
+                name    "minCon"
+                label   "Min Consistent Cameras"
+                type    integer
+                default { "3" }
+                help    "Minimum number of consistent cameras to consider the pixel."
+                range   { 0 10 }
+            }
+            parm {
+                name    "minConBad"
+                label   "Min Consistent Cameras Bad Similarity"
+                type    integer
+                default { "4" }
+                help    "Minimum number of consistent cameras for pixels with weak similarity value."
+                range   { 0 10 }
+            }
+            parm {
+                name    "filter"
+                label   "Filtering Size in Pixels"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "filterBad"
+                label   "Filtering Size in Pixels Bad Similarity"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "minViewAngle2"
+                label   "Min View Angle"
+                type    float
+                default { "2" }
+                help    "Minimum angle between two views"
+                range   { 0! 10! }
+            }
+            parm {
+                name    "maxViewAngle2"
+                label   "Max View Angle"
+                type    float
+                default { "70" }
+                help    "Maximum angle between two views"
+                range   { 10! 120! }
+            }
+        }
+
+    }
+
+}

@@ -1,0 +1,76 @@
+# Dialog script for gamedev::sop_remove_inside_faces automatically generated
+
+{
+    name	gamedev::sop_remove_inside_faces
+    script	gamedev::sop_remove_inside_faces
+    label	"GameDev Remove Inside Faces"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Clipping Plane"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Inside Faces"
+
+        parm {
+            name    "bRemoveInside"
+            label   "Remove Inside Faces"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "fPrecision"
+            label   "Border Precision"
+            type    float
+            default { "0.01" }
+            range   { 0.001! 0.05 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "fCleaningThreshold"
+            label   "Border Threshold"
+            type    float
+            default { "0.005" }
+            range   { 0! 0.5 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Clipping Surface"
+
+        parm {
+            name    "bClipSurface"
+            label   "Clip Surface"
+            type    toggle
+            default { "0" }
+            disablewhen "{ bOpInput2 == 0 }"
+        }
+        parm {
+            name    "vUpVector"
+            label   "Up Vector"
+            type    vector
+            size    3
+            default { "0" "1" "0" }
+            disablewhen "{ bOpInput2 == 0 } { bClipSurface == 0 }"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    parm {
+        name    "bOpInput2"
+        label   "OpInput2"
+        type    integer
+        invisible
+        default { "opexist(opinputpath('.',1))" }
+        range   { 0 10 }
+    }
+}

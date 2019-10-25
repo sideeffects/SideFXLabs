@@ -1,0 +1,83 @@
+# Dialog script for gamedev::shop_flowmap_shader automatically generated
+
+{
+    name	gamedev::shop_flowmap_shader
+    script	shop_flowmap_shader
+    label	"GameDev Flowmap Shader"
+
+    rendermask	OGL2
+
+    help {
+	""
+    }
+
+    parm {
+        name    "diffTexture"
+        label   "Diffuse Texture"
+        type    image
+        default { "" }
+    }
+    parm {
+        name    "uvtiling"
+        label   "Diffuse Tiling"
+        type    vector2
+        size    2
+        default { "1" "1" }
+        range   { -1 1 }
+    }
+    parm {
+        name    "mode"
+        label   "Flowmap Mode"
+        type    integer
+        default { "0" }
+        menu {
+            "0" "Color"
+            "1" "Texture"
+        }
+        range   { 0 10 }
+    }
+    parm {
+        name    "flowmapTexture"
+        label   "Flowmap Texture"
+        type    image
+        default { "" }
+        disablewhen "{ mode == 0 }"
+    }
+    parm {
+        name    "time"
+        label   "Time"
+        type    float
+        default { "$T" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "speed"
+        label   "Speed"
+        type    float
+        default { "0.33" }
+        range   { 0 1 }
+    }
+    group {
+        name    "OpenGL"
+        label   "OpenGL"
+        invisibletab
+
+        parm {
+            name    "ogl_alpha_shader"
+            label   "Shader Alpha"
+            type    toggle
+            default { "1" }
+            help    "When present and enabled, this forces a transparency pass. This should be\n    used when a custom shader generates alpha information without using the\n    known GL alpha and texture parameters. If disabled or absent, the material\n    is only considered transparent if one of the alpha parameters is less than \n    one, or the diffuse or opacity texture has non-opaque alpha. If no materials\n    are considered transparent, a transparency pass is not performed."
+            parmtag { "cook_dependent" "1" }
+            parmtag { "spare_category" "OpenGL" }
+        }
+    }
+
+    parm {
+        name    "distortion"
+        label   "Distortion"
+        type    float
+        default { "0.2" }
+        range   { 0 10 }
+    }
+}

@@ -1,0 +1,252 @@
+# Dialog script for gamedev::sop_av_meshing::2.0 automatically generated
+
+{
+    name	gamedev::sop_av_meshing::2.0
+    script	AV_Meshing
+    label	"GameDev AV Meshing"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Depth Map"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"AV Texturing"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "reload"
+        label   "Reload"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual Mode"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Meshing"
+
+        parm {
+            name    "maxInpt"
+            label   "Max Input Points"
+            type    integer
+            default { "5e+07" }
+            help    "Max input points loaded from depth map images."
+            range   { 500000 5e+08 }
+        }
+        parm {
+            name    "maxPts"
+            label   "Max Points"
+            type    integer
+            default { "5e+06" }
+            help    "Max points at the end of the depth maps fusion."
+            range   { 100000 1e+07 }
+        }
+        parm {
+            name    "maxPtsVox"
+            label   "Max Points per Voxel"
+            type    integer
+            default { "1e+06" }
+            range   { 500000 3e+07 }
+        }
+        parm {
+            name    "minStep"
+            label   "Min Step"
+            type    integer
+            default { "2" }
+            help    "This step is used for loading depth values from depth maps, computed from maxInputPts. Min step defines the minimal value for the step. Saves time on small data sets by not spending much time loading all depth values."
+            range   { 1 20 }
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "part"
+                label   "Partitioning"
+                type    string
+                default { "singleBlock" }
+                menu {
+                    "singleBlock"   "singleBlock"
+                    "auto"          "auto"
+                }
+            }
+            parm {
+                name    "rePart"
+                label   "Repartition"
+                type    string
+                default { "multiResolution" }
+                menu {
+                    "multiResolution"   "multiResolution"
+                    "regularGrid"       "regularGrid"
+                }
+            }
+            parm {
+                name    "angle"
+                label   "Angle Factor"
+                type    integer
+                default { "15" }
+                range   { 0 200 }
+            }
+            parm {
+                name    "sim"
+                label   "Sim Factor"
+                type    integer
+                default { "15" }
+                range   { 0 200 }
+            }
+            parm {
+                name    "pixInit"
+                label   "pixSizeMarginInitCoef"
+                type    float
+                default { "2" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "pixFinal"
+                label   "pixSizeMarginFinalCoef"
+                type    float
+                default { "4" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "vote"
+                label   "voteMarginFactor"
+                type    float
+                default { "4" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "contrib"
+                label   "contributeMarginFactor"
+                type    float
+                default { "2" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "simGaussInit"
+                label   "simGaussianSizeInit"
+                type    float
+                default { "10" }
+                range   { 0 50 }
+            }
+            parm {
+                name    "simGaussSize"
+                label   "simGaussianSize"
+                type    float
+                default { "10" }
+                range   { 0 50 }
+            }
+            parm {
+                name    "minThresh"
+                label   "minAngleThreshold"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "rFuse"
+                label   "Refine Fuse"
+                type    toggle
+                default { "1" }
+                help    "Refine depth map fusion with the new pixels size, defined by angle and similarity scores."
+            }
+            parm {
+                name    "estimateSpaceFromSfM"
+                label   "Estimate Space From SfM"
+                type    toggle
+                default { "1" }
+                help    "Estimate the 3d space from the SfM"
+            }
+            parm {
+                name    "estimateSpaceMinObservations"
+                label   "Min Observations For SfM Space Estimation"
+                type    integer
+                default { "3" }
+                help    "Minimum number of observations for SfM space estimation."
+                range   { 0! 100! }
+            }
+            parm {
+                name    "estimateSpaceMinObservationAngle"
+                label   "Min Observations Angle For SfM Space Estimation"
+                type    integer
+                default { "10" }
+                help    "Minimum angle between two observations for SfM space estimation"
+                range   { 0! 120! }
+            }
+            parm {
+                name    "addLandmarksToTheDensePointCloud"
+                label   "Add Landmarks To The Dense Point Cloud"
+                type    toggle
+                default { "0" }
+                help    "Add SfM Landmarks to the dense point cloud"
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Mesh Filtering"
+
+        parm {
+            name    "filterTri"
+            label   "Filter Large Triangles Factor"
+            type    float
+            default { "60" }
+            help    "Removes all large triangles. A large triangle has one edge bigger than N times the average edge length. A value of 0 disables this."
+            range   { 1 100 }
+        }
+        parm {
+            name    "keepLrg"
+            label   "Keep Only the Largest Mesh"
+            type    toggle
+            default { "1" }
+            help    "Keep only the largest connected triangles group."
+        }
+        groupcollapsible {
+            name    "folder2"
+            label   "Advanced"
+
+            parm {
+                name    "numIter"
+                label   "Num of Iterations"
+                type    integer
+                default { "5" }
+                range   { 0 50 }
+            }
+            parm {
+                name    "lambda"
+                label   "Lambda"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+            }
+        }
+
+    }
+
+}

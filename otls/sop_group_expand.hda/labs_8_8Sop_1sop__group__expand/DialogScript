@@ -1,0 +1,60 @@
+# Dialog script for gamedev::sop_group_expand automatically generated
+
+{
+    name	gamedev::sop_group_expand
+    script	gamedev::sop_group_expand
+    label	"GameDev Group Expand"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Mesh With Group"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "def build_menu_from_group(groups, menu):" ]
+            [ "    if len(groups):" ]
+            [ "        menu.extend((\"-\", \"\"))" ]
+            [ "        " ]
+            [ "    for group in groups:" ]
+            [ "        name = group.name()" ]
+            [ "        menu.extend((name, name))" ]
+            [ "    " ]
+            [ "    return menu" ]
+            [ "    " ]
+            [ "sopnode = hou.pwd()" ]
+            [ "# List of tokens/labels to return." ]
+            [ "menu = []" ]
+            [ "# Make sure there is an input node before asking for its geometry." ]
+            [ "if sopnode.inputs():" ]
+            [ "    # Optionally add in '*' for all groups." ]
+            [ "    menu.extend((\"*\", \"*\"))" ]
+            [ "    geo = sopnode.inputs()[0].geometry()" ]
+            [ "    " ]
+            [ "    menu = build_menu_from_group(geo.pointGroups(), menu)" ]
+            [ "    menu = build_menu_from_group(geo.edgeGroups(), menu)" ]
+            [ "    menu = build_menu_from_group(geo.primGroups(), menu)" ]
+            [ "        " ]
+            [ "return menu" ]
+            language python
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "iterations"
+        label   "Iterations"
+        type    integer
+        default { "1" }
+        range   { -10! 10 }
+    }
+}

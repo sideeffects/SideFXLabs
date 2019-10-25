@@ -1,0 +1,232 @@
+import hou, json, os, shutil, subprocess
+
+
+def SetPreset(a_Node):
+        Node = a_Node
+        LODData = json.loads(Node.type().definition().sections()['LODPresets.json'].contents())
+
+        LODPreset = Node.parm("mPreset").evalAsString()
+        
+        # Query Preset Values
+        LastLODImpostor = LODData[LODPreset]["IsLastLODImpostor"]
+        NumberLODs = LODData[LODPreset]["NumberLODs"]
+        ReductionSettings = LODData[LODPreset]["PercentageTriangles"]
+        ConsolidateShaders = LODData[LODPreset]["ConsolidateShadersFrom"] + 1 if not None else 0
+        ThresholdDistance = LODData[LODPreset]["ThresholdDistance"]
+
+        # Set Parm based on Presets
+        NumLODParm = Node.parm("lods").set(NumberLODs)
+        Node.parm("bLastLODImpostor").set(LastLODImpostor)
+        Node.parm("mConsolidateShader").set(ConsolidateShaders)
+
+        LODContainer = hou.node(a_Node.path()+"/objnet1/LOD-Export/")
+        LODGroup = hou.node(LODContainer.path()+"/LODGroup")
+        LODGroup.replaceSpareParmTuple('fbx_lod_display_levels', hou.FloatParmTemplate('fbx_lod_display_levels', 'fbx_lod_display_levels', NumberLODs))
+        LODGroup.replaceSpareParmTuple('fbx_lod_thresholds', hou.FloatParmTemplate('fbx_lod_thresholds', 'fbx_lod_thresholds', max(0, NumberLODs-1), default_value=tuple(ThresholdDistance[1:])))
+
+        for x in range(NumberLODs):
+                a_Node.parm("fPercentTriangles%s" % (x+1)).set(ReductionSettings[x])
+                a_Node.parm("fThresholdDistance%s" % (x+1)).set(ThresholdDistance[x])
+
+
+# Construct Texture Export ROPs
+def CreateTextureRopnets():
+        ROPNet = hou.node('/out').createNode('comp')
+        ROPNet.parm('coppath').set('../tempCOPnet/copfile')
+        ROPNet.parm('convertcolorspace').set(1)
+        ROPNetCOP = hou.node('/out').createNode('comp')
+        ROPNetCOP.parm('convertcolorspace').set(0)
+        ROPNetCOP.parm('trange').set('off')
+        COPNet = hou.node('/out').createNode('cop2net', 'tempCOPnet')
+        File = COPNet.createNode('file', 'copfile')
+        return [ROPNet, File, COPNet, ROPNetCOP]
+
+# Get Filtered Textures in Material
+def GetTexturesInMat(materialNode):
+        if not materialNode:
+                return 
+
+        MaterialParms = {"basecolor_texture":"basecolor_useTexture",
+                "baseNormal_texture":"baseBumpAndNormal_enable",
+                "rough_texture":"rough_useTexture",
+                "metallic_texture":"metallic_useTexture",
+                "baseColorMap":"useColorMap" }
+
+        MaterialTextureDict = {}
+        for parm in MaterialParms:
+                materialParm = materialNode.parm(MaterialParms[parm])
+                if materialParm and materialParm.eval():
+                        MaterialTextureDict[parm] = materialNode.parm(parm).eval()
+
+        return MaterialTextureDict
+
+
+
+# Convert and Export Textures - Files will become jpg if not yet
+def ConvertAndExportTexture(node, material, textures, ropOutput, fileImport, ropOutputCOPs, a_Node):
+
+        MeshName = node.parent().name()
+
+        CleanTextureNameDict = {"basecolor_texture":"basecolor",
+            "baseNormal_texture":"normal",
+            "rough_texture":"roughness",
+            "metallic_texture":"metallic",
+            "baseColorMap":"basecolor"}
+
+        for texture in textures:
+            
+                TexturePath = textures[texture]
+
+                if TexturePath != "":
+                        FilePath = ""
+
+                        TextureExportDir = os.path.split(a_Node.parm('exportDir').evalAsString())[0]
+                        ConvertEmbedded = False
+
+                        # Deal with HDA Stored "Textures"
+                        if TexturePath.startswith("opdef:/"):
+                                
+                                HDADef = TexturePath[7:].split('?')[0].split('/')[-1]
+                                HDATextureFile = TexturePath[7:].split('?')[-1]
+                                HDAInstance = None
+                                TempFile = TextureExportDir+'/'+HDATextureFile
+
+                                for node in hou.node('/').allSubChildren():
+                                        if node.type().name() == HDADef:
+                                                HDAInstance = node
+                                                break
+                                if HDAInstance.type().definition().hasSection(HDATextureFile):
+                                        SectionFile = file(TempFile, "wb")
+                                        SectionFile.write(HDAInstance.type().definition().sections().get(HDATextureFile).contents())
+                                        SectionFile.close()
+                                        TexturePath = TempFile
+                                        ConvertEmbedded = True
+                                
+                        TextureExportComponents = os.path.split(a_Node.parm('exportDir').evalAsString())
+                        TextureExportName = TextureExportComponents[1].replace("$(CHANNEL)", CleanTextureNameDict[texture])
+                        TextureExportName = TextureExportName.replace("$(MATERIAL)", material.name())
+                        TextureExportExtension = TextureExportName.split('.')[-1]
+                        FilePath = TextureExportDir + '/' + TextureExportName
+
+                
+                        # Deal with COPs "Textures"
+                        if TexturePath.startswith("op:"):
+                                if hou.node(TexturePath).type().category().name() == "Cop2":
+                                        ropOutputCOPs.parm('coppath').set(TexturePath)
+                                        ropOutputCOPs.parm("copoutput").set(FilePath)
+                                        ropOutputCOPs.render()
+
+                        # Deal with Regular Textures
+                        # https://www.sidefx.com/forum/topic/6680/?page=1#post-31658
+                        else:
+                                if os.path.splitext(TexturePath)[1][1:].upper() == TextureExportExtension.upper():
+                                    try:
+                                        shutil.copy(TexturePath, FilePath)
+                                    except IOError:
+                                        os.chmod(FilePath, 664)
+                                        shutil.copy(TexturePath, FilePath)
+
+                                elif TexturePath != "":
+                                        # import os, os.path
+                                        # for file in os.listdir('.'):
+                                        #     base, ext = os.path.splitext(file)
+                                        #     new = base + “.rat”
+                                        with open(os.devnull, 'wb') as devnull:
+                                            subprocess.call("icp %s %s" % (TexturePath, FilePath), shell=True)
+                                        #os.system("icp %s %s" % (TexturePath, FilePath)) 
+                                        # fileImport.parm("filename1").set(TexturePath)
+                                        # ropOutput.parm("copoutput").set(FilePath)
+                                        # ropOutput.render()
+                                if ConvertEmbedded:
+                                        os.unlink(TexturePath)
+        return
+
+
+def ExtractLOD0Textures(a_Node):
+        ################### MATERIALS EXPORT #########################
+        # Create temporary Texture Export ROPNets
+        TextureROPsList = CreateTextureRopnets()
+        TextureROPNetRoot = TextureROPsList[0]
+        TextureROPNetFileIn = TextureROPsList[1]
+        TextureROPNetCOP = TextureROPsList[3]
+
+        GeometryIn = hou.node(a_Node.path() + "/IN/")
+        
+        # Create List of all materials assigned to geometry.
+        Materials = [] # - [[GeometryNode, [MaterialPath, MaterialPath, ...]]]
+        Materials.append([GeometryIn, list(set(GeometryIn.geometry().primStringAttribValues("shop_materialpath"))) if GeometryIn.geometry().findPrimAttrib("shop_materialpath") else []])
+
+        # Create a list of all textures for each material
+        Texturesets = [] # - [[GeometryNode, MaterialPath, {'baseNormal_texture': 'path'}, [Tint.r, Tint.g, Tint.b]], ... ]
+        for MaterialData in Materials:
+            for MaterialPath in MaterialData[1]:
+                MaterialNode = hou.node(MaterialPath)
+                if MaterialNode.type().name() in ['principledshader::2.0']:
+                    TextureDict = GetTexturesInMat(MaterialNode)
+                    if TextureDict != None:
+                        Texturesets.append([MaterialData[0], MaterialPath, TextureDict])
+                else:
+                    print 'Texture extraction is not supported for the type of material used by %s' % MaterialNode.path()
+
+        # Add Entry in JSON file for each materialtextureset, and export textures to tempdir
+        for i, textureset in enumerate(Texturesets):
+            ConvertAndExportTexture(textureset[0], hou.node(textureset[1]), textureset[2], TextureROPNetRoot, TextureROPNetFileIn, TextureROPNetCOP, a_Node)
+
+        # Clean all temporary ROPs
+        for nodeobject in TextureROPsList:
+          nodeobject.destroy()
+
+def Export(a_Node):
+
+        Node = a_Node
+        NumLODs = Node.parm("lods").evalAsInt()
+
+        LODContainer = hou.node(Node.path()+"/objnet1/LOD-Export/")
+        LODGroup = hou.node(LODContainer.path()+"/LODGroup")
+        LODName = Node.parm("sMeshName").evalAsString()
+        LODMeshPrefix = Node.parm("sLODNamePrefix").evalAsString()
+        
+        LODObjects = []
+
+        for x in range(NumLODs):
+                Geometry = LODContainer.createNode("geo", LODMeshPrefix + "_LOD%s" % x)
+                Geometry.setNextInput(LODGroup)
+                ObjMerge = Geometry.createNode("object_merge")
+                ObjMerge.parm("objpath1").set("../../../../OUT_ALL_LOD")
+                ObjMerge.parm("group1").set("@LOD=%s" % x)
+                ObjMerge.parm("xformtype").set("local")
+                Output = Geometry.createNode("output")
+                Output.setNextInput(ObjMerge)
+                Output.moveToGoodPosition()
+                Output.setDisplayFlag(True)
+                Output.setRenderFlag(True)
+                LODObjects.append(Geometry)
+
+        LODGroup.setName(LODName, False)
+
+        hou.node(Node.path()+"/objnet1/ropnet1/filmboxfbx1").parm("startnode").set(LODGroup.path())
+        hou.node(Node.path()+"/objnet1/ropnet1/filmboxfbx1").parm("execute").pressButton()
+        LODGroup.setName("LODGroup", False)
+        LODContainer.deleteItems(LODObjects)
+
+
+        # Extract LOD0 Textures
+        if Node.parm("bExportLOD0Tex").evalAsInt() == 1:
+                ExtractLOD0Textures(a_Node)
+
+        # Shader Consolidation
+        if Node.parm("mConsolidateShader").evalAsInt() > 0:
+                #hou.node(Node.path()+"/sop_simple_baker1/").parm("execute").pressButton()
+                baker = Node.node("sop_simple_baker1")
+                baker.hdaModule().render(baker)
+                #hou.node(Node.path()+"/sop_simple_baker1/ropnet1").parm("execute").pressButton()
+
+        # Impostor Generation
+        if Node.parm("bLastLODImpostor").evalAsInt() == 1:
+                hou.node(Node.path()+"/objnet1/ropnet1/rop_impostor_texture1").render()
+
+        if Node.parm("bUniqueLODNormal").evalAsInt() == 1:
+                hou.node(Node.path()+'/foreach_end2').cook(force=True)#parm('resetcookpass').pressButton()
+
+
+        

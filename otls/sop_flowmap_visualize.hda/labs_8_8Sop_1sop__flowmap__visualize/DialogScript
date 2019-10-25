@@ -1,0 +1,84 @@
+# Dialog script for gamedev::sop_flowmap_visualize automatically generated
+
+{
+    name	gamedev::sop_flowmap_visualize
+    script	gamedev::sop_flowmap_visualize
+    label	"GameDev Flowmap Visualize"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Flowmap Field"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "diffTexture2"
+        label   "Diffuse Texture"
+        type    image
+        default { "opdef:../..?flowmap_visualize.jpg" }
+        help    "Texture to preview flowmap, default is to use a texture embedded in the HDA."
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "uvtiling"
+        label   "Diffuse Tiling"
+        type    vector2
+        size    2
+        default { "1" "1" }
+        help    "Number of times the texture repeats in the uv's of the input geometry."
+        range   { -1 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "speed"
+        label   "Speed"
+        type    float
+        default { "5" }
+        help    "Speed of the flowmap animation."
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "distortion"
+        label   "Distortion Amount"
+        type    float
+        default { "0.2" }
+        help    "Amount of warping applied to the flowmap preview. Larger values create a more pronounced effect, but can introduce ghosting artifacts."
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "mode"
+        label   "Flowmap Mode"
+        type    integer
+        default { "0" }
+        help    "Set if this node reads motion vectors from @Cd of the input geometry, or from a file texture."
+        menu {
+            "0" "Color"
+            "1" "Texture"
+        }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "flowmapTexture"
+        label   "Flowmap Texture"
+        type    image
+        default { "" }
+        help    "Path to the flowmap texture."
+        disablewhen "{ mode == 0 }"
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "time"
+        label   "Time"
+        type    float
+        invisible
+        default { [ "$T" hscript-expr ] }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+}

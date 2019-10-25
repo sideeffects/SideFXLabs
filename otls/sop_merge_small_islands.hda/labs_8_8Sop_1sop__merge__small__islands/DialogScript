@@ -1,0 +1,73 @@
+# Dialog script for gamedev::sop_merge_small_islands automatically generated
+
+{
+    name	gamedev::sop_merge_small_islands
+    script	gamedev::sop_merge_small_islands
+    label	"GameDev Merge Small Islands"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry with UVs"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "uvattrib"
+        label   "UV Attribute"
+        type    string
+        default { "uv" }
+        menureplace {
+            [ "opmenu -l uvflatten7 uvattrib" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "sidefx::attrib_access" "write" }
+    }
+    parm {
+        name    "fFuseDist"
+        label   "Initial Fuse Dist"
+        type    log
+        default { "1e-05" }
+        range   { 1e-06 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "cutoff"
+        label   "Cutoff"
+        type    float
+        default { "0.0001" }
+        help    "Size threshold of the islands that will be merged back into larger pieces"
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "method"
+        label   "Flattening Method"
+        type    ordinal
+        default { "abf" }
+        help    "Method for reflattening the islands based on the new seams"
+        menu {
+            "scp"   "Spectral (SCP)"
+            "abf"   "Angle-Based (ABF)"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "iterations"
+        label   "Iterations"
+        type    integer
+        default { "100" }
+        help    "Attempts at merging the islands together. Higher values produce smoother results"
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "optimize_uv_border"
+        label   "Optimize UV Border"
+        type    toggle
+        default { "1" }
+        help    "Attempts to remove triangles that are sticking to the side of the UV island. May cause small islands to reappear"
+    }
+}

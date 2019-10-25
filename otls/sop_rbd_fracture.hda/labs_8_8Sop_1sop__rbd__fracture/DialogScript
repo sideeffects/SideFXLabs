@@ -1,0 +1,319 @@
+# Dialog script for gamedev::sop_rbd_fracture automatically generated
+
+{
+    name	gamedev::sop_rbd_fracture
+    script	gamedev::sop_rbd_fracture
+    label	"GameDev RBD Fracture"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Solid Geo"
+    inputlabel	2	"Additional Scatter Areas"
+    inputlabel	3	"Forced Cluster Areas"
+    outputlabel	1	"Collision Geo"
+    outputlabel	2	"Render Geo"
+
+    group {
+        name    "folder0"
+        label   "Base Settings"
+
+        parm {
+            name    "scatter_pts"
+            label   "Voronoi Pieces"
+            type    integer
+            default { "30" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "cell_scale"
+            label   "Cell Scale"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            range   { -1 1 }
+        }
+        parm {
+            name    "seed"
+            label   "Global Seed"
+            type    integer
+            default { "0" }
+            range   { 0 100 }
+        }
+        parm {
+            name    "sampling_divs"
+            label   "Sampling Divs"
+            type    integer
+            default { "50" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "clustering"
+            label   "Clustering"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "number_of_clusters"
+            label   "Clusters"
+            type    integer
+            default { "30" }
+            disablewhen "{ clustering == 0 }"
+            range   { 0 10 }
+        }
+        groupsimple {
+            name    "folder3"
+            label   "Additional Scattering & Clustering"
+
+            parm {
+                name    "additional_scatter_points"
+                label   "Addt Scatter Points"
+                type    integer
+                default { "100" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "input_declusters"
+                label   "DeCluster Instead of Clustering"
+                type    toggle
+                default { "0" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Scatter Noise"
+
+        parm {
+            name    "noise_strength"
+            label   "Noise Strength"
+            type    float
+            default { "1" }
+            range   { 0 1 }
+        }
+        parm {
+            name    "ramp"
+            label   "density ramp"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "ramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 0.52770084142684937 ) 2value ( 0 ) 2interp ( linear ) 3pos ( 0.57340717315673828 ) 3value ( 1 ) 3interp ( linear ) 4pos ( 1 ) 4value ( 1 ) 4interp ( linear )" }
+            parmtag { "rampkeys_var" "ramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "1" }
+            parmtag { "rampvalues_var" "ramp_the_key_values" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "basis"
+            label   "Noise Type"
+            type    string
+            default { "simplex" }
+            menu {
+                "sine"      "Sinusoid"
+                "perlin"    "Perlin"
+                "pperlin"   "Periodic Perlin"
+                "simplex"   "Simplex (Improved Perlin)"
+                "sparse"    "Sparse Convolution"
+                "flow"      "Flow"
+                "pflow"     "Periodic Flow"
+                "worleyFA"  "Worley (cellular) F1"
+                "worleyFB"  "Worley (cellular) F2-F1"
+                "mworleyFA" "Manhattan Worley (cellular) F1"
+                "mworleyFB" "Manhattan Worley (cellular) F2-F1"
+                "cworleyFA" "Chebyshev Worley (cellular) F1"
+                "cworleyFB" "Chebyshev Worley (cellular) F2-F1"
+                "alligator" "Alligator"
+            }
+            range   { 0 1 }
+            unquoted
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "freq"
+            label   "Frequency"
+            type    vector4
+            size    4
+            default { "1" "1" "1" "1" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "offset"
+            label   "Offset"
+            type    vector4
+            size    4
+            default { "0" "0" "0" "0" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    group {
+        name    "folder0_2"
+        label   "Interior"
+
+        parm {
+            name    "inside_material"
+            label   "Inside Material"
+            type    oppath
+            default { "" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "inside_normal_angle"
+            label   "Inside Normal Angle"
+            type    float
+            default { "35" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "generate_inside_uvs"
+            label   "Generate Inside UVs"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "inside_uvs_tiling"
+            label   "Inside UVs Tiling"
+            type    float
+            default { "10" }
+            disablewhen "{ generate_inside_uvs == 0 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "inside_uv_collision"
+            label   "Generate Inside UV on Collision"
+            type    toggle
+            default { "0" }
+            disablewhen "{ generate_inside_uvs == 0 }"
+        }
+        parm {
+            name    "addinteriordetail"
+            label   "Add Interior Detail"
+            type    toggle
+            default { "off" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "detailsize"
+            label   "Detail Size"
+            type    float
+            default { "0.25" }
+            disablewhen "{ addinteriordetail == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "intnoiseamp"
+            label   "Noise Amplitude"
+            type    float
+            default { "0.1" }
+            disablewhen "{ addinteriordetail == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "intnoisefreq"
+            label   "Frequency"
+            type    vector
+            size    3
+            default { "2.5" "2.5" "2.5" }
+            disablewhen "{ addinteriordetail == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "intnoiseoffset"
+            label   "Offset"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            disablewhen "{ addinteriordetail == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "reduce_interior_detail"
+            label   "Reduce Interior Detail"
+            type    float
+            default { "50" }
+            disablewhen "{ addinteriordetail == 0 }"
+            range   { 0 100 }
+        }
+        parm {
+            name    "do_edge_detail"
+            label   "Edge Detail"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "edge_noise_strength"
+            label   "Edge Noise Strength"
+            type    float
+            default { "1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "edge_noise_scale"
+            label   "Edge Noise Scale"
+            type    float
+            default { "0.1" }
+            range   { 0 10 }
+        }
+    }
+
+    group {
+        name    "folder0_3"
+        label   "Visualizers"
+
+        parm {
+            name    "visualize_uvs"
+            label   "Visualize UVs"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "color_pieces"
+            label   "Visualize Pieces"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "vis_before_cluster"
+            label   "Color Before Clustering"
+            type    toggle
+            default { "0" }
+            disablewhen "{ color_pieces == 0 }"
+        }
+        parm {
+            name    "explode_pieces"
+            label   "Explode Pieces"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "process_vis"
+            label   "Process Visualization"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Final Geo"
+                "1" "SDF Volume"
+                "2" "Scatter Points"
+                "3" "Render Geo"
+            }
+        }
+    }
+
+}

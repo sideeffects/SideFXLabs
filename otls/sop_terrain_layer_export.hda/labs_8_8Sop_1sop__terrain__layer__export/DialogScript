@@ -1,0 +1,185 @@
+# Dialog script for gamedev::sop_terrain_layer_export automatically generated
+
+{
+    name	gamedev::sop_terrain_layer_export
+    script	HEngine_TerrainRoundtrip
+    label	"GameDev Terrain Layer Export"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Heightfield
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Export"
+
+        parm {
+            name    "execute"
+            label   "Save to Disk"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().MainFunction()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sHost"
+            label   "Host"
+            type    ordinal
+            default { "0" }
+            menu usetokenvalue {
+                "0" "Houdini Engine"
+                "1" "Houdini"
+            }
+        }
+        parm {
+            name    "sPaintLayerPrefix"
+            label   "Layer Prefix"
+            type    string
+            default { "Layer_" }
+        }
+        parm {
+            name    "sHeightmapName"
+            label   "Heightmap Name"
+            type    string
+            default { "Heightmap" }
+        }
+        parm {
+            name    "output"
+            label   "Export Folder"
+            type    file
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "read" }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Tiling"
+
+        parm {
+            name    "tile_output"
+            label   "Divide into tiled maps"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tile_method"
+            label   "Tile Method"
+            type    ordinal
+            default { "tilesize" }
+            hidewhen "{ tile_output == 0 }"
+            menu {
+                "tilesize"  "Tile Size"
+                "numtiles"  "Number of Tiles"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tile_size"
+            label   "Tile Size"
+            type    intvector2
+            size    2
+            default { "512" "512" }
+            hidewhen "{ tile_method != tilesize } { tile_output == 0 }"
+            range   { 1! 8192 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "num_tiles"
+            label   "Number of Tiles"
+            type    intvector2
+            size    2
+            default { "4" "4" }
+            hidewhen "{ tile_method != numtiles } { tile_output == 0 }"
+            range   { 1! 1e+07 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tile_overlap"
+            label   "Tile Overlap"
+            type    intvector2
+            size    2
+            default { "0" "0" }
+            hidewhen "{ tile_output == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "file_naming"
+            label   "File Naming"
+            type    ordinal
+            default { "udim" }
+            hidewhen "{ tile_output == 0 }"
+            menu {
+                "udim"      "UDIM"
+                "uvtile"    "UV Tile"
+                "frame"     "Frames"
+                "xytile"    "XY tile"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "udim_stride"
+            label   "UDIM Stride"
+            type    integer
+            default { "10" }
+            hidewhen "{ file_naming != udim } { tile_output == 0 }"
+            range   { 1! 20 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tile_padding"
+            label   "Pad Tile Numbers"
+            type    integer
+            default { "1" }
+            hidewhen "{ file_naming == udim } { file_naming == xytile } { tile_output == 0 }"
+            range   { 1 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder3"
+        label   "Layers"
+
+        parm {
+            name    "bExportAllLayers"
+            label   "Export All Layers"
+            type    toggle
+            default { "1" }
+        }
+        multiparm {
+            name    "folder0"
+            label    "Export Layers"
+            disablewhen "{ bExportAllLayers == 1 }"
+
+            parm {
+                name    "exportlayer_#"
+                label   "Name"
+                type    string
+                default { "" }
+            }
+        }
+
+    }
+
+    parm {
+        name    "sOutputLayer"
+        label   "Channel Name Paint Inv"
+        type    string
+        invisible
+        default { "" }
+        menureplace {
+            [ "opmenu -l heightfield_output_mask red_channel" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+}

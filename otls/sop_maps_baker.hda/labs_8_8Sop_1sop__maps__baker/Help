@@ -1,0 +1,91 @@
+= GameDev Maps Baker =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_maps_baker
+#icon: 
+#tags: tech, model
+
+""" Generates textures bakes from a high resolution to low resolution model at near interactive speeds. """
+
+The map baker can transfer texture and data maps from high resolution to low resolution geometry. Unlike the games baker which relies on a mantra render, the maps baker uses a COPS network that is orders of magnitude faster than the mantra equivalent.
+
+:video:
+    #src:opdef:.?mapbaker.mp4
+    
+== Using Maps Baker ==
+                    
+# Use a Gamedev Quick Material Sop to assign textures to a high resolution model
+
+# Use a normal sop to generate vertex normals on a high resolution model if they don't already exist
+            
+# Connect the low resoliotion objet to the first input, high resolutin object to the second input.
+            
+# Specify the maps required and the output path.
+
+# Click the 'Bake' button, textures will be baked and written to disk.
+
+
+
+@parameters
+    == Bake ==
+    Bake:
+        Execute the node to write maps to disk.
+    Output Directory:
+        Location to write maps to, use $(CHANNEL) in the path to ensure each map is written to a separate file.
+    Resolution:
+        Resolution of baked maps in pixels. Use the dropdown for some commonly used values.
+    Tracing Mode:
+        Set the method use to transfer information between the high and low res geometry. 'Nearest Surface' will trace the shortest ray between the surfaces, while 'Surface Normal' will trace along the nomal of the low res geometry.
+    Max Trace Distance:
+        When using Surface Normal mode, the maximum length to trace a ray. A small distance can optimise the bake process, and prevent issues where a ray traces to the wrong part of the high res geometry.
+    Preview Channel:
+        Which map to display in the viewport.
+    == Bake Options ==
+    == Transfer ==
+    Diffuse Map:
+        Name for the diffuse map.
+    Normal Map:
+        Name for the normal map.
+    Opacity Map:
+        Name for the opacity map.
+    Roughness Map:
+        Name for the roughness map.
+    Metallic Map:
+        Name for the metallic map.
+    == Generate ==
+    Vertex Color:
+        Name for the vertex colour map.
+    AO:
+        Name for the AO map.
+    World Normal:
+        Name for the world normal map.
+    Height:
+        Name for the height map.
+    Alpha:
+        Name for the alpha map.
+    Position:
+        Name for the position map.
+    == Attributes ==
+    Custom Attributes:
+        Define custom geometry attributes to be baked to maps.
+    == Advanced ==
+    Manual Mode:
+        Toggle if maps should be baked automatically on changes upstream, or if it should only bake when then 'Bake' button is pressed.
+    == Normal Map ==
+    Tangent Normal Flip Y:
+        Invert the Y component of the normap map bake, required for certain game engines.
+    == AO Map ==
+    Number of Rays:
+        Rays sent out per pixel. More rays increase quality, but also increase processing time.
+    Maximum Ray Distance:
+        Long rays can sometimes introduce over-occlusion, and cause long render times. Shorter rays will create cleaner looking occlusion, only darkening very occluded areas.
+    Intensity:
+        Multiplier of the AO shading, higher values will produce darker occlusion.
+    Gamma:
+        Adjust the gamma (contrast) of the occlusion.
+    Cone Width:
+        How wide will rays be fired from the sample point. 180 degrees will be a full hemisphere of samples, while 10 degrees will only generate occlusion in very tight corners or high occluded areas.
+    Ray Bias:
+        Amount to move the start of a ray from its starting point. Sometimes rays can intersect from where they're fired; adjusting ray bias by small amounts can reduce self-intersection artifacts.
+    

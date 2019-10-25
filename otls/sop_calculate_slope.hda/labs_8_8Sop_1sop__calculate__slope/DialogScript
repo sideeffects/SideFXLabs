@@ -1,0 +1,115 @@
+# Dialog script for gamedev::sop_calculate_slope automatically generated
+
+{
+    name	gamedev::sop_calculate_slope
+    script	gamedev::sop_calculate_slope
+    label	"GameDev Calculate Slope"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Output"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "bMeshNormals"
+            label   "Use Mesh Normal"
+            type    toggle
+            default { "0" }
+            help    "Use @N when enabled, otherwise calculate normals to then calculate slope."
+        }
+        parm {
+            name    "vUp"
+            label   "Up Vector"
+            type    vector
+            size    3
+            default { "0" "1" "0" }
+            help    "Vector used to compare slope. Normals that are parallel to this slope vector will get a value of 1, normals that are perpendicular or facing away from the vector will get a slope of 0."
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "bSlopeCd"
+            label   "Output Slope Mask as Color (Cd)"
+            type    toggle
+            default { "1" }
+            help    "Output slope to color when enabled, otherwise write to the attribute specified by the next parameter."
+        }
+        parm {
+            name    "sSlopeAttribute"
+            label   "Slope Attribute"
+            type    string
+            default { "slope" }
+            help    "Attribute name to store the calculated slope."
+            disablewhen "{ bSlopeCd == 1 }"
+        }
+        parm {
+            name    "slope"
+            label   "Slope"
+            type    ramp_flt
+            default { "2" }
+            help    "Ramp to adjust the calculated slope. For example, moving the first point to the top left, and second point to the bottom right will invert the slope values, or extra points can be inserted into the ramp to increase contrast or bias the results."
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Smoothing"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "edgelength" }
+            help    "Lets you choose different blurring models that have different effects on the point attributes."
+            menu {
+                "uniform"       "Uniform"
+                "edgelength"    "Edge Length"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "influencetype"
+            label   "Influence Type"
+            type    ordinal
+            default { "connectivity" }
+            help    "Burring relies on each point being able to see what its neighbors' attributes are. This parameter determines how points see their neighbors."
+            menu {
+                "connectivity"  "Connectivity"
+                "proximity"     "Proximity"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "iterations"
+            label   "Blurring Iterations"
+            type    integer
+            default { "2" }
+            help    "The number of times the input geometry is blurred. The higher the number, the more blurring."
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stepsize"
+            label   "Blur Size"
+            type    float
+            default { "0.5" }
+            help    "Radius of slope blur, high values when Influece Type is 'connectivity' can look like subsurface effects."
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}

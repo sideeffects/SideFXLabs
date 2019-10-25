@@ -1,0 +1,118 @@
+import os
+import subprocess
+
+zbrush_dir = "C:\Users\Public\Pixologic\GoZBrush"
+zbrush_proj_dir = "C:\Users\Public\Pixologic\GoZProjects\Default"
+
+ascii_file_map = {
+            "GoZ_Info.txt":"C:/Users/Public/Pixologic/GoZApps/Houdini/GoZ_Info.txt",
+            "GoZBrushToHoudini.py":"C:/Users/Public/Pixologic/GoZApps/Houdini/GoZBrushToHoudini.py",
+            "GoZEditHoudini.bat":"C:/Users/Public/Pixologic/GoZApps/Houdini/GoZEditHoudini.bat",
+            "GoZLocateHoudini.bat":"C:/Users/Public/Pixologic/GoZApps/Houdini/GoZLocateHoudini.bat",
+}
+
+def get_unique_names_from_node(node):
+    export_geo = node.geometry()
+    names = export_geo.primStringAttribValues("name")
+    unique_names = list(set(names))
+    
+    return unique_names
+
+def get_mesh_paths(meshes_to_send):
+    paths_to_meshes = []
+    for mesh in meshes_to_send:
+        object_path_file = os.path.join(zbrush_dir, "GoZ_ObjectPath.txt")
+        f = open(object_path_file, 'w')
+        f.write(mesh + "\n")
+        f.close()
+
+        object_path_exe = os.path.join(zbrush_dir, "GoZMakeObjectPath.exe")
+        subprocess.call(object_path_exe)
+
+        object_path_file = os.path.join(zbrush_dir, "GoZ_ObjectPath.txt")
+        f = open(object_path_file, 'r')
+        for line in f.readlines():
+            print line
+            paths_to_meshes.append(line)
+
+        f.close()
+
+    return paths_to_meshes
+
+def write_object_path(path_to_meshes):
+    object_path_file = os.path.join(zbrush_dir, "GoZ_ObjectList.txt")
+    f = open(object_path_file, 'w')
+    for path in path_to_meshes:
+        f.write(path.replace("\\", "/") + "\n")
+    f.close()
+
+def export_subtool(instance):
+    meshes_to_send = [instance.parm("tool_name").eval()]
+    
+    paths_to_meshes = os.path.join(zbrush_proj_dir, meshes_to_send[0])
+    if instance.inputs():
+        instance.node("OUT_MESH").parm("sopoutput").set(paths_to_meshes+ ".GoZ")
+        instance.node("OUT_MESH").parm("execute").pressButton()
+    
+def export(kwargs):
+    node = kwargs["node"]
+    meshes_to_send = [node.parm("tool_name").eval()]
+    
+    export_node = node.node("EXPORT_NODE")
+    meshes_to_send = get_unique_names_from_node(export_node)
+
+    blast_node = node.node("isolate_part")
+    rop_node = node.node("OUT_MESH") 
+    
+    #export_path = hou.pwd().node("OUT_MESH").parm("sopoutput").eval()
+    
+    paths_to_meshes = [os.path.join(zbrush_proj_dir, mesh_name).replace("\\", "/") for mesh_name in meshes_to_send]
+    
+    write_object_path(paths_to_meshes)
+    if hou.pwd().inputs():
+        for name in meshes_to_send:
+            node.parm("__name_expression").set("@name=" + name)
+            node.parm("__export_file").set(zbrush_proj_dir + "\\" + name + ".GoZ")
+            rop_node.parm("execute").pressButton()
+    
+    object_path_exe = os.path.join(zbrush_dir, "GoZBrushFromApp.exe")
+    subprocess.call(object_path_exe)   
+    
+def saveSectionToFile(section, file_name, mode="w"):
+    '''Given a section, save it to a file.'''
+    try:
+        section_file = open(file_name, mode)    
+        section_file.write(section.contents())
+        section_file.close()
+        return True
+    except Exception as e:
+        print e
+        return False 
+    
+def install(node):
+
+    definition = node.type().definition()
+    sections = definition.sections() 
+    errors = False 
+
+    if not os.path.exists(zbrush_dir):
+        return 
+    
+    for ascii_file in ascii_file_map:
+        file_path = ascii_file_map[ascii_file]
+        dirname = os.path.dirname(file_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        success = saveSectionToFile(sections[ascii_file], file_path)
+
+def start_server():
+    import hrpyc 
+    already_running = True
+    
+    try:
+        connection = hrpyc.rpyc.classic.connect("127.0.0.1", 18811)
+    except:
+        already_running = False 
+            
+    if not already_running:
+        hrpyc.start_server()

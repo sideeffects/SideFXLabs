@@ -1,0 +1,106 @@
+# Dialog script for gamedev::rop_csv_exporter automatically generated
+
+{
+    name	gamedev::rop_csv_exporter
+    script	gamedev::rop_csv_exporter
+    label	"GameDev CSV Exporter"
+
+    help {
+	""
+    }
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    parm {
+        name    "export_node"
+        label   "Export Node"
+        type    oppath
+        default { "" }
+        help    "Export a CSV file to the specified location."
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+    parm {
+        name    "csv_path"
+        label   "CSV Path"
+        type    file
+        default { "$HIP/export.csv" }
+        help    "Location and name to save the CSV file."
+        parmtag { "filechooser_pattern" "*.csv" }
+    }
+    parm {
+        name    "separate_components"
+        label   "Separate Vector Components"
+        type    toggle
+        default { "0" }
+        help    "Export the vector components into separate columns of a spreadsheet when enabled. If disabled, vectors will be saved in curly braces, eg {1,2,3}."
+    }
+    parm {
+        name    "suff_x"
+        label   "Component Suffixes"
+        type    string
+        joinnext
+        default { "x" }
+        help    "Suffix to use for vector components, so if the suffix is x, and the vector is P, the column name will be Px."
+        disablewhen "{ separate_components == 0 }"
+    }
+    parm {
+        name    "suff_y"
+        label   "Label"
+        type    string
+        nolabel
+        joinnext
+        default { "y" }
+        disablewhen "{ separate_components == 0 }"
+    }
+    parm {
+        name    "suff_z"
+        label   "Label"
+        type    string
+        nolabel
+        joinnext
+        default { "z" }
+        disablewhen "{ separate_components == 0 }"
+    }
+    parm {
+        name    "suff_w"
+        label   "Label"
+        type    string
+        nolabel
+        default { "w" }
+        disablewhen "{ separate_components == 0 }"
+    }
+    parm {
+        name    "bFilteredExport"
+        label   "Filtered Export"
+        type    toggle
+        default { "0" }
+        help    "When enabled use the following multiparm to define which attributes to export, otherwise just export @P."
+    }
+    multiparm {
+        name    "mAttributes"
+        label    "Export Attributes"
+        default 0
+        disablewhen "{ bFilteredExport == 0 }"
+
+        parm {
+            name    "sAttribute#"
+            label   "Attribute"
+            type    string
+            default { "" }
+        }
+    }
+
+}

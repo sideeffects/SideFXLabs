@@ -1,0 +1,207 @@
+# Dialog script for gamedev::sop_cable_generator automatically generated
+
+{
+    name	gamedev::sop_cable_generator
+    script	gamedev::sop_cable_generator
+    label	"GameDev Cable Generator"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Curve"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "number_of_cables"
+        label   "Number of Cables"
+        type    integer
+        default { "5" }
+        help    "Number of cables to generate."
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    groupsimple {
+        name    "folder3"
+        label   "Shape Controls"
+
+        parm {
+            name    "tension"
+            label   "Tension"
+            type    ramp_flt
+            default { "4" }
+            help    "How much tension each curve has.  A flat graph means all cables have the same tension. Bottom of the ramp means sagged tight cables. Top of the ramp means tight cables. The default curve means about 70% of the cables will be sagged, remaining 30% increasinly taut. "
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 0.68726825714111328 ) 2value ( 0 ) 2interp ( linear ) 3pos ( 0.89740419387817383 ) 3value ( 0.5 ) 3interp ( linear ) 4pos ( 1 ) 4value ( 1 ) 4interp ( linear )" }
+        }
+        parm {
+            name    "horizontal_slack"
+            label   "Horizontal Slack"
+            type    float
+            default { "0.2" }
+            help    "Smoothing that doesn't affect vertical cable sag."
+            range   { 0 1 }
+        }
+        parm {
+            name    "general_smoothing"
+            label   "General Smoothing"
+            type    float
+            default { "50" }
+            help    "Overall smoothing, useful when large amounts of noise are applied."
+            range   { 0! 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "joint_smoothing"
+            label   "Joint Smoothing"
+            type    float
+            default { "1" }
+            help    "Soften cable ability to reach target pin points."
+            range   { 0! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "chance_to_skip_pin"
+            label   "Chance To Skip Pin"
+            type    float
+            default { "0" }
+            help    "Frequency of pin 'misses', allowing for more chaotic cable layouts."
+            range   { 0 1 }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Noise Options"
+
+        parm {
+            name    "noise_frequency"
+            label   "Noise Frequency"
+            type    float
+            size    3
+            default { "1" "1" "1" }
+            help    "Noise frequency applied to cable positions."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "noise_amp"
+            label   "Noise_Amplitude"
+            type    float
+            default { "0.5" }
+            help    "Noise amplitude applied to cable positions."
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Sweep Options"
+
+        parm {
+            name    "divs"
+            label   "Radial Divisions"
+            type    integer
+            default { "12" }
+            help    "Numnber of sides to cable cross section, default is 12."
+            range   { 1! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "curve_resolution"
+            label   "Curve Resolution"
+            type    float
+            default { "0.1" }
+            help    "Step size used in resample sop to generate cable paths. Lower numbers = higher quality."
+            range   { 0 10 }
+        }
+        parm {
+            name    "radius_min_max"
+            label   "Radius Min Max"
+            type    vector2
+            size    2
+            default { "0.005" "0.02" }
+            help    "Min and max of cable radius, each cable will pick a random number between these values."
+            range   { -1 1 }
+        }
+        parm {
+            name    "uv_scale"
+            label   "UV Scale"
+            type    vector2
+            size    2
+            default { "0" "0" }
+            help    "UV layout dimensions. Small numbers work best to start with, say 0.2 for U and V, then append a UV layout sop to adjust with more control."
+            range   { -1 1 }
+        }
+    }
+
+    groupsimple {
+        name    "detangle_folder"
+        label   "Detangle"
+
+        parm {
+            name    "detangle"
+            label   "Detangle"
+            type    toggle
+            default { "0" }
+            help    "Enable sop based detangling. Works best with enough noise and randomness in the initial cable layout to allow room for a successful detangle to happen."
+        }
+        parm {
+            name    "detangle_iterations"
+            label   "Detangle Iterations"
+            type    integer
+            default { "10" }
+            help    "Number of iterations for detangle operation."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "post_detangle_smooth"
+            label   "Post Detangle Smooth"
+            type    float
+            default { "10" }
+            help    "Number of smoothing iterations applied after detangling."
+            range   { 0! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Vertex Colors"
+
+        parm {
+            name    "add_vertex_colors"
+            label   "Add Vertex Colors"
+            type    toggle
+            default { "0" }
+            help    "Enable false coloring for visualisation and id maps."
+        }
+        parm {
+            name    "ramp"
+            label   "Attribute Ramp"
+            type    ramp_rgb
+            default { "5" }
+            help    "Control color of cables when add vertex colors toggle enabled."
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0 0 0 ) 1interp ( constant ) 2pos ( 0.25914633274078369 ) 2c ( 1 0 0 ) 2interp ( constant ) 3pos ( 0.41463413834571838 ) 3c ( 0 1 0 ) 3interp ( constant ) 4pos ( 0.71493899822235107 ) 4c ( 0 0 1 ) 4interp ( constant ) 5pos ( 0.87804877758026123 ) 5c ( 0.89999997615814209 0.89999997615814209 0 ) 5interp ( constant )" }
+            parmtag { "rampcolortype" "rgb" }
+            parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "rampvalues_var" "vecramp_the_key_values" }
+        }
+    }
+
+}

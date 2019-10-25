@@ -1,0 +1,123 @@
+# Dialog script for gamedev::sop_voxelmesh automatically generated
+
+{
+    name	gamedev::sop_voxelmesh
+    script	gamedev::sop_voxelmesh
+    label	"GameDev Voxel Mesh"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Polygon Geometry"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "res_preset"
+        label   "Resolution Preset"
+        type    ordinal
+        default { "1" }
+        menu {
+            "0" "Low"
+            "1" "Mid"
+            "2" "High"
+            "3" "Custom"
+        }
+    }
+    parm {
+        name    "resolution"
+        label   "Resolution"
+        type    float
+        default { "0.1" }
+        hidewhen "{ res_preset != 3 }"
+        range   { 0 10 }
+    }
+    parm {
+        name    "bounding_box_relative"
+        label   "Bounding Box Relative"
+        type    toggle
+        default { "1" }
+    }
+    parm {
+        name    "adaptivity"
+        label   "Adaptivity"
+        type    float
+        default { "0" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "dilate_erode"
+        label   "Dilate/Erode"
+        type    float
+        default { "0" }
+        range   { -10 10 }
+    }
+    parm {
+        name    "smooth_iterations"
+        label   "Smooth Iterations"
+        type    float
+        default { "0" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "project"
+        label   "Project to Original"
+        type    toggle
+        default { "0" }
+    }
+    parm {
+        name    "post_smooth"
+        label   "Post Smooth Iterations"
+        type    integer
+        default { "0" }
+        disablewhen "{ project == 0 }"
+        range   { 0 10 }
+    }
+    parm {
+        name    "sharpen_features"
+        label   "Sharpen Features"
+        type    toggle
+        default { "0" }
+    }
+    parm {
+        name    "edge_tolerance"
+        label   "Edge Tolerance"
+        type    float
+        default { "0.5" }
+        disablewhen "{ sharpen_features == 0 }"
+        range   { 0 1 }
+    }
+    parm {
+        name    "spacer"
+        label   "_"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "like_tool"
+        label   "Like Tool"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        help    "Let us know that you're enjoying this Tool"
+        parmtag { "button_icon" "heart.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.like_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "dont_like"
+        label   "Thumbs Down"
+        type    button
+        nolabel
+        default { "0" }
+        help    "Let us know you don't like this tool. Ideally also send us a mail at support@sidefx.com"
+        parmtag { "button_icon" "thumbs-down.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.dislike_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

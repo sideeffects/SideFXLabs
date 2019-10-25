@@ -1,0 +1,162 @@
+# Dialog script for gamedev::sop_decal_projector automatically generated
+
+{
+    name	gamedev::sop_decal_projector
+    script	gamedev::sop_decal_projector
+    label	"GameDev Decal Projector"
+
+    help {
+	""
+    }
+    bindhandle prx xform "Transformer" pivot_rx "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle pry xform "Transformer" pivot_ry "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle prz xform "Transformer" pivot_rz "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle px xform "Transformer" px "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle py xform "Transformer" py "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle pz xform "Transformer" pz "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle rx xform "Transformer" rx "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle ry xform "Transformer" ry "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle rz xform "Transformer" rz "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle sx xform "Transformer" sx "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle sy xform "Transformer" sy "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle sz xform "Transformer" sz "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle tx xform "Transformer" tx "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle ty xform "Transformer" ty "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle tz xform "Transformer" tz "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+    bindhandle scale xform "Transformer" uniform_scale "movetool_candidate(1) ownerop('transform1') owneropgroup('group')"
+
+    inputlabel	1	"Projection Mesh"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "transform"
+        label   "Transform"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "t"
+            label   "Translate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            help    "Position of projection plane."
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "r"
+            label   "Rotate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            help    "Rotation of projection plane."
+            range   { 0 360 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "s"
+            label   "Scale"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            help    "Scale of projection plane."
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupcollapsible {
+            name    "pivots"
+            label   "Pivots"
+            grouptag { "group_type" "collapsible" }
+
+            parm {
+                name    "pr"
+                label   "Pivot Rotate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "Position of rotation pivot of projection plane."
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "p"
+                label   "Pivot Translate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "Position of translation pivot of projection plane."
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+        parm {
+            name    "scale"
+            label   "Uniform Scale"
+            type    float
+            default { "1" }
+            help    "Scale of projection plane."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    parm {
+        name    "heightmap"
+        label   "Height Map"
+        type    image
+        default { "" }
+        help    "Texture map used for projection, ideally a grayscale 'heightmap' image. Note that this refers to a texture to be used as a heightmap, not a houdini heightfield node!"
+    }
+    parm {
+        name    "strength"
+        label   "Strength"
+        type    float
+        default { "50" }
+        help    "Multiplier to alter the strength of the heightmap."
+        range   { 0 10 }
+    }
+    parm {
+        name    "invert_height_for_ao"
+        label   "Use Inverted Height as AO"
+        type    toggle
+        default { "0" }
+        help    "When enabled the lowest parts of the heightmap will be darkened with a 2d ambient occlusion filter, useful to enhance detail and visually separate high and low parts of the heightmap."
+    }
+    parm {
+        name    "max_distance"
+        label   "Max Distance"
+        type    float
+        default { "1" }
+        help    "Maximum distance the surface can be away from the projector handle. If the projection is further than this distance, the projection will be clipped."
+        range   { 0 10 }
+    }
+    parm {
+        name    "floating_distance"
+        label   "Floating Distance"
+        type    float
+        default { "0.01" }
+        help    "Distance to float the projection above the target surface. Ideally this should be as close as possible, but not so close that it causes flickering or Z-fighting issues."
+        range   { 0 10 }
+    }
+    parm {
+        name    "clip_x"
+        label   "Clip X"
+        type    vector2
+        size    2
+        default { "0" "0" }
+        help    "Clip or 'barn doors' for the left and right side of the projection."
+        range   { -1 1 }
+    }
+    parm {
+        name    "clip_z"
+        label   "Clip Z"
+        type    vector2
+        size    2
+        default { "0" "0" }
+        help    "Clip or 'barn doors' for the top and bottom of the projection."
+        range   { -1 1 }
+    }
+}

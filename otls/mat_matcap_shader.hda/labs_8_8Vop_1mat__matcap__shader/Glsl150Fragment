@@ -1,0 +1,185 @@
+#version 330
+
+#line 1
+
+// Couple of PI global defines 
+#define M_PI 3.1415
+#define M_INV_PI 0.318
+
+in wparms
+{
+    vec4 pos;
+    vec3 normal;
+    vec4 color;
+    vec2 texcoord0;
+    noperspective in vec3 edgedist;
+    flat in int edgeflags;
+    float selected;
+    vec3 tangent; 
+} fsIn;
+
+layout(std140) uniform glH_Material
+{
+    vec3            ambient_color;
+    vec3            diffuse_color;
+    vec3            emission_color;
+    vec3            specular_color;
+    vec3            metallic_color;
+    float           metal;
+    float           material_alpha;
+    float           material_alpha_parallel;
+    float           roughness;
+    float           diffuse_roughness;
+    float           ior;
+    float           reflection;
+    float           coat_intensity;
+    float           coat_roughness;
+    int             specular_model;
+    int             coat_spec_model;
+    float           specular_tint;
+
+    bool            use_geo_color;
+    bool            use_packed_color;
+
+    bool            has_textures;
+    bool            has_diffuse_map;
+    bool            has_spec_map;
+    bool            has_opacity_map;
+    bool            has_emission_map;
+    bool            has_normal_map;
+    bool            has_rough_map;
+    bool            has_displace_map;
+    bool            has_occlusion_map;
+    bool            has_metallic_map;
+    bool            has_coat_int_map;
+    bool            has_coat_rough_map;
+    bool            has_reflection_int_map;
+    bool            has_reflect_map;
+    
+    ivec4           diffuse_udim_area;
+    ivec4           spec_udim_area;
+    ivec4           opacity_udim_area;
+    ivec4           emission_udim_area;
+    ivec4           normal_udim_area;
+    ivec4           rough_udim_area; 
+    ivec4           displace_udim_area;
+    ivec4           occlusion_udim_area;
+    ivec4           metallic_udim_area;
+    ivec4           coat_int_udim_area;
+    ivec4           coat_rough_udim_area;
+    ivec4           reflection_udim_area;
+    
+    bool            has_env_map;
+    vec3            envScale;
+    mat3            envRotate;
+
+    vec2            normalMapScaleShift;
+    vec2            normalMapScale;
+    vec3            normalMapXYZScale;
+    int             normal_map_type; // space: 0=tangent, 1=world  
+    int             normal_map_ncomps; // 2 or 3 component
+
+    int             displace_space;
+    float           displace_scale;
+    float           displace_offset;
+    bool            displace_y_up; // vs. z-up
+
+    bool            invert_opacitymap;
+    
+    bool            invert_roughmap;
+    vec4            rough_comp;
+    
+    vec4            occlusion_comp;
+    vec4            metallic_comp;
+    vec4            coat_int_comp;
+    vec4            coat_rough_comp;
+
+    bool            reflection_as_ior;
+    vec4            reflection_comp;
+};
+
+vec4  HOUsampleDiffuseMap(vec2 tx);
+vec3  HOUsampleEmissionMap(vec2 tx);
+float HOUsampleOpacityMap(vec2 tx, bool invert);
+
+// For some reason this doesn't get triggered on my 1080ti, so something might be going
+// on at a lower level, but I disabled the checks to get the results I needed
+
+//#if MAX_TEXTURE_SAMPLERS >= 32
+// can only do occlusion if the #texture units supports it
+uniform sampler2D glH_OcclusionMap;
+uniform sampler2DArray glH_OcclusionArrayMap;
+uniform sampler2D glH_MetallicMap;
+uniform sampler2DArray glH_MetallicArrayMap;
+vec4 HOUsampleGenericMap(vec2 coords,
+                         sampler2D reg_map,
+                         sampler2DArray array_map,
+                         ivec4 udim_area);
+//#endif
+
+uniform int glH_LightingEnabled;
+uniform int glH_MaterialPass;
+uniform samplerCube glH_EnvMap;
+uniform float glH_SceneIOR;
+uniform float glH_Specular;
+
+
+uniform bool use_texture_alpha;
+
+
+void HOUassignOutputs(vec3 point_color,
+                      vec3 emit_color,
+                      vec3 metal_color,
+                      vec3 amb_color,
+                      vec3 diff_color,
+                      vec3 spec_color,
+                      float alpha,
+                      float emit_alpha,
+                      float rough,
+                      float diff_rough,
+                      float ior,
+                      float metal,
+                      float coat_intensity,
+                      float coat_rough,
+                      vec4 wire,
+                      vec3 nN,
+                      float depth,
+                      float selected,
+                      int lighting_model,
+                      int coat_model);
+vec4 HOUwireColor(vec3 edges, int edgeflags, float selected);
+
+void main()
+{
+
+    vec3 nN = normalize(fsIn.normal);
+    vec4 tex = HOUsampleDiffuseMap(nN.xy * .5 + .5); 
+    float alpha = tex.a; 
+    
+    if (use_texture_alpha)
+    {
+        alpha *= tex.a;
+    }
+ 
+    vec4 wire = HOUwireColor(fsIn.edgedist,fsIn.edgeflags,fsIn.selected);
+    
+    HOUassignOutputs(vec3(0),
+                     tex.rgb, 
+                     vec3(0), 
+                     vec3(0),  
+                     vec3(0),
+                     vec3(0),
+                     alpha,  
+                     wire.a, 
+                     0, 
+                     0,
+                     0, 
+                     0,
+                     0.0,
+                     0.0,  
+                     wire, 
+                     vec3(0),  
+                     0,   
+                     fsIn.selected,
+                     specular_model, coat_spec_model);
+}

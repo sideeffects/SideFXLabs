@@ -1,0 +1,180 @@
+# Dialog script for gamedev::rop_pyro_preview automatically generated
+
+{
+    name	gamedev::rop_pyro_preview
+    script	gamedev::rop_pyro_preview
+    label	"GameDev Pyro Preview ROP"
+
+    help {
+	""
+    }
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    parm {
+        name    "add_light_rig"
+        label   "Add Light Rig"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().create_env_light_rig()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "remove_light_rig"
+        label   "Remove Light Rig"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().destroy_env_light_rig()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "trange"
+        label   "Valid Frame Range"
+        type    ordinal
+        default { "off" }
+        menu {
+            "off"       "Render Current Frame"
+            "normal"    "Render Frame Range"
+            "on"        "Render Frame Range Only (Strict)"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "f"
+        label   "Start/End/Inc"
+        type    float
+        size    3
+        default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "take"
+        label   "Render With Take"
+        type    string
+        default { "_current_" }
+        menu {
+            [ "opmenu -l pyro_preview_settings take" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "camera"
+        label   "Camera"
+        type    oppath
+        default { "/obj/cam1" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "opfilter" "!!OBJ/CAMERA!!" }
+        parmtag { "oprelative" "." }
+    }
+    parm {
+        name    "override_camerares"
+        label   "Override Camera Resolution"
+        type    toggle
+        default { [ "off" hscript-expr ] }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "res_fraction"
+        label   "Resolution Scale"
+        type    string
+        default { "0.5" }
+        hidewhen "{ override_camerares == 0 }"
+        menu {
+            "0.1"       "1/10 (One Tenth Resolution)"
+            "0.2"       "1/5 (One Fifth Resolution)"
+            "0.25"      "1/4 (Quarter Resolution)"
+            "0.3333333" "1/3 (One Third Resolution)"
+            "0.5"       "1/2 (Half Resolution)"
+            "0.6666666" "2/3 (Two Thirds Resolution)"
+            "0.75"      "3/4 (Three Quarter Resolution)"
+            "specific"  "User Specified Resolution"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "res_override"
+        label   "Resolution"
+        type    intvector2
+        joinnext
+        size    2
+        default { "1280" "720" }
+        disablewhen "{ res_fraction != specific }"
+        hidewhen "{ override_camerares == 0 }"
+        range   { -1 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "res_overrideMenu"
+        label   "Choose Resolution"
+        type    ordinal
+        default { [ "640 480 1" hscript-expr ] }
+        disablewhen "{ res_fraction != specific }"
+        hidewhen "{ override_camerares == 0 }"
+        menumini {
+            [ "opmenu -l pyro_preview_settings res_overrideMenu" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "aspect_override"
+        label   "Pixel Aspect Ratio"
+        type    float
+        default { "1" }
+        disablewhen "{ res_fraction != specific }"
+        hidewhen "{ override_camerares == 0 }"
+        range   { 0.05 2 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "vm_picture"
+        label   "Output Picture"
+        type    file
+        default { "$HIP/render/$HIPNAME.$OS.$F4.exr" }
+        menureplace {
+            [ "opmenu -l pyro_preview_settings vm_picture" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "filechooser_mode" "write" }
+    }
+    parm {
+        name    "forceobject"
+        label   "Force Objects"
+        type    oplist
+        default { "" }
+        help    "Objects will be output regardless of the state of their display flag"
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
+        parmtag { "oprelative" "/obj" }
+    }
+    parm {
+        name    "forcelights"
+        label   "Force Lights"
+        type    oplist
+        default { "@env_lightrig" }
+        help    "Lights will be output regardless of the value of their dimmer channel"
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "opfilter" "!!OBJ/LIGHT!!" }
+        parmtag { "oprelative" "/obj" }
+    }
+    parm {
+        name    "env_light_mult"
+        label   "Env Light Intensity"
+        type    float
+        default { "1" }
+        range   { 0 10 }
+    }
+}

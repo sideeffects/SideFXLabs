@@ -1,0 +1,559 @@
+# Dialog script for gamedev::sop_maps_baker automatically generated
+
+{
+    name	gamedev::sop_maps_baker
+    script	sop_attribute_to_map
+    label	"GameDev Maps Baker"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"LOW Resolution Geometry"
+    inputlabel	2	"HIGH Resolution Geometry"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Baked Map"
+
+    parm {
+        name    "intensity"
+        label   "Label"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "gamma"
+        label   "Label"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Bake"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "sCurAttr"
+            label   "CurAttr"
+            type    string
+            invisible
+            default { "" }
+        }
+        parm {
+            name    "sCurAttrName"
+            label   "CurAttrName"
+            type    string
+            invisible
+            default { "" }
+        }
+        parm {
+            name    "vop_forcecompile"
+            label   "Bake Attributes"
+            type    button
+            invisible
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "newparameter"
+            label   "Bake"
+            type    button
+            default { "0" }
+            help    "Execute the node to write maps to disk."
+            parmtag { "script_callback" "kwargs['node'].hm().Render(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sOutputFile"
+            label   "Output Directory"
+            type    directory
+            default { "$HIP/render/${HIPNAME}_$(CHANNEL).png" }
+            help    "Location to write maps to, use $(CHANNEL) in the path to ensure each map is written to a separate file."
+        }
+        parm {
+            name    "i2Resolution"
+            label   "Resolution"
+            type    integer
+            joinnext
+            size    2
+            default { "1024" "1024" }
+            help    "Resolution of baked maps in pixels. Use the dropdown for some commonly used values."
+            range   { 1! 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "parm"
+            label   "Label"
+            type    ordinal
+            default { "0" }
+            menumini {
+                "256 256"   "256 x 256"
+                "512 512"   "512 x 512"
+                "1024 1024" "1024 x 1024"
+                "2048 2048" "2048 x 2048"
+                "4096 4096" "4096 x 4096"
+            }
+            parmtag { "script_callback" "opparm . i2Resolution (`arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)`" }
+            parmtag { "script_callback_language" "hscript" }
+        }
+        parm {
+            name    "mBakeMode"
+            label   "Tracing Mode"
+            type    ordinal
+            joinnext
+            default { "0" }
+            help    "Set the method use to transfer information between the high and low res geometry. 'Nearest Surface' will trace the shortest ray between the surfaces, while 'Surface Normal' will trace along the nomal of the low res geometry."
+            menu {
+                "0" "Nearest Surface"
+                "1" "Surface Normal"
+            }
+        }
+        parm {
+            name    "fMaxTraceDist"
+            label   "Max Trace Distance"
+            type    float
+            default { "3" }
+            help    "When using Surface Normal mode, the maximum length to trace a ray. A small distance can optimise the bake process, and prevent issues where a ray traces to the wrong part of the high res geometry."
+            hidewhen "{ mBakeMode != 1 }"
+            range   { 0.001 10 }
+        }
+        parm {
+            name    "preview_channel"
+            label   "Preview Channel"
+            type    string
+            default { "ao" }
+            help    "Which map to display in the viewport."
+        }
+        parm {
+            name    "fRayDistance"
+            label   "Ray Distance"
+            type    float
+            invisible
+            default { "-1" }
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Bake Options"
+        grouptag { "group_type" "simple" }
+
+        groupsimple {
+            name    "folder6"
+            label   "Transfer"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "bDiffuse"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the diffuse map bake."
+            }
+            parm {
+                name    "sDiffuse"
+                label   "Diffuse Map"
+                type    string
+                default { "diffuse" }
+                help    "Name for the diffuse map."
+                disablewhen "{ bDiffuse == 0 }"
+            }
+            parm {
+                name    "bNormal"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the normal map bake."
+            }
+            parm {
+                name    "sNormal"
+                label   "Normal Map"
+                type    string
+                default { "normal" }
+                help    "Name for the normal map."
+                disablewhen "{ bNormal == 0 }"
+            }
+            parm {
+                name    "bOpacity"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the opacity map bake."
+            }
+            parm {
+                name    "sOpacity"
+                label   "Opacity Map"
+                type    string
+                default { "opacity" }
+                help    "Name for the opacity map."
+                disablewhen "{ bOpacity == 0 }"
+            }
+            parm {
+                name    "bRoughness"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the roughness map bake."
+            }
+            parm {
+                name    "sRoughness"
+                label   "Roughness Map"
+                type    string
+                default { "roughness" }
+                help    "Name for the roughness map."
+                disablewhen "{ bRoughness == 0 }"
+            }
+            parm {
+                name    "bMetallic"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the metallic map bake."
+            }
+            parm {
+                name    "sMetallic"
+                label   "Metallic Map"
+                type    string
+                default { "metallic" }
+                help    "Name for the metallic map."
+                disablewhen "{ bMetallic == 0 }"
+            }
+        }
+
+        groupsimple {
+            name    "folder5"
+            label   "Generate"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "bVertexCd"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+                help    "Enable the vertex color map bake."
+            }
+            parm {
+                name    "sVertexColor"
+                label   "Vertex Color"
+                type    string
+                default { "color" }
+                help    "Name for the vertex colour map."
+                disablewhen "{ bVertexCd == 0 }"
+            }
+            parm {
+                name    "bAO"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+                help    "Enable the ambient occlusion (AO) map bake."
+            }
+            parm {
+                name    "sAO"
+                label   "AO"
+                type    string
+                default { "ao" }
+                help    "Name for the AO map."
+                disablewhen "{ bAO == 0 }"
+            }
+            parm {
+                name    "bCurvature"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+            }
+            parm {
+                name    "sCurvature"
+                label   "Curvature"
+                type    string
+                default { "curvature" }
+                disablewhen "{ bCurvature == 0 }"
+            }
+            parm {
+                name    "bWorldNormal"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the world normal map bake."
+            }
+            parm {
+                name    "sWorldNormal"
+                label   "World Normal"
+                type    string
+                default { "worldnormal" }
+                help    "Name for the world normal map."
+                disablewhen "{ bWorldNormal == 0 }"
+            }
+            parm {
+                name    "bHeight"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the height map bake. This is the distance between the high and low res surfaces."
+            }
+            parm {
+                name    "sHeight"
+                label   "Height"
+                type    string
+                default { "height" }
+                help    "Name for the height map."
+                disablewhen "{ bHeight == 0 }"
+            }
+            parm {
+                name    "bAlpha"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the alpha map bake."
+            }
+            parm {
+                name    "sAlpha"
+                label   "Alpha"
+                type    string
+                default { "alpha" }
+                help    "Name for the alpha map."
+                disablewhen "{ bAlpha == 0 }"
+            }
+            parm {
+                name    "bPos"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                help    "Enable the position (@P) map bake."
+            }
+            parm {
+                name    "sPos"
+                label   "Position"
+                type    string
+                default { "position" }
+                help    "Name for the position map."
+                disablewhen "{ bPos == 0 }"
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Attributes"
+        grouptag { "group_type" "simple" }
+
+        multiparm {
+            name    "folder3"
+            label    "Custom Attributes"
+            default 0
+
+            parm {
+                name    "sCustomAttribute#"
+                label   "Attribute"
+                type    string
+                default { "" }
+                help    "Define custom geometry attributes to be baked to maps."
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "folder1"
+        label   "Advanced"
+        grouptag { "group_type" "collapsible" }
+
+        parm {
+            name    "bManualMode"
+            label   "Manual Mode"
+            type    toggle
+            default { "1" }
+            help    "Toggle if maps should be baked automatically on changes upstream, or if it should only bake when then 'Bake' button is pressed."
+        }
+        groupsimple {
+            name    "folder7"
+            label   "Normal Map"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "bFlipTangentX"
+                label   "Tangent Normal Flip X"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "bFlipTangentY"
+                label   "Tangent Normal Flip Y"
+                type    toggle
+                default { "0" }
+                help    "Invert the Y component of the normap map bake, required for certain game engines."
+            }
+        }
+
+        groupsimple {
+            name    "folder8"
+            label   "AO Map"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "numrays"
+                label   "Number of Rays"
+                type    integer
+                default { "50" }
+                help    "Rays sent out per pixel. More rays increase quality, but also increase processing time."
+                range   { 1! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "maxdist"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "2" }
+                help    "Long rays can sometimes introduce over-occlusion, and cause long render times. Shorter rays will create cleaner looking occlusion, only darkening very occluded areas."
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "bias"
+                label   "Bias"
+                type    float
+                default { "3" }
+                help    "Multiplier of the AO shading, higher values will produce darker occlusion."
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "gamma"
+                label   "Gamma"
+                type    float
+                default { "1" }
+                help    "Adjust the gamma (contrast) of the occlusion."
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "conewidth"
+                label   "Cone Width"
+                type    angle
+                default { "70" }
+                help    "How wide will rays be fired from the sample point. 180 degrees will be a full hemisphere of samples, while 10 degrees will only generate occlusion in very tight corners or high occluded areas."
+                range   { 1! 90! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "raybias"
+                label   "Ray Bias"
+                type    float
+                invisible
+                default { "0.001" }
+                help    "Amount to move the start of a ray from its starting point. Sometimes rays can intersect from where they're fired; adjusting ray bias by small amounts can reduce self-intersection artifacts."
+                range   { 0 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+        groupsimple {
+            name    "folder9"
+            label   "Curvature Map"
+
+            parm {
+                name    "iNumRaysCurvature"
+                label   "Number of Rays"
+                type    integer
+                default { "50" }
+                range   { 1! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fMaxRayDistCurvature"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "0.1" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fCurvatureBias"
+                label   "Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fConeWidthCurvature"
+                label   "Cone Width"
+                type    angle
+                default { "90" }
+                range   { 1! 90! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fCurvaturescale"
+                label   "Scale"
+                type    float
+                default { "1" }
+                range   { 0 2 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fFlatbias"
+                label   "Flatness Filter"
+                type    angle
+                default { "0.02" }
+                range   { 0.001! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+    }
+
+}

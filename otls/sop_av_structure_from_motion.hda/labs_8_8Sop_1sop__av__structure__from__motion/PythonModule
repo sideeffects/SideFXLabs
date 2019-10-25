@@ -1,0 +1,41 @@
+import subprocess, os
+
+def log(cmd, cache, folder, node):
+
+    Log = hou.pwd().parent().parm("bExportLog").evalAsInt()
+    with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
+        if Log:
+            print("--------")
+            print(node.name())
+
+        logfile = open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a')
+        StartupInfo = None
+        if os.name == 'nt':
+            StartupInfo = subprocess.STARTUPINFO()
+            subprocess.STARTF_USESHOWWINDOW = 1
+            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+        Process = subprocess.Popen(cmd, stdout=logfile, stderr=logfile, startupinfo=StartupInfo)
+
+        # Process is still running
+        while Process.poll() == None:
+            try:
+                Operation.updateProgress(0.0)
+            # User interrupted
+            except hou.OperationInterrupted:
+                Process.kill()
+
+        # Close log file, because Process has ended
+        logfile.close()
+
+        if Log:
+            print(node.name() + " completed")
+    
+def cookNode(node):
+    node.node("05_Structure_from_Motion").cook(force=True)
+    node.node("06_Prepare_Dense_Scene").cook(force=True)
+    node.node("07_Camera_Connection").cook(force=True)
+    node.node("Force_Reload").cook(force=True)
+    node.node("Force_Unload").cook(force=True)
+    
+    

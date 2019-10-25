@@ -1,0 +1,84 @@
+= GameDev Destruction Cleanup =
+
+#type: node
+#context: sop
+#internal: gamedev::sop_destruction_cleanup::2.0
+#icon: 
+#tags: tech, model
+
+""" Prepare rigid body simulation results for export, reducing redundant geometry, cleaning normals, cleaing attributes. """
+
+[Image:opdef:.?destructioncleanup.gif]
+
+== Overview ==
+
+Rigid body simulation can require substantial cleanup before being ready for export. This HDA tackles the most frequent issues:
+
+* removing small pieces
+* fixing normals on sharp edges
+* identifying and combining pieces that can be treated as a single unit
+* clean up unnecessary dops specific attributes
+* identify a region of interest, freeze pieces outside of that region
+
+== Using Destruction Cleanup ==
+
+Taking the result of a RBD sim and connecting to this sop will immediately remove most attributes that aren't useful outside of a simulation.
+
+When freeze transform is enabled and a threshold is set, this tool records where each piece is at the first frame and last frame of the simulation range, and if the total distance travelled is less than the freeze threshold, that piece has its animation removed. All frozen pieces are merged together, which can substantially lighten the final exported geometry.
+
+If a bounding box is attached to the second input and 'Clamped Bounds' is enabled, RBD pieces outside outside this region will have their animation removed and be moved to the 'Clamp Position' location.
+
+
+@inputs
+RBD Import (DOP or Cache):
+    The packed rigid body simulation pieces.
+(Optional) Bounding Box:
+    The bounding box used for optimisation when 'clamped bounds' is active.
+
+
+@parameters
+    == Basic ==
+    Simulation Range:
+        The simulation range determines what the framerange is that will be used for the data analysis. It is recommended to leave these to the start and end frame of your simulation.
+    Visualize Chunks:
+        This controls whether or not unique chunks should be colorcoded.
+    == Cleanup Properties ==
+    == Insides ==
+    Remove Insides:
+        This controls if surface points should be fused together. This will also trigger the removal of inside faces.
+    Fuse Distance:
+        This controls the fusing threshold in units for surface points close to eachother
+    == Cusping ==
+    Cusp Polygons:
+        This controls if polygon cusping should be applied to the newly generated geometry.
+    Cusp:
+        Select if cusping should be universal, or applied to inside and outside faces seperately.
+    Inside Primitives:
+        Group or face id's to use for inside prims.
+    Inside Cusp Angle:
+        When computing vertex normals, if normals of vertices around a single point are less than or equal to this angle (in degrees) apart from each other, they will be averaged together, weighted by the vertex angle in each polygon.
+    Weighting Method:
+        When set to By Vertex Angle, care is taken when computing normals to try to avoid issues introduced by sliver polygons and to weight contributions to normals by angle, so that triangulation won’t change normals significantly. When set to Each Vertex Equally, a faster, but less accurate, approach similar to the approach used by the Facet SOP, is used to compute normals, where each vertex is given equal weight around a point, and less checks are done for ensuring stability. When set to By Face Area, the behavior is similar to __Each Vertex Equally_, except that vertices on faces with more area will be given more weight when computing point normals. This is often used to fake the appearance of a smooth bevel for geometry with only a simple chamfer.
+    Outside Primitives:
+         Group or face id's to use for inside prims.
+    Outside Cusp Angle:
+        When computing vertex normals, if normals of vertices around a single point are less than or equal to this angle (in degrees) apart from each other, they will be averaged together, weighted by the vertex angle in each polygon.
+    Cusp Angle:
+        When computing vertex normals, if normals of vertices around a single point are less than or equal to this angle (in degrees) apart from each other, they will be averaged together, weighted by the vertex angle in each polygon.
+    == Piece Names ==
+    Generate Name:
+        This controls whether or not a new name attribute should be generated per unique optimized packed primitive
+    Name:
+        This controls the prefix applied to packed primitives coming out of the output.
+    == Advanced ==
+    Freeze Threshold (toggle):
+        Enable piece movement detection, freeze and merge those pieces if they travel less than the freeze threshold distance.
+    Freeze Threshold (distance):
+        This is the threshold in units used to determine freezing of chunks.
+    Clamped Bounds:
+        This controls whether or not to apply bound optimization.
+    Clamp Position:
+        This controls the where bound clamped chunks will be moved to.
+    Transfer Attributes:
+        The name of the attribute(s) to copy. Multiple attributes may be specified. If no attribute name is provided, all of the source attributes will be copied.
+    

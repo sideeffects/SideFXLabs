@@ -1,0 +1,131 @@
+# Dialog script for gamedev::sop_delight automatically generated
+
+{
+    name	gamedev::sop_delight
+    script	gamedev::sop_delight
+    label	"GameDev Delight"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Geo"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "samples"
+        label   "Number of Samples"
+        type    integer
+        default { "50" }
+        help    "Density of samples over surface. Higher sample numbers generate more accurate results, at a cost of computation time. 50 is a resonable starting number."
+        range   { 1! 1000 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "iterations"
+        label   "Blurring Iterations"
+        type    integer
+        default { "30" }
+        help    "How much to blur the sample colours. At low values the sample regions will be visible as patches. At high values the samples will be overblurred, missing lighting detail. Ideally aim for enough blur to blend the sample patches together. Enabling 'visualize lighting' can help to see how much the patches are being blurred together."
+        range   { 0 100 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "grouptype"
+        label   "Group Type"
+        type    ordinal
+        invisible
+        default { "prims" }
+        menu {
+            "guess"         "Guess from Group"
+            "breakpoints"   "Breakpoints"
+            "edges"         "Edges"
+            "points"        "Points"
+            "prims"         "Primitives"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "ao_brightening"
+        label   "AO Brightening"
+        type    toggle
+        default { "0" }
+        help    "Toggle to enable the brightening of crevices and overhangs via interted ambient occlusion."
+    }
+    parm {
+        name    "ao_strength"
+        label   "AO Strength"
+        type    float
+        default { "1" }
+        help    "How much to brighten occluded areas. Aim to make crevices blend in with unoccluded neighbouring areas. Values which are too low will appear shadowed, values which are too high will make crevices glow."
+        disablewhen "{ ao_brightening == 0 }"
+        range   { 0 10 }
+    }
+    parm {
+        name    "ao_blend_strength"
+        label   "AO Blend Strength"
+        type    float
+        default { "0.75" }
+        help    "An additional mixing control to blend the edges of the AO regions."
+        disablewhen "{ ao_brightening == 0 }"
+        range   { 0 10 }
+    }
+    parm {
+        name    "ao_tint"
+        label   "AO Tint"
+        type    float
+        default { "0.75" }
+        help    "Amount to increase the brightness of the AO regions, adjust this until the dark crevices blend into their neighbours."
+        disablewhen "{ ao_brightening == 0 }"
+        range   { 0 10 }
+    }
+    parm {
+        name    "vis_lighting"
+        label   "Visualize Lighting"
+        type    toggle
+        default { "0" }
+        help    "Display the blurred and extracted lighting result only. Useful for debugging to determine if the amount of samples is appropriate, and if the sample blurring iterations is working as expected."
+    }
+    parm {
+        name    "lighting_exposure"
+        label   "Lighting Exposure"
+        type    float
+        default { "0" }
+        help    "Multiplier for the lighting visualizer if it is too overexposed or underexposed in the viewport."
+        disablewhen "{ vis_lighting == 0 }"
+        range   { -10 10 }
+    }
+    parm {
+        name    "spacer"
+        label   "_"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "like_tool"
+        label   "Like Tool"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        help    "Let us know that you're enjoying this Tool"
+        parmtag { "button_icon" "heart.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.like_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "dont_like"
+        label   "Thumbs Down"
+        type    button
+        nolabel
+        default { "0" }
+        help    "Let us know you don't like this tool. Ideally also send us a mail at support@sidefx.com"
+        parmtag { "button_icon" "thumbs-down.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.dislike_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

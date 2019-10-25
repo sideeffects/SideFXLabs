@@ -1,0 +1,79 @@
+def CreateNewSubnet():
+    return hou.node("/obj").createNode("subnet", "PhysicsPainter_Data")
+
+def Clean(a_Path):
+    t_node = hou.node(a_Path)
+    if a_Path != "" and t_node != None:
+        hou.node(a_Path).parent().destroy()
+
+def CreateLocalCopy(a_Parent, a_Container):
+    Geometry = a_Container.createNode("geo")
+
+    ObjMerge = Geometry.createNode("object_merge")
+    ObjMerge.parm("objpath1").set(a_Parent.path()+"/OUT_POST_PHYSICSOBJECTS")
+
+    TimeShift = Geometry.createNode("timeshift")
+    TimeShift.parm("frame").deleteAllKeyframes()
+    TimeShift.parm("frame").set(hou.intFrame())
+    TimeShift.setNextInput(ObjMerge)
+    TimeShift.moveToGoodPosition()
+
+    Output = Geometry.createNode("output")
+    Output.setNextInput(TimeShift)
+    Output.moveToGoodPosition()
+    Output.setDisplayFlag(True)
+    Output.setRenderFlag(True)
+    Output.setHardLocked(1)
+
+    return Geometry
+
+def MainFunction():
+
+    ThisNode = hou.pwd()
+    ContainerObject = CreateNewSubnet()
+    Output = CreateLocalCopy(ThisNode, ContainerObject)
+    Cache = ThisNode.parm("objPrevSim").evalAsString()
+    ThisNode.parm("objPrevSim").set(Output.path())
+
+    hou.node(ThisNode.path()+"/drawcurve1").parm("stroke_numstrokes").set(0)
+    ThisNode.parm("btnClearCurrent").pressButton()
+    Clean(Cache)
+    ThisNode.parm('Activate_All').set(0)
+    hou.setFrame(1)
+
+def ResetCurrent():
+    ThisNode = hou.pwd()
+    hou.node(ThisNode.path()+"/drawcurve1").parm("stroke_numstrokes").set(0)
+    ThisNode.parm('Activate_All').set(0)
+    hou.setFrame(1)
+
+def ActivateAll():
+    ThisNode = hou.pwd()
+    hou.setFrame(1)
+    ThisNode.parm('Activate_All').set(1)
+
+
+def TertiaryFunction():
+    ThisNode = hou.pwd()
+    Clean(ThisNode.parm("objPrevSim").evalAsString())
+    hou.node(ThisNode.path()+"/IN_PREVIOUS_SIM").parm("objpath1").set("")
+    ThisNode.parm('Activate_All').set(0)
+    ResetCurrent()
+
+
+def QuickAdd():
+    ThisNode = hou.pwd()
+
+    Paths = ThisNode.evalParm('opQuickAdd').split()
+    ThisNode.parm('opQuickAdd').set("")
+    Weight = ThisNode.evalParm('fQuickWeight')
+
+    if Paths:
+        for i in Paths:
+            index = ThisNode.parm('folder2').evalAsInt()
+
+            relpath = ThisNode.relativePathTo(hou.node(i))
+
+            ThisNode.parm('folder2').insertMultiParmInstance(index)
+            ThisNode.parm('objObjPath'+str(index+1)).set(relpath)
+            ThisNode.parm('fChance'+str(index+1)).set(Weight)

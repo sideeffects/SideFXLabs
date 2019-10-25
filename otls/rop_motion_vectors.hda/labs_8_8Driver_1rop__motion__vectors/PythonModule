@@ -1,0 +1,9 @@
+def set_raw_multiplier(node):
+    darkest_pixel_node = hou.node("%s/comp_atlas/darkest" % node.path())
+    brightest_pixel_node = hou.node("%s/comp_atlas/brightest" % node.path())
+    darkest_pixel_value = darkest_pixel_node.allPixels(plane="C", component="r")[0]
+    brightest_pixel_value = brightest_pixel_node.allPixels(plane="C", component="r")[0]
+    raw_multiplier = max(abs(brightest_pixel_value), abs(darkest_pixel_value))
+    node.parm("rawmultiplier").set(str(raw_multiplier))
+    
+    

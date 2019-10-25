@@ -1,0 +1,97 @@
+# Dialog script for rc_texture_model automatically generated
+
+{
+    name	rc_texture_model
+    script	rc_texture_model
+    label	"RC Texture Model"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "cook"
+        label   "Texture Model"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cook(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual Mode"
+        type    toggle
+        default { "1" }
+    }
+    groupsimple {
+        name    "texturing_options"
+        label   "Texturing Options"
+
+        parm {
+            name    "model_export_path"
+            label   "Model Path"
+            type    file
+            default { "$HIP/${HIPNAME}_textured.obj" }
+            menureplace {
+                [ "opmenu -l hdk_texture_model model_export_path" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_pattern" "*.obj" }
+        }
+        parm {
+            name    "max_texture_res"
+            label   "Max Texture Resolution"
+            type    ordinal
+            default { "4" }
+            menu {
+                "0" "512x512"
+                "1" "1024x1024"
+                "2" "2048x2048"
+                "3" "4096x4096"
+                "4" "8192x8192"
+                "5" "16384x16384"
+                "6" "32768x32768"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "texturing_style"
+            label   "Style"
+            type    ordinal
+            default { "1" }
+            menu {
+                "0" "Photo Consistency Based"
+                "1" "Visibility Based"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    parm {
+        name    "_has_first_input"
+        label   "_has_first_input"
+        type    toggle
+        invisible
+        default { "strcmp(opinputpath('.', 0), \"\")" }
+    }
+    parm {
+        name    "parm"
+        label   "Label"
+        type    geometry
+        invisible
+        default { "`chs(opinputpath(\".\",0) + \"/model_export_path\")`" }
+    }
+    parm {
+        name    "getlicense_button"
+        label   "Get License"
+        type    button
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+}

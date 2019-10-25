@@ -1,0 +1,16 @@
+# track creation usage. For more info, including how to disable this please see
+# https://www.sidefx.com/legal/houdini-anonymous-usage-statistics/
+
+# to install the goz files we use this definition as a way to store some files and unzip them when it is created, 
+# therefore we don't want it counting towards a proper creation 
+zbrush_node = hou.node("/obj/tmp_zbrush")
+if not zbrush_node:
+    try:
+        import labutils 
+        labutils.send_on_create_analytics(kwargs["node"])
+    except:
+        pass
+    
+node = kwargs["node"]
+node.hdaModule().install(node)
+node.hdaModule().start_server()

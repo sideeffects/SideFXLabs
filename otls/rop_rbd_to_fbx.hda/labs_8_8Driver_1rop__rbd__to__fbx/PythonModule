@@ -1,0 +1,304 @@
+import hou
+
+def export(node):
+    if len(node.inputs()):
+        render_node = node.inputs()[0]
+        render_node.render()
+
+    #Get Relative Path
+    exportparm_val = node.parm("node_to_export").evalAsString()
+    export_path = exportparm_val
+
+    if exportparm_val[:3] == "../":
+        export_path = "../"+exportparm_val
+    
+    export_node = hou.node('../Import/COPY').path()
+
+    # If Not /obj level node selected, get /obj level parent
+    if hou.node(export_node).type().category() != hou.objNodeTypeCategory():
+        parent_node = hou.node(export_node).parent()
+        while parent_node.type().category() != hou.objNodeTypeCategory():
+            parent_node = parent_node.parent()
+        export_node = parent_node.path()
+
+    # create exporter
+    exporter = FractureExporter()
+
+    #export
+    exporter.export(hou.node(export_node))
+
+
+def cleanup():
+
+    container_node = hou.pwd().parent().node("Export")
+    parent_node = hou.node(container_node.path() + '/FBX_EXPORT')
+    for child in parent_node.children():
+        child.destroy()
+
+class PackedObject(object):
+
+    def __init__(self):
+        self.number = -1
+        self.name = ""
+        self.hou_node = None
+        self.prim = None
+        self.point = None
+        
+class FractureExporter(object):
+
+    def __init__(self):
+
+        self.geo = None
+        
+        self.scale_x = 1 
+        self.scale_y = 1 
+        self.scale_z = 1 
+        self.uniform_scale = 1 
+        
+        
+        self.export_objects = []
+        self.selected_obj_node = None
+        self.selected_sop_node = None
+
+        self.start_frame = -1
+        self.end_frame = -1
+
+        self.contains_dynamic_fracturing = False
+
+    def export(self, export_node=None):
+
+        self.get_selection(export_node)
+        self.get_time_range()
+        self.create_parent_node()
+        self.gather_objects()
+        self.gather_parent_scale()
+        self.build_individual_nodes()
+        self.animate_individual_nodes()
+                
+    def get_selection(self, export_node = None):
+
+        if not export_node:
+            selection = hou.selectedNodes()
+
+            if not len(selection):
+                raise hou.Error("Please select a packed primitive object to export")
+
+            export_node = selection[0]
+
+        self.selected_obj_node = export_node
+        self.selected_sop_node = export_node.displayNode()
+
+        self.verify_selection()
+
+    def verify_selection(self):
+
+        try:
+            self.geo = self.selected_sop_node.geometry()
+        except:
+            raise hou.Error("Please select a packed primitive object to export")
+
+        self.verify_packed_prim()
+
+    def verify_packed_prim(self):
+
+        points = self.geo.points()
+        prims = self.geo.prims()
+
+        if len(points) != len(prims):
+            raise hou.Error("Please select a packed primitive object to export")
+
+    def get_time_range(self):
+        
+        
+        self.start_frame = int(hou.pwd().parent().parm("f1").eval())
+        self.end_frame = int(hou.pwd().parent().parm("f2").eval())
+
+        hou.setFrame(self.start_frame)
+
+    def create_parent_node(self):
+        container_node = hou.pwd().parent().node("Export")
+        self.parent_node = hou.node(container_node.path() + '/FBX_EXPORT')
+        
+        self.transform_node = self.parent_node.createNode('subnet', node_name="TRANSFORM_NODE", run_init_scripts=False)
+
+        self.transform_node.parm('tx').setExpression('ch("../../../tx")')
+        self.transform_node.parm('ty').setExpression('ch("../../../ty")')
+        self.transform_node.parm('tz').setExpression('ch("../../../tz")')
+
+        self.transform_node.parm('rx').setExpression('ch("../../../rx")')
+        self.transform_node.parm('ry').setExpression('ch("../../../ry")')
+        self.transform_node.parm('rz').setExpression('ch("../../../rz")')
+
+        self.transform_node.parm('sx').setExpression('ch("../../../sx")')
+        self.transform_node.parm('sy').setExpression('ch("../../../sy")')
+        self.transform_node.parm('sz').setExpression('ch("../../../sz")')
+
+        self.transform_node.parm('scale').setExpression('ch("../../../scale")')
+
+        self.parent_node.moveToGoodPosition()
+        self.transform_node.moveToGoodPosition()
+
+    def gather_objects(self):
+        hou.setFrame(self.start_frame)
+
+        frame_prims = self.geo.prims()
+
+        for prim in frame_prims:
+            point = prim.vertices()[0].point()
+            packed_name = prim.attribValue("name")
+
+            new_object = PackedObject()
+
+            new_object.name = packed_name
+            new_object.number = prim.number()
+
+            new_object.prim = prim
+            new_object.point = point
+
+            initial_packed_transform = hou.Matrix4(prim.intrinsicValue("packedfulltransform"))
+
+            new_object.initial_packed_transform = initial_packed_transform
+
+            self.export_objects.append(new_object)
+
+    def accumulate_parent_scales(self, parent):
+        if not parent.parm("sx"):
+            return 
+        self.scale_x *= parent.evalParm("sx")
+        self.scale_y *= parent.evalParm("sy")
+        self.scale_z *= parent.evalParm("sz")
+        self.uniform_scale *= parent.evalParm("scale")
+        
+        if parent.parent():
+            self.accumulate_parent_scales(parent.parent())
+            
+    def gather_parent_scale(self):
+        parent = self.geo.sopNode().parent()
+        if parent: 
+            self.accumulate_parent_scales(parent)
+            
+            
+    def build_individual_nodes(self):
+
+        export_as_transforms = hou.pwd().parent().parm('bExportEmptyTransforms').evalAsInt()
+
+        for export_object in self.export_objects:
+            name = export_object.name
+
+            geo_node = self.transform_node.createNode('geo', node_name=name, run_init_scripts=False)
+            geo_node.setExpressionLanguage(hou.exprLanguage.Hscript)
+            geo_node.parm('px').setExpression('-centroid("./timeshift1/", D_X)')
+            geo_node.parm('py').setExpression('-centroid("./timeshift1/", D_Y)')
+            geo_node.parm('pz').setExpression('-centroid("./timeshift1/", D_Z)')
+            geo_node.moveToGoodPosition()
+
+            # Object Merge Node
+            objMerge = geo_node.createNode('object_merge', run_init_scripts=False)
+            objMerge.parm('objpath1').set(self.selected_sop_node.path())
+            objMerge.parm('group1').set(str(export_object.number))
+            objMerge.moveToGoodPosition()
+
+            # Unpack Node
+            unpack = geo_node.createNode('unpack', run_init_scripts=False)
+            unpack.setNextInput(objMerge)
+            unpack.moveToGoodPosition()
+
+            timeShift = geo_node.createNode('timeshift', run_init_scripts=False)
+
+            timeShift.parm('method').deleteAllKeyframes()
+            timeShift.parm('time').deleteAllKeyframes()
+            timeShift.parm('method').set(1)
+            timeShift.parm('time').set(hou.frameToTime(self.start_frame))
+
+            timeShift.setNextInput(unpack)
+            timeShift.moveToGoodPosition()
+
+            transformNode = geo_node.createNode('xform', run_init_scripts=False)
+
+            transformNode.setExpressionLanguage(hou.exprLanguage.Hscript)
+            transformNode.parm('tx').setExpression('-$CEX')
+            transformNode.parm('ty').setExpression('-$CEY')
+            transformNode.parm('tz').setExpression('-$CEZ')
+
+            # This caused the top parms to essentially do scale = scale*scale..... Major bug
+            #transformNode.parm('sx').set(self.scale_x)
+            #transformNode.parm('sy').set(self.scale_y)
+            #transformNode.parm('sz').set(self.scale_z)
+            #transformNode.parm('scale').set(self.uniform_scale)
+            
+            transformNode.setNextInput(timeShift)
+            transformNode.moveToGoodPosition()
+
+            deleteNode = geo_node.createNode('delete', run_init_scripts=False)
+            deleteNode.setExpressionLanguage(hou.exprLanguage.Hscript)
+            deleteNode.parm('group').setExpression('chs("../../../../../group")')
+            deleteNode.parm('negate').set(1)
+
+            deleteNode.setNextInput(transformNode)
+            deleteNode.moveToGoodPosition()
+
+            switchNode = geo_node.createNode('switch', run_init_scripts=False)
+            switchNode.setExpressionLanguage(hou.exprLanguage.Hscript)
+            switchNode.parm('input').setExpression('strlen(chs("../../../../../group")) == 0')
+
+            switchNode.setNextInput(deleteNode)
+            switchNode.setNextInput(transformNode)
+            switchNode.moveToGoodPosition()
+
+            if export_as_transforms == 1:
+                output_node = geo_node.createNode('output')
+                output_node.setDisplayFlag(True)
+                output_node.setRenderFlag(True)
+            else:
+                switchNode.setDisplayFlag(True)
+                switchNode.setRenderFlag(True)
+
+            # cache the hou node
+            export_object.hou_node = geo_node
+            geo_node.cook(force=True)
+
+    def animate_individual_nodes(self):
+
+        for frame in range(self.start_frame, self.end_frame+1):
+            hou.setFrame(frame)
+
+            for export_object in self.export_objects:
+                houdini_node = export_object.hou_node
+                prim = export_object.prim
+                pivot = prim.intrinsicValue("pivot")
+                pivot_2 = [houdini_node.parm("px").eval(), houdini_node.parm("py").eval(), houdini_node.parm("pz").eval()]
+
+
+                # invert if not a zero scale matrix
+                try:
+                    baked_transform = export_object.initial_packed_transform.inverted()
+                    baked_transform *= hou.Matrix4(prim.intrinsicValue("packedfulltransform"))
+                    baked_transform *= self.selected_obj_node.worldTransform()
+                except: 
+                    raise hou.Error("Invalid transforms found. Ensure your packed geometry has valid intrinsic:packedfulltransform values")
+
+
+                pos = baked_transform.extractTranslates()
+                rot = baked_transform.extractRotates()
+                scale = baked_transform.extractScales()
+
+                for i, parm_name in enumerate(["tx", "ty", "tz"]):
+                    parm = houdini_node.parm(parm_name)
+                    keyframe = hou.Keyframe()
+                    keyframe.setFrame(frame)
+                    keyframe.setValue(-pivot_2[i] + pos[i])
+                    parm.setKeyframe(keyframe)
+
+                for i, parm_name in enumerate(["rx", "ry", "rz"]):
+                    parm = houdini_node.parm(parm_name)
+                    keyframe = hou.Keyframe()
+                    keyframe.setFrame(frame)
+                    keyframe.setValue(rot[i])
+                    parm.setKeyframe(keyframe)
+
+                for i, parm_name in enumerate(["sx", "sy", "sz"]):
+                    parm = houdini_node.parm(parm_name)
+                    keyframe = hou.Keyframe()
+                    keyframe.setFrame(frame)
+                    keyframe.setValue(scale[i])
+                    parm.setKeyframe(keyframe)

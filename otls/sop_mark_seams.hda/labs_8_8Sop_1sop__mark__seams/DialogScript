@@ -1,0 +1,60 @@
+# Dialog script for gamedev::sop_mark_seams automatically generated
+
+{
+    name	gamedev::sop_mark_seams
+    script	gamedev::sop_mark_seams
+    label	"GameDev Mark Seams"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Polygon Geometry"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "mark_btn"
+        label   "Mark Selection"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().get_points()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "group_name"
+        label   "Group Name"
+        type    string
+        default { "seam" }
+    }
+    multiparm {
+        name    "selections"
+        label    "Selections"
+
+        parm {
+            name    "basegroup_#"
+            label   "Base Group"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "opmenu -l group12 basegroup" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].node(\"group12\").parmTuple(\"grouptype\")\nkwargs['inputindex'] = 0\nkwargs['ordered'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "group_type_#"
+            label   "Group Type"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Edges"
+                "1" "Primitives"
+            }
+        }
+    }
+
+}

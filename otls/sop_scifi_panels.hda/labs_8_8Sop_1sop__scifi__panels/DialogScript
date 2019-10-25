@@ -1,0 +1,272 @@
+# Dialog script for gamedev::sop_scifi_panels automatically generated
+
+{
+    name	gamedev::sop_scifi_panels
+    script	gamedev::sop_scifi_panels
+    label	"GameDev SciFi Panels"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to Add Panels"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder3"
+        label   "Global Settings"
+
+        parm {
+            name    "generate_uvs"
+            label   "Generate New UVs"
+            type    toggle
+            default { "0" }
+            help    "Overrides incoming UVs with a Flatten"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pattern_rotation"
+            label   "Pattern Rotation"
+            type    float
+            default { "0" }
+            help    "Angle of the cutting pattern"
+            range   { 0 10 }
+        }
+        parm {
+            name    "border_thickness"
+            label   "Border Thickness"
+            type    float
+            default { "0.03" }
+            help    "Padding around the panels (Part of the Sci Fi Look)"
+            range   { 0 1 }
+        }
+        parm {
+            name    "g_seed"
+            label   "Global Seed"
+            type    float
+            default { "0" }
+            help    "Randomization Control"
+            range   { 0 10 }
+        }
+        parm {
+            name    "extrusion_depth"
+            label   "Thickness"
+            type    float
+            default { "0.03" }
+            help    "Global Extrusion Depth"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "panel_deletion_chance"
+            label   "Panel Deletion Chance"
+            type    float
+            default { "25" }
+            help    "Percentage (0-100) of chance that a panel will be deleted. 100 means all panels will be gone, 0 means no panel will be deleted"
+            range   { 0 100 }
+        }
+        parm {
+            name    "deletion_seed"
+            label   "Deletion Seed"
+            type    float
+            default { "0" }
+            help    "Randomization control of the deletion for fine tuning"
+            range   { 0 10 }
+        }
+        parm {
+            name    "enable_vertex_colors"
+            label   "Enable Random Vertex Colors"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Add Vertex Colors to Panels"
+        }
+        parm {
+            name    "ramp"
+            label   "Vertex Colors"
+            type    ramp_rgb
+            default { "5" }
+            help    "Distribution of the color ratio"
+            disablewhen "{ enable_vertex_colors == 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0 0 0 ) 1interp ( constant ) 2pos ( 0.25 ) 2c ( 1 0 0 ) 2interp ( constant ) 3pos ( 0.5 ) 3c ( 0 1 0 ) 3interp ( constant ) 4pos ( 0.75 ) 4c ( 0 0 1 ) 4interp ( constant ) 5pos ( 1 ) 5c ( 1 1 1 ) 5interp ( linear )" }
+            parmtag { "rampcolortype" "rgb" }
+            parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "rampvalues_var" "vecramp_the_key_values" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Lot Division"
+
+        parm {
+            name    "irregularity"
+            label   "Irregularity"
+            type    float
+            default { "0.333" }
+            help    "Smaller values mean the cuts will be halfway along a primitive, higher values will yield primitives of different sizes. "
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "min_lot_size"
+            label   "Minimum Lot Size"
+            type    float
+            default { "0.004" }
+            help    "Primitives smaller than this size will no longer be considered for cutting"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "vertical_bias"
+            label   "Vertical Bias"
+            type    float
+            default { "0" }
+            help    "Negative numbers will generate horizontal slivers, Positive numbers will generate vertical slivers"
+            range   { -10 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "alignment"
+            label   "Alignment"
+            type    ordinal
+            default { "1" }
+            help    "Method of orientating the cuts. Bounding box is for worldspace cutting, longest edge is relative to the shape. "
+            menu {
+                "0" "Longest Edge"
+                "1" "Bounding Box XZ"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "cluster_lots"
+            label   "Cluster Lots"
+            type    toggle
+            default { "on" }
+            help    "Enables joining of lots into clusters"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "number_of_clusters"
+            label   "Number of Clusters"
+            type    integer
+            default { "50" }
+            help    "Final Number of Lots after merging them into clusters"
+            disablewhen "{ cluster_lots == 0 }"
+            range   { 1! 200 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "vertical_packing"
+            label   "Vertical Packing"
+            type    float
+            default { "5" }
+            help    "Strength on a Gradient that clumps lots together towards the top (or bottom)"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Padding"
+
+        parm {
+            name    "spacing"
+            label   "Spacing"
+            type    float
+            default { "0.001" }
+            help    "Padding in between panels"
+            range   { 0 10 }
+        }
+        parm {
+            name    "spacing_variation"
+            label   "Spacing Variation"
+            type    float
+            default { "0.0002" }
+            help    "Randomization of the padding between panels"
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Notches"
+
+        parm {
+            name    "notch_percentage"
+            label   "Percentage"
+            type    float
+            default { "50" }
+            help    "Chance for an edge to be booleaned by a sci fi notch shape"
+            range   { 0 100 }
+        }
+        parm {
+            name    "thickness"
+            label   "Thickness"
+            type    float
+            default { "0.015" }
+            help    "Depth of the notch cut"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "deviation"
+            label   "Deviation"
+            type    float
+            default { "0.1" }
+            help    "Slide the notch along the edge (from the center)"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "length"
+            label   "Length"
+            type    float
+            default { "0.5" }
+            help    "legnth of the notch"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "notches_seed"
+            label   "Notches Seed"
+            type    float
+            default { "0" }
+            help    "Randomness for Notch "
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Corner Bevels"
+
+        parm {
+            name    "corner_bevels_chance"
+            label   "Corner Bevels Chance"
+            type    float
+            default { "50" }
+            help    "Chance to lop off a corner (0-100)"
+            range   { 0 100 }
+        }
+        parm {
+            name    "corner_bevels_depth"
+            label   "Corner Bevels Depth"
+            type    float
+            default { "0.005" }
+            help    "Depth of the Corner Cut"
+            range   { 0 100 }
+        }
+    }
+
+}

@@ -1,0 +1,167 @@
+;_name	fisheyelens
+; ModuleID = 'fisheyelens'
+
+@P = external global <3 x double>
+@I = external global <3 x double>
+@0 = private constant [2 x i8] c"P\00"
+@1 = private constant [2 x i8] c"I\00"
+
+define void @fisheyelens(double %x, double %y, double %Time, double %dofx, double %dofy, double %aspect, i32 %fixed_z, <3 x double> %P, <3 x double> %I, double %fov, double %rows, double %columns, double %camera_width) nounwind {
+entry:
+  %output = fmul double %x, %x
+  %output5 = fmul double %y, %y
+  %output6 = fadd double %output, %output5
+  %return11 = call double @"radians@FF"(double %fov)
+  %return24 = call i32 @"neg@II"(i32 1)
+  %cast = sitofp i32 %return24 to double
+  %return25 = call double @"fit@FFFFFF"(double %x, double %cast, double 1.000000e+00, double 0.000000e+00, double 1.000000e+00)
+  %return29 = call double @"fit@FFFFFF"(double %y, double %cast, double 1.000000e+00, double 0.000000e+00, double 1.000000e+00)
+  %output30 = fsub double 1.000000e+00, %return29
+  %output33 = fmul double %rows, %columns
+  %output36 = fmul double %return25, %rows
+  %output39 = fmul double %output30, %columns
+  %return43 = call double @"floor@FF"(double %output39)
+  %return45 = call double @"frac@FF"(double %output36)
+  %return47 = call double @"frac@FF"(double %output39)
+  %output49 = fmul double %return45, 2.000000e+00
+  %output50 = fsub double %output49, 1.000000e+00
+  %output52 = fmul double %output50, %camera_width
+  %output54 = fmul double %return47, 2.000000e+00
+  %output55 = fsub double %output54, 1.000000e+00
+  %output57 = fmul double %output55, %camera_width
+  %output60 = fmul double %return43, %rows
+  %return62 = call double @"ceil@FF"(double %output36)
+  %output63 = fadd double %output60, %return62
+  %0 = icmp ne i32 %fixed_z, 0
+  br i1 %0, label %true, label %false
+
+true:                                             ; preds = %entry
+  %output67 = call double @"div@FF"(double %output63, double %output33)
+  %return68 = call double @"neg@FF"(double %output67)
+  %output69 = fmul double %return68, 2.000000e+00
+  %output70 = fsub double %output69, 1.000000e+00
+  br label %end
+
+false:                                            ; preds = %entry
+  %output73 = call double @"div@FF"(double %output63, double %rows)
+  %return74 = call double @"neg@FF"(double %output73)
+  %output75 = fmul double %return74, 2.000000e+00
+  %output76 = fsub double %output75, 1.000000e+00
+  %output79 = call double @"div@FF"(double %output63, double %columns)
+  %output81 = call double @"div@FF"(double 1.000000e+00, double %columns)
+  %output82 = fsub double %output79, %output81
+  %return83 = call double @"floor@FF"(double %output82)
+  %output85 = fsub double %columns, 1.000000e+00
+  %output86 = call double @"div@FF"(double %return83, double %output85)
+  %output87 = fmul double %output86, 2.000000e+00
+  %output88 = fsub double %output87, 1.000000e+00
+  br label %end
+
+end:                                              ; preds = %false, %true
+  %xx.0 = phi double [ %output70, %true ], [ %output76, %false ]
+  %yy.0 = phi double [ 0.000000e+00, %true ], [ %output88, %false ]
+  %return89 = call double @"neg@FF"(double 0x400921FB4D12D84A)
+  %output91 = fmul double %return89, %xx.0
+  %return93 = call double @"neg@FF"(double %yy.0)
+  %output94 = fmul double 0x3FF921FB4D12D84A, %return93
+  %return96 = call double @"sin@FF"(double %output91)
+  %return98 = call double @"cos@FF"(double %output91)
+  %return100 = call double @"sin@FF"(double %output94)
+  %return102 = call double @"cos@FF"(double %output94)
+  %return104 = call double @"sin@FF"(double 0.000000e+00)
+  %return106 = call double @"cos@FF"(double 0.000000e+00)
+  %output109 = call double @"div@FF"(double 0x401921FB4D12D84A, double %rows)
+  %output112 = fsub double %output63, 1.000000e+00
+  %return113 = call double @"neg@FF"(double %output112)
+  %output114 = fmul double %output109, %return113
+  %output116 = fadd double %output114, %output109
+  %return117 = call <16 x double> @"ident@4"()
+  %return120 = call <3 x double> @"set@VFFF"(double 0.000000e+00, double 1.000000e+00, double 0.000000e+00)
+  %output121 = call <16 x double> @"rotate@4FV"(<16 x double> %return117, double %output116, <3 x double> %return120)
+  %return122 = call <3 x double> @"set@VFFF"(double 0.000000e+00, double 0.000000e+00, double 1.000000e+00)
+  %output124 = call <3 x double> @"mul@V4"(<3 x double> %return122, <16 x double> %output121)
+  %output127 = fmul double %return96, %return102
+  %output131 = fmul double %return98, %return102
+  %return132 = call <3 x double> @"set@VFFF"(double %output127, double %return100, double %output131)
+  %output136 = fmul double %return96, %return106
+  %output140 = fmul double %return98, %return106
+  %return141 = call <3 x double> @"set@VFFF"(double %output136, double %return104, double %output140)
+  %return142 = call <3 x double> @"cross@VVV"(<3 x double> %return120, <3 x double> %return141)
+  %return145 = call <3 x double> @"cross@VVV"(<3 x double> %return132, <3 x double> %return142)
+  %cast148 = call <3 x double> @"set@VF"(double 1.000000e+03)
+  %output149 = call <3 x double> @"mul@VV"(<3 x double> %return132, <3 x double> %cast148)
+  %cast152 = call <3 x double> @"set@VF"(double %output52)
+  %output153 = call <3 x double> @"mul@VV"(<3 x double> %return142, <3 x double> %cast152)
+  %output154 = call <3 x double> @"add@VV"(<3 x double> %output149, <3 x double> %output153)
+  %return157 = call double @"neg@FF"(double %output57)
+  %cast158 = call <3 x double> @"set@VF"(double %return157)
+  %output159 = call <3 x double> @"mul@VV"(<3 x double> %return145, <3 x double> %cast158)
+  %output160 = call <3 x double> @"add@VV"(<3 x double> %output154, <3 x double> %output159)
+  %return162 = call <3 x double> @"neg@VV"(<3 x double> %return132)
+  %return163 = call <3 x double> @"normalize@VV"(<3 x double> %return162)
+  %gvalue = call <3 x double> @"_export@VSV"(i8* getelementptr inbounds ([2 x i8]* @0, i32 0, i32 0), <3 x double> %output160) nounwind readonly
+  %gvalue165 = call <3 x double> @"_export@VSV"(i8* getelementptr inbounds ([2 x i8]* @1, i32 0, i32 0), <3 x double> %return163) nounwind readonly
+  store <3 x double> %gvalue, <3 x double>* @P
+  store <3 x double> %gvalue165, <3 x double>* @I
+  ret void
+}
+
+declare double @"sqrt@FF"(double) nounwind readnone
+
+declare double @"atan2@FFF"(double, double) nounwind readnone
+
+declare double @"radians@FF"(double) nounwind
+
+declare double @"div@FF"(double, double) nounwind readnone
+
+declare i32 @"neg@II"(i32) nounwind readnone
+
+declare double @"fit@FFFFFF"(double, double, double, double, double) nounwind
+
+declare double @"floor@FF"(double) nounwind readnone
+
+declare double @"frac@FF"(double) nounwind readnone
+
+declare double @"ceil@FF"(double) nounwind readnone
+
+declare double @"neg@FF"(double) nounwind readnone
+
+declare double @"sin@FF"(double) nounwind readnone
+
+declare double @"cos@FF"(double) nounwind readnone
+
+declare <16 x double> @"ident@4"() nounwind
+
+declare <3 x double> @"set@VFFF"(double, double, double) nounwind readnone
+
+declare <16 x double> @"rotate@4FV"(<16 x double>, double, <3 x double>) nounwind readnone
+
+declare <3 x double> @"mul@V4"(<3 x double>, <16 x double>) nounwind
+
+declare <3 x double> @"cross@VVV"(<3 x double>, <3 x double>) nounwind
+
+declare <3 x double> @"set@VF"(double) nounwind readnone
+
+declare <3 x double> @"mul@VV"(<3 x double>, <3 x double>) nounwind readnone
+
+declare <3 x double> @"add@VV"(<3 x double>, <3 x double>) nounwind readnone
+
+declare <3 x double> @"neg@VV"(<3 x double>) nounwind readnone
+
+declare <3 x double> @"normalize@VV"(<3 x double>) nounwind
+
+declare <3 x double> @"_export@VSV"(i8*, <3 x double>)
+
+define void @__shader_default_arguments() {
+entry:
+  call void @fisheyelens(double 0.000000e+00, double 0.000000e+00, double 0.000000e+00, double 0.000000e+00, double 0.000000e+00, double 1.000000e+00, i32 1, <3 x double> zeroinitializer, <3 x double> zeroinitializer, double 1.800000e+02, double 2.000000e+00, double 2.000000e+00, double 1.000000e+00)
+  ret void
+}
+
+!context = !{!0}
+!version = !{!1}
+
+!0 = metadata !{metadata !"cvex"}
+!1 = metadata !{metadata !"16.5.503"}
+
+;_code_end

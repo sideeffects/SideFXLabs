@@ -1,0 +1,201 @@
+# Dialog script for gamedev::sop_calculate_occlusion::2.0 automatically generated
+
+{
+    name	gamedev::sop_calculate_occlusion::2.0
+    script	gamedev::sop_calculate_occlusion::2.0
+    label	"GameDev Calculate Occlusion"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Object To Recieve Occlusion"
+    inputlabel	2	"Optional Occlusion Object"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "occ_settings"
+        label   "Occlusion Settings"
+
+        parm {
+            name    "raycount"
+            label   "Number of Rays"
+            type    integer
+            default { "50" }
+            range   { 0! 100 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "bias"
+            label   "Bias"
+            type    float
+            default { "0.5" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupcollapsible {
+            name    "folder0"
+            label   "Advanced"
+
+            parm {
+                name    "maxdist"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "2" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "conewidth"
+                label   "Cone Width"
+                type    angle
+                default { "90" }
+                range   { 1! 90! }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "occ_output"
+        label   "Output"
+
+        parm {
+            name    "colorout"
+            label   "Output Occlusion as Color ( Cd )"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "occattr"
+            label   "Occlusion Attribute"
+            type    string
+            default { "occlusion" }
+            disablewhen "{ colorout == 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "outputramp"
+            label   "Output curve"
+            type    ramp_flt
+            default { "2" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Smoothing"
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "edgelength" }
+            menu {
+                "uniform"       "Uniform"
+                "edgelength"    "Edge Length"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "influencetype"
+            label   "Influence Type"
+            type    ordinal
+            default { "connectivity" }
+            menu {
+                "connectivity"  "Connectivity"
+                "proximity"     "Proximity"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "iterations"
+            label   "Blurring Iterations"
+            type    integer
+            default { "0" }
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "blur"
+            label   "Blur Size"
+            type    float
+            default { "0.5" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    parm {
+        name    "spacer"
+        label   "Label"
+        type    label
+        nolabel
+        default { "" }
+    }
+    parm {
+        name    "spacer2"
+        label   "Label"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "like_btn"
+        label   "Like This Tool"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.like_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        invisible
+        default { "" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Separator"
+        type    separator
+        invisible
+        default { "" }
+    }
+    parm {
+        name    "sepparm3"
+        label   "Separator"
+        type    separator
+        invisible
+        default { "" }
+    }
+    parm {
+        name    "raybbias"
+        label   "__UNUSED"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "iterations2"
+        label   "__UNUSED"
+        type    integer
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+}

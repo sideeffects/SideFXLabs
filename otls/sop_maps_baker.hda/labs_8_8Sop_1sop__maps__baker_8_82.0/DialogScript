@@ -1,0 +1,503 @@
+# Dialog script for gamedev::sop_maps_baker::2.0 automatically generated
+
+{
+    name	gamedev::sop_maps_baker::2.0
+    script	sop_attribute_to_map
+    label	"GameDev Maps Baker"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"LOW Resolution Geometry"
+    inputlabel	2	"HIGH Resolution Geometry"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Baked Map"
+
+    parm {
+        name    "intensity"
+        label   "Label"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "gamma"
+        label   "Label"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Bake"
+
+        parm {
+            name    "sCurAttr"
+            label   "CurAttr"
+            type    string
+            invisible
+            default { "" }
+        }
+        parm {
+            name    "sCurAttrName"
+            label   "CurAttrName"
+            type    string
+            invisible
+            default { "" }
+        }
+        parm {
+            name    "vop_forcecompile"
+            label   "Bake Attributes"
+            type    button
+            invisible
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "execute"
+            label   "Bake"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hm().Render(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sOutputFile"
+            label   "Output Directory"
+            type    directory
+            default { "$HIP/render/${HIPNAME}_$(CHANNEL).png" }
+        }
+        parm {
+            name    "i2Resolution"
+            label   "Resolution"
+            type    integer
+            joinnext
+            size    2
+            default { "1024" "1024" }
+            range   { 1! 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "parm"
+            label   "Label"
+            type    button
+            default { "0" }
+            menumini {
+                "256 256"   "256 x 256"
+                "512 512"   "512 x 512"
+                "1024 1024" "1024 x 1024"
+                "2048 2048" "2048 x 2048"
+                "4096 4096" "4096 x 4096"
+            }
+            parmtag { "script_callback" "opparm . i2Resolution (`arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)`" }
+            parmtag { "script_callback_language" "hscript" }
+        }
+        parm {
+            name    "mBakeMode"
+            label   "Tracing Mode"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "0" "Nearest Surface"
+                "1" "Surface Normal"
+            }
+        }
+        parm {
+            name    "fMaxTraceDist"
+            label   "Max Trace Distance"
+            type    float
+            default { "3" }
+            hidewhen "{ mBakeMode != 1 }"
+            range   { 0.001 10 }
+        }
+        parm {
+            name    "preview_channel"
+            label   "Preview Channel"
+            type    string
+            default { "ao" }
+        }
+        parm {
+            name    "fRayDistance"
+            label   "Ray Distance"
+            type    float
+            invisible
+            default { "-1" }
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Bake Options"
+
+        groupsimple {
+            name    "folder6"
+            label   "Transfer"
+
+            parm {
+                name    "bDiffuse"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sDiffuse"
+                label   "Diffuse Map"
+                type    string
+                default { "diffuse" }
+                disablewhen "{ bDiffuse == 0 }"
+            }
+            parm {
+                name    "bNormal"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sNormal"
+                label   "Normal Map"
+                type    string
+                default { "normal" }
+                disablewhen "{ bNormal == 0 }"
+            }
+            parm {
+                name    "bOpacity"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sOpacity"
+                label   "Opacity Map"
+                type    string
+                default { "opacity" }
+                disablewhen "{ bOpacity == 0 }"
+            }
+            parm {
+                name    "bRoughness"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sRoughness"
+                label   "Roughness Map"
+                type    string
+                default { "roughness" }
+                disablewhen "{ bRoughness == 0 }"
+            }
+            parm {
+                name    "bMetallic"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sMetallic"
+                label   "Metallic Map"
+                type    string
+                default { "metallic" }
+                disablewhen "{ bMetallic == 0 }"
+            }
+        }
+
+        groupsimple {
+            name    "folder5"
+            label   "Generate"
+
+            parm {
+                name    "bVertexCd"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+            }
+            parm {
+                name    "sVertexColor"
+                label   "Vertex Color"
+                type    string
+                default { "color" }
+                disablewhen "{ bVertexCd == 0 }"
+            }
+            parm {
+                name    "bAO"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+            }
+            parm {
+                name    "sAO"
+                label   "AO"
+                type    string
+                default { "ao" }
+                disablewhen "{ bAO == 0 }"
+            }
+            parm {
+                name    "bCurvature"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+            }
+            parm {
+                name    "sCurvature"
+                label   "Curvature"
+                type    string
+                default { "curvature" }
+                disablewhen "{ bCurvature == 0 }"
+            }
+            parm {
+                name    "bWorldNormal"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sWorldNormal"
+                label   "World Normal"
+                type    string
+                default { "worldnormal" }
+                disablewhen "{ bWorldNormal == 0 }"
+            }
+            parm {
+                name    "bHeight"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sHeight"
+                label   "Height"
+                type    string
+                default { "height" }
+                disablewhen "{ bHeight == 0 }"
+            }
+            parm {
+                name    "bAlpha"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sAlpha"
+                label   "Alpha"
+                type    string
+                default { "alpha" }
+                disablewhen "{ bAlpha == 0 }"
+            }
+            parm {
+                name    "bPos"
+                label   "Label"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sPos"
+                label   "Position"
+                type    string
+                default { "position" }
+                disablewhen "{ bPos == 0 }"
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Attributes"
+
+        multiparm {
+            name    "folder3"
+            label    "Custom Attributes"
+
+            parm {
+                name    "sCustomAttribute#"
+                label   "Attribute"
+                type    string
+                default { "" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "folder1"
+        label   "Advanced"
+
+        parm {
+            name    "bManualMode"
+            label   "Manual Mode"
+            type    toggle
+            default { "1" }
+        }
+        groupsimple {
+            name    "folder7"
+            label   "Normal Map"
+
+            parm {
+                name    "bFlipTangentX"
+                label   "Tangent Normal Flip X"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "bFlipTangentY"
+                label   "Tangent Normal Flip Y"
+                type    toggle
+                default { "0" }
+            }
+        }
+
+        groupsimple {
+            name    "folder8"
+            label   "AO Map"
+
+            parm {
+                name    "numrays"
+                label   "Number of Rays"
+                type    integer
+                default { "50" }
+                range   { 1! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "maxdist"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "10" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "bias"
+                label   "Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "conewidth"
+                label   "Cone Width"
+                type    angle
+                default { "90" }
+                range   { 1! 90! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "raybias"
+                label   "Ray Bias"
+                type    float
+                invisible
+                default { "0.001" }
+                range   { 0 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+        groupsimple {
+            name    "folder9"
+            label   "Curvature Map"
+
+            parm {
+                name    "iNumRaysCurvature"
+                label   "Number of Rays"
+                type    integer
+                default { "50" }
+                range   { 1! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fMaxRayDistCurvature"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "0.1" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fCurvatureBias"
+                label   "Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fConeWidthCurvature"
+                label   "Cone Width"
+                type    angle
+                default { "90" }
+                range   { 1! 90! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fCurvaturescale"
+                label   "Scale"
+                type    float
+                default { "1" }
+                range   { 0 2 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fFlatbias"
+                label   "Flatness Filter"
+                type    angle
+                default { "0.02" }
+                range   { 0.001! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+    }
+
+}

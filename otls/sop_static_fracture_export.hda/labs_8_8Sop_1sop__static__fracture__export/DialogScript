@@ -1,0 +1,79 @@
+# Dialog script for gamedev::sop_static_fracture_export automatically generated
+
+{
+    name	gamedev::sop_static_fracture_export
+    script	gamedev::sop_static_fracture_export
+    label	"GameDev Static Fracture Export"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Fractured Object"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "sepparm2"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Export Settings"
+
+        parm {
+            name    "iFrame"
+            label   "Frame To Export"
+            type    integer
+            default { "$RFSTART" }
+            range   { 1 240 }
+        }
+        parm {
+            name    "sContainerName"
+            label   "Container Name"
+            type    string
+            default { "FRACTURE_CONTAINER" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "mExportMode"
+            label   "Export Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Packed Primitives"
+                "1" "Piece Attribute"
+            }
+        }
+        parm {
+            name    "sPieceAttribute"
+            label   "Prim Piece Attribute"
+            type    string
+            default { "name" }
+            disablewhen "{ mExportMode == 0 }"
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Export"
+
+        parm {
+            name    "generate"
+            label   "Static Export"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "hou.pwd().hdaModule().Main()" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

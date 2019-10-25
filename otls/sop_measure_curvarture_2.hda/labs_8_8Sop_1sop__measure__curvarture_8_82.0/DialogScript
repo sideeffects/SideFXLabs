@@ -1,0 +1,142 @@
+# Dialog script for gamedev::sop_measure_curvarture::2.0 automatically generated
+
+{
+    name	gamedev::sop_measure_curvarture::2.0
+    script	gamedev::sop_measure_curvarture::2.0
+    label	"GameDev Measure Curvature"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry to Measure"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Curvature Values"
+
+        parm {
+            name    "per_piece"
+            label   "Calculate Per Piece"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "2" }
+            menu {
+                "0" "Volume Analysis"
+                "1" "Polynomial Fitting"
+                "2" "Tensor (Integral)"
+                "3" "Tensor (Euler)"
+                "4" "Shape Operator"
+                "5" "Approx Shape Operator"
+                "6" "Measure"
+            }
+        }
+        parm {
+            name    "voxel_size"
+            label   "Voxel Size"
+            type    float
+            default { "0.01" }
+            disablewhen "{ method != 0 }"
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Convex Adjustment"
+
+        parm {
+            name    "convex_range_scale"
+            label   "Range Scale"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "convex_contrast"
+            label   "Contrast"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "convex_intensity"
+            label   "Intensity"
+            type    float
+            default { "1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "convex_blur_ammount"
+            label   "Blur Amount"
+            type    float
+            default { "1" }
+            range   { 0 100 }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Concave Adjustment"
+
+        parm {
+            name    "concave_range_scale"
+            label   "Range Scale"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "concave_contrast"
+            label   "Contrast"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "concave_intensity"
+            label   "Intensity"
+            type    float
+            default { "1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "concave_blur_ammount"
+            label   "Blur Amount"
+            type    float
+            default { "1" }
+            range   { 0 100 }
+        }
+    }
+
+    parm {
+        name    "vis_color"
+        label   "Visualize As Color"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "single_color"
+        label   "Single Color Value"
+        type    toggle
+        joinnext
+        default { "0" }
+        disablewhen "{ vis_color == 0 }"
+    }
+    parm {
+        name    "fit_01"
+        label   "Fit To 0-1"
+        type    toggle
+        default { "0" }
+        disablewhen "{ vis_color == 0 }"
+    }
+}

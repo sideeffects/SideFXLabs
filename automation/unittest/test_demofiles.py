@@ -1,0 +1,39 @@
+
+import os
+import hou
+
+import unittest
+local_dir = os.path.dirname(__file__)
+
+class TestStringMethods(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        pass
+
+    def test_1_test_demoscenes(self):
+
+        hipdir = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", "hip")).replace("\\", "/")
+
+        demo_files = os.listdir(hipdir)
+
+        print "testing %s files!" % len(demo_files)
+        for demo_file in demo_files:
+            if demo_file.endswith(".hip"):
+                print "opening", demo_file
+                try:
+                    hou.hipFile.load(os.path.join(hipdir, demo_file).replace("\\", "/"))
+
+                    LabsNodeInstances = [x for x in hou.node("/").allSubChildren() if x.type().nameComponents()[1] == "labs"] 
+
+                    for node in LabsNodeInstances:
+                        if node.type().definition().nodeType().name() != hou.nodeType(node.type().definition().nodeTypeCategory(), node.type().definition().nodeTypeName()).namespaceOrder()[0]:
+                            print "Warning... Node instance is using older definition:", node.path()
+                            
+                except Exception, e:
+                    print str(e)
+                    pass
+
+
+if __name__ == '__main__':
+    unittest.main()

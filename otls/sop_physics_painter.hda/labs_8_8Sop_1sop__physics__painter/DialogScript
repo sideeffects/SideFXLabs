@@ -1,0 +1,608 @@
+# Dialog script for gamedev::sop_physics_painter automatically generated
+
+{
+    name	gamedev::sop_physics_painter
+    script	gamedev::sop_physics_painter
+    label	"GameDev Physics Painter"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Static Objects"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Everything
+    outputlabel	2	"Paint Objects"
+    outputlabel	3	"Painted Objects"
+
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "btnDryCurrent"
+        label   "Dry Current Paint"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().MainFunction()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "objPrevSim"
+        label   "PrevSim"
+        type    oppath
+        invisible
+        default { "" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+    parm {
+        name    "stroke_projtype"
+        label   "Projection"
+        type    ordinal
+        invisible
+        default { "geometry" }
+        menu {
+            "xy"        "XY Plane"
+            "yz"        "YZ Plane"
+            "zx"        "ZX Plane"
+            "screen"    "Screen Plane"
+            "geometry"  "Geometry"
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "Activate_All"
+        label   "bActivateAll"
+        type    toggle
+        invisible
+        default { "0" }
+    }
+    parm {
+        name    "btnClearCurrent"
+        label   "Clear Current Paint"
+        type    button
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback" "kwargs['node'].hm().ResetCurrent()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "parm"
+        label   "Activate All Paint"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().ActivateAll()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm4"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "btnClearAll"
+        label   "Clear All Paint"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().TertiaryFunction()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "reprojection"
+        label   "Live Reprojection"
+        type    ordinal
+        invisible
+        default { "ray" }
+        menu {
+            "none"      "None"
+            "ray"       "Send Rays"
+            "primuv"    "Use UVs"
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    groupsimple {
+        name    "folder8"
+        label   "Quick Settings"
+
+        parm {
+            name    "bPaintBucketMode"
+            label   "Paint Bucket Mode"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "npts"
+            label   "Bucket Items"
+            type    integer
+            default { "10" }
+            disablewhen "{ bPaintBucketMode == 0 }"
+            range   { 1! 20 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "fStrokePadding"
+            label   "Stroke Padding"
+            type    float
+            default { "0.05" }
+            range   { 0.001 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "fOffsetDist"
+            label   "Surface Offset"
+            type    float
+            default { "0" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm6"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "labelparm"
+            label   "Axis"
+            type    label
+            size    3
+            default { "X" "Y" "Z" }
+        }
+        parm {
+            name    "vMinRot"
+            label   "Min Rotation"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            range   { -1 1 }
+        }
+        parm {
+            name    "vMaxRot"
+            label   "Max Rotation"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            range   { -1 1 }
+        }
+        parm {
+            name    "sepparm5"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "vMinScale"
+            label   "Min Scale"
+            type    float
+            joinnext
+            default { "1" }
+            range   { 0 1 }
+        }
+        parm {
+            name    "vMaxScale"
+            label   "Max Scale"
+            type    float
+            default { "1" }
+            range   { 1 2 }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Objects"
+
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        groupcollapsible {
+            name    "folder3"
+            label   "Dynamic"
+
+            parm {
+                name    "opQuickAdd"
+                label   "Quick Add"
+                type    oplist
+                joinnext
+                default { "" }
+                parmtag { "oprelative" "/" }
+                parmtag { "script_callback" "kwargs['node'].hm().QuickAdd()" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fQuickWeight"
+                label   "Weight"
+                type    float
+                default { "1" }
+                range   { 0! 10 }
+            }
+            multiparm {
+                name    "folder2"
+                label    "Paint Meshes"
+
+                parm {
+                    name    "objObjPath#"
+                    label   "Sim Mesh"
+                    type    oppath
+                    default { "" }
+                    parmtag { "oprelative" "." }
+                }
+                parm {
+                    name    "bUseRenderMesh#"
+                    label   "Use"
+                    type    toggle
+                    joinnext
+                    default { "0" }
+                }
+                parm {
+                    name    "objObjPathRender#"
+                    label   "Render Mesh"
+                    type    oppath
+                    default { "" }
+                    disablewhen "{ bUseRenderMesh# == 0 }"
+                    parmtag { "oprelative" "." }
+                }
+                parm {
+                    name    "fChance#"
+                    label   "Weight"
+                    type    float
+                    default { "1" }
+                    range   { 0 10 }
+                }
+                groupcollapsible {
+                    name    "folder3_#"
+                    label   "DOP Settings"
+
+                    parm {
+                        name    "bComputeMass#"
+                        label   "Compute Mass"
+                        type    toggle
+                        default { "1" }
+                        range   { 0 10 }
+                    }
+                    parm {
+                        name    "fDensity#"
+                        label   "Density"
+                        type    float
+                        default { "1000" }
+                        range   { 0! 10 }
+                    }
+                    parm {
+                        name    "fMass#"
+                        label   "Mass"
+                        type    float
+                        default { "1" }
+                        range   { 0! 10 }
+                    }
+                    parm {
+                        name    "fRotStiff#"
+                        label   "Rotational Stiffness"
+                        type    float
+                        default { "1" }
+                        range   { 0 10 }
+                    }
+                    parm {
+                        name    "fBounce#"
+                        label   "Bounce"
+                        type    float
+                        default { "0.5" }
+                        range   { 0! 1 }
+                    }
+                    parm {
+                        name    "fFriction#"
+                        label   "Friction"
+                        type    float
+                        default { "1" }
+                        range   { 0! 10 }
+                    }
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder5"
+            label   "Static"
+
+            parm {
+                name    "bComputeMass_Static"
+                label   "Compute Mass"
+                type    toggle
+                default { "1" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "fDensity_Static"
+                label   "Density"
+                type    float
+                default { "1000" }
+                range   { 0! 10 }
+            }
+            parm {
+                name    "fMass_Static"
+                label   "Mass"
+                type    float
+                default { "1" }
+                range   { 0! 10 }
+            }
+            parm {
+                name    "fRotStiff_Static"
+                label   "Rotational Stiffness"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "fBounce_Static"
+                label   "Bounce"
+                type    float
+                default { "0.5" }
+                range   { 0! 1 }
+            }
+            parm {
+                name    "fFriction_Static"
+                label   "Friction"
+                type    float
+                default { "1" }
+                range   { 0! 10 }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Paint"
+
+        groupcollapsible {
+            name    "folder1"
+            label   "Strokes"
+
+            parm {
+                name    "stroke_radius"
+                label   "Radius"
+                type    float
+                default { "0.1" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            multiswitcher {
+                name    "stroke_numstrokes"
+                label    "Number of Strokes"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "multistartoffset" "1" }
+
+                parm {
+                    name    "stroke#_enable"
+                    label   "Enable Stroke"
+                    type    toggle
+                    default { "1" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "stroke#_radius"
+                    label   "Radius"
+                    type    float
+                    default { "0.1" }
+                    range   { 0! 1 }
+                }
+                parm {
+                    name    "stroke#_tool"
+                    label   "Tool"
+                    type    integer
+                    default { "0" }
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "stroke#_color"
+                    label   "Color"
+                    type    color
+                    size    3
+                    default { "1" "1" "1" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "stroke#_opacity"
+                    label   "Opacity"
+                    type    float
+                    default { "1" }
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "stroke#_projtype"
+                    label   "Projection"
+                    type    integer
+                    default { "0" }
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "stroke#_projcenter"
+                    label   "Projection Center"
+                    type    vector
+                    size    3
+                    default { "0" "0" "0" }
+                    range   { -1 1 }
+                }
+                parm {
+                    name    "stroke#_projdir"
+                    label   "Projection Direction"
+                    type    vector
+                    size    3
+                    default { "0" "0" "0" }
+                    range   { -1 1 }
+                }
+                parm {
+                    name    "stroke#_data"
+                    label   "Raw Data"
+                    type    string
+                    default { "0" }
+                    range   { 0 1 }
+                }
+            }
+
+        }
+
+    }
+
+    groupsimple {
+        name    "folder6"
+        label   "DOPs"
+
+        groupcollapsible {
+            name    "folder7"
+            label   "Settings"
+
+            groupsimple {
+                name    "folder9"
+                label   "Ground Plane"
+
+                parm {
+                    name    "bGroundPlane"
+                    label   "Ground Plane"
+                    type    toggle
+                    default { "1" }
+                }
+                parm {
+                    name    "fFloorHeight"
+                    label   "Ground Plane Height"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ bGroundPlane == 0 }"
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "objCustomGroundPlane"
+                    label   "Custom Ground Plane"
+                    type    oppath
+                    default { "" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "opfilter" "!!SOP!!" }
+                    parmtag { "oprelative" "." }
+                }
+            }
+
+            groupsimple {
+                name    "folder11"
+                label   "General"
+
+                parm {
+                    name    "iSubsteps"
+                    label   "Number of Substeps"
+                    type    integer
+                    default { "10" }
+                    range   { 1! 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "vForce"
+                    label   "Force"
+                    type    vector
+                    size    3
+                    default { "0" "-9.80665" "0" }
+                    range   { -1 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "m1s-2" }
+                }
+                parm {
+                    name    "bSolverperobject"
+                    label   "Solver Per Object"
+                    type    toggle
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "bVisStaticColl"
+                    label   "Visualize Static Collision Shape"
+                    type    toggle
+                    default { "0" }
+                }
+            }
+
+            groupsimple {
+                name    "folder10"
+                label   "Drag"
+
+                parm {
+                    name    "ignoremass"
+                    label   "Ignore Mass"
+                    type    toggle
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "vGoalVel"
+                    label   "Goal Velocity"
+                    type    vector
+                    size    3
+                    default { "0" "0" "0" }
+                    range   { -1 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "m1s-1" }
+                }
+                parm {
+                    name    "vGoalAngvel"
+                    label   "Goal Ang. Velocity"
+                    type    vector
+                    size    3
+                    default { "0" "0" "0" }
+                    range   { -1 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "s-1" }
+                }
+                parm {
+                    name    "fForcescale"
+                    label   "Drag Resistance"
+                    type    float
+                    default { "0" }
+                    range   { 0! 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "kg1s-1" }
+                }
+                parm {
+                    name    "fTorquescale"
+                    label   "Torque Resistance"
+                    type    float
+                    default { "0" }
+                    range   { 0! 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "kg1m2s-1" }
+                }
+                parm {
+                    name    "lSamplemode"
+                    label   "Sampling Mode"
+                    type    ordinal
+                    default { "def" }
+                    menu {
+                        "def"       "Default"
+                        "point"     "Point"
+                        "circle"    "Circle"
+                        "sphere"    "Sphere"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+            }
+
+        }
+
+    }
+
+}

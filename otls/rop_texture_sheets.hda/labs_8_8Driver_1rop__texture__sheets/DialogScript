@@ -1,0 +1,842 @@
+# Dialog script for gamedev::rop_texture_sheets automatically generated
+
+{
+    name	gamedev::rop_texture_sheets
+    script	texture_sheet_rop
+    label	"Texture Sheets"
+
+    help {
+	""
+    }
+
+    parm {
+	name	"execute"
+	baseparm
+	label	"Render"
+	joinnext
+	export	none
+    }
+    parm {
+	name	"renderdialog"
+	baseparm
+	label	"Controls..."
+	export	none
+    }
+    group {
+	name	"folder3"
+	label	"Base Settings"
+
+	groupsimple {
+	    name	"folder1"
+	    label	"Maps"
+
+	    parm {
+		name	"color_map"
+		label	"Color Map"
+		type	image
+		default	{ "$HIP/render/${HIPNAME}_color.tga" }
+		range	{ 0 1 }
+	    }
+	    parm {
+		name	"normal_map"
+		label	"Normal Map"
+		type	image
+		joinnext
+		default	{ "$HIP/render/${HIPNAME}_normal.tga" }
+		disablewhen	"{ export_normal == 0 }"
+		range	{ 0 1 }
+	    }
+	    parm {
+		name	"export_normal"
+		label	"Export Normal"
+		type	toggle
+		default	{ "1" }
+		range	{ 0 1 }
+	    }
+	}
+
+	groupsimple {
+	    name	"folder0"
+	    label	"Nodes"
+
+	    parm {
+		name	"node_to_render"
+		label	"Node To Render"
+		type	oppath
+		default	{ "" }
+		range	{ 0 1 }
+		parmtag	{ "opfilter" "!!SOP!!" }
+		parmtag	{ "oprelative" "." }
+	    }
+	    parm {
+		name	"camera"
+		label	"Camera"
+		type	oppath
+		default	{ "/obj/cam1" }
+		range	{ 0 1 }
+		parmtag	{ "opfilter" "!!OBJ!!" }
+		parmtag	{ "oprelative" "." }
+	    }
+	}
+
+	groupsimple {
+	    name	"folder2"
+	    label	"Settings"
+
+	    parm {
+		name	"composite_only"
+		label	"Only Composite Sheets"
+		type	toggle
+		invisible
+		default	{ "0" }
+		range	{ 0 1 }
+	    }
+	    parm {
+		name	"frames"
+		label	"Start/End/Inc"
+		type	float
+		size	3
+		default	{ [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] "1" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+	    }
+	    parm {
+		name	"resolution"
+		label	"Resolution"
+		type	vector2
+		size	2
+		default	{ "1024" "1024" }
+		range	{ -1 1 }
+	    }
+	}
+
+    }
+
+    group {
+	name	"folder3_1"
+	label	"Advanced Settings"
+
+	parm {
+	    name	"vm_renderengine"
+	    label	"Rendering Engine"
+	    type	string
+	    default	{ "raytrace" }
+	    menu	{
+		"micropoly"	"Micropolygon Rendering"
+		"raytrace"	"Ray Tracing"
+		"pbrmicropoly"	"Micropolygon Physically Based Rendering"
+		"pbrraytrace"	"Physically Based Rendering"
+		"photon"	"Photon Map Generation"
+	    }
+	    range	{ 0 1 }
+	    parmtag	{ "autoscope" "0000000000000000" }
+	    parmtag	{ "spare_category" "Rendering" }
+	}
+	parm {
+	    name	"vm_dof"
+	    label	"Enable Depth Of Field"
+	    type	toggle
+	    default	{ "off" }
+	    range	{ 0 1 }
+	    parmtag	{ "autoscope" "0000000000000000" }
+	    parmtag	{ "spare_category" "Rendering" }
+	}
+	parm {
+	    name	"allowmotionblur"
+	    label	"Allow Motion Blur"
+	    type	toggle
+	    default	{ "off" }
+	    range	{ 0 1 }
+	    parmtag	{ "autoscope" "0000000000000000" }
+	    parmtag	{ "spare_category" "Rendering" }
+	}
+	parm {
+	    name	"xform_motionsamples"
+	    label	"Xform Time Samples"
+	    type	integer
+	    default	{ "2" }
+	    hidewhen	"{ allowmotionblur == 0 }"
+	    range	{ 1 10 }
+	    parmtag	{ "autoscope" "0000000000000000" }
+	    parmtag	{ "spare_category" "Rendering" }
+	}
+	parm {
+	    name	"geo_motionsamples"
+	    label	"Geo Time Samples"
+	    type	integer
+	    default	{ "1" }
+	    hidewhen	"{ allowmotionblur == 0 }"
+	    range	{ 1 10 }
+	    parmtag	{ "autoscope" "0000000000000000" }
+	    parmtag	{ "spare_category" "Rendering" }
+	}
+	parm {
+	    name	"shutteroffset"
+	    label	"Shutter Offset"
+	    type	float
+	    default	{ "1" }
+	    hidewhen	"{ allowmotionblur == 0 }"
+	    range	{ -1 1 }
+	    parmtag	{ "autoscope" "0000000000000000" }
+	    parmtag	{ "spare_category" "Rendering" }
+	}
+	parm {
+	    name	"vm_traceblur"
+	    label	"Raytrace Motion Blur"
+	    type	toggle
+	    default	{ "off" }
+	    hidewhen	"{ allowmotionblur == 0 } { vm_renderengine != micropoly vm_renderengine != pbrmicropoly }"
+	    range	{ 0 1 }
+	    parmtag	{ "autoscope" "0000000000000000" }
+	    parmtag	{ "spare_category" "Rendering" }
+	}
+	group {
+	    name	"sampling7"
+	    label	"Sampling"
+
+	    parm {
+		name	"vm_samples"
+		label	"Pixel Samples"
+		type	intvector2
+		size	2
+		default	{ "3" "3" }
+		range	{ 1 32 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_dorayvariance"
+		label	"Ray Variance Antialiasing"
+		type	toggle
+		default	{ "on" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_colorspace"
+		label	"Variance Color Space"
+		type	string
+		default	{ "gamma" }
+		hidewhen	"{ vm_dorayvariance == 0 }"
+		menu	{
+		    "linear"	"Linear"
+		    "gamma"	"Gamma 2.2"
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_minraysamples"
+		label	"Min Ray Samples"
+		type	integer
+		default	{ "1" }
+		range	{ 1 64 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_maxraysamples"
+		label	"Max Ray Samples"
+		type	integer
+		default	{ "9" }
+		hidewhen	"{ vm_dorayvariance == 0 }"
+		range	{ 1 64 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_variance"
+		label	"Noise Level"
+		type	float
+		default	{ "0.01" }
+		hidewhen	"{ vm_dorayvariance == 0 }"
+		range	{ 0 0.1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_diffusequality"
+		label	"Diffuse Quality"
+		type	float
+		default	{ "1" }
+		hidewhen	"{ vm_dorayvariance == 0 }"
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_reflectionquality"
+		label	"Reflection Quality"
+		type	float
+		default	{ "1" }
+		hidewhen	"{ vm_dorayvariance == 0 }"
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_refractionquality"
+		label	"Refraction Quality"
+		type	float
+		default	{ "1" }
+		hidewhen	"{ vm_dorayvariance == 0 }"
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_adaptivesamplingenable"
+		label	"Adaptive Sampling"
+		type	toggle
+		default	{ "off" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_adaptivesamplingthreshold"
+		label	"Adaptive Sampling Threshold"
+		type	float
+		default	{ "0.1" }
+		hidewhen	"{ vm_adaptivesamplingenable == 0 }"
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_volumequality"
+		label	"Volume Quality"
+		type	float
+		default	{ "0.25" }
+		range	{ 0.1 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_volumeshadowquality"
+		label	"Volume Shadow Quality"
+		type	float
+		default	{ "1" }
+		range	{ 0.1 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_transparent"
+		label	"Stochastic Transparency"
+		type	toggle
+		default	{ "on" }
+		disablewhen	"{ vm_renderengine == micropoly } { vm_renderengine == pbrmicropoly } { vm_renderengine == photon }"
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_transparentsamples"
+		label	"Stochastic Samples"
+		type	integer
+		default	{ "4" }
+		disablewhen	"{ vm_transparent == 0 } { vm_renderengine == micropoly } { vm_renderengine == pbrmicropoly } { vm_renderengine == photon }"
+		range	{ 1 16 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_samplelock"
+		label	"Sample Lock"
+		type	toggle
+		default	{ "off" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_randomseed"
+		label	"Random Seed"
+		type	integer
+		default	{ "0" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	    parm {
+		name	"vm_imageblur"
+		label	"Allow Image Motion Blur"
+		type	toggle
+		default	{ "on" }
+		disablewhen	"{ allowmotionblur == 0 }"
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Sampling" }
+	    }
+	}
+
+	group {
+	    name	"sampling7_1"
+	    label	"Limits"
+
+	    parm {
+		name	"vm_reflectlimit"
+		label	"Reflect Limit"
+		type	integer
+		default	{ "10" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	    parm {
+		name	"vm_refractlimit"
+		label	"Refract Limit"
+		type	integer
+		default	{ "10" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	    parm {
+		name	"vm_diffuselimit"
+		label	"Diffuse Limit"
+		type	integer
+		default	{ "0" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	    parm {
+		name	"vm_volumelimit"
+		label	"Volume Limit"
+		type	integer
+		default	{ "0" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	    parm {
+		name	"vm_opacitylimit"
+		label	"Opacity Limit"
+		type	float
+		default	{ "0.995" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	    parm {
+		name	"vm_colorlimit"
+		label	"Color Limit"
+		type	float
+		default	{ "10" }
+		range	{ 0 20 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	    parm {
+		name	"vm_colorlimitdecay"
+		label	"Color Limit Decay"
+		type	float
+		default	{ "1" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	    parm {
+		name	"vm_raylimiteval"
+		label	"At Ray Limit"
+		type	string
+		default	{ "none" }
+		menu	{
+		    "none"	"Use Black Background"
+		    "direct"	"Use Direct Lighting as Background Color"
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Limits" }
+	    }
+	}
+
+	group {
+	    name	"sampling7_2"
+	    label	"Shading"
+
+	    parm {
+		name	"vm_pbrreflectratio"
+		label	"Min Reflection Ratio"
+		type	float
+		default	{ "0" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Shading" }
+	    }
+	    parm {
+		name	"vm_raybias"
+		label	"Raytracing Bias"
+		type	float
+		default	{ "0.001" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Shading" }
+	    }
+	    parm {
+		name	"vm_biasnormal"
+		label	"Bias Along Normal"
+		type	toggle
+		default	{ "off" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Shading" }
+	    }
+	    parm {
+		name	"vm_pbrpathtype"
+		label	"Allowable Paths"
+		type	string
+		default	{ "diffuse" }
+		menu	{
+		    "diffuse"	"Specular, Diffuse Paths"
+		    "all"	"All Paths"
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Shading" }
+	    }
+	    parm {
+		name	"vm_refractcomponents"
+		label	"Refract Components"
+		type	string
+		default	{ "refract" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Shading" }
+	    }
+	    parm {
+		name	"vm_diffusecomponents"
+		label	"Diffuse Components"
+		type	string
+		default	{ "diffuse" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Shading" }
+	    }
+	    parm {
+		name	"vm_volumecomponents"
+		label	"Volume Components"
+		type	string
+		default	{ "volume" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Shading" }
+	    }
+	}
+
+	group {
+	    name	"sampling7_3"
+	    label	"Render"
+
+	    parm {
+		name	"vm_bucketsize"
+		label	"Tile Size"
+		type	integer
+		default	{ "16" }
+		range	{ 1 64 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_usemaxthreads"
+		label	"Use Max Processors"
+		type	integer
+		default	{ "1" }
+		menu	{
+		    "0"	"User Specified Thread Count"
+		    "1"	"Use All Processors"
+		    "2"	"Use All Processors Except One"
+		}
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_threadcount"
+		label	"Thread Count"
+		type	integer
+		default	{ "1" }
+		disablewhen	"{ vm_usemaxthreads > 0 }"
+		range	{ 1 16 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_usecacheratio"
+		label	"Cache Limit"
+		type	integer
+		default	{ "1" }
+		menu	{
+		    "0"	"Fixed Size"
+		    "1"	"Proportion of Physical Memory"
+		}
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_cacheratio"
+		label	"Cache Memory Ratio"
+		type	float
+		default	{ "0.25" }
+		hidewhen	"{ vm_usecacheratio != 1 }"
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_cachesize"
+		label	"Cache Size (MB)"
+		type	integer
+		default	{ "1000" }
+		hidewhen	"{ vm_usecacheratio == 1 }"
+		range	{ 100 100000 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_octreestyle"
+		label	"Ray Tracing Accelerator"
+		type	string
+		default	{ "bboxtree" }
+		menu	{
+		    "kdtree"	"KD-Tree"
+		    "bboxtree"	"Bounding Volume Hierarchy"
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_kdmemfactor"
+		label	"KD-Tree Memory Factor"
+		type	float
+		default	{ "1" }
+		hidewhen	"{ vm_octreestyle != kdtree }"
+		range	{ 0.001 2 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_hidden"
+		label	"Enable Hiding"
+		type	toggle
+		default	{ "on" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_otlfullpath"
+		label	"Output OTLs with full paths"
+		type	toggle
+		default	{ "off" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"vm_embedvex"
+		label	"Force VEX Shader Embedding"
+		type	toggle
+		default	{ "off" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"declare_stylesheets"
+		label	"Declare Style Sheets"
+		type	string
+		default	{ "*" }
+		menutoggle	{
+		    [ "opmenu -l render_particles declare_stylesheets" ]
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"apply_stylesheets"
+		label	"Apply Style Sheets"
+		type	file
+		default	{ "`pythonexprs(\"' '.join(hou.styles.styles())\")`" }
+		menutoggle	{
+		    [ "opmenu -l render_particles apply_stylesheets" ]
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "filechooser_pattern" "*.json" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	    parm {
+		name	"declare_all_shops"
+		label	"Declare Materials"
+		type	ordinal
+		default	{ "off" }
+		menu	{
+		    "off"	"Save Only Referenced Materials"
+		    "on"	"Save All Material SHOPs"
+		    "all"	"Save All SHOPS"
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Render" }
+	    }
+	}
+
+	group {
+	    name	"sampling7_4"
+	    label	"Dicing"
+
+	    parm {
+		name	"vm_shadingfactor"
+		label	"Shading Quality Multiplier"
+		type	float
+		default	{ "1" }
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Dicing" }
+	    }
+	    parm {
+		name	"vm_motionfactor"
+		label	"Motion Factor"
+		type	float
+		default	{ "0" }
+		disablewhen	"{ allowmotionblur == 0 vm_dof == 0 }"
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Dicing" }
+	    }
+	    parm {
+		name	"vm_measure"
+		label	"Geometry Measuring"
+		type	string
+		default	{ "nonraster" }
+		menu	{
+		    "nonraster"	"Non-Raster Measuring"
+		    "raster"	"Raster Space Measuring"
+		    "uniform"	"Uniform Measuring"
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Dicing" }
+	    }
+	    parm {
+		name	"vm_measurezimportance"
+		label	"Z-Importance"
+		type	float
+		default	{ "1" }
+		disablewhen	"{ vm_measure != nonraster }"
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Dicing" }
+	    }
+	    parm {
+		name	"vm_measureoffscreenquality"
+		label	"Offscreen Quality"
+		type	float
+		default	{ "0.25" }
+		disablewhen	"{ vm_measure != nonraster }"
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Dicing" }
+	    }
+	}
+
+	group {
+	    name	"sampling7_5"
+	    label	"Statistics"
+
+	    parm {
+		name	"soho_spoolrenderoutput"
+		label	"Render Output"
+		type	ordinal
+		default	{ "on" }
+		help	"Controls whether to capture the render output and add to the node info"
+		menu	{
+		    "off"	"Don't capture render output"
+		    "on"	"Capture render output for graphical apps"
+		    "force"	"Capture render output for all apps"
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Statistics" }
+	    }
+	    parm {
+		name	"vm_verbose"
+		label	"Verbose Level"
+		type	integer
+		default	{ "0" }
+		range	{ 0 5 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Statistics" }
+	    }
+	    parm {
+		name	"vm_vexprofile"
+		label	"VEX Profiling"
+		type	integer
+		default	{ "0" }
+		menu	{
+		    "0"	"No VEX Profiling"
+		    "1"	"Execution profiling"
+		    "2"	"Profiling and NAN detection"
+		}
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Statistics" }
+	    }
+	    parm {
+		name	"vm_alfprogress"
+		label	"Alfred Style Progress"
+		type	toggle
+		default	{ "off" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Statistics" }
+	    }
+	    parm {
+		name	"vm_tilecallback"
+		label	"Python Tile Callback"
+		type	file
+		default	{ "" }
+		menureplace	{
+		    [ "opmenu -l render_particles vm_tilecallback" ]
+		}
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "filechooser_mode" "read" }
+		parmtag	{ "spare_category" "Statistics" }
+	    }
+	    parm {
+		name	"vm_logcolors"
+		label	"Colorize Output"
+		type	integer
+		default	{ "0" }
+		menu	{
+		    "0"	"Colored Shell"
+		    "1"	"HTML Tags"
+		    "2"	"No Coloring"
+		}
+		range	{ 0 10 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Statistics" }
+	    }
+	    parm {
+		name	"vm_logtimestamps"
+		label	"Log Timestamp"
+		type	toggle
+		default	{ "on" }
+		range	{ 0 1 }
+		parmtag	{ "autoscope" "0000000000000000" }
+		parmtag	{ "spare_category" "Statistics" }
+	    }
+	}
+
+    }
+
+}

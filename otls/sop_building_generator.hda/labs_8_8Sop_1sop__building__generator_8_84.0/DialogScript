@@ -1,0 +1,467 @@
+# Dialog script for gamedev::sop_building_generator::4.0 automatically generated
+
+{
+    name	gamedev::sop_building_generator::4.0
+    script	gamedev::sop_building_generator::3.0
+    label	"GameDev Building Generator"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Blockout Geometry"
+    inputlabel	2	"Building Modules"
+    inputlabel	3	"Handplaced Overrides"
+    inputlabel	4	"Volumetric Overrides"
+    outputlabel	1	"Meshed Building"
+    outputlabel	2	"Point Cloud"
+
+    groupsimple {
+        name    "folder3"
+        label   "Visualize"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "bColorFloors"
+            label   "Color Floors"
+            type    toggle
+            default { "0" }
+            help    "Color each floor as visulisation aid."
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Initialize"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "fFloorHeight"
+            label   "Full Floor Height"
+            type    float
+            default { "2.55" }
+            help    "Height of floor in Houdini units."
+            range   { 0! 10 }
+        }
+        parm {
+            name    "iSeed"
+            label   "Seed"
+            type    integer
+            default { "1223" }
+            help    "Seed used to control randimisation functions."
+            range   { 1 100000 }
+        }
+        parm {
+            name    "bExperimentalLedges"
+            label   "Simple Ledges"
+            type    toggle
+            default { "0" }
+            help    "Enable simple extruded ledges, in place of user created ledges."
+        }
+        groupcollapsible {
+            name    "folder5"
+            label   "Primary"
+            grouptag { "group_type" "collapsible" }
+
+            groupsimple {
+                name    "folder8"
+                label   "Wall Face"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "sFacadePattern"
+                    label   "Facade Module Pattern"
+                    type    string
+                    default { "" }
+                    help    "Name of module to use as main 'wall' unit. "
+                }
+                parm {
+                    name    "bFacadeCorner"
+                    label   "Corners"
+                    type    toggle
+                    default { "1" }
+                    help    "Enable corner modules."
+                }
+                parm {
+                    name    "sConvexCornerID"
+                    label   "Concave Corner Module"
+                    type    string
+                    size    2
+                    default { "" "" }
+                    help    "Name of corner module to use for 'outward' facing corners, eg on a simple 4 sided bulding, what module is used on those corners."
+                }
+                parm {
+                    name    "sConcaveCornerID"
+                    label   "Convex Corner Module"
+                    type    string
+                    size    2
+                    default { "" "" }
+                    help    "Name of module to use for 'inward' coners, eg for a H shaped floor-plan, the corner model to use on the inner corners."
+                }
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder4"
+            label   "Secondary"
+            grouptag { "group_type" "collapsible" }
+
+            groupsimple {
+                name    "folder6"
+                label   "Top Ledge"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "bTopLedge"
+                    label   "Top"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "1" }
+                    help    "Enable ledges across top of floor."
+                }
+                parm {
+                    name    "fTopLedgeHeight"
+                    label   "Height"
+                    type    float
+                    default { "0.35" }
+                    help    "Height in Houdini units for the top ledge."
+                    disablewhen "{ bTopLedge == 0 }"
+                    range   { 0 0.5 }
+                }
+                parm {
+                    name    "sTopLedgePattern"
+                    label   "Module Pattern"
+                    type    string
+                    default { "" }
+                    help    "Module name to use for top ledge."
+                    disablewhen "{ bTopLedge == 0 }"
+                }
+                parm {
+                    name    "bTopLedgeCorner"
+                    label   "Corners"
+                    type    toggle
+                    default { "1" }
+                    help    "Enable top ledge corners."
+                    disablewhen "{ bTopLedge == 0 }"
+                }
+                parm {
+                    name    "sTopLedgeConvexCorner"
+                    label   "Concave Corner Module"
+                    type    string
+                    size    2
+                    default { "" "" }
+                    help    "Top ledge corner module to use for 'outward' facing corners, the more common use case."
+                    disablewhen "{ bTopLedgeCorner == 0 } { bTopLedge == 0 }"
+                }
+                parm {
+                    name    "sTopLedgeConcaveCorner"
+                    label   "Convex Corner Module"
+                    type    string
+                    size    2
+                    default { "" "" }
+                    help    "Top ledge corner module to use for 'inward' facing corners."
+                    disablewhen "{ bTopLedgeCorner == 0 } { bTopLedge == 0 }"
+                }
+            }
+
+            groupsimple {
+                name    "folder7"
+                label   "Bottom Ledge"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "bBottomLedge"
+                    label   "Bottom"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "1" }
+                    help    "Enable bottom ledges per floor."
+                }
+                parm {
+                    name    "fBottomLedgeHeight"
+                    label   "Height"
+                    type    float
+                    default { "0.2" }
+                    help    "Height in Houdini units for the bottom ledge."
+                    disablewhen "{ bBottomLedge == 0 }"
+                    range   { 0 0.5 }
+                }
+                parm {
+                    name    "sBottomLedgePattern"
+                    label   "Module Pattern"
+                    type    string
+                    default { "" }
+                    help    "Module name to use for bottom ledge."
+                    disablewhen "{ bBottomLedge == 0 }"
+                }
+                parm {
+                    name    "bBottomLedgeCorner"
+                    label   "Corners"
+                    type    toggle
+                    default { "1" }
+                    help    "Enable bottom ledge corners."
+                    disablewhen "{ bBottomLedge == 0 }"
+                }
+                parm {
+                    name    "sBottomLedgeConvexCorner"
+                    label   "Concave Corner Module"
+                    type    string
+                    size    2
+                    default { "" "" }
+                    help    "Bottom ledge corner module to use for 'outward' facing corners, the more common use case."
+                    disablewhen "{ bBottomLedgeCorner == 0 } { bBottomLedge == 0 }"
+                }
+                parm {
+                    name    "sBottomLedgeConcaveCorner"
+                    label   "Convex Corner Module"
+                    type    string
+                    size    2
+                    default { "" "" }
+                    help    "Bottm ledge corner module to use for 'inward' facing corners."
+                    disablewhen "{ bBottomLedgeCorner == 0 } { bBottomLedge == 0 }"
+                }
+            }
+
+            groupsimple {
+                name    "folder0"
+                label   "Sideslop"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "sSideSlopID"
+                    label   "Sideslop Module"
+                    type    string
+                    default { "" }
+                    help    "Module to use in the gap between primary module and corner module."
+                }
+            }
+
+        }
+
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Customization"
+        grouptag { "group_type" "simple" }
+
+        multiparm {
+            name    "mpFloorOverrides"
+            label    "Floor Overrides"
+            default 0
+            parmtag { "script_callback" "kwargs['node'].hm().AddCustomFloor(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+
+            groupcollapsible {
+                name    "folder4_#"
+                label   "Settings"
+                grouptag { "group_type" "collapsible" }
+
+                parm {
+                    name    "iFloorIndex#"
+                    label   "Floor Index"
+                    type    integer
+                    default { "0" }
+                    help    "Floor index to override, 0 being the ground floor."
+                    range   { 0 10 }
+                }
+                parm {
+                    name    "fFloorHeightOverride#"
+                    label   "Floor Height"
+                    type    float
+                    default { "2.55" }
+                    help    "Height for this floor override."
+                    range   { 0! 10 }
+                }
+                groupcollapsible {
+                    name    "folder9_#"
+                    label   "Primary"
+                    grouptag { "group_type" "collapsible" }
+
+                    groupsimple {
+                        name    "folder10_#"
+                        label   "Wall Face"
+                        grouptag { "group_type" "simple" }
+
+                        parm {
+                            name    "sFacadePatternOverride#"
+                            label   "Facade Module Pattern"
+                            type    string
+                            default { "" }
+                            help    "Module name for this floor override."
+                        }
+                        parm {
+                            name    "bFacadeCornerOverride#"
+                            label   "Corners"
+                            type    toggle
+                            default { "1" }
+                            help    "Enable corners for this floor override."
+                        }
+                        parm {
+                            name    "sConvexCornerIDOverride#"
+                            label   "Concave Corner ID"
+                            type    string
+                            size    2
+                            default { "" "" }
+                            help    "Module name for 'outward' facing corners for override."
+                        }
+                        parm {
+                            name    "sConcaveCornerIDOverride#"
+                            label   "Convex Corner ID"
+                            type    string
+                            size    2
+                            default { "" "" }
+                            help    "Module name for 'inward' facing corners for override."
+                        }
+                    }
+
+                }
+
+                groupcollapsible {
+                    name    "folder9_#_2"
+                    label   "Secondary"
+                    grouptag { "group_type" "collapsible" }
+
+                    groupsimple {
+                        name    "folder10_#_2"
+                        label   "Top Ledge"
+                        grouptag { "group_type" "simple" }
+
+                        parm {
+                            name    "bTopLedgeOverride#"
+                            label   "Top"
+                            type    toggle
+                            nolabel
+                            joinnext
+                            default { "1" }
+                            help    "Enable top ledges for override."
+                        }
+                        parm {
+                            name    "fTopLedgeHeightOverride#"
+                            label   "Height"
+                            type    float
+                            default { "0.35" }
+                            help    "Ledge height for override."
+                            disablewhen "{ bTopLedgeOverride# == 0 }"
+                            range   { 0 0.5 }
+                        }
+                        parm {
+                            name    "sTopLedgePatternOverride#"
+                            label   "Module Pattern"
+                            type    string
+                            default { "" }
+                            help    "Module name for ledge to use for this override."
+                            disablewhen "{ bTopLedge == 0 }"
+                        }
+                        parm {
+                            name    "bTopLedgeCornerOverride#"
+                            label   "Corners"
+                            type    toggle
+                            default { "1" }
+                            help    "Enable corners for override."
+                        }
+                        parm {
+                            name    "sTopLedgeConvexCornerOverride#"
+                            label   "Concave Corner Module"
+                            type    string
+                            size    2
+                            default { "" "" }
+                            help    "Corner module name for 'outward' corners to use for override."
+                            disablewhen "{ bTopLedgeCorner == 0 } { bTopLedge == 0 }"
+                        }
+                        parm {
+                            name    "sTopLedgeConcaveCornerOverride#"
+                            label   "Convex Corner Module"
+                            type    string
+                            size    2
+                            default { "" "" }
+                            help    "Corner module name for 'inward' corners to use for override."
+                            disablewhen "{ bTopLedgeCorner == 0 } { bTopLedge == 0 }"
+                        }
+                    }
+
+                    groupsimple {
+                        name    "folder9_#_3"
+                        label   "Bottom Ledge"
+                        grouptag { "group_type" "simple" }
+
+                        parm {
+                            name    "bBottomLedgeOverride#"
+                            label   "Bottom"
+                            type    toggle
+                            nolabel
+                            joinnext
+                            default { "1" }
+                            help    "Enable bottom ledges for override."
+                        }
+                        parm {
+                            name    "fBottomLedgeHeightOverride#"
+                            label   "Height"
+                            type    float
+                            default { "0.2" }
+                            help    "Height of bottom ledge for override."
+                            disablewhen "{ bBottomLedgeOverride# == 0 }"
+                            range   { 0 0.5 }
+                            parmtag { "autoselect" "0000000000000000" }
+                        }
+                        parm {
+                            name    "sBottomLedgePatternOverride#"
+                            label   "Module Pattern"
+                            type    string
+                            default { "" }
+                            help    "Module name to use for bottom ledge for override."
+                            disablewhen "{ bBottomLedge == 0 }"
+                        }
+                        parm {
+                            name    "bBottomLedgeCornerOverride#"
+                            label   "Corners"
+                            type    toggle
+                            default { "1" }
+                            help    "Enable bottom corners for override."
+                        }
+                        parm {
+                            name    "sBottomLedgeConvexCornerOverride#"
+                            label   "Concave Corner Module"
+                            type    string
+                            size    2
+                            default { "" "" }
+                            help    "Module to use for 'outward' bottom corners for override."
+                            disablewhen "{ bBottomLedgeCorner == 0 } { bBottomLedge == 0 }"
+                        }
+                        parm {
+                            name    "sBottomLedgeConcaveCornerOverride#"
+                            label   "Convex Corner Module"
+                            type    string
+                            size    2
+                            default { "" "" }
+                            help    "Module to use for 'inward' bottom corners for override."
+                            disablewhen "{ bBottomLedgeCorner == 0 } { bBottomLedge == 0 }"
+                        }
+                    }
+
+                    groupsimple {
+                        name    "folder9_#_4"
+                        label   "Sideslop"
+                        grouptag { "group_type" "simple" }
+
+                        parm {
+                            name    "sSideSlopIDOverride#"
+                            label   "Sideslop Module"
+                            type    string
+                            default { "" }
+                            help    "Module to use for gap between primary and corner modules for override."
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+}

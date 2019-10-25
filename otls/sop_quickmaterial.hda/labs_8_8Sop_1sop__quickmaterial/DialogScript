@@ -1,0 +1,203 @@
+# Dialog script for gamedev::sop_quickmaterial automatically generated
+
+{
+    name	gamedev::sop_quickmaterial
+    script	gamedev::sop_quickmaterial
+    label	"GameDev Quick Material"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry To Add Material To"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group1"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l material1 group1" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nsoputils.selectMaterialGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to select without groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Base Color"
+
+        parm {
+            name    "basecolor_texture"
+            label   "BaseColor Texture"
+            type    image
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_tex1" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "basecolor"
+            label   "Tint"
+            type    color
+            size    3
+            default { "1" "1" "1" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_diff" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Opacity"
+
+        parm {
+            name    "opaccolor_texture"
+            label   "Opacity Texture"
+            type    image
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_opacitymap" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Normal"
+
+        parm {
+            name    "baseBump_bumpTexture"
+            label   "Normal Texture"
+            type    image
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "baseNormal_flipY"
+            label   "Flip Y"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_normalflipy" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "roundedEdge_enable"
+            label   "Rounded Edge"
+            type    toggle
+            joinnext
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "roundedEdge_radius"
+            label   "Radius"
+            type    float
+            joinnext
+            default { "0.01" }
+            disablewhen "{ roundedEdge_enable == 0 }"
+            range   { 0 0.1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "roundedEdge_mode"
+            label   "Mode"
+            type    integer
+            default { "0" }
+            help    "Edge types to smooth."
+            disablewhen "{ roundedEdge_enable == 0 }"
+            menu {
+                "both"      "Concave and Convex Edges"
+                "concave"   "Concave Edges"
+                "convex"    "Convex Edges"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Roughness"
+
+        parm {
+            name    "rough_texture"
+            label   "Roughness Texture"
+            type    image
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_roughmap" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "rough"
+            label   "Roughness"
+            type    float
+            default { "0.652" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_rough" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "ior"
+            label   "IOR"
+            type    float
+            default { "1.1" }
+            range   { 1 3 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_ior" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+    }
+
+    groupsimple {
+        name    "folder3"
+        label   "Metallic"
+
+        parm {
+            name    "metallic_texture"
+            label   "Metallic Texture"
+            type    image
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_metallicmap" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "metallic"
+            label   "Metallic"
+            type    float
+            default { "0" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_metallic" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+    }
+
+}

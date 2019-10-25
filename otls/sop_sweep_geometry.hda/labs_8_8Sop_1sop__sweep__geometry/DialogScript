@@ -1,0 +1,179 @@
+# Dialog script for gamedev::sop_sweep_geometry automatically generated
+
+{
+    name	gamedev::sop_sweep_geometry
+    script	gamedev::sop_sweep_geometry
+    label	"GameDev Sweep Geometry"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Mesh"
+    inputlabel	2	"Input Curve"
+    inputlabel	3	Start
+    inputlabel	4	End
+
+    parm {
+        name    "auto_calculate_middle"
+        label   "Auto Calculate Middle"
+        type    toggle
+        default { "1" }
+    }
+    parm {
+        name    "middle_multiplier"
+        label   "Middle Multiplier"
+        type    float
+        default { "1" }
+        hidewhen "{ auto_calculate_middle != 1 }"
+        range   { 0 10 }
+    }
+    parm {
+        name    "middle_instances"
+        label   "Middle Instances"
+        type    integer
+        default { "1" }
+        hidewhen "{ auto_calculate_middle == 1 }"
+        range   { 1! 10 }
+    }
+    parm {
+        name    "curve_slice"
+        label   "Curve Slice"
+        type    float
+        default { "1" }
+        range   { 0 1 }
+    }
+    parm {
+        name    "curve_offset"
+        label   "Curve Offset"
+        type    float
+        default { "0" }
+        range   { 0 1 }
+    }
+    parm {
+        name    "twist"
+        label   "Twist"
+        type    float
+        default { "0" }
+        range   { 0 100 }
+    }
+    parm {
+        name    "curve_resolution"
+        label   "Curve Resolution"
+        type    float
+        default { "1" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "ends_method"
+        label   "Ends Method"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "None"
+            "1" "Clip"
+            "2" "Groups"
+        }
+    }
+    parm {
+        name    "mesh_min"
+        label   "Mesh Min"
+        type    float
+        default { "0" }
+        hidewhen "{ ends_method != 1 }"
+        range   { 0 1 }
+    }
+    parm {
+        name    "mesh_max"
+        label   "Mesh Max"
+        type    float
+        default { "1" }
+        hidewhen "{ ends_method != 1 }"
+        range   { 0 1 }
+    }
+    parm {
+        name    "start_group"
+        label   "Start Group"
+        type    string
+        default { "" }
+        hidewhen "{ ends_method != 2 }"
+        menutoggle {
+            [ "opmenu -l split_start group" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].parmTuple('grouptype')\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "startgrouptype"
+        label   "Start Group Type"
+        type    ordinal
+        default { "guess" }
+        hidewhen "{ ends_method != 2 }"
+        menu {
+            [ "opmenu -l BLAST_START grouptype" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "end_group"
+        label   "End Group"
+        type    string
+        default { "" }
+        hidewhen "{ ends_method != 2 }"
+        menutoggle {
+            [ "opmenu -l split_end group" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].parmTuple('grouptype')\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "endgrouptype"
+        label   "End Group Type"
+        type    ordinal
+        default { "guess" }
+        hidewhen "{ ends_method != 2 }"
+        menu {
+            [ "opmenu -l BLAST_END grouptype" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "spacer"
+        label   "_"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "like_tool"
+        label   "Like Tool"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        help    "Let us know that you're enjoying this Tool"
+        parmtag { "button_icon" "heart.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.like_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "dont_like"
+        label   "Thumbs Down"
+        type    button
+        nolabel
+        default { "0" }
+        help    "Let us know you don't like this tool. Ideally also send us a mail at support@sidefx.com"
+        parmtag { "button_icon" "thumbs-down.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.dislike_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

@@ -1,0 +1,311 @@
+def get_material():
+    # get the path to the render node
+    render_node = hou.pwd().parm("node_to_render").eval()
+    # if the render node field is empty return nothing
+    if not render_node:
+        material_path = "";
+        return hou.pwd().parm("node_material").set(material_path);
+    # try getting the material path from the parent object
+    # otherwise get the material from the render node path
+    try:
+        material_path = hou.node(render_node).parent().parm("shop_materialpath").eval()
+    except AttributeError:
+        material_path = hou.node(render_node).parm("shop_materialpath").eval()
+    hou.pwd().parm("node_material").set(material_path);
+    
+def init_mantra_setup(hda=""):
+    if hda:
+        hou.cd(hda.path())
+    mantra_node = hou.node(hou.pwd().parm("mantra_external").eval())
+    if mantra_node:
+        render_button = mantra_node.parm('execute')
+        render_sequence_path = hou.pwd().parm('render_sequence').path()
+        render_button.setExpression("ch(\"%s\")" % render_sequence_path)
+        hou.pwd().parm("camera").set(mantra_node.parm('camera').eval())
+#        output_string = mantra_node.parm('vm_picture').unexpandedString()
+#        hou.pwd().parm("image_sequence2").set('%s' % output_string)
+#        f1 = mantra_node.parm('f1').eval()
+#        f2 = mantra_node.parm('f2').eval()
+#        f3 = mantra_node.parm('f3').eval()
+#        hou.pwd().parm("frames4").set("%d  /  %d  /  %d" % (f1, f2, f3))
+    else:
+        pass
+#        hou.pwd().parm("camera").set("")
+#        hou.pwd().parm("image_sequence2").set("")
+#        hou.pwd().parm("frames4").set("")
+        
+def override_camera_resolution():
+    import math
+    hda = hou.pwd()
+    camera = hou.node(hou.pwd().parm("camera_internal").eval())
+    mantra = hou.node(hou.pwd().parm("mantra_external").eval())
+    if (hda.parm('override_res').eval() == 1):
+        if mantra:
+            mantra.parm('override_camerares').set(1)
+            mantra.parm('res_fraction').set('specific')
+            mantra.parm('res_overridex').setExpression("int(ch(\"../%s/resolutionx\")/ch(\"../%s/numperline\"))" % (hda.name(),hda.name()))
+            mantra.parm('res_overridey').setExpression("int(ch(\"../%s/resolutiony\")/((ch(\"../%s/internal_frames2\")-ch(\"../%s/internal_frames1\")+1)/ch(\"../%s/numperline\")))" % (hda.name(),hda.name(),hda.name(),hda.name()))
+            
+        #hda.parm('cam_res_savex').set(camera.parm('resx').eval())
+        #hda.parm('cam_res_savey').set(camera.parm('resy').eval())
+        #f1 = hda.parm('internal_frames1').eval()
+        #f2 = hda.parm('internal_frames2').eval()
+        #f3 = hda.parm('internal_frames3').eval()
+        #`ch("resolutionx")/sqrt((ch("frames2")-ch("frames1")+1)/ch("frames3"))`
+        #resx = hda.parm("resolutionx").eval()/math.sqrt(f2-f1+1)/f3
+        #resy = hda.parm("resolutiony").eval()/math.sqrt(f2-f1+1)/f3
+        #camera.parm('resx').set(int(resx))
+        #camera.parm('resy').set(int(resy))
+    else:
+        if mantra:
+            mantra.parm('override_camerares').set(0)
+        #camera.parm('resx').set(hda.parm('cam_res_savex').eval())
+        #camera.parm('resy').set(hda.parm('cam_res_savey').eval())
+    
+def add_volume_normal():
+    render_node = hou.node(hou.pwd().parm("node_to_render").eval())
+    if render_node:
+        if not (render_node.type().name() == 'geo'):
+            geo_container = render_node.parent()
+        else:
+            geo_container = render_node
+        hou.pwd().parm("node_to_render_store").set(geo_container.path())
+        if not geo_container.parm('vm_volumenormal'):
+            compute_N_parm = hou.ToggleParmTemplate("vm_volumenormal",
+                                                "Compute Normals for Volumes",
+                                                1)
+            geo_container.addSpareParmTuple(compute_N_parm,
+                                        in_folder=("Render", "Geometry"),
+                                        create_missing_folders=True)
+                                        
+        export_normal_path = hou.pwd().parm('export_normal').path()
+        compute_N = geo_container.parm('vm_volumenormal')
+        compute_N.setExpression("ch(\"%s\")" % export_normal_path)
+    else:
+        geo_container = hou.node(hou.pwd().parm("node_to_render_store").eval())
+        geo_container.parm('vm_volumenormal').deleteAllKeyframes()
+        geo_container.parm('vm_volumenormal').set(0)
+        hou.pwd().parm("node_to_render_store").set("")
+    
+    mantra_node = hou.node(hou.pwd().parm("mantra_external").eval())
+    if mantra_node:
+        shading_normal = mantra_node.parm("vm_quickplane_N")
+        shading_normal.setExpression("ch(\"%s\")" % export_normal_path)
+    
+                                    
+#ch("../../out/texture_sheets4/export_normal")
+def add_direct_emission_plane():
+    
+    mantra_node = hou.node(hou.pwd().parm("mantra").eval())
+    if mantra_node:
+        image_mp = mantra_node.parm('vm_numaux')
+        instances = image_mp.multiParmInstances()
+        values = []
+        for inst in instances:
+            values.append(inst.eval())
+        if not ("direct_emission" in values):
+            print "adding direct emission image plane"
+            image_plane_multi_parm = mantra_node.parm("vm_numaux")
+            image_plane_multi_parm.insertMultiParmInstance(0)
+            mantra_node.parm("vm_variable_plane1").set("direct_emission")
+            mantra_node.parm("vm_sfilter_plane1").set("fullopacity")
+        
+            emission_layer_path = hou.pwd().parm('render_fire').path()
+            disable_plane1 = mantra_node.parm("vm_disable_plane1")
+            disable_plane1.setExpression("1 - ch(\"%s\")" % emission_layer_path)
+            print "Successfuly added direct emission image plane!"
+    
+def add_direct_image_plane():
+    mantra_node = hou.node(hou.pwd().parm("mantra").eval())
+    image_plane_multi_parm = mantra_node.parm("vm_numaux")
+    image_plane_multi_parm.insertMultiParmInstance(0)
+    mantra_node.parm("vm_variable_plane1").set("direct")
+    mantra_node.parm("vm_lightexport1").set(1)
+    
+    toggle_path = hou.pwd().parm('render_rgb_lights').path()
+    disable_plane1 = mantra_node.parm("vm_disable_plane1")
+    disable_plane1.setExpression("1 - ch(\"%s\")" % toggle_path)
+    
+def create_rgb_light():
+    pass
+    
+def create_rgb_light_rig():
+    if not hou.nodeBundle('rgb_lightrig'):
+        rig_bundle = hou.addNodeBundle('rgb_lightrig')
+    else:
+        rig_bundle = hou.nodeBundle('rgb_lightrig')
+    
+    if (hou.pwd().parm('render_rgb_lights').eval()==1):
+        obj = hou.node("/obj")
+        if not hou.node('/obj/RGB_LIGHTRIG'):
+            rig_subnet = obj.createNode('subnet', 'RGB_LIGHTRIG')
+            null = rig_subnet.createNode('null')
+            #y_pointing_down
+            light = rig_subnet.createNode('hlight')
+            light.setName("Y_Pointing_Down")
+            light.parm('ogl_enablelight').set(0)
+            light.parm('light_type').set(7)
+            
+            light.parm('light_colorr').set(0.0)
+            light.parm('light_colorg').set(1.0)
+            light.parm('light_colorb').set(0.0)
+            
+            light.parm('tx').set(0.0)
+            light.parm('ty').set(5.0)
+            light.parm('tz').set(0.0)
+            
+            light.parm('rx').set(-90.0)
+            light.parm('ry').set(0.0)
+            light.parm('rz').set(0.0)
+            
+            light.setFirstInput(null)
+            
+            rig_bundle.addNode(light)
+        
+            #y_pointing_up
+            light = rig_subnet.createNode('hlight')
+            light.setName("Y_Pointing_Up")
+            light.parm('ogl_enablelight').set(0)
+            light.parm('light_type').set(7)
+            
+            light.parm('light_colorr').set(0.0)
+            light.parm('light_colorg').set(1.0)
+            light.parm('light_colorb').set(0.0)
+            
+            light.parm('tx').set(0.0)
+            light.parm('ty').set(-5.0)
+            light.parm('tz').set(0.0)
+            
+            light.parm('rx').set(90.0)
+            light.parm('ry').set(0.0)
+            light.parm('rz').set(0.0)
+            
+            light.setFirstInput(null)
+            
+            rig_bundle.addNode(light)
+        
+            #x_pointing_left
+            light = rig_subnet.createNode('hlight')
+            light.setName("X_Pointing_Left")
+            light.parm('ogl_enablelight').set(0)
+            light.parm('light_type').set(7)
+            
+            light.parm('light_colorr').set(1.0)
+            light.parm('light_colorg').set(0.0)
+            light.parm('light_colorb').set(0.0)
+            
+            light.parm('tx').set(5.0)
+            light.parm('ty').set(0.0)
+            light.parm('tz').set(0.0)
+            
+            light.parm('rx').set(0.0)
+            light.parm('ry').set(90.0)
+            light.parm('rz').set(0.0)
+            
+            light.setFirstInput(null)
+            
+            rig_bundle.addNode(light)
+        
+            #x_pointing_right
+            light = rig_subnet.createNode('hlight')
+            light.setName("X_Pointing_Right")
+            light.parm('ogl_enablelight').set(0)
+            light.parm('light_type').set(7)
+            
+            light.parm('light_colorr').set(1.0)
+            light.parm('light_colorg').set(0.0)
+            light.parm('light_colorb').set(0.0)
+            
+            light.parm('tx').set(-5.0)
+            light.parm('ty').set(0.0)
+            light.parm('tz').set(0.0)
+            
+            light.parm('rx').set(0.0)
+            light.parm('ry').set(-90.0)
+            light.parm('rz').set(0.0)
+            
+            light.setFirstInput(null)
+            
+            rig_bundle.addNode(light)
+        
+            #z_pointing_away_from_camera
+            light = rig_subnet.createNode('hlight')
+            light.setName("Z_Pointing_Away_From_Camera")
+            light.parm('ogl_enablelight').set(0)
+            light.parm('light_type').set(7)
+            
+            light.parm('light_colorr').set(0.0)
+            light.parm('light_colorg').set(0.0)
+            light.parm('light_colorb').set(1.0)
+            
+            light.parm('tx').set(0.0)
+            light.parm('ty').set(0.0)
+            light.parm('tz').set(5.0)
+            
+            light.parm('rx').set(0.0)
+            light.parm('ry').set(0.0)
+            light.parm('rz').set(0.0)
+            
+            light.setFirstInput(null)
+            
+            rig_bundle.addNode(light)
+        
+            #z_pointing_towards_camera
+            light = rig_subnet.createNode('hlight')
+            light.setName("Z_Pointing_Towards_Camera")
+            light.parm('ogl_enablelight').set(0)
+            light.parm('light_type').set(7)
+            
+            light.parm('light_colorr').set(0.0)
+            light.parm('light_colorg').set(0.0)
+            light.parm('light_colorb').set(1.0)
+            
+            light.parm('tx').set(0.0)
+            light.parm('ty').set(0.0)
+            light.parm('tz').set(-5.0)
+            
+            light.parm('rx').set(0.0)
+            light.parm('ry').set(180.0)
+            light.parm('rz').set(0.0)
+            
+            light.setFirstInput(null)
+            
+            rig_bundle.addNode(light)
+        
+            #orient lights to camera
+            camera_node = hou.node(hou.pwd().parm("camera").eval())
+            camera_rx = camera_node.parm('rx').path()
+            null_rx = null.parm('rx')
+            null_rx.setExpression("ch(\"%s\")" % camera_rx)
+            
+            camera_ry = camera_node.parm('ry').path()
+            null_ry = null.parm('ry')
+            null_ry.setExpression("ch(\"%s\")" % camera_ry)
+            
+            camera_rz = camera_node.parm('rz').path()
+            null_rz = null.parm('rz')
+            null_rz.setExpression("ch(\"%s\")" % camera_rz)
+        
+        mantra_node = hou.node(hou.pwd().parm("mantra_external").eval())
+        if mantra_node:
+            mantra_node.parm('excludelights').set('@rgb_lightrig')
+    else:
+        obj = hou.node("/obj")
+        rgb_lightrig = hou.node('/obj/RGB_LIGHTRIG')
+        if rgb_lightrig:
+            rgb_lightrig.destroy()
+    
+    #add direct image plane to separate the rgb lights in comp
+    #add_direct_image_plane()
+    
+def set_composite_view():
+    hda = hou.pwd()
+    currentDesktop = hou.ui.curDesktop()
+    compositeView = currentDesktop.paneTabOfType(hou.paneTabType.CompositorViewer)
+    networkEditor = currentDesktop.paneTabOfType(hou.paneTabType.NetworkEditor)
+    pwd = networkEditor.pwd()
+    preview_path = hou.node(hda.path() + "/COMPOSITING")
+    compositeView.setPwd(preview_path)
+    networkEditor.setPwd(pwd)
+    
+    

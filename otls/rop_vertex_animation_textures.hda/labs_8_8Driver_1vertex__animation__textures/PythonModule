@@ -1,0 +1,38 @@
+def write_minmax(node, type):
+    max = node.parm("max_value").eval()
+    min = node.parm("min_value").eval()
+    if (type=="rigid"):
+        max1 = node.parm("max_value2").eval()
+        min1 = node.parm("min_value2").eval()
+    minmaxfile = node.parm("minmax_file").eval()
+    
+    file_object = open(minmaxfile, 'w')
+    file_object.write("%s\n" % max)
+    file_object.write("%s\n" % min)
+    if (type=="rigid"):
+        file_object.write("%s\n" % max1)
+        file_object.write("%s\n" % min1)
+    
+    file_object.close()
+    
+def write_minmax_json(node, type):
+    import json
+    
+    max = node.parm("max_value").eval()
+    min = node.parm("min_value").eval()
+    if (type=="rigid"):
+        max1 = node.parm("max_value2").eval()
+        min1 = node.parm("min_value2").eval()
+    minmaxfile = node.parm("minmax_file").eval()
+    numframes = node.parm('num_frames').eval()
+    method = node.parm('method').eval()
+    
+    data = {}
+    #data['VAT Attributes'] = []
+    data['numframes'] = numframes
+    data['bbox_min'] = min
+    data['bbox_max'] = max
+    data['method'] = method
+        
+    with open(minmaxfile, 'w') as outfile:
+        json.dump(data, outfile, sort_keys=True, indent=4)

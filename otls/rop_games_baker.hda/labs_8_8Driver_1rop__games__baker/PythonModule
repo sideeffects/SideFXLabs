@@ -1,0 +1,323 @@
+"""
+   This node intends to simplify the baking process by handling the baking and extraction itself.
+   It handles normalization of maps and cleanup of unecessary files.
+
+"""
+import os, socket, uuid
+
+unique_id = None 
+
+def bake(bake_rop, path):
+    bake_rop.bypass(0)
+    bake_rop.parm("vm_uvoutputpicture1").set(path)
+    bake_rop.render()
+    bake_rop.bypass(1)
+
+def pre_bake(node):
+
+    # gather node references
+    bake_texture = node.node("baketexture")
+    custom_bake_node = node.node("custom_bake")
+    alpha_bake_node = node.node("alpha_bake")
+    singles_rop = node.node("render_singles")
+    composite_rop = node.node("render_composite")
+    comp_file = node.node("extract_net/base_image")
+    point_wrangle_node = node.node("objnet/custom_export/pointwrangle1")
+    low_node = node.node("objnet/low/object_merge1")
+    high_node = node.node("objnet/high/high_merge")
+
+    file_path, dir_path, temp_path = (None for i in range(3))
+    global unique_id
+
+    try:
+        # build the filepath for the exr
+        file_path = node.parm("base_path").eval()
+        dir_path = os.path.dirname(file_path)
+        temp_path = os.environ['HOUDINI_TEMP_DIR']
+        unique_id = uuid.uuid4()
+
+        if not os.path.exists(temp_path):
+            os.makedirs(temp_path)
+
+    except Exception as e: 
+        print(e)
+
+    bake_texture.parm("vm_bake_normalizep").set(0)
+
+    tmp_exrs = []
+    meshes_count = node.parm("meshes").eval()
+    for i in range(meshes_count):
+        low_mesh = node.parm("target_mesh_" + str(i+1)).eval()
+        high_mesh = node.parm("source_mesh_" + str(i+1)).eval()
+        
+        low_node.parm("objpath1").set(node.node(low_mesh).path())
+        if high_mesh:
+            high_node.parm("objpath1").set(node.node(high_mesh).path())
+        else:
+            high_node.parm("objpath1").set(node.node(low_mesh).path())
+
+        exr_path = temp_path + "/" + low_mesh.split("/")[-1] + "%s_tmp_%s.exr" % (unique_id, hou.intFrame())
+        if i == 0:
+            bake_texture.parm("vm_uvpostprocess").set("diffusefill")
+        else:
+            bake_texture.parm("vm_uvpostprocess").set("borderfill")
+        
+        bake(bake_texture, exr_path)
+        tmp_exrs.append(exr_path)
+
+    # generate composites
+    previous_file = None
+    previous_screen = None
+    for exr in tmp_exrs:
+        composite_net = node.node("composite_net")
+
+        file = composite_net.createNode("file")
+        file.parm("filename1").set(exr)
+        if previous_file:
+            screen = composite_net.createNode("over")
+            if previous_screen:
+                screen.setFirstInput(previous_screen)
+            else:
+                screen.setFirstInput(previous_file)
+            screen.parm("maskinput").set("first")
+            screen.parm("maskplane").set("alpha")
+            screen.parm("maskinvert").set(1)
+            screen.setNextInput(file)
+            screen.setDisplayFlag(1)
+            screen.setRenderFlag(1)
+            previous_screen = screen
+        else:
+            file.setDisplayFlag(1)
+            file.setRenderFlag(1)
+
+        previous_file = file
+
+    exr_path = os.path.join(temp_path, "%s_tmp_%s.exr" % (unique_id, hou.intFrame()))
+
+    composite_rop.parm("copoutput").set(exr_path)
+    composite_rop.parm("scopeplanes").set("*")
+    composite_rop.bypass(0)
+    composite_rop.render()
+    composite_rop.bypass(1)
+
+    extract_file = node.node("extract_net/base_image")
+    extract_file.parm("filename1").set(exr_path)
+
+    # Extract Maps
+    bake_parms = ["bake_basecolor", "bake_Nt", "bake_specrough", "bake_metallic", "bake_N", "bake_Oc", "bake_Cu", "bake_P", "bake_Th", "bake_Ds" ]
+    normalized_maps = ["Nt", "N"]
+    linear_maps = ['specrough', 'metallic', 'Oc', 'Cu', 'P']
+    remap_maps = ['Th', "Ds"]
+
+    if node.parm("bBasecolorLinearSpace").evalAsInt() == 1:
+        linear_maps.append("basecolor")
+
+    for bake_parm in bake_parms:
+        should_bake = node.parm(bake_parm).eval()
+        if should_bake:
+            channel_name = bake_parm.split("_")[-1]
+            singles_rop.parm("color").set(channel_name)
+            suffix = node.parm(channel_name + "_suffix").eval()
+
+            if channel_name in normalized_maps:
+                singles_rop.parm("coppath").set("../extract_net/normalized")
+                singles_rop.parm("gamma").set(1)
+
+            elif channel_name in linear_maps:
+                singles_rop.parm("coppath").set("../extract_net/base_image")
+                singles_rop.parm("gamma").set(1)
+
+            elif channel_name in remap_maps:
+                singles_rop.parm("coppath").set("../extract_net/height_normalized")
+                singles_rop.parm("gamma").set(1)
+            else:
+                singles_rop.parm("coppath").set("../extract_net/base_image")
+                singles_rop.parm("gamma").set(2.2)
+
+
+            new_path = file_path.replace("$(CHANNEL)", suffix)
+            singles_rop.parm("copoutput").set(new_path)
+            #extract_file.parm("reload").pressButton()
+            singles_rop.parm("scopeplanes").set("*")
+            singles_rop.bypass(0)
+            singles_rop.render()
+            singles_rop.bypass(1)
+        
+    for exr in tmp_exrs:
+        os.remove(exr)
+        
+    # Render out Custom Bake Nodes
+    custom_tmp_exrs = []
+    multiparm_count = node.parm("custom_channels").eval()
+    for i in range(multiparm_count):
+
+        for j in range(meshes_count):
+            low_mesh = node.parm("target_mesh_" + str(j+1)).eval()
+            high_mesh = node.parm("source_mesh_" + str(j+1)).eval()
+
+            low_node.parm("objpath1").set(node.node(low_mesh).path())
+            high_node.parm("objpath1").set(node.node(high_mesh).path())
+
+            exr_path = os.path.join(temp_path, low_mesh.split("/")[-1] + "%s_tmp_%s.exr" % (unique_id, hou.intFrame()))
+
+            if j == 0:
+                custom_bake_node.parm("vm_uvpostprocess").set("diffusefill")
+            else:
+                custom_bake_node.parm("vm_uvpostprocess").set("borderfill")
+            
+            custom_bake_node.bypass(0)
+            custom_bake_node.parm("vm_uvoutputpicture1").set(exr_path)
+            custom_bake_node.render()
+            custom_bake_node.bypass(1)
+            
+            custom_tmp_exrs.append(exr_path)
+
+        # generate composites
+        previous_file = None
+        previous_screen = None
+        for exr in custom_tmp_exrs:
+            composite_net = node.node("composite_net")
+            file = composite_net.createNode("file")
+            file.parm("filename1").set(exr)
+            if previous_file:
+                screen = composite_net.createNode("over")
+                if previous_screen:
+                    screen.setFirstInput(previous_screen)
+                else:
+                    screen.setFirstInput(previous_file)
+                screen.parm("maskinput").set("first")
+                screen.parm("maskplane").set("alpha")
+                screen.parm("maskinvert").set(1)
+                screen.setNextInput(file)
+                screen.setDisplayFlag(1)
+                screen.setRenderFlag(1)
+                previous_screen = screen
+            else:
+                file.setDisplayFlag(1)
+                file.setRenderFlag(1)
+
+            previous_file = file
+        
+            
+        suffix = node.parm("custom_attribute_suffix_" + str(i+1)).eval()
+        new_path = file_path.replace("$(CHANNEL)", suffix)
+        
+        custom_channel = node.parm("custom_attribute_name_" + str(i+1)).eval()
+        point_wrangle_node.parm("channel").set(custom_channel)
+        
+        exr_path = os.path.join(temp_path, "%s_tmp_%s.exr" % (unique_id, hou.intFrame()))
+        composite_rop.parm("copoutput").set(exr_path)
+        composite_rop.bypass(0)
+        composite_rop.render()
+        composite_rop.bypass(1)
+
+       # set params
+        singles_rop.parm("color").set("basecolor")
+        singles_rop.parm("coppath").set("../extract_net/base_image")
+        singles_rop.parm("copoutput").set(new_path)
+
+        # fire off render
+        singles_rop.bypass(0)
+        singles_rop.render()
+        singles_rop.bypass(1)
+
+    for exr in custom_tmp_exrs:
+        os.remove(exr)
+        
+    composite_net = node.node("composite_net")
+    for child in composite_net.children():
+        child.destroy()
+        
+    # Render out Alpha 
+    should_bake = node.parm("bake_alpha").eval()
+    if should_bake:
+        custom_tmp_exrs = []
+        multiparm_count = node.parm("custom_channels").eval()
+        
+        for j in range(meshes_count):
+            low_mesh = node.parm("target_mesh_" + str(j+1)).eval()
+            high_mesh = node.parm("source_mesh_" + str(j+1)).eval()
+
+            low_node.parm("objpath1").set(node.node(low_mesh).path())
+            high_node.parm("objpath1").set(node.node(high_mesh).path())
+
+            exr_path = os.path.join(temp_path, low_mesh.split("/")[-1] + "%s_tmp_%s.exr" % (unique_id, hou.intFrame()))
+
+            alpha_bake_node.parm("vm_uvpostprocess").set("borderfill")
+            
+            alpha_bake_node.bypass(0)
+            alpha_bake_node.parm("vm_uvoutputpicture1").set(exr_path)
+            alpha_bake_node.render()
+            alpha_bake_node.bypass(1)
+            
+            custom_tmp_exrs.append(exr_path)
+
+        # generate composites
+        previous_file = None
+        previous_screen = None
+        for exr in custom_tmp_exrs:
+            composite_net = node.node("composite_net")
+            file = composite_net.createNode("file")
+            file.parm("filename1").set(exr)
+            if previous_file:
+                screen = composite_net.createNode("over")
+                if previous_screen:
+                    screen.setFirstInput(previous_screen)
+                else:
+                    screen.setFirstInput(previous_file)
+                screen.parm("maskinput").set("first")
+                screen.parm("maskplane").set("alpha")
+                screen.parm("maskinvert").set(1)
+                screen.setNextInput(file)
+                screen.setDisplayFlag(1)
+                screen.setRenderFlag(1)
+                previous_screen = screen
+            else:
+                file.setDisplayFlag(1)
+                file.setRenderFlag(1)
+
+            previous_file = file
+        
+            
+        suffix = node.parm("alpha_suffix").eval()
+        new_path = file_path.replace("$(CHANNEL)", suffix)
+        
+        exr_path = os.path.join(temp_path, "%s_tmp_%s.exr" % (unique_id, hou.intFrame()))
+        composite_rop.parm("copoutput").set(exr_path)
+        composite_rop.bypass(0)
+        composite_rop.render()
+        composite_rop.bypass(1)
+
+       # set params
+        singles_rop.parm("color").set("alpha")
+        singles_rop.parm("coppath").set("../extract_net/base_image")
+        singles_rop.parm("copoutput").set(new_path)
+
+        # fire off render
+        singles_rop.bypass(0)
+        singles_rop.render()
+        singles_rop.bypass(1)
+    
+        for exr in custom_tmp_exrs:
+            os.remove(exr)
+            
+        composite_net = node.node("composite_net")
+        for child in composite_net.children():
+            child.destroy()
+            
+def post_bake(node):
+    # DELETE EXR FILE
+    #file_path = node.parm("base_path").eval()
+    #dir_path = os.path.dirname(file_path)
+    temp_path = os.environ['HOUDINI_TEMP_DIR']
+
+    exr_path = os.path.join(temp_path, "%s_tmp_%s.exr" % (unique_id, hou.intFrame()))
+    os.remove(exr_path)
+    hou.hscript("glcache -c;") #refresh textures
+
+
+def CheckExportPath(node):
+    try:
+        hou.node(node.path()+'/objnet/warningchecking/FrameRangeWarning').cook(force=True)
+    except:
+        pass

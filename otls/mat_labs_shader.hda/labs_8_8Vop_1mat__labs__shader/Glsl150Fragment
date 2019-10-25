@@ -1,0 +1,681 @@
+#version 330
+
+#line 1
+
+// Couple of PI global defines 
+#define M_PI 3.1415
+#define M_INV_PI 0.318
+
+in wparms
+{
+    vec4 pos;
+    vec3 normal;
+    vec4 color;
+    vec2 texcoord0;
+    noperspective in vec3 edgedist;
+    flat in int edgeflags;
+    float selected;
+    vec3 tangentu; 
+} fsIn;
+
+layout(std140) uniform glH_Material
+{
+    vec3            ambient_color;
+    vec3            diffuse_color;
+    vec3            emission_color;
+    vec3            specular_color;
+    vec3            metallic_color;
+    float           metal;
+    float           material_alpha;
+    float           material_alpha_parallel;
+    float           roughness;
+    float           diffuse_roughness;
+    float           ior;
+    float           reflection;
+    float           coat_intensity;
+    float           coat_roughness;
+    int             specular_model;
+    int             coat_spec_model;
+    float           specular_tint;
+
+    bool            use_geo_color;
+    bool            use_packed_color;
+
+    bool            has_textures;
+    bool            has_diffuse_map;
+    bool            has_spec_map;
+    bool            has_opacity_map;
+    bool            has_emission_map;
+    bool            has_normal_map;
+    bool            has_rough_map;
+    bool            has_displace_map;
+    bool            has_occlusion_map;
+    bool            has_metallic_map;
+    bool            has_coat_int_map;
+    bool            has_coat_rough_map;
+    bool            has_reflection_int_map;
+    bool            has_reflect_map;
+    
+    ivec4           diffuse_udim_area;
+    ivec4           spec_udim_area;
+    ivec4           opacity_udim_area;
+    ivec4           emission_udim_area;
+    ivec4           normal_udim_area;
+    ivec4           rough_udim_area; 
+    ivec4           displace_udim_area;
+    ivec4           occlusion_udim_area;
+    ivec4           metallic_udim_area;
+    ivec4           coat_int_udim_area;
+    ivec4           coat_rough_udim_area;
+    ivec4           reflection_udim_area;
+    
+    bool            has_env_map;
+    vec3            envScale;
+    mat3            envRotate;
+
+    vec2            normalMapScaleShift;
+    vec2            normalMapScale;
+    vec3            normalMapXYZScale;
+    int             normal_map_type; // space: 0=tangent, 1=world  
+    int             normal_map_ncomps; // 2 or 3 component
+
+    int             displace_space;
+    float           displace_scale;
+    float           displace_offset;
+    bool            displace_y_up; // vs. z-up
+
+    bool            invert_opacitymap;
+    
+    bool            invert_roughmap;
+    vec4            rough_comp;
+    
+    vec4            occlusion_comp;
+    vec4            metallic_comp;
+    vec4            coat_int_comp;
+    vec4            coat_rough_comp;
+
+    bool            reflection_as_ior;
+    vec4            reflection_comp;
+};
+
+vec4  HOUsampleDiffuseMap(vec2 tx);
+vec3  HOUsampleEmissionMap(vec2 tx);
+float HOUsampleOpacityMap(vec2 tx, bool invert);
+
+uniform sampler2D glH_OcclusionMap;
+uniform sampler2DArray glH_OcclusionArrayMap;
+uniform sampler2D glH_MetallicMap;
+uniform sampler2DArray glH_MetallicArrayMap;
+vec4 HOUsampleGenericMap(vec2 coords,
+                         sampler2D reg_map,
+                         sampler2DArray array_map,
+                         ivec4 udim_area);
+
+uniform int glH_LightingEnabled;
+uniform int glH_MaterialPass;
+uniform samplerCube glH_EnvMap;
+uniform float glH_SceneIOR;
+uniform float glH_Specular;
+
+// needed to move the reflection vectors around 
+uniform mat4    glH_InvViewMatrix;
+uniform mat4    glH_ViewMatrix;
+uniform mat4    glH_ProjectMatrix;
+uniform mat3    glH_NormalMatrix;
+
+// number of samples for the cubemaps 
+uniform int nbSamples;
+uniform int nbSamples_diff;
+
+// options for turning on different preferences
+uniform bool importance_sampling;
+uniform bool importance_sampling_diffuse;
+uniform bool invert_rough;
+
+uniform bool use_mikkt; // Use the model tangents
+
+uniform float horizon_fade; // Marmoset Style Horizon Fade 
+
+// occlusion multiplier 
+uniform float occlusion;
+
+uniform float transparency;
+
+uniform float albedo_multiplier; // TODO: Hoook this up
+
+void  HOUlightingModel(vec3 P, vec3 nN,
+                       vec3 m_amb,
+                       vec3 m_diff,
+                       vec3 m_spec,
+                       vec3 m_metal,
+                       inout vec3 lAmb,
+                       inout vec3 lDiff,
+                       inout vec3 lSpec,
+                       float rough,
+                       float diff_rough,
+                       float ior,
+                       float metal,
+                       int spec_model,
+                       float alpha);
+
+void HOUassignOutputs(vec3 point_color,
+                      vec3 emit_color,
+                      vec3 metal_color,
+                      vec3 amb_color,
+                      vec3 diff_color,
+                      vec3 spec_color,
+                      float alpha,
+                      float emit_alpha,
+                      float rough,
+                      float diff_rough,
+                      float ior,
+                      float metal,
+                      float coat_intensity,
+                      float coat_rough,
+                      vec4 wire,
+                      vec3 nN,
+                      float depth,
+                      float selected,
+                      int lighting_model,
+                      int coat_model);
+vec4 HOUwireColor(vec3 edges, int edgeflags, float selected);
+float HOUfresnel(float alpha_perp, float alpha_para, vec3 nN, vec3 p);
+float HOUreflectionIOR(vec3 eye, vec3 n, float ior_surface, float ior_scene);
+
+void HOUapplyLightMaps(inout vec3 mspec, inout float rough,
+                       bool has_spec_map, vec2 uv,
+                       bool invert_rough, vec4 rough_comp);
+
+vec4 HOUenvmapReflect(samplerCube map, vec3 nN, vec3 p, mat3 envRotate,
+                      vec3 envScale, float r, bool correct, vec3 correctvec);
+vec3 HOUapplyNormalMap(vec3 P, vec3 N, vec2 uv);
+vec3 HOUfrontFacing(vec3 n, vec3 p);
+
+uniform sampler2D      glH_NormalMap;
+uniform sampler2DArray glH_NormalArrayMap;
+
+// expose normal map sampling function at this level
+// this is usually in an include a few levels down 
+vec3 RT_sampleNormalMap(vec2 coords, bool scale)
+{
+    vec3 n;
+    if(normal_udim_area.z == 0)
+    {
+        // Normal texturing
+        n = texture(glH_NormalMap, coords).xyz;
+    }
+    else
+    {
+        // UDIM code
+        coords -= vec2(normal_udim_area.xy);
+        
+        vec2 mapxy = floor(coords);
+
+        if(mapxy.x < 0 || mapxy.x > normal_udim_area.z)
+            return vec3(0.0, 0.0, 1.0);
+        if(mapxy.y < 0 || mapxy.y > normal_udim_area.w)
+            return vec3(0.0, 0.0, 1.0);
+
+        vec2 mapuv = coords - mapxy;
+        float map = mapxy.x + mapxy.y * normal_udim_area.z;
+        int  nlayers = textureSize(glH_NormalArrayMap, 0).z;
+        if(map < 0 || map >= nlayers)
+            return vec3(0.0, 0.0, 1.0);
+        
+        n = texture(glH_NormalArrayMap, vec3(mapuv, map)).xyz;
+    }
+    
+    n = n * normalMapScaleShift.x + normalMapScaleShift.y;
+    n *= normalMapXYZScale;
+    
+    if(normal_map_ncomps == 2)
+        n.z = sqrt(1.0 - dot(n.xy, n.xy));
+    
+    return n;
+}
+
+// used to look up a random value in order to do the blurring of the cubemaps 
+vec2 hammersley2d(uint i, uint N) 
+{
+    uint bits = (i << 16u) | (i >> 16u);
+    bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
+    bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
+    bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
+    bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
+    float rdi = float(bits) * 2.3283064365386963e-10;
+    return vec2(float(i) /float(N), rdi);
+}
+
+// GGX microfacet required functions under single scattering assumption
+// gives us a new half vector rotated by some random weight based on roughness
+vec3 ImportanceSampleGGX(vec2 xi, float roughness, vec3 normal)
+{
+    float alpha2        = roughness * roughness;
+    float phi           = 2.0 * M_PI * xi.x;
+    float cos_theta     = sqrt((1.0 - xi.y) / (1.0 + (alpha2 - 1.0) * xi.y));
+    float sin_theta     = sqrt(1.0 - cos_theta * cos_theta);
+    
+    // Compute the vector from the sampled theta/phi
+    vec3 half;
+    half.x = sin_theta * cos(phi);
+    half.y = sin_theta * sin(phi);
+    half.z = cos_theta;
+    
+    // Compute a shading frame    
+    vec3 up = abs(normal.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+    vec3 tangent_x = normalize(cross(normal, up));
+    vec3 tangent_y = cross(tangent_x, normal);
+
+    // Return the vector in the shading frame
+    return tangent_x * half.x + tangent_y * half.y + normal * half.z;
+}
+
+// The GGX microfacet model is F.D.G / 4.cos_theta_i.cos_theta_o
+
+// Fresnel term: (F)
+// Fast Fresnel Schlick
+vec3 FresnelSchlick(float costheta, vec3 F0)
+{
+    return clamp(F0 + (1.0 - F0) * pow(1.0 - costheta, 5.0), 0, 1);
+}
+
+// Since we use a filtered cubemap for environment lighting
+// our fresnel is slightly modified to incorporate the roughness term also
+// https://seblagarde.wordpress.com/2011/08/17/hello-world/
+vec3 FresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return clamp(F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0),0,1);
+}
+
+// Geometry term (G)
+// https://google.github.io/filament/Filament.md.html
+// filament docs: equation 15 - without pulling out the 1/(4.costheta_i.costheta_o) terms
+float GeometrySmith(float nDotV, float nDotL, float roughness)
+{
+    float a2 = roughness * roughness;
+    float factor = 1.0 - a2;
+    float GGXV = nDotL * sqrt(nDotV * nDotV * factor + a2);
+    float GGXL = nDotV * sqrt(nDotL * nDotL * factor + a2);
+
+    return clamp((2.0 * nDotV * nDotL)/(GGXV + GGXL), 0, 1);
+}
+
+// Distribution of visible microfacets term (D)
+float D_GGX(float NoH, float alpha) {
+    float alpha2 = alpha * alpha;
+    float f = (NoH * NoH * (alpha2 - 1) + 1);
+    return alpha2 / (f * f);
+}
+
+// GGX correction equations
+// Please refer to: https://dassaultsystemes-technology.github.io/EnterprisePBRShadingModel/spec.md.html
+float ggx_Em(float costheta, float alpha_xy)
+{
+    return 1.0 - 1.4594 * alpha_xy * costheta
+        * (-0.20277 + alpha_xy * (2.772 + alpha_xy * (-2.6175 + 0.73342 * alpha_xy)))
+        * (3.09507 + costheta * (-9.11369 + costheta * (15.8884 + costheta * ( -13.70343 + 4.51786 * costheta))));              
+}
+
+float ggx_Em_avg(float alpha_xy)
+{
+    return 1.0 + alpha_xy * (-0.133 + alpha_xy * (-1.8695 + alpha_xy * (2.2268 - 0.83397 * alpha_xy)));
+}
+
+vec3 ggx_Fm_avg(vec3 F0, vec3 F90)
+{
+    return 0.047619 * F90 + 0.952381 * F0;
+}
+
+float ggx_multiple_scatter_correction(float costheta_i, float costheta_o, float alpha_xy)
+{
+    return (1.0 - ggx_Em(costheta_i, alpha_xy)) * (1.0 - ggx_Em(costheta_o, alpha_xy)) / (M_PI * (1.0 - ggx_Em_avg(alpha_xy)));
+}
+
+vec3 ggx_multiple_fresnel_correction(vec3 F0, vec3 F90, float alpha_xy)
+{
+    vec3 Fm_avg = ggx_Fm_avg(F0, F90);
+    vec3 Fm_avg2 = Fm_avg * Fm_avg;
+    float Em_avg = ggx_Em_avg(alpha_xy);
+    return Fm_avg2 * Em_avg / (1.0 - Fm_avg * (1.0 - Em_avg));
+}
+
+vec3 ggx_correction(vec3 F0, vec3 F90, float costheta_i, float costheta_o, float alpha_x, float alpha_y)
+{
+    float alpha_xy = alpha_x * alpha_y;
+    return ggx_multiple_scatter_correction(costheta_i, costheta_o, alpha_xy) * 
+           ggx_multiple_fresnel_correction(F0, F90, alpha_xy);
+}
+
+// this overrides the previous cubemap sample, it has both a method with the blurring 
+// and one where it doesnt. The blurring is obviously more expensive, but looks better
+// did my best to keep both close 
+vec4
+RT_HOUenvmapReflect(samplerCube map, vec3 normal, vec3 view, mat3 envRotate,
+                 vec3 envScale, float roughness, bool correction,
+                 vec3 in_normal, vec3 specColor)
+{
+    vec3 N = normalize(inverse(mat3(glH_NormalMatrix))* normal) ;
+    vec3 V = normalize(mat3(glH_InvViewMatrix) * view) ;
+
+    float NoV = clamp(dot(N, V), 0, 1);
+    float texture_size  = textureSize(map, 0).x;
+    if (importance_sampling)
+    {
+        vec3 dir                = reflect(normalize(-V), N);    
+        float linear_rough      = roughness * roughness;        
+        
+        uint num_samples        = uint(nbSamples);
+        vec3 vPrefilteredColor  = vec3(0);
+                
+        for (uint i = uint(0); i < num_samples; i++)
+        {
+            vec2 xi     = hammersley2d(i, num_samples);
+            vec3 H      = normalize(ImportanceSampleGGX(xi, linear_rough, N));
+            vec3 L      =  normalize( 2.0 * dot(V, H) * H - V) ;
+             L = reflect(normalize(-V), N);;
+            float NoH = clamp(dot(N, H), 0, 1);
+            float NoL = clamp(dot(N, L), 0, 1);
+            float VoH = clamp(dot(V, H), 0, 1);
+            float LoH = clamp(dot(L, H), 0, 1);
+
+            if (NoL > 0.0)
+            {
+                
+                // Compute the terms of the microfacet bsdf
+                vec3    F = FresnelSchlickRoughness(VoH, specColor, linear_rough);
+                float   D = D_GGX(NoH, linear_rough);
+                float   G = GeometrySmith(NoV, NoL, roughness);
+                
+                // Probability Distribution Function
+                float fPdf  = D * NoH / (4.0 * VoH); 
+                
+                // Compute estimator F.D.V / pdf
+                //vec3 estimator = F * G * VoH * NoL / NoH;
+                vec3 estimator = F * G * VoH / (NoH * NoV);
+                // Solid angle represented by this sample
+                float fOmegaS = 1.0 / (num_samples * fPdf);
+        
+                // Solid angle covered by 1 pixel with 6 faces that are EnvMapSize X EnvMapSize
+                float fOmegaP = 4.0 * M_PI / (6.0 * texture_size * texture_size);
+                // Original paper suggest biasing the mip to improve the results
+                float fMipBias  = 5.0;
+                float fMipLevel = max(0.5 * log2(fOmegaS / fOmegaP) + fMipBias, 0.0);
+                        
+                vec3 correction    = ggx_correction(specColor, vec3(1), abs(LoH), abs(VoH), roughness, roughness);
+                //L = mix(L, N, linear_rough);
+                vPrefilteredColor += textureLod(map, envRotate * L , fMipLevel).rgb * (estimator ) ;
+            }
+        }
+        return vec4(vPrefilteredColor / nbSamples, 1);
+    }else{
+        
+        vec3 dir = reflect(normalize(-view), normal);
+        vec3 r_uv =  mat3(glH_InvViewMatrix) * envRotate *dir;
+        
+        float NdotV = clamp(dot(normal, view),0.001,1);
+
+        float Fc = pow( 1 - NdotV, 5 );
+        vec3 F = vec3((1 - Fc) * specColor + Fc); 
+        
+        float G =  GeometrySmith(1,1,roughness);
+        vec3 correction = ggx_correction(specColor, vec3(1), abs(NdotV), abs(NdotV), roughness, roughness);   
+           
+    return vec4(envScale * textureLod(map, r_uv, (sqrt(sqrt(roughness))) * (log2(texture_size)+1)  ).rgb * (G * F + correction), 1);
+
+    }
+}
+
+// this overrides the diffuse cubemap lookup, by doing a different convolution
+vec4
+RT_HOUdiffenvmapReflect(samplerCube map, vec3 normal, vec3 view, mat3 envRotate,
+                 vec3 envScale, float roughness, bool correction,
+                 vec3 correct)
+{
+    float texture_size  = textureSize(map, 0).x;
+    vec3 wNormal        = normalize(inverse(mat3(glH_NormalMatrix)) * normal)  ;
+    if (importance_sampling_diffuse)
+    {
+        vec3 irradiance = vec3(0.0);
+        vec3 up         = vec3(0.0, 1.0, 0.0);
+        vec3 right      = cross(up, wNormal);
+        up              = cross(wNormal, right);
+        
+        float inv_nsamples     = 1.0 / float(nbSamples_diff);
+        float samplePhiDelta   = 2.0 * M_PI * inv_nsamples;
+        float sampleThetaDelta = 0.5 * M_PI * inv_nsamples;
+        float nrSamples   = 0.0;
+        
+        for(float phi = 0.0; phi < 2.0 * M_PI; phi += samplePhiDelta)
+        {
+            for(float theta = 0.0; theta < 0.5 * M_PI; theta += sampleThetaDelta)
+            {
+                // spherical to cartesian (in tangent space)
+                vec3 tangentSample = vec3(sin(theta) * cos(phi),  sin(theta) * sin(phi), cos(theta));
+
+                // tangent space to world
+                vec3 sampleVec = tangentSample.x * right + tangentSample.y * up + tangentSample.z * wNormal; 
+                
+                irradiance += textureLod(map, envRotate * sampleVec, 4).rgb * cos(theta) * sin(theta);
+                
+                nrSamples++;
+            }
+        }
+        irradiance = irradiance * (1.0 / float(nrSamples)) ;
+        return vec4(irradiance, 1);
+    }else{
+        
+        vec3 dir = reflect(normalize(-view), normal);
+        vec3 r_uv = envRotate * mat3(glH_InvViewMatrix) * dir;
+        
+        float NdotV = clamp(dot(normal, view),0.001,1);
+        float Fc = clamp(pow( NdotV, 5 )+ 0.5,0,1)  ;
+                     
+        float G =  GeometrySmith(NdotV, 1, roughness*roughness);
+
+        return vec4(textureLod(map,  envRotate * wNormal, 11).rgb ,1) * 1/M_PI ;
+    }
+}
+
+void main()
+{
+    vec3 nN, p;
+    vec3 lspec, ldiff, lamb, ptcol;
+    vec4 tex = vec4(1.0);
+    vec3 mspec, memit;
+    vec3 envmap;
+    vec4 wire;
+
+    float rough, alpha, mtl, diff_rough;
+
+    p = fsIn.pos.xyz / fsIn.pos.w;
+    ptcol = fsIn.color.rgb * fsIn.color.a;
+
+    lamb  = vec3(0.0);
+    ldiff = vec3(1.0);
+    lspec = vec3(0.0);
+    envmap = vec3(0.0);
+    mtl = metal;
+
+    if(has_diffuse_map)
+    {
+        tex = HOUsampleDiffuseMap(fsIn.texcoord0); 
+    }
+    
+    if(has_opacity_map)
+        tex.a *= HOUsampleOpacityMap(fsIn.texcoord0, invert_opacitymap);
+    
+    tex.a *= 1-transparency;
+    
+    if(has_emission_map)
+        memit = HOUsampleEmissionMap(fsIn.texcoord0);
+    else
+        memit = vec3(0.0);
+
+    float occ = 1.0;
+    if(has_occlusion_map)
+    {
+        occ *= dot(HOUsampleGenericMap(fsIn.texcoord0,
+                                           glH_OcclusionMap,
+                                           glH_OcclusionArrayMap,
+                                           occlusion_udim_area),
+                       occlusion_comp);
+        
+    }
+    occ = mix(1, occ, occlusion);
+    if(has_metallic_map)
+        mtl *= dot(HOUsampleGenericMap(fsIn.texcoord0,
+                                       glH_MetallicMap,
+                                       glH_MetallicArrayMap,
+                                       metallic_udim_area),
+                   metallic_comp);
+
+    nN = fsIn.normal;
+    rough = roughness;
+    vec3 nml;
+    
+    if(glH_LightingEnabled != 0)
+    {
+        vec3 diff = vec3(1.0);
+        mspec = vec3(1.0);
+        
+        // IOR to Spec Color math 
+        float ior_spec = pow((ior-1)/(ior+1),2);
+
+        // mix the spec color with the full albedo contribution 
+        // this is for the specular highlight
+
+        vec3 spec_color = mix( vec3(ior_spec) , ptcol * diffuse_color * tex.rgb,  mtl);
+        
+        if(has_normal_map)
+        {
+            if(use_mikkt)
+            {
+    
+                vec3 tan = fsIn.tangentu;
+                vec3 bitan = cross(nN, tan);
+                nml = RT_sampleNormalMap(fsIn.texcoord0, false);
+                mat3 nml_mat = mat3(tan , bitan , nN);
+     
+                nN =  (nml_mat * nml);
+            
+            }else{
+            
+                nN = HOUapplyNormalMap(p, nN, fsIn.texcoord0);
+                
+            }
+        }
+        
+        float rough_map = 1.0;
+        HOUapplyLightMaps(mspec, rough_map, has_spec_map , fsIn.texcoord0,
+                          false, rough_comp);
+                           
+        rough *= pow(rough_map,2.2); // needed to match Mantra 
+        
+        diff_rough = roughness;
+
+        // roughness maps are commonly inverted (gloss maps) so a toggle is 
+        // very useful 
+        if (invert_rough)
+        {
+            rough = 1 - rough; 
+        } 
+        
+        
+        diff_rough *= rough_map;
+        alpha = fsIn.color.a * tex.a;
+
+        nN = HOUfrontFacing(nN, p);
+
+        float refl = HOUreflectionIOR(-p, nN, ior, glH_SceneIOR);
+        
+        diff *= alpha;
+        
+        if(!has_env_map)
+            lspec += vec3(refl) * mspec * (1-alpha) * 0.5;
+  
+            lamb  = vec3(0.0);  
+            ldiff = vec3(0.0);
+            lspec = vec3(0.0); 
+            
+            // clamping the roughness so the sun never disappears 
+            // also gamma correcting the Roughness 
+            rough = pow(max(0.04, rough), 1);
+            
+            // hardcoding the ambient color since 
+            HOUlightingModel(p, nN, vec3(1), diff, spec_color,
+                             vec3(1), lamb, ldiff, lspec,
+                             rough, rough, ior, mtl, 2,alpha);
+             
+            
+            // counter an internal *30 in the ggx math when metallic
+            lspec = mix(lspec, lspec * 1/30, mtl);
+    
+            #ifndef MAT
+            #define MAT(m) m  
+            #endif  
+             
+            // Needs: 
+            // float reflect, mtl, alpha, rough, glH_Ambient
+            // vec3 nN, mspec, lamb, p, ldiff
+        
+            vec3 diffenv = RT_HOUdiffenvmapReflect(glH_EnvMap, nN, normalize(-p), MAT(envRotate), MAT(envScale), rough, false, spec_color).rgb ;
+            
+            envmap = RT_HOUenvmapReflect(glH_EnvMap, nN, normalize(-p), MAT(envRotate), MAT(envScale),
+                                     rough, false, fsIn.normal, spec_color).rgb * lamb *M_PI ;
+    
+            // horizon smoothing http://marmosetco.tumblr.com/post/81245981087
+            float horiz = clamp ( 1 + horizon_fade * dot(reflect(normalize(p), nN), fsIn.normal), 0, 1);
+            horiz *= horiz;
+    
+            envmap *= horiz;
+            
+            // kill the ambient if we're metallic                  
+            lamb = mix(lamb, vec3(0), mtl);
+            diffenv *= M_PI * lamb * M_PI;
+    
+            ldiff += (diffenv   ); 
+            ldiff *= diffuse_color;
+            lamb = vec3(0);
+            
+        // high quality lighting pass 
+        if(glH_MaterialPass != 0) 
+        {
+            rough = (rough*rough);
+            vec3    F = FresnelSchlickRoughness(clamp(dot(p, nN),0,1), spec_color, rough);
+            lspec = mix(vec3(spec_color)  * M_PI, spec_color * M_INV_PI, mtl); 
+            
+            lamb  = vec3(0);  
+            ldiff = vec3(1);
+            
+        }
+    }
+    else
+    { 
+        lspec = vec3(0.0);
+        ldiff = diffuse_color;
+  
+        lamb = ambient_color;
+    }  
+
+    wire = HOUwireColor(fsIn.edgedist,fsIn.edgeflags,fsIn.selected);
+    
+    HOUassignOutputs(ptcol,
+                     emission_color + memit, 
+                     metallic_color, 
+                     lamb *occ,  
+                     ldiff * tex.rgb * occ , 
+                     (lspec  +  envmap ) *occ , 
+                     alpha,    
+                     wire.a, 
+                     rough,  
+                     diff_rough, 
+                     ior,  
+                     mtl,
+                     coat_intensity,
+                     coat_roughness,  
+                     wire, 
+                     nN,  
+                     p.z,   
+                     fsIn.selected,
+                     specular_model, coat_spec_model);
+}

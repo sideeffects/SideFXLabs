@@ -1,0 +1,239 @@
+# Dialog script for gamedev::rop_marmoset_export automatically generated
+
+{
+    name	gamedev::rop_marmoset_export
+    script	gamedev::rop_marmoset_export
+    label	"GameDev Marmoset ROP"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    groupradio {
+        name    "folder2"
+        label   "Mview Render"
+
+        parm {
+            name    "bOpenMarmoset"
+            label   "Open Marmoset Viewer after Export"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "vm_picture2"
+            label   "Output"
+            type    file
+            default { "$HIP/render/$HIPNAME.$OS.mview" }
+            menureplace {
+                [ "opmenu -l mantra1 vm_picture" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "btnCreateMview"
+            label   "Create Mview"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hm().MviewRender()" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupradio {
+        name    "folder2_1"
+        label   "Image Render"
+        tabbreak
+
+        parm {
+            name    "res_override"
+            label   "Resolution"
+            type    intvector2
+            joinnext
+            size    2
+            default { "1920" "1080" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "res_overrideMenu"
+            label   "Choose Resolution"
+            type    button
+            nolabel
+            default { "0" }
+            menumini {
+                [ "echo `pythonexprs(\"__import__('toolutils').parseDialogScriptMenu('FBres')\")`" ]
+            }
+            parmtag { "script_callback" "opparm . res_override ( `arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)` aspect_override ( `arg(\"$script_value\", 2)` )" }
+        }
+        parm {
+            name    "mSampling"
+            label   "Sampling"
+            type    ordinal
+            joinnext
+            default { "16" }
+            menu usetokenvalue {
+                "1"     "1x"
+                "4"     "4x"
+                "9"     "9x"
+                "16"    "16x"
+                "25"    "25x"
+                "100"   "100x"
+                "400"   "400x"
+            }
+        }
+        parm {
+            name    "bTransparentBg"
+            label   "Transparent Background"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "vm_picture"
+            label   "Output Picture"
+            type    file
+            default { "$HIP/render/$HIPNAME.$OS.png" }
+            menureplace {
+                [ "opmenu -l mantra1 vm_picture" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "btnRenderImage"
+            label   "Render Image"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hm().ImageRender()" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder3"
+        label   "Rendering"
+
+        parm {
+            name    "camera"
+            label   "Camera"
+            type    oppath
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!OBJ/CAMERA!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "iFrameType"
+            label   "Valid Frame Range"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Render Current Frame"
+                "1" "Render Frame Range"
+            }
+        }
+        parm {
+            name    "uFrameRange"
+            label   "Frame Range"
+            type    intvector2
+            size    2
+            default { "$RFSTART" "$RFEND" }
+            disablewhen "{ iFrameType == 0 }"
+            range   { -1 1 }
+        }
+        parm {
+            name    "vobject"
+            label   "Candidate Objects"
+            type    oplist
+            default { "" }
+            help    "Objects will not be output if their display flag is off"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!OBJ!!" }
+            parmtag { "oprelative" "/obj" }
+        }
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Settings"
+
+        parm {
+            name    "bCustomSkyLight"
+            label   "Use Custom"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "mSkyLightPreset"
+            label   "Preset"
+            type    ordinal
+            default { "Hedge Row.tbsky" }
+            disablewhen "{ bCustomSkyLight == 1 }"
+            menu {
+                "Berlin Underpass.tbsky"        "Berlin Underpass"
+                "Bolonga Portico.tbsky"         "Bolongo Portico"
+                "Canada Glacier.tbsky"          "Canada Glacier"
+                "Castle Sunset.tbsky"           "Castle Sunset"
+                "Desert Road.tbsky"             "Desert Road"
+                "Ennis House.tbsky"             "Ennis House"
+                "Evening Clouds.tbsky"          "Evening Clouds"
+                "Evening Construction.tbsky"    "Evening Construction"
+                "Forest Path.tbsky"             "Forest Path"
+                "Garage.tbsky"                  "Garage"
+                "Grace Cathedral.tbsky"         "Grace Cathedral"
+                "Hedge Row.tbsky"               "Hedge Row"
+                "Indoor Fluorescents.tbsky"     "Indoor Fluorescents"
+                "Iowa Sunset.tbsky"             "Iowa Sunset"
+                "Lands End.tbsky"               "Lands End"
+                "Late Day Field.tbsky"          "Late Day Field"
+                "Mountain Sunset.tbsky"         "Mountain Sunset"
+                "Museum.tbsky"                  "Museum"
+                "Narita Plaza.tbsky"            "Narita Plaza"
+                "Overcast Hillside.tbsky"       "Overcast Hillside"
+                "Pisa Courtyard.tbsky"          "Pisa Courtyard"
+                "Smashed Windows.tbsky"         "Smashed Windows"
+                "St Nicholas Church.tbsky"      "St Nicholas Church"
+                "Tokyo Takeshita.tbsky"         "Tokyo Takeshita"
+                "Uffizi Gallery.tbsky"          "Ufizzi Gallery"
+            }
+        }
+        parm {
+            name    "sCustomSkyLight"
+            label   "Custom"
+            type    image
+            default { "" }
+            disablewhen "{ bCustomSkyLight == 0 }"
+        }
+        parm {
+            name    "sMarmosetInstall"
+            label   "Marmoset"
+            type    file
+            default { "C:\\Program Files\\Marmoset\\Toolbag 3\\toolbag.exe" }
+        }
+    }
+
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+}

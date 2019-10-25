@@ -1,0 +1,211 @@
+# Dialog script for gamedev::sop_terrain_segment_rop automatically generated
+
+{
+    name	gamedev::sop_terrain_segment_rop
+    script	gamedev::sop_terrain_segment_rop
+    label	"GameDev Terrain Mesh ROP"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Heightfield"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder2"
+        label   "Segmenting"
+
+        parm {
+            name    "layer"
+            label   "Height Layer"
+            type    string
+            default { "height" }
+            menureplace {
+                [ "opmenu -l convertheightfield1 layer" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tilecount"
+            label   "Tile Count"
+            type    intvector2
+            size    2
+            default { "4" "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "parm4"
+            label   "Visualize"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Meshing"
+
+        parm {
+            name    "rows"
+            label   "Base Density"
+            type    float
+            default { "1" }
+            range   { 0.001! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bAdaptiveDensity"
+            label   "Adaptive Density"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "parm3"
+            label   "Num Density Levels"
+            type    integer
+            default { "1" }
+            disablewhen "{ bAdaptiveDensity == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "iterations"
+            label   "Density Disribution"
+            type    integer
+            default { "50" }
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "parm2"
+            label   "Density Falloff"
+            type    ramp_flt
+            default { "2" }
+            disablewhen "{ bAdaptiveDensity == 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+        }
+    }
+
+    groupsimple {
+        name    "folder6"
+        label   "UVs"
+
+        parm {
+            name    "bZeroOneUVs"
+            label   "0-1 UV per segment"
+            type    toggle
+            default { "0" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Extrusion"
+
+        parm {
+            name    "doextrude"
+            label   "Extrude Base"
+            type    toggle
+            default { "off" }
+            disablewhen "{ conversion == vdb }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "depth"
+            label   "Depth"
+            type    float
+            default { "-1" }
+            disablewhen "{ doextrude == 0 }"
+            range   { -10 0 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "basenormal"
+            label   "Base Normal"
+            type    vector
+            size    3
+            default { "0" "1" "0" }
+            disablewhen "{ doextrude == 0 }"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "flat"
+            label   "Flatten Base"
+            type    toggle
+            default { "on" }
+            disablewhen "{ depth == 0 } { doextrude == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder3"
+        label   "Output"
+
+        parm {
+            name    "bSingleFile"
+            label   "Single File"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "sopoutput"
+            label   "Output File(s)"
+            type    file
+            default { "$HIP/geo/TerrainChunk" }
+            menureplace {
+                [ "opmenu -l rop_geometry1 sopoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "exportkind"
+            label   "Export in ASCII Format"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sdkversion"
+            label   "FBX SDK Version"
+            type    string
+            default { "" }
+            menu {
+                [ "opmenu -l OUT/filmboxfbx1 sdkversion" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "parm"
+            label   "Export"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "hou.node('python3').cook(force=True)" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "fIteration"
+        label   "Label"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+}

@@ -1,0 +1,226 @@
+#version 330
+//#define SKIP
+
+in wparms
+{
+    vec4 pos;
+    vec3 normal;
+    vec4 color;
+    vec2 texcoord0;
+    noperspective in vec3 edgedist;
+    flat in int edgeflags;
+    float selected;
+} fsIn;
+
+out vec4 color;
+
+uniform mat4    glH_ViewMatrix;
+
+layout(std140) uniform glH_Material
+{
+    vec3            ambient_color;
+    vec3            diffuse_color;
+    vec3            emission_color;
+    vec3            specular_color;
+    vec3            metallic_color;
+    float           metal;
+    float           material_alpha;
+    float           material_alpha_parallel;
+    float           roughness;
+    float           diffuse_roughness;
+    float           ior;
+    float           reflection;
+    float           coat_intensity;
+    float           coat_roughness;
+    int             specular_model;
+    int             coat_spec_model;
+    float           specular_tint;
+
+    bool            use_geo_color;
+    bool            use_packed_color;
+
+    bool            has_textures;
+    bool            has_diffuse_map;
+    bool            has_spec_map;
+    bool            has_opacity_map;
+    bool            has_emission_map;
+    bool            has_normal_map;
+    bool            has_rough_map;
+    bool            has_displace_map;
+    bool            has_occlusion_map;
+    bool            has_metallic_map;
+    bool            has_coat_int_map;
+    bool            has_coat_rough_map;
+    bool            has_reflection_int_map;
+    bool            has_reflect_map;
+    
+    ivec4           diffuse_udim_area;
+    ivec4           spec_udim_area;
+    ivec4           opacity_udim_area;
+    ivec4           emission_udim_area;
+    ivec4           normal_udim_area;
+    ivec4           rough_udim_area; 
+    ivec4           displace_udim_area;
+    ivec4           occlusion_udim_area;
+    ivec4           metallic_udim_area;
+    ivec4           coat_int_udim_area;
+    ivec4           coat_rough_udim_area;
+    ivec4           reflection_udim_area;
+    
+    bool            has_env_map;
+    vec3            envScale;
+    mat3            envRotate;
+
+    vec2            normalMapScaleShift;
+    vec2            normalMapScale;
+    vec3            normalMapXYZScale;
+    int             normal_map_type; // space: 0=tangent, 1=world  
+    int             normal_map_ncomps; // 2 or 3 component
+
+    int             displace_space;
+    float           displace_scale;
+    float           displace_offset;
+    bool            displace_y_up; // vs. z-up
+
+    bool            invert_opacitymap;
+    
+    bool            invert_roughmap;
+    vec4            rough_comp;
+    
+    vec4            occlusion_comp;
+    vec4            metallic_comp;
+    vec4            coat_int_comp;
+    vec4            coat_rough_comp;
+
+    bool            reflection_as_ior;
+    vec4            reflection_comp;
+};
+
+uniform vec3       lightPosition;
+uniform vec3       lightColour;
+uniform float      lightIntensity;
+uniform float      threshold;
+uniform vec3       baseColour;
+uniform vec3       tintColour;
+uniform vec3       emissionColour;
+uniform sampler2D  emissionTexture;
+uniform vec2       uv_scale;
+uniform sampler2D  aoTexture;
+uniform float      aoscale;
+
+vec4  HOUsampleDiffuseMap(vec2 tx);
+vec3  HOUsampleEmissionMap(vec2 tx);
+
+uniform sampler2D       glH_SpecularMap;
+uniform sampler2DArray  glH_SpecularArrayMap;
+vec4  HOUsampleGenericMap(vec2 tx,
+                          sampler2D reg_map,
+                          sampler2DArray array_map,
+                          ivec4 udim_area);
+
+vec3 HOUapplyNormalMap(vec3 P, vec3 N, vec2 uv);
+vec3 HOUfrontFacing(vec3 n, vec3 p);
+
+void HOUlightingModel(in vec3 P,
+                      in vec3 nN,
+                      in vec3 mAmb,
+                      in vec3 mDiff,
+                      in vec3 mSpec,
+                      in vec3 mMetal,
+                      inout vec3 lAmb,
+                      inout vec3 lDiff,
+                      inout vec3 lSpec,
+                      in float rough,
+                      in float diff_rough,
+                      in float ior,
+                      in float metal,
+                      in int spec_model,
+                      in float alpha);
+
+vec4 HOUwireColor(vec3 edges, int edgeflags, float selected);
+
+void HOUassignOutputs(vec3 point_color,
+                      vec3 emit_color,
+                      vec3 metal_color,
+                      vec3 amb_color,
+                      vec3 diff_color,
+                      vec3 spec_color,
+                      float alpha,
+                      float emit_alpha,
+                      float rough,
+                      float diff_rough,
+                      float ior,
+                      float metal,
+                      float coat_intensity,
+                      float coat_rough,
+                      vec4 wire,
+                      vec3 nN,
+                      float depth,
+                      float selected,
+                      int lighting_model,
+                      int coat_model);
+                      
+void SimpleLightingModel(in vec3 P, in vec3 nN, inout vec3 lDiff, vec3 lightPos)
+{
+    float occlusion = fsIn.color.r;
+    float emission = fsIn.color.g;
+    float aoMap = (1.0 - texture(aoTexture, fsIn.texcoord0).r) * aoscale;
+    
+    float worley = clamp(texture(emissionTexture, vec2(fsIn.texcoord0.x * uv_scale.x, fsIn.texcoord0.y * uv_scale.y)).r, 0.0, 1.0);
+    float shifted = smoothstep(0.0, emission, worley);
+    vec3 emit = vec3(1.0 - shifted);
+    emit *= emissionColour;
+    vec3 V = -normalize(P);
+    vec3 L, H;
+    L = (glH_ViewMatrix * vec4(lightPos, 1.0)).xyz-P;
+    float S;
+    S = smoothstep(0.29, 0.3, clamp(dot(normalize(L), nN), 0, 1));
+    S = step(threshold + (1 - occlusion) + aoMap, dot(normalize(L), nN));
+    vec3 base = mix(baseColour * tintColour, baseColour, S);
+    base = base * lightColour * lightIntensity;
+    //lDiff = mix(emit, base, shifted);
+    lDiff = base + emit;
+    //lDiff = base;
+    //lDiff = vec3(step(0.4, worley));
+}
+
+void main()
+{
+    vec3 nN, p, ptcol;
+    vec4 wire;
+    
+    nN = fsIn.normal;
+    p = fsIn.pos.xyz / fsIn.pos.w;
+    ptcol = fsIn.color.rgb * fsIn.color.a;
+
+    if(has_normal_map)
+        nN = HOUapplyNormalMap(p, nN, fsIn.texcoord0);
+
+    nN = normalize(HOUfrontFacing(nN, p));
+
+    //wire = HOUwireColor(fsIn.edgedist,fsIn.edgeflags,fsIn.selected);
+    
+    vec3 diff = vec3(0.0);
+    SimpleLightingModel(p, nN, diff, lightPosition);
+    color = vec4(diff, 1.0);
+    //color = vec3(1.0, 0.5, 0.1);
+    
+//     HOUassignOutputs(mix(vec3(1.0), ptcol, ambient_color.b),
+//                      color,             // emission color only
+//                      vec3(0.0),
+//                      vec3(0.0),
+//                      vec3(0.0),
+//                      vec3(0.0),
+//                      1.0,
+//                      wire.a,
+//                      0.0,
+//                      0.0, 
+//                      1.333,
+//                      0.0,
+//                      0.0,
+//                      0.0,
+//                      wire,
+//                      nN,
+//                      p.z,
+//                      fsIn.selected, 0,0);
+}

@@ -1,0 +1,97 @@
+# Dialog script for gamedev::sop_curve_sweep automatically generated
+
+{
+    name	gamedev::sop_curve_sweep
+    script	gamedev::sop_curve_sweep
+    label	"GameDev Curve Sweep"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Backbone Curve"
+    inputlabel	2	"Optional Profile"
+    inputlabel	3	"Optional Up Vector Guide"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Swept Geometry"
+
+    groupsimple {
+        name    "folder0"
+        label   "Cross Section"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "mesh_type"
+            label   "Mesh Type"
+            type    ordinal
+            default { "0" }
+            help    "Dropdown to choose between a circular profile to generate tubes, or a line profile to generate ribbons."
+            menu {
+                "0" "Circle"
+                "1" "Line"
+            }
+        }
+        parm {
+            name    "divs"
+            label   "Divisions"
+            type    integer
+            default { "32" }
+            help    "Number of divisions used for the profile."
+            range   { 1! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "cap_ends"
+            label   "Cap Ends"
+            type    toggle
+            default { "0" }
+            help    "Toggle to cap the ends of the sweep shapes."
+            hidewhen "{ mesh_type != 0 }"
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Sweep Settings"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "scale"
+            label   "Uniform Scale"
+            type    float
+            default { "1" }
+            help    "Base scale of cross section/ribbon width. "
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "scaleramp"
+            label   "Scale Ramp"
+            type    ramp_flt
+            default { "2" }
+            help    "Ramp to control the width of the curve profile along the length of the curve. These ramp values are multiplied against the Uniform Scale. Left side of ramp is start of curve, right side is end."
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+        }
+        parm {
+            name    "cuspangle"
+            label   "Normal Angle"
+            type    float
+            default { "180" }
+            help    "Cusp angle used to threshold smooth or sharp vertex normals, default is 180."
+            range   { 0! 180! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "up_vector"
+            label   "Up Vector"
+            type    vector
+            size    3
+            default { "0" "1" "0" }
+            help    "Vector used as an up vector if @up attribute doesn't exist on the input geometry. This controls the twist of the cross section along the curves."
+            range   { -1 1 }
+        }
+    }
+
+}

@@ -1,0 +1,136 @@
+# Dialog script for gamedev::sop_detail_mesh automatically generated
+
+{
+    name	gamedev::sop_detail_mesh
+    script	sop_mesh_origami
+    label	"GameDev Detail Mesh"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Template
+    inputlabel	2	Projection
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Out
+
+    groupsimple {
+        name    "folder0"
+        label   "Tiling"
+
+        parm {
+            name    "s"
+            label   "Tile Scale"
+            type    float
+            default { "1" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "r"
+            label   "Tile Rotate"
+            type    float
+            default { "0" }
+            range   { 0 360 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "bMaskByColor"
+            label   "Mask By Color"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "fSurfaceScalar"
+            label   "Tile Depth Scalar"
+            type    float
+            default { "1" }
+            range   { 0 2 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Seam"
+
+        parm {
+            name    "strength"
+            label   "Strength"
+            type    float
+            default { "50" }
+            range   { 0! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "bSeamMaterial"
+            label   "Override Seam Material"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "shop_materialpath1"
+            label   "Seam Material"
+            type    oppath
+            default { "" }
+            disablewhen "{ bSeamMaterial == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!CUSTOM/MATERIAL!!" }
+            parmtag { "oprelative" "." }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Post Process"
+
+        parm {
+            name    "cuspangle"
+            label   "Cusp Angle"
+            type    float
+            default { "30" }
+            range   { 0! 180! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "usemaxsides"
+            label   "Post Triangulate"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    parm {
+        name    "spacer"
+        label   "_"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "like_tool"
+        label   "Like Tool"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        help    "Let us know that you're enjoying this Tool"
+        parmtag { "button_icon" "heart.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.like_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "dont_like"
+        label   "Thumbs Down"
+        type    button
+        nolabel
+        default { "0" }
+        help    "Let us know you don't like this tool. Ideally also send us a mail at support@sidefx.com"
+        parmtag { "button_icon" "thumbs-down.svg" }
+        parmtag { "script_callback" "import gamedevutils;gamedevutils.dislike_node(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

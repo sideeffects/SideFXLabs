@@ -1,0 +1,229 @@
+import sys 
+import os 
+import webbrowser
+import json
+import requests 
+from zipfile import ZipFile
+import shutil 
+import urllib3
+urllib3.disable_warnings()
+
+import hou
+from PySide2 import QtGui, QtCore, QtWidgets
+
+SKETCHFAB_DOMAIN = 'sketchfab.com'
+SKETCHFAB_API_URL = 'https://api.{}/v3'.format(SKETCHFAB_DOMAIN)
+
+AUTHORIZE_URL = "https://sketchfab.com/oauth2/authorize/"
+ACCESS_TOKEN_URL = "https://sketchfab.com/oauth2/token/"
+CLIENT_ID = "TiKSwHh55gSTphXUbjZkWr490W6ir2LOXtWkZMVg"
+
+class LoginWindow(QtWidgets.QDialog):
+
+    def __init__(self,hou_node, parent=None ):
+        self.hou_node = hou_node 
+        super(LoginWindow, self).__init__(parent)
+        self.setWindowTitle("Please Enter Password")
+        self.password = QtWidgets.QLineEdit("")
+        self.password.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.button = QtWidgets.QPushButton("Login")
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(self.password)
+        layout.addWidget(self.button)
+        self.setLayout(layout)
+        self.button.clicked.connect(self.onButtonPress)
+        
+    def onButtonPress(self):
+        self.close()
+        user = self.hou_node.parm("username").eval()
+        password = self.password.text()
+        doLogin(user, password, self.hou_node)
+
+def doLogin(user, password, node):
+        
+    data = requests.post(
+        ACCESS_TOKEN_URL,
+        data={
+            'grant_type': 'password',
+            'username': user, 
+            'password': password,
+            'client_id': CLIENT_ID,
+        }
+    )
+    json = data.json()
+    if "access_token" not in json:
+        hou.ui.displayMessage("Login Failed") 
+        return 
+        
+    access_token = data.json()["access_token"]
+    node.parm("access_token").set(access_token)
+    node.parm("logged_in").set(user +  " (pw)")
+    hou.ui.displayMessage("Login Successful") 
+    
+def onAccount():
+    
+    form = LoginWindow(hou.pwd())
+    form.show()
+    hou.session.form = form
+
+    
+def _get_request_payload(api_key, data={}, files={}, json_payload=False, authentication_password=True):
+    """Helper method that returns the authentication token and proper content
+    type depending on whether or not we use JSON payload."""
+    
+    if authentication_password:
+        headers = {'Authorization': 'Bearer {}'.format(api_key)}
+    else:
+        headers = {'Authorization': 'Token {}'.format(api_key)}
+
+    if json_payload:
+        headers.update({'Content-Type': 'application/json'})
+        data = json.dumps(data)
+
+    return {'data': data, 'files': files, 'headers': headers}
+
+def upload(node, model_file):
+    
+    authentication_method = node.parm("authentication_method").eval()
+    if authentication_method == 0:
+        api_key = node.parm("api_key").eval()
+    else:
+        api_key = node.parm("access_token").eval()
+        
+    model_endpoint = SKETCHFAB_API_URL + "/" +  'models'
+
+    name = node.parm("model_title").eval()
+    description = node.parm("model_description").eval()
+    category_parm = node.parm("model_category")
+    category = category_parm.menuItems()[category_parm.eval()]
+    tags = node.parm("model_tags").eval()
+    tags += " houdini"
+    isPublished = node.parm("model_publish").eval()
+    
+    data = {
+        'name': name,
+        'description': description,
+        'tags': tags,
+        'source': "houdini",
+        'categories': [category],
+        #'license': license,
+        #'isDownloadable':0,
+        #'private': private,
+        #'password': password
+        'isPublished': isPublished, 
+    }
+
+    f = open(model_file, 'rb')
+
+    files = {'modelFile': f}
+    try:
+        r = requests.post(
+            model_endpoint, **_get_request_payload(
+                api_key, data, files=files, authentication_password = authentication_method))
+    except requests.exceptions.RequestException as e:
+        print u'An error occured: {}'.format(e)
+        return
+    finally:
+        f.close()
+
+    if r.status_code != requests.codes.created:
+        print u'Upload failed with error: {}'.format(r.json())
+        return
+
+    model_url = r.json()['uid']
+    hou.ui.displayMessage("Upload successful. Your model is being processed.")
+
+    webbrowser.open_new('https://sketchfab.com/models/{}'.format(model_url))
+    return model_url
+
+def grab_textures(material):
+
+    if not material:
+        return 
+
+    parms = {"basecolor_texture":"basecolor_useTexture",
+            "baseNormal_texture":"baseBumpAndNormal_enable",
+            "rough_texture":"rough_useTexture",
+            "metallic_texture":"metallic_useTexture",
+            "baseColorMap":"useColorMap" }
+
+    ret_data = {}
+    for parm in parms:
+        parameter = material.parm(parms[parm])
+        if parameter and parameter.eval():
+            ret_data[parm] = material.parm(parm).eval()
+
+    return ret_data 
+    
+def export(node):
+
+    geo_path = node.parm("soppath").eval()
+    ProcessNode = hou.node(geo_path)
+    geo_path_children = [ProcessNode]
+
+    if ProcessNode.type().name() != "geo":
+        geo_path_children = [x for x in ProcessNode.allSubChildren(top_down=True, recurse_in_locked_nodes=True) if x.type().name() == "geo"]
+
+    files_to_upload = []
+    
+    for i, geoNode in enumerate(geo_path_children):
+        geo = geoNode.renderNode().geometry()
+
+    
+        if geo.findPrimAttrib("shop_materialpath"):
+            materials = geo.primStringAttribValues("shop_materialpath")
+            materials = list(set(materials))
+        else:
+            materials = []
+
+        
+        suffixes = {"basecolor_texture":"basecolor",
+                "baseNormal_texture":"normal",
+                "rough_texture":"roughness",
+                "metallic_texture":"metallic",
+                "baseColorMap":"basecolor"}
+        
+        
+        for material in materials:
+            mat_node = hou.node(material)
+            if not os.path.exists(os.path.join( os.environ["HIP"] , "export")):
+                os.makedirs(os.path.join( os.environ["HIP"] , "export"))
+                
+            textures = grab_textures(mat_node)
+            if not textures: 
+                continue 
+                
+            for texture in textures:
+                path = textures[texture]
+                jpg_path = os.path.join( os.environ["HIP"] , "export", mat_node.name() + "_{}".format(i) + "_" + suffixes[texture] + ".jpg")
+                if not os.path.exists(path):
+                    continue
+                if path.upper().endswith("JPG"):
+                    # handle JPG 
+                    shutil.copy(path, jpg_path)
+                    files_to_upload.append(jpg_path)
+                else:    
+                    basename = os.path.basename(path)
+                    basename = os.path.splitext(basename)[0]
+                    
+                    cop_file = node.node("copnet/cop_file")
+                    node.parm("tmp_filename").set(path)
+                    
+                    jpg_converter = node.node("jpg_converter")
+                    
+                    node.parm("tmp_jpg_path").set(jpg_path)
+                    jpg_converter.render()
+                    files_to_upload.append(jpg_path)
+    
+    fbx_exporter = node.node("geo_exporter")    
+    node.parm("tmp_fbx_path").set(os.path.join( os.environ["HIP"] , "export", "mesh.fbx"))
+    fbx_exporter.render()
+    files_to_upload.append(os.path.join( os.environ["HIP"] , "export", "mesh.fbx"))
+    
+    model_zip_file = os.path.join( os.environ["HIP"] , "export", "model.zip")
+    with ZipFile(model_zip_file, 'w') as myzip:
+        for filename in files_to_upload:
+            myzip.write(filename, os.path.basename(filename))
+            
+    upload(node, model_zip_file)

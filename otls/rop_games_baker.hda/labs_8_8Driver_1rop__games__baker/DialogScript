@@ -1,0 +1,373 @@
+# Dialog script for gamedev::rop_games_baker automatically generated
+
+{
+    name	gamedev::rop_games_baker
+    script	gamedev::rop_games_baker
+    label	"GameDev Games Baker"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    multiparm {
+        name    "meshes"
+        label    "Meshes"
+        default 1
+        parmtag { "multistartoffset" "1" }
+
+        parm {
+            name    "target_mesh_#"
+            label   "Target Mesh (LOW)"
+            type    oppath
+            default { "" }
+            parmtag { "opfilter" "!!SOP!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "source_mesh_#"
+            label   "Source Mesh (HIGH)"
+            type    oppath
+            default { "" }
+            parmtag { "opfilter" "!!SOP!!" }
+            parmtag { "oprelative" "." }
+        }
+    }
+
+    parm {
+        name    "vm_uvunwrapres"
+        label   "Resolution"
+        type    intvector2
+        joinnext
+        size    2
+        default { "2048" "2048" }
+        range   { -1 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "uvresmenu"
+        label   "uvresmenu"
+        type    button
+        default { "256 256" }
+        menumini {
+            "256 256"   "256 x 256"
+            "512 512"   "512 x 512"
+            "1024 1024" "1024 x 1024"
+            "2048 2048" "2048 x 2048"
+            "4096 4096" "4096 x 4096"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback" "opparm . vm_uvunwrapres (`arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)`" }
+    }
+    parm {
+        name    "base_path"
+        label   "Base Path"
+        type    image
+        default { "$HIP/render/${HIPNAME}_$(CHANNEL).tga" }
+    }
+    group {
+        name    "channels"
+        label   "Channels"
+
+        parm {
+            name    "bake_basecolor"
+            label   "Base Color"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "basecolor_suffix"
+            label   "Base Color"
+            type    string
+            default { "basecolor" }
+            disablewhen "{ bake_basecolor == 0 }"
+        }
+        parm {
+            name    "bake_Nt"
+            label   "Normal Map"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "Nt_suffix"
+            label   "Normal Map"
+            type    string
+            default { "normal" }
+            disablewhen "{ bake_Nt == 0 }"
+        }
+        parm {
+            name    "bake_alpha"
+            label   "Opacity"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "alpha_suffix"
+            label   "Opacity Map"
+            type    string
+            default { "alpha" }
+            disablewhen "{ bake_alpha == 0 }"
+        }
+        parm {
+            name    "bake_specrough"
+            label   "Roughness Map"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "specrough_suffix"
+            label   "Roughness Map"
+            type    string
+            default { "roughness" }
+            disablewhen "{ bake_specrough == 0 }"
+        }
+        parm {
+            name    "bake_metallic"
+            label   "Metallic Map"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "metallic_suffix"
+            label   "Metallic Map"
+            type    string
+            default { "metallic" }
+            disablewhen "{ bake_metallic == 0 }"
+        }
+        parm {
+            name    "bake_N"
+            label   "World Normal Map"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "N_suffix"
+            label   "World Normal"
+            type    string
+            default { "worldnormal" }
+            disablewhen "{ bake_N == 0 }"
+        }
+        parm {
+            name    "bake_Oc"
+            label   "Ambient Occlusion"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "Oc_suffix"
+            label   "Ambient Occlusion"
+            type    string
+            default { "ao" }
+            disablewhen "{ bake_Oc == 0 }"
+        }
+        parm {
+            name    "bake_Cu"
+            label   "Curvature"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "Cu_suffix"
+            label   "Curvature"
+            type    string
+            default { "curvature" }
+            disablewhen "{ bake_Cu == 0 }"
+        }
+        parm {
+            name    "bake_Th"
+            label   "Thickness"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "Th_suffix"
+            label   "Thickness"
+            type    string
+            default { "thickness" }
+            disablewhen "{ bake_Th == 0 }"
+        }
+        parm {
+            name    "bake_P"
+            label   "Position"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "P_suffix"
+            label   "Position"
+            type    string
+            default { "position" }
+            disablewhen "{ bake_P == 0 }"
+        }
+        parm {
+            name    "bake_Ds"
+            label   "Height"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "Ds_suffix"
+            label   "Height"
+            type    string
+            default { "height" }
+            disablewhen "{ bake_Ds == 0 }"
+        }
+        multiparm {
+            name    "custom_channels"
+            label    "Custom Channels"
+
+            parm {
+                name    "custom_attribute_name_#"
+                label   "Attribute Name"
+                type    string
+                default { "v" }
+            }
+            parm {
+                name    "custom_attribute_suffix_#"
+                label   "Suffix"
+                type    string
+                default { "velocity" }
+            }
+        }
+
+    }
+
+    group {
+        name    "channels_1"
+        label   "Advanced"
+
+        parm {
+            name    "trange"
+            label   "Valid Frame Range"
+            type    ordinal
+            default { "off" }
+            menu {
+                "off"       "Render Current Frame"
+                "normal"    "Render Frame Range"
+                "on"        "Render Frame Range Only (Strict)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "kwargs['node'].hm().CheckExportPath(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "f"
+            label   "Start/End/Inc"
+            type    float
+            size    3
+            default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] "1" }
+            disablewhen "{ trange == off }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "vm_bake_usemikkt"
+            label   "Use MikkT Tangent Space"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "mantra_class" "renderer" }
+            parmtag { "mantra_name" "bake_usemikkt" }
+            parmtag { "spare_category" "Baking" }
+        }
+        parm {
+            name    "bBasecolorLinearSpace"
+            label   "Output basecolor in Linear Space"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "vm_bake_tangentnormalflipy"
+            label   "Tangent Normal Flip Y"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "spare_category" "Baking" }
+        }
+        parm {
+            name    "vm_bake_skipcf"
+            label   "Disable Lighting/Emission"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "spare_category" "Baking" }
+        }
+        parm {
+            name    "vm_uvcageobject1"
+            label   "Cage Mesh"
+            type    oppath
+            default { "" }
+            help    "Optional cage mesh. Must have the same topology and UVs as the UV Object. Typically a dupicate of UV Object whose vertices are slightly pushed outward. Used to determine the projection direction."
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
+            parmtag { "opfullpath" "on" }
+            parmtag { "oprelative" "/obj" }
+        }
+        parm {
+            name    "border_padding"
+            label   "Border Padding"
+            type    integer
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "baking_samples"
+            label   "Baking Samples"
+            type    integer
+            default { "8" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "ray_bias"
+            label   "Ray Bias"
+            type    float
+            default { "0.1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "ray_distance"
+            label   "Ray Distance"
+            type    float
+            default { "-1" }
+            range   { 0 10 }
+        }
+    }
+
+}

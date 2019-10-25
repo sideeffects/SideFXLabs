@@ -1,0 +1,54 @@
+def MainFunction():
+        Inputs = hou.pwd().inputs()
+        OverrideLODs = hou.pwd().parm('bOverrideNumLODs').evalAsInt()
+        NumActual = None
+
+        if OverrideLODs == 1:
+            NumActual = min(len(Inputs), hou.pwd().parm("iNumLOD").evalAsInt())
+        else: 
+            NumActual = len(Inputs)
+
+        LODContainer = hou.node(hou.pwd().path()+"/Container/objnet1/LOD-Export/")
+        LODGroup = hou.node(LODContainer.path()+"/LODGroup")
+        LODName = hou.pwd().parm("sMeshName").evalAsString()
+        CreateEmptyGroup = hou.pwd().parm("bBranchLeaf").evalAsInt()
+        LODObjects = []
+
+        if len(Inputs) < 2:
+                raise hou.NodeError("Need atleast 2 connected LOD Objects")
+                return
+
+        for x in range(NumActual):
+                t_Parent = LODGroup
+                Geometry, Null = None, None
+
+                if CreateEmptyGroup:
+                        Null = LODContainer.createNode("null", "%s_LOD%s" % (LODName, x))
+                        Null.setNextInput(t_Parent)
+                        Null.moveToGoodPosition()
+                        Geometry = LODContainer.createNode("geo", "mesh_LOD%s" % x)
+                        LODObjects.append(Null)
+                        t_Parent = Null
+                else:
+                        Geometry = LODContainer.createNode("geo", "%s_LOD%s" % (LODName, x))
+                
+                LODObjects.append(Geometry)
+
+                Geometry.setNextInput(t_Parent)
+                Geometry.moveToGoodPosition()
+
+                ObjMerge = Geometry.createNode("object_merge")
+                ObjMerge.parm("objpath1").set(Inputs[x].path())
+                ObjMerge.parm("xformtype").set("local")
+                ObjMerge.setHardLocked(1)
+                Output = Geometry.createNode("output")
+                Output.setNextInput(ObjMerge)
+                Output.moveToGoodPosition()
+                Output.setDisplayFlag(True)
+                Output.setRenderFlag(True)
+
+        LODGroup.setName(LODName, False)
+        hou.node(hou.pwd().path()+"/ropnet1/filmboxfbx1").parm("startnode").set(LODGroup.path())
+        hou.node(hou.pwd().path()+"/ropnet1/filmboxfbx1").parm("execute").pressButton()
+        LODGroup.setName("LODGroup", False)
+        LODContainer.deleteItems(LODObjects)

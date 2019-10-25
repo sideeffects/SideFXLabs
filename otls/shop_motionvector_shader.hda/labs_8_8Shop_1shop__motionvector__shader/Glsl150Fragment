@@ -1,0 +1,267 @@
+#version 330
+//#line 1
+
+in wparms
+{
+    vec4 pos;
+    vec3 normal;
+    vec4 color;
+    vec2 texcoord0;
+    noperspective in vec3 edgedist;
+    flat in int edgeflags;
+    float selected;
+} fsIn;
+
+layout(std140) uniform glH_Material
+{
+    vec3            ambient_color;
+    vec3            diffuse_color;
+    vec3            emission_color;
+    vec3            specular_color;
+    vec3            metallic_color;
+    float           metal;
+    float           material_alpha;
+    float           material_alpha_parallel;
+    float           roughness;
+    float           diffuse_roughness;
+    float           ior;
+    float           reflection;
+    float           coat_intensity;
+    float           coat_roughness;
+    int             specular_model;
+    int             coat_spec_model;
+    float           specular_tint;
+
+    bool            use_geo_color;
+    bool            use_packed_color;
+
+    bool            has_textures;
+    bool            has_diffuse_map;
+    bool            has_spec_map;
+    bool            has_opacity_map;
+    bool            has_emission_map;
+    bool            has_normal_map;
+    bool            has_rough_map;
+    bool            has_displace_map;
+    bool            has_occlusion_map;
+    bool            has_metallic_map;
+    bool            has_coat_int_map;
+    bool            has_coat_rough_map;
+    bool            has_reflection_int_map;
+    bool            has_reflect_map;
+    
+    ivec4           diffuse_udim_area;
+    ivec4           spec_udim_area;
+    ivec4           opacity_udim_area;
+    ivec4           emission_udim_area;
+    ivec4           normal_udim_area;
+    ivec4           rough_udim_area; 
+    ivec4           displace_udim_area;
+    ivec4           occlusion_udim_area;
+    ivec4           metallic_udim_area;
+    ivec4           coat_int_udim_area;
+    ivec4           coat_rough_udim_area;
+    ivec4           reflection_udim_area;
+    
+    bool            has_env_map;
+    vec3            envScale;
+    mat3            envRotate;
+
+    vec2            normalMapScaleShift;
+    vec2            normalMapScale;
+    vec3            normalMapXYZScale;
+    int             normal_map_type; // space: 0=tangent, 1=world  
+    int             normal_map_ncomps; // 2 or 3 component
+
+    int             displace_space;
+    float           displace_scale;
+    float           displace_offset;
+    bool            displace_y_up; // vs. z-up
+
+    bool            invert_opacitymap;
+    
+    bool            invert_roughmap;
+    vec4            rough_comp;
+    
+    vec4            occlusion_comp;
+    vec4            metallic_comp;
+    vec4            coat_int_comp;
+    vec4            coat_rough_comp;
+
+    bool            reflection_as_ior;
+    vec4            reflection_comp;
+};
+
+void  HOUlightingModel(vec3 P, vec3 nN,
+                       vec3 m_amb,
+                       vec3 m_diff,
+                       vec3 m_spec,
+                       vec3 m_metal,
+                       inout vec3 lAmb,
+                       inout vec3 lDiff,
+                       inout vec3 lSpec,
+                       float rough,
+                       float diff_rough,
+                       float ior,
+                       float metal,
+                       int spec_model,
+                       float alpha);
+
+void HOUassignOutputs(vec3 point_color,
+                      vec3 emit_color,
+                      vec3 metal_color,
+                      vec3 amb_color,
+                      vec3 diff_color,
+                      vec3 spec_color,
+                      float alpha,
+                      float emit_alpha,
+                      float rough,
+                      float diff_rough,
+                      float ior,
+                      float metal,
+                      float coat_intensity,
+                      float coat_rough,
+                      vec4 wire,
+                      vec3 nN,
+                      float depth,
+                      float selected,
+                      int lighting_model,
+                      int coat_model);
+
+vec4 HOUwireColor(vec3 edges, int edgeflags, float selected);
+
+// ----------------------------
+// MY PARAMETERS
+// ----------------------------
+uniform sampler2D saTexture;
+uniform sampler2D saMotionVectorTexture;
+uniform float fDoubleMotionVector;
+uniform float fCols;
+uniform float fRows;
+uniform float fDistortion;
+uniform float fTime;
+uniform float fSpeed;
+
+// ----------------------------
+// TWO CUSTOM FUNCTIONS
+// ----------------------------
+vec3 lerpv(vec3 A, vec3 B, float blend)
+{
+    return A*(1-blend) + B*blend;
+}
+
+float lerpf(float A, float B, float blend)
+{
+        return A*(1-blend) + B*blend;
+}
+
+void main()
+{
+    float rough, alpha, mtl, diff_rough;
+    vec3 nN, p, lspec, mspec, ldiff, lamb, ptcol, envmap;
+    vec4 tex, wire;
+    
+
+    p = fsIn.pos.xyz / fsIn.pos.w;
+    ptcol = fsIn.color.rgb * fsIn.color.a;
+
+    lamb  = vec3(0.0);
+    ldiff = vec3(1.0);
+    lspec = vec3(0.0);
+    envmap = vec3(0.0);
+    mtl = metal;
+
+    // ----------------------------
+    // MY LOGIC
+    // ----------------------------
+
+    vec2 f2OrigUV = vec2(fsIn.texcoord0.x, fsIn.texcoord0.y);
+    float fAnimationPhase = fract(fTime*fSpeed);
+
+    // Flipbook Setup
+    f2OrigUV.y = 1 - f2OrigUV.y;
+    float XColTime = (fCols * fRows) * min(fAnimationPhase, 0.99999);
+    float FloorXColTime = floor(XColTime);
+    vec2 ColRow = vec2(fCols, fRows);
+    vec2 CustomUV = ( vec2(FloorXColTime, floor(FloorXColTime/fRows) ) / ColRow) + (f2OrigUV / ColRow);
+    CustomUV.y = 1 - CustomUV.y;
+
+    // Blend Phase Between Frames
+    float BlendPhase = fract(XColTime);
+    float mvDistort = BlendPhase;
+    
+    // Offset Frame UVs
+    vec2 CustomUV2 = (f2OrigUV / ColRow) + vec2((FloorXColTime+1.0), floor((FloorXColTime+1.0)/fRows)) / ColRow;
+    CustomUV2.y = 1- CustomUV2.y;
+    
+    // Motion Vector Setup
+    vec2 PrimMotionVector = texture(saMotionVectorTexture, CustomUV).rg;
+    PrimMotionVector.g = 1-PrimMotionVector.g;
+
+    vec2 PrimMotionVectorBias = PrimMotionVector - 0.5;
+    PrimMotionVectorBias *= 2;
+    vec2 PrimMotionVectorIntens = (PrimMotionVectorBias / ColRow) * fDistortion;
+
+    // Regular Motion Vectors
+    vec2 PrimMotionVectorAdd = CustomUV + (mvDistort * PrimMotionVectorIntens);
+    vec2 PrimMotionVectorSubtract = CustomUV2 - ((1-mvDistort) * PrimMotionVectorIntens);
+
+    vec2 MotionVectorForward = PrimMotionVectorAdd;
+    vec2 MotionVectorReverse = PrimMotionVectorSubtract;
+
+    // Double Motion Vectors
+    if (fDoubleMotionVector == 1.0) {
+        vec2 MotionVecForward = texture(saMotionVectorTexture, PrimMotionVectorAdd).rg;
+        MotionVecForward.g = 1-MotionVecForward.g;
+        MotionVecForward -= 0.5;
+        MotionVecForward *= 2.0;
+        MotionVectorForward = CustomUV + ((fDistortion * MotionVecForward / ColRow) * mvDistort); //DoubleMotionVectorAdd
+
+        vec2 MotionVecReverse = texture(saMotionVectorTexture, PrimMotionVectorSubtract).rg;
+        MotionVecReverse.g = 1-MotionVecReverse.g;
+        MotionVecReverse -= 0.5;
+        MotionVecReverse *= 2.0;
+
+
+        MotionVectorReverse = CustomUV2 - ((fDistortion * MotionVecReverse / ColRow) * (1-mvDistort)); //DoubleMotionVectorSubtract
+
+    }
+
+    // Sample Texture with MotionVector Data 
+    tex = mix(texture(saTexture, MotionVectorForward), texture(saTexture, MotionVectorReverse), BlendPhase);
+    //tex.a = 1.0;
+
+    
+    nN = fsIn.normal;
+    rough = roughness;
+    diff_rough = diffuse_roughness;
+    lspec = vec3(0.0);
+    ldiff = diffuse_color * tex.rgb;
+    lamb = ambient_color * tex.rgb;
+    alpha = fsIn.color.a * tex.a;
+    wire = HOUwireColor(fsIn.edgedist,fsIn.edgeflags,fsIn.selected);
+    
+
+    // ----------------------------
+    // ASSIGN OUTPUTS SO HOUDINI KNOWS WHAT TO RENDER
+    // ----------------------------
+    HOUassignOutputs(vec3(1.0),
+                     emission_color,
+                     metallic_color,
+                     lamb,
+                     ldiff,
+                     lspec,
+                     alpha,
+                     wire.a,
+                     rough,
+                     diff_rough,
+                     ior,
+                     mtl,
+                     coat_intensity,
+                     coat_roughness,
+                     wire,
+                     nN,
+                     p.z,
+                     fsIn.selected,
+                     specular_model, coat_spec_model);
+}

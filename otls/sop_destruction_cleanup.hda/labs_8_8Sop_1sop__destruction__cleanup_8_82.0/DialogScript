@@ -1,0 +1,295 @@
+# Dialog script for gamedev::sop_destruction_cleanup::2.0 automatically generated
+
+{
+    name	gamedev::sop_destruction_cleanup::2.0
+    script	DestructionCleanup
+    label	"GameDev Destruction Cleanup"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"RBD Import (DOP or Cache)"
+    inputlabel	2	"(Optional) Bounding Box"
+    inputlabel	3	"Bounding Box (Optional)"
+    inputlabel	4	"Constraint Relationship Geometry (Optional)"
+    outputlabel	1	"Optimized RBD Sim"
+
+    parm {
+        name    "alwaysTrue"
+        label   "True"
+        type    integer
+        invisible
+        default { "1" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "thirdinput"
+        label   "ThirdIsConnected"
+        type    integer
+        invisible
+        default { [ "opexist(opinputpath('.',1))" hscript-expr ] }
+        range   { 0 10 }
+    }
+    groupsimple {
+        name    "folder2"
+        label   "Basic"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "simulationRange"
+            label   "Simulation Range"
+            type    intvector2
+            size    2
+            default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] }
+            help    "The simulation range determines what the framerange is that will be used for the data analysis. It is recommended to leave these to the start and end frame of your simulation."
+            range   { -1 1 }
+        }
+        parm {
+            name    "bVisChunks"
+            label   "Visualize Chunks"
+            type    toggle
+            default { "0" }
+            help    "This controls whether or not unique chunks should be colorcoded."
+        }
+    }
+
+    parm {
+        name    "sepparm2"
+        label   "sepparm2"
+        type    separator
+        invisible
+        default { "" }
+    }
+    groupsimple {
+        name    "folder1"
+        label   "Cleanup Properties"
+        grouptag { "group_type" "simple" }
+
+        groupsimple {
+            name    "folder4"
+            label   "Insides"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "bFuseSurface"
+                label   "Remove Insides"
+                type    toggle
+                default { "1" }
+                help    "This controls if surface points should be fused together. This will also trigger the removal of inside faces."
+            }
+            parm {
+                name    "fuseDistance"
+                label   "Fuse Distance"
+                type    float
+                default { "0.001" }
+                help    "This controls the fusing threshold in units for surface points close to eachother"
+                disablewhen "{ bFuseSurface == 0 }"
+                range   { 0 0.005 }
+            }
+        }
+
+        groupsimple {
+            name    "folder3"
+            label   "Cusping"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "bCuspPolygons"
+                label   "Cusp Polygons"
+                type    toggle
+                default { "0" }
+                help    "This controls if polygon cusping should be applied to the newly generated geometry."
+            }
+            parm {
+                name    "mCuspMode"
+                label   "Cusp"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Inside / Outside Together"
+                    "1" "Inside / Outside Separately"
+                }
+            }
+            parm {
+                name    "insideprims"
+                label   "Inside Primitives"
+                type    string
+                default { "" }
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 0 }"
+                menutoggle {
+                    [ "opmenu -l normal1 group" ]
+                }
+            }
+            parm {
+                name    "cuspangle"
+                label   "Inside Cusp Angle"
+                type    float
+                joinnext
+                default { "60" }
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 0 }"
+                range   { 0! 180! }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "method2"
+                label   "Weighting Method"
+                type    integer
+                nolabel
+                default { "1" }
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 0 }"
+                menu {
+                    "uniform"   "Each Vertex Equally"
+                    "angle"     "By Vertex Angle"
+                    "area"      "By Face Area"
+                }
+                range   { 0! 2! }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "outsideprims"
+                label   "Outside Primitives"
+                type    string
+                default { "" }
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 0 }"
+                menutoggle {
+                    [ "opmenu -l normal4 group" ]
+                }
+            }
+            parm {
+                name    "cuspangle2"
+                label   "Outside Cusp Angle"
+                type    float
+                joinnext
+                default { "60" }
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 0 }"
+                range   { 0! 180! }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "method3"
+                label   "Weighting Method"
+                type    integer
+                nolabel
+                default { "2" }
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 0 }"
+                menu {
+                    "uniform"   "Each Vertex Equally"
+                    "angle"     "By Vertex Angle"
+                    "area"      "By Face Area"
+                }
+                range   { 0! 2! }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "cuspAngle"
+                label   "Cusp Angle"
+                type    angle
+                joinnext
+                default { "60" }
+                help    "This controls the polygon cusping angle."
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 1 }"
+                range   { 0 180 }
+            }
+            parm {
+                name    "method"
+                label   "Weighting Method"
+                type    integer
+                nolabel
+                default { "2" }
+                disablewhen "{ bCuspPolygons == 0 }"
+                hidewhen "{ mCuspMode == 1 }"
+                menu {
+                    "uniform"   "Each Vertex Equally"
+                    "angle"     "By Vertex Angle"
+                    "area"      "By Face Area"
+                }
+                range   { 0! 2! }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+        groupsimple {
+            name    "folder5"
+            label   "Piece Names"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "bGenerateName"
+                label   "Generate Name"
+                type    toggle
+                default { "1" }
+                help    "This controls whether or not a new name attribute should be generated per unique optimized packed primitive"
+            }
+            parm {
+                name    "newName"
+                label   "Name"
+                type    string
+                default { "piece" }
+                help    "This controls the prefix applied to packed primitives coming out of the output."
+                disablewhen "{ bGenerateName == 0 }"
+            }
+        }
+
+        groupsimple {
+            name    "folder0"
+            label   "Advanced"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "bFreezeThreshold"
+                label   "Freeze Threshold"
+                type    toggle
+                default { "0" }
+                help    "This controls the freeze threshold optimization. Chunks that move less than the specified threshold will be batched together."
+            }
+            parm {
+                name    "freezeThreshold"
+                label   "Freeze Threshold"
+                type    float
+                default { "0" }
+                help    "This is the threshold in units used to determine freezing of chunks. See checkbox tooltip for more."
+                disablewhen "{ bFreezeThreshold == 0 }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "bBoundsAdjust"
+                label   "Clamped Bounds"
+                type    toggle
+                default { "0" }
+                help    "This controls whether or not to apply bound optimization."
+                disablewhen "{ thirdinput == 0 }"
+            }
+            parm {
+                name    "clampPos"
+                label   "Clamp Position"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "This controls the where bound clamped chunks will be moved to."
+                disablewhen "{ bBoundsAdjust == 0 } { thirdinput == 0 }"
+                range   { -1 1 }
+            }
+            parm {
+                name    "attribname"
+                label   "Transfer Attributes"
+                type    string
+                default { "orient pivot rest w" }
+                menutoggle {
+                    [ "opmenu -l attribcopy2 attribname" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "sop_input" "2else1" }
+            }
+        }
+
+    }
+
+}

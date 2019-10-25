@@ -1,0 +1,170 @@
+# Dialog script for gamedev::rbd_director automatically generated
+
+{
+    name	gamedev::rbd_director
+    script	gamedev::rbd_director
+    label	"GameDev RBD Director"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Packed Objects"
+    inputlabel	2	"Bounding Object"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "animatedstatic"
+        label   "Bullet Type"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "static"
+            "1" "animated"
+        }
+    }
+    parm {
+        name    "animatestatic"
+        label   "Set Frame to Activate"
+        type    toggle
+        default { "on" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "activatestaticframe"
+        label   "Activate at Frame:"
+        type    integer
+        default { "10" }
+        disablewhen "{ animatestatic == 0 }"
+        range   { 1 100 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    group {
+        name    "forcesfolder"
+        label   "Forces"
+
+        groupsimple {
+            name    "folder1"
+            label   "Bounding Object"
+
+            parm {
+                name    "input2check"
+                label   "Input2 Check"
+                type    integer
+                invisible
+                default { [ "npoints(opinputpath(\".\",1))>0" hscript-expr ] }
+                range   { 0 10 }
+            }
+            parm {
+                name    "createforcefromobject"
+                label   "Create Force From Object"
+                type    toggle
+                default { "off" }
+                disablewhen "{ input2check == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "impulse2"
+                label   "Add Impulse As:"
+                type    ordinal
+                default { "0" }
+                disablewhen "{ input2check == 0 }"
+                menu {
+                    "v"     "velocity"
+                    "force" "force"
+                }
+            }
+            parm {
+                name    "force"
+                label   "Force"
+                type    float
+                default { "10" }
+                disablewhen "{ input2check == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "normalizeforce"
+                label   "Normalize Force"
+                type    toggle
+                default { "off" }
+                disablewhen "{ input2check == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "applyforceactivate"
+                label   "Apply Force in Range"
+                type    toggle
+                default { "off" }
+                disablewhen "{ input2check == 0 }"
+                hidewhen "{ impulse2 == v }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "forceframerange"
+                label   "Start/End"
+                type    vector2
+                size    2
+                default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] }
+                disablewhen "{ input2check == 0 } { applyforceactivate == 0 }"
+                hidewhen "{ impulse2 == v }"
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "impulse"
+                label   "Impulse"
+                type    string
+                invisible
+                default { "v" }
+                disablewhen "{ input2check == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+        groupsimple {
+            name    "uniformfolder"
+            label   "Uniform Force"
+
+            parm {
+                name    "adduniform"
+                label   "Add Uniform Force"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "uniformforce"
+                label   "Force"
+                type    vector
+                size    3
+                default { "100" "0" "0" }
+                range   { -1 1 }
+            }
+        }
+
+    }
+
+    group {
+        name    "forcesfolder_1"
+        label   "Visualize"
+
+        parm {
+            name    "visactive"
+            label   "Visualise Active"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "activecd"
+            label   "Active Colour"
+            type    color
+            size    3
+            default { "1" "0" "1" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
