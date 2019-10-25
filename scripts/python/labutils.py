@@ -11,14 +11,15 @@ except:
 
 try:
     from PySide2.QtCore import QSettings
-    settings = QSettings("SideFX", "GameDevToolset")
+    settings = QSettings("SideFX", "SideFXLabs")
 except:
     settings = None
+
 
 home = os.environ["HOUDINI_USER_PREF_DIR"]
 config = os.path.join(home, "hcommon.pref")
 
-GA_TRACKING_ID = "UA-2947225-8"
+GA_TRACKING_ID = "UA-2947225-9"
 
 
 def can_send_anonymous_stats():

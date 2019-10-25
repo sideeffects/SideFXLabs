@@ -4,6 +4,7 @@ import subprocess
 
 HOUDINI_VERSION = "17.5"
 
+ 
 def get_latest_houdini_version():
     logging.info("Determining latest Houdini Version...")
     sidefx_path = os.path.join(os.getenv("ProgramW6432"), "Side Effects Software")
@@ -14,13 +15,13 @@ def get_latest_houdini_version():
             logging.info("Latest Local Houdini Install is %s..."%possible_dir)
             return os.path.join(sidefx_path, possible_dir)
 
+
 latest_houdini = get_latest_houdini_version()
-#print latest_houdini
+print latest_houdini
 local_dir = os.path.dirname(__file__)
 
-for filename in os.listdir(local_dir):
-    #print filename
-    if "test" in filename:
-        print "Running Test:", filename
-        subprocess.call([latest_houdini + "/bin/hython2.7.exe", os.path.join(local_dir, filename)])
-    
+my_env = os.environ.copy()
+my_env["HOUDINI_OGL_SOFTWARE"] = "1"
+my_env["HOUDINI_PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..")).replace("\\", "/") + ";&" #"C:\\GameDevToolset;&"
+
+subprocess.call([latest_houdini + "/bin/hython2.7.exe", os.path.join(local_dir,"smoke_tests.py")], env=my_env)

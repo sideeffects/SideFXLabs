@@ -17,7 +17,9 @@ class TestStringMethods(unittest.TestCase):
 
     def test_1_test_demoscenes_output(self):
 
-        with open(os.path.dirname(local_dir) + "/tests/geometry_tools_index.csv") as csvfile:
+        hipdir = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", "hip")).replace("\\", "/")
+
+        with open(os.path.dirname(local_dir) + "/unittest/geometry_tools_index.csv") as csvfile:
             csvdata = csv.reader(csvfile, delimiter=' ', quotechar='|')
 
             for x, data in enumerate(csvdata):
@@ -33,7 +35,7 @@ class TestStringMethods(unittest.TestCase):
                 try:
 
                     # Saving out a fresh export
-                    hou.hipFile.load(os.path.join(os.path.dirname(local_dir), "hip", Hipfile).replace("\\", "/"))
+                    hou.hipFile.load(os.path.join(hipdir, Hipfile).replace("\\", "/"))
                     Node = hou.node(OutputNode)
 
                     if Node.type().category().name() == "Sop":

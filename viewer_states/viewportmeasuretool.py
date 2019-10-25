@@ -96,8 +96,9 @@ class MyState(object):
         dev = ui_event.device()
 
         # ray cast
-        origin, direction, snapped = ui_event.snappingRay()
-        
+        snap_dict = ui_event.snappingRay()
+        origin = snap_dict["origin_point"]
+        direction = snap_dict["direction"]
 
         # selected geometry
         selectedGeometry = self.getSelectedGeometry()
