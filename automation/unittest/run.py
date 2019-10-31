@@ -20,6 +20,7 @@ my_env = os.environ.copy()
 my_env["HOUDINI_OGL_SOFTWARE"] = "1"
 my_env["HOUDINI_PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..")).replace("\\", "/") + ";&" #"C:\\GameDevToolset;&"
 
+print latest_houdini
 
 for filename in os.listdir(local_dir):
     #print filename
