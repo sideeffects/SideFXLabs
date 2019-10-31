@@ -2,7 +2,7 @@ import os
 import logging
 import subprocess
 
-HOUDINI_VERSION = "17.5"
+HOUDINI_VERSION = "18.0"
 
  
 def get_latest_houdini_version():
