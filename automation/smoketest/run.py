@@ -22,6 +22,6 @@ local_dir = os.path.dirname(__file__)
 
 my_env = os.environ.copy()
 my_env["HOUDINI_OGL_SOFTWARE"] = "1"
-my_env["HOUDINI_PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..")).replace("\\", "/") + ";&" #"C:\\GameDevToolset;&"
+my_env["HOUDINI_PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..")) + ";&" #"C:\\GameDevToolset;&"
 
 subprocess.call([latest_houdini + "/bin/hython2.7.exe", os.path.join(local_dir,"smoke_tests.py")], env=my_env)

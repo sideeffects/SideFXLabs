@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.DEBUG)
 current_folder = os.path.dirname(__file__)
 repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
 
-NODES_TO_IGNORE = ["sop_rc_register_images", "rc_texture_model"]
+NODES_TO_IGNORE = ["labs::sop_rc_register_images", "labs::rc_texture_model", "labs::instant_meshes::2.0", "labs::instant_meshes"]
 
 def check_gamedev_namespace(node):
     # print("Checking GameDev Namespace")
@@ -110,7 +110,8 @@ def run_tests(node):
         print(node_name + ": __SmoketestWarning__ : No Analytics Code")
 
     if not check_parm_names(node):
-        print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
+        #print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
+        pass
 
 
 if __name__ == '__main__':
