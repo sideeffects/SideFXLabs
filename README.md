@@ -16,7 +16,6 @@ The updater provides several options of installation depending on your needs / l
 2. REQUIRES INTERNET ACCESS. Download a production build from Github. A production build is released every four weeks. This type of build will not contain the cutting edge additions to the toolset, but will have had more production testing prior to release than a development build. (These builds can be found in the releases section of this repository and are marked as "Release")
 3. REQUIRES INTERNET ACCESS. Download a development build from Github. A development build gets released every 24 hours. These builds will contain bugfixes that have been implemented in the day prior. To get access to these type of builds, untick the "Production Builds Only" checkbox in the updater.
 
-You can find more information [here](https://www.sidefx.com/tutorials/game-dev-toolset-installation/)
 
 ## Method 2: Manually Download from Github
 
