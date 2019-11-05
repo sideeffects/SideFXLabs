@@ -22,7 +22,7 @@ You can find more information [here](https://www.sidefx.com/tutorials/game-dev-t
 
 1. Download the repository using the green Clone or Download Button and unzip contents into the folder of your choosing.
 
-2. Copy the SideFXLabs.json file from the location used in step 1 to `$HOME/Houdini18.0/packages`, and change the contained paths to match the location chosen in step 1. Edit [Information on Packages](https://www.sidefx.com/docs/houdini/ref/plugins.html)
+2. Copy the SideFXLabs.json file from the location used in step 1 to `$HOME/Houdini18.0/packages`, and change the contained paths to match the location chosen in step 1. [Information on Packages](https://www.sidefx.com/docs/houdini/ref/plugins.html)
 
 
 # Additional Information
