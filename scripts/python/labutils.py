@@ -84,10 +84,17 @@ def dislike_node(node):
     hou.ui.displayMessage("Thanks!\n We're sorry you're not enjoying using this tool.\n"
                           " If you'd like to share your thoughts, please email us at support@sidefx.com. ")
 
+# Temporary check to see if node in labs namespace
+def is_labs_node(node):
+    name = node.type().name()
+    if name.startswith("labs::"):
+        return True
+    else:
+        return False
 
 
 def send_on_create_analytics(node):
-    if can_send_anonymous_stats():
+    if can_send_anonymous_stats() and is_labs_node(node):
         track_event("Node Created", str(node.type().name()), str(node.type().definition().version()))
 
 def empty_directory_recursive(dir):
