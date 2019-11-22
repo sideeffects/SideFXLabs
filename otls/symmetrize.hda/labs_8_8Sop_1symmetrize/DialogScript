@@ -1,0 +1,63 @@
+# Dialog script for gamedev::sop_symmetrize automatically generated
+
+{
+    name	gamedev::sop_symmetrize
+    script	gamedev::sop_symmetrize
+    label	"GameDev Symmetrize"
+
+    help {
+	""
+    }
+    bindhandle group vector "Clipping_Direction" input "ownerop('clip1') owneropgroup('group')"
+    bindhandle origin2x vector "Clipping_Direction" tx "ownerop('clip1') owneropgroup('group')"
+    bindhandle origin2y vector "Clipping_Direction" ty "ownerop('clip1') owneropgroup('group')"
+    bindhandle origin2z vector "Clipping_Direction" tz "ownerop('clip1') owneropgroup('group')"
+    bindhandle dir2x vector "Clipping_Direction" vx "ownerop('clip1') owneropgroup('group')"
+    bindhandle dir2y vector "Clipping_Direction" vy "ownerop('clip1') owneropgroup('group')"
+    bindhandle dir2z vector "Clipping_Direction" vz "ownerop('clip1') owneropgroup('group')"
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        invisible
+        default { "" }
+        menutoggle {
+            [ "opmenu -l clip1 group" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Primitives,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "dir2"
+        label   "Mirror Direction"
+        type    direction
+        size    3
+        default { "0" "1" "0" }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "origin2"
+        label   "Mirror Origin"
+        type    vector
+        size    3
+        default { "0" "0" "0" }
+        range   { -1 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "T_Dissolve"
+        label   "Dissolve flat edges"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

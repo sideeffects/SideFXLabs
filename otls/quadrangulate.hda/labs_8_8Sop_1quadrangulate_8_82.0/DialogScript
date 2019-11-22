@@ -1,0 +1,101 @@
+# Dialog script for gamedev::sop_quadrangulate::2.0 automatically generated
+
+{
+    name	gamedev::sop_quadrangulate::2.0
+    script	gamedev::sop_quadrangulate::2.0
+    label	"GameDev Quadrangulate"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Triangulated Mesh"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Reduction Method"
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Vertex Order"
+                "1" "Longest Edge"
+            }
+        }
+        parm {
+            name    "edge_to_collapse"
+            label   "Edge to Collapse"
+            type    integer
+            default { "0" }
+            hidewhen "{ method != 0 }"
+            range   { 0 2 }
+        }
+        parm {
+            name    "protect_silhouette"
+            label   "Protect Silhouette"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "normal_angle"
+            label   "Normal Angle"
+            type    float
+            default { "35" }
+            hidewhen "{ protect_silhouette != 1 }"
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Refine Method"
+
+        parm {
+            name    "refine_method"
+            label   "Refine Method"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "PolyFill"
+                "1" "Iterative Divide"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "fillmode"
+            label   "Fallback Fill Mode"
+            type    ordinal
+            default { "tris" }
+            hidewhen "{ refine_method != 0 }"
+            menu {
+                "none"      "Single Polygon"
+                "tris"      "Triangles"
+                "trifan"    "Triangle Fan"
+                "quadfan"   "Quadrilateral Fan"
+                "quads"     "Quadrilaterals"
+                "gridquads" "Quadrilateral Grid"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "edge_method"
+            label   "Edge to Dissolve"
+            type    ordinal
+            default { "0" }
+            hidewhen "{ refine_method != 1 }"
+            menu {
+                "0" "Smallest Edge"
+                "1" "Longest Edge"
+                "2" "First Edge"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
