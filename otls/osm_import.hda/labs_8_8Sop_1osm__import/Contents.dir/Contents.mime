@@ -1,0 +1,948 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename=".OPdummydefs"
+Content-Type: application/external-reference
+
+.OPdummydefs
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="node_type"
+Content-Type: text/plain
+
+Sop
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.init"
+Content-Type: text/plain
+
+type = gamedev::sop_osm_import
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 1.06805 0.372682
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+}
+inputs
+{
+}
+stat
+{
+  create 1574181344
+  modify 1574201750
+  author MAINGEAR@DESKTOP-P98C1VA
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"0.2"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/read_in_map_data.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/read_in_map_data.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -2.68731 10.914
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+}
+inputs
+{
+}
+stat
+{
+  create 1500592402
+  modify 1574201674
+  author Luiz@Luiz-PC
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/read_in_map_data.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import re
+from math import sin, cos, sqrt, atan2, radians
+import xml.etree.cElementTree as ET
+import StringIO
+
+try:
+    from PySide2.QtGui import QColor
+except:
+    pass 
+    
+# approximate radius of earth in km
+R = 6373.0
+
+READ_BUILDING_COLORS = hou.pwd().parent().parm(\"read_building_colors\").eval()
+ONLY_CLOSE_BUILDING_SHAPES = hou.pwd().parent().parm(\"only_close_buildings\").eval()
+
+def latlong_distance(lat_long_1, lat_long_2):
+
+    lat1 = radians(lat_long_1[0])
+    lon1 = radians(lat_long_1[1])
+    lat2 = radians(lat_long_2[0])
+    lon2 = radians(lat_long_2[1])
+
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
+
+    a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
+    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+
+    distance = R * c
+    return distance * 1000
+
+def hex_to_rgb(value):
+    value = value.lstrip('#')
+    lv = len(value)
+    return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))
+    
+class OSMNode(object):
+    def __init__(self):
+        self.id = \"\"
+        self.lat = 0
+        self.lon = 0
+        self.tags = {}
+
+    @classmethod
+    def from_xml(cls, xml_node):
+        self = cls()
+
+        self.id = xml_node.attrib[\"id\"]
+        self.lat = xml_node.attrib[\"lat\"]
+        self.lon = xml_node.attrib[\"lon\"]
+        for child in xml_node:
+            if child.tag == \"tag\":
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
+                self.tags[clean_tag] = child.attrib[\"v\"]
+
+        return self
+
+
+class OSMWay(object):
+
+    def __init__(self):
+        self.id = 0
+        self.tags = {}
+        self.nodes = []
+
+    @classmethod
+    def from_xml(cls, xml_node):
+        self = cls()
+
+        self.id = xml_node.attrib[\"id\"]
+        for child in xml_node:
+            if child.tag == \"tag\" and \"k\" in child.attrib:
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
+                self.tags[clean_tag] = child.attrib[\"v\"]
+
+            if child.tag == \"nd\" and \"ref\" in child.attrib:
+                self.nodes.append(child.attrib[\"ref\"])
+                                
+        return self
+
+class OSMRelation(object):
+
+    def __init__(self):
+        self.id = 0
+        self.tags = {}
+        self.members = []
+
+    @classmethod
+    def from_xml(cls, xml_node):
+        self = cls()
+
+        self.id = xml_node.attrib[\"id\"]
+        for child in xml_node:
+            if child.tag == \"tag\" and \"k\" in child.attrib:
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
+                self.tags[clean_tag] = child.attrib[\"v\"]
+
+            if child.tag == \"member\" and \"ref\" in child.attrib:
+                self.members.append(child.attrib[\"ref\"])
+                                
+        return self
+
+class OSMParser(object):
+    def __init__(self, osm_file):
+        self.osm_file = osm_file
+
+        self.min_lat = -1
+        self.max_lat = 1
+
+        self.min_lon = -1
+        self.max_lon = 1
+
+        self.length = 500  
+        self.height = 500
+
+        self.ways = []
+        self.nodes = {}
+        self.relations = []
+        self.tagged_nodes = []
+        self.tags= []
+
+    def get_size(self):
+        self.length = latlong_distance([self.min_lat, self.min_lon], [self.max_lat, self.min_lon])
+        self.height = latlong_distance([self.min_lat, self.min_lon], [self.min_lat, self.max_lon])
+
+    def get_relative_coordinates(self, lat_long):
+    
+    
+        rel_lat = (lat_long[0] - self.min_lat) / (self.max_lat - self.min_lat) * self.length
+        rel_lon = (lat_long[1] - self.min_lon) / (self.max_lon - self.min_lon) * self.height
+
+        return rel_lat, rel_lon
+
+    def build(self):
+        import hou
+        node = hou.pwd()
+        geo = node.geometry()
+
+        # add some detail attributes
+        geo.addAttrib(hou.attribType.Global, \"min_lat\", self.min_lat)
+        geo.addAttrib(hou.attribType.Global, \"max_lat\", self.max_lat)
+        geo.addAttrib(hou.attribType.Global, \"min_lon\", self.min_lon)
+        geo.addAttrib(hou.attribType.Global, \"max_lon\", self.max_lon)
+        geo.addAttrib(hou.attribType.Global, \"map_length\", self.length)
+        geo.addAttrib(hou.attribType.Global, \"map_height\", self.height)
+
+        for tag in self.tags:
+            if tag == \"name\":
+                continue 
+                
+            geo.addAttrib(hou.attribType.Prim, tag, \"\")
+            
+        if READ_BUILDING_COLORS:    
+            if not geo.findPrimAttrib(\"Cd\"):
+                geo.addAttrib(hou.attribType.Prim, \"Cd\", [1.0,1.0,1.0])
+            
+        if not geo.findPrimAttrib(\"hou_id\"):
+            geo.addAttrib(hou.attribType.Prim, \"hou_id\", \"-1\")
+            
+        if not geo.findPrimAttrib(\"hou_name\"):
+            geo.addAttrib(hou.attribType.Prim, \"hou_name\", \"\")
+            
+        if not geo.findPrimAttrib(\"hou_way\"):
+            geo.addAttrib(hou.attribType.Prim, \"hou_way\", 0)
+
+        if not geo.findPrimAttrib(\"hou_node\"):
+            geo.addAttrib(hou.attribType.Prim, \"hou_node\", 0)
+
+        if not geo.findPointAttrib(\"latitude\"):
+            geo.addAttrib(hou.attribType.Point, \"latitude\", 0.0)
+
+        if not geo.findPointAttrib(\"longitude\"):
+            geo.addAttrib(hou.attribType.Point, \"longitude\", 0.0)
+
+        polys = {}
+        for way in self.ways:
+            positions = []
+            latlongs = []
+            
+            closed = False
+            if way.nodes[0] == way.nodes[-1]:
+                closed = True
+                
+            for node_id in way.nodes:
+                node = self.nodes[node_id]
+                pos_xy = self.get_relative_coordinates([float(node.lat), float(node.lon)])
+                positions.append((pos_xy[0], 0, pos_xy[1]))
+                latlongs.append([float(node.lat), float(node.lon)])
+
+            points = geo.createPoints(positions)
+            poly = geo.createPolygon()
+
+            for x, point in enumerate(points):
+                point.setAttribValue(\"latitude\", latlongs[x][0])
+                point.setAttribValue(\"longitude\", latlongs[x][1])
+
+            if ONLY_CLOSE_BUILDING_SHAPES:
+                if \"building\" not in way.tags and \"buildingpart\" not in way.tags and \"building_part\" not in way.tags: 
+                    poly.setIsClosed(0)
+            else:
+                if not closed:
+                    poly.setIsClosed(0)
+
+            if READ_BUILDING_COLORS:
+                if \"buildingcolour\" in way.tags:
+                    rgb = QColor(way.tags[\"buildingcolour\"])
+                    Cd = [rgb.red()/255.0, rgb.green()/255.0,rgb.blue()/255.0]
+                    poly.setAttribValue(\"Cd\", Cd )
+               
+                
+            poly.setAttribValue(\"hou_id\", way.id)
+            poly.setAttribValue(\"hou_way\", 1)
+            for tag in way.tags:
+
+            
+                try:
+                    clean_value = way.tags[tag].encode(\"utf-8\")
+                    #clean_value = re.sub('[^a-zA-Z0-9\\n.,;]', '', way.tags[tag])
+                    
+                    if tag == \"name\":
+                        poly.setAttribValue(\"hou_name\", clean_value)
+                    else:
+                        poly.setAttribValue(tag, clean_value)
+                except:
+                    print \"Could not set tag: %s with value: %s\"%(tag,clean_value)
+
+            for point in points:
+                poly.addVertex(point)
+            
+            polys[way.id] = poly
+            
+        for relation in self.relations: 
+            
+            # Currently we only care about relations that define buildings 
+            
+            is_building = 0
+            for tag in relation.tags:
+                if tag in [\"building\", \"buildingpart\", \"building_part\"]: 
+                    is_building = 1
+                    
+            if is_building:
+                for member in relation.members: 
+                   if member in polys:
+                        poly = polys[member]
+                        poly.setIsClosed(1)
+                        for tag in relation.tags:
+                            clean_value = relation.tags[tag].encode(\"utf-8\")
+                            if tag == \"name\":
+                                poly.setAttribValue(\"hou_name\", clean_value)
+                            else:
+                                poly.setAttribValue(tag, clean_value)
+                                
+                
+
+
+                               
+                    
+        # Marked Nodes 
+        if hou.node(\"..\").parm(\"build_nodes\").eval():
+            for node in self.tagged_nodes:
+                pos_xy = self.get_relative_coordinates([float(node.lat), float(node.lon)])
+                points = geo.createPoints([(pos_xy[0], 0, pos_xy[1])])
+                poly = geo.createPolygon()
+                poly.setIsClosed(0)
+                poly.setAttribValue(\"hou_id\", node.id)
+                poly.setAttribValue(\"hou_node\", 1)
+                for tag in node.tags:
+                    #try:
+                        #clean_value = re.sub('[^a-zA-Z0-9.,\\n]', '', node.tags[tag])
+                    clean_value = node.tags[tag].encode(\"utf-8\")
+                    if tag == \"name\":
+                        poly.setAttribValue(\"hou_name\", clean_value)
+                    else:
+                        poly.setAttribValue(tag, clean_value)
+                    #except:
+                    #    print \"Could not set tag: %s with value: %s\"%(tag,clean_value)
+                for point in points:
+                    poly.addVertex(point)
+
+
+    def parse(self):
+
+        tags = []
+        for event, child in ET.iterparse(self.osm_file):
+            if child.tag == \"bounds\":
+
+                self.min_lat = float(child.attrib[\"minlat\"])
+                self.max_lat = float(child.attrib[\"maxlat\"])
+                self.min_lon = float(child.attrib[\"minlon\"])
+                self.max_lon = float(child.attrib[\"maxlon\"])
+                self.get_size()
+                child.clear()
+
+            if child.tag == \"way\":
+                way = OSMWay.from_xml(child)
+                tags.extend(way.tags.keys())
+                self.ways.append(way)
+                child.clear()
+
+            if child.tag == \"relation\":
+                relation = OSMRelation.from_xml(child)
+                tags.extend(relation.tags.keys())
+                self.relations.append(relation)
+                child.clear()
+
+            if child.tag == \"node\":
+
+                node = OSMNode.from_xml(child)
+                tags.extend(node.tags.keys())
+                self.nodes[node.id] = node
+
+                if len(node.tags.keys()):
+                    self.tagged_nodes.append(node)
+
+                child.clear()
+
+        self.tags = list(set(tags))
+
+# Make a File Object
+def make_file_object(filename):
+    if filename.startswith(\"opdef:\") or filename.startswith(\"oplib:\"):
+        return StringIO.StringIO(hou.readFile(filename))
+    else:
+        return file(filename, \"r\")
+
+osm_file = hou.node(\"..\").parm(\"osm_file\").eval()
+osm_file_object = make_file_object(osm_file) 
+parser = OSMParser(osm_file_object)
+parser.parse()
+parser.build()
+"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/read_in_map_data.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.360"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down.init"
+Content-Type: text/plain
+
+type = subnet
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -2.68731 8.93206
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	read_in_map_data 0 1 "input1"
+}
+inputs
+{
+0 	read_in_map_data 0 1
+}
+stat
+{
+  create 1508267018
+  modify 1574201708
+  author Luiz@Luiz-PC
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+label1	[ 0	locks=0 ]	(	"Sub-Network Input #1"	)
+label2	[ 0	locks=0 ]	(	"Sub-Network Input #2"	)
+label3	[ 0	locks=0 ]	(	"Sub-Network Input #3"	)
+label4	[ 0	locks=0 ]	(	"Sub-Network Input #4"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.360"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down.inp"
+Content-Type: text/plain
+
+4
+0 0 6 2 0 __NO_OWNER_NETWORK_BOX__ "FROMOUTPUT"
+1 3 6.5 2 0 __NO_OWNER_NETWORK_BOX__ "FROMOUTPUT"
+2 6 7 2 0 __NO_OWNER_NETWORK_BOX__ "FROMOUTPUT"
+3 9 7.5 2 0 __NO_OWNER_NETWORK_BOX__ "FROMOUTPUT"
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal1.init"
+Content-Type: text/plain
+
+type = normal
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 3.98986e-17 4.7374
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	(0) "" 1 "input1"
+}
+inputs
+{
+0 	(0) 0 1
+}
+stat
+{
+  create 1508261598
+  modify 1511365337
+  author Luiz@Luiz-PC
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+group	[ 0	locks=0 ]	(	""	)
+grouptype	[ 0	locks=0 ]	(	"guess"	)
+overridenormal	[ 0	locks=0 ]	(	"off"	)
+normalattrib	[ 0	locks=0 ]	(	N	)
+construct	[ 0	locks=0 ]	(	0	)
+docompute	[ 0	locks=0 ]	(	"on"	)
+type	[ 0	locks=0 ]	(	"typepoint"	)
+cuspangle	[ 0	locks=0 ]	(	60	)
+method	[ 0	locks=0 ]	(	1	)
+modify	[ 0	locks=0 ]	(	0	)
+normalize	[ 0	locks=0 ]	(	"off"	)
+reverse	[ 0	locks=0 ]	(	"off"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.360"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/reverse1.init"
+Content-Type: text/plain
+
+type = reverse
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/reverse1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -0.910986 2.73953
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	split1 1 1 "input1"
+}
+inputs
+{
+0 	split1 0 1
+}
+stat
+{
+  create 1508261689
+  modify 1511365337
+  author Luiz@Luiz-PC
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/reverse1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+group	[ 0	locks=0 ]	(	""	)
+vtxsort	[ 0	locks=0 ]	(	"reverseu"	)
+vtxuoff	[ 0	locks=0 ]	(	0	)
+vtxvoff	[ 0	locks=0 ]	(	0	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/reverse1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.360"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/split1.init"
+Content-Type: text/plain
+
+type = split
+matchesdef = 1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/split1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 0 3.91404
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+2 "output2"
+}
+inputsNamed3
+{
+0 	normal1 1 1 "input1"
+}
+inputs
+{
+0 	normal1 0 1
+}
+stat
+{
+  create 1508261692
+  modify 1511365337
+  author Luiz@Luiz-PC
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/split1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+group	[ 0	locks=0 ]	(	@N.y=-1	)
+grouptype	[ 0	locks=0 ]	(	"points"	)
+negate	[ 0	locks=0 ]	(	"off"	)
+removegrp	[ 0	locks=0 ]	(	"off"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/split1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":""
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal2.init"
+Content-Type: text/plain
+
+type = normal
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal2.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -0.910986 1.71894
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	reverse1 1 1 "input1"
+}
+inputs
+{
+0 	reverse1 0 1
+}
+stat
+{
+  create 1508261705
+  modify 1511365337
+  author Luiz@Luiz-PC
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal2.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+group	[ 0	locks=0 ]	(	""	)
+grouptype	[ 0	locks=0 ]	(	"guess"	)
+overridenormal	[ 0	locks=0 ]	(	"off"	)
+normalattrib	[ 0	locks=0 ]	(	N	)
+construct	[ 0	locks=0 ]	(	0	)
+docompute	[ 0	locks=0 ]	(	"on"	)
+type	[ 0	locks=0 ]	(	"typevertex"	)
+cuspangle	[ 0	locks=0 ]	(	60	)
+method	[ 0	locks=0 ]	(	1	)
+modify	[ 0	locks=0 ]	(	0	)
+normalize	[ 0	locks=0 ]	(	"off"	)
+reverse	[ 0	locks=0 ]	(	"off"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/normal2.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.360"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/merge2.init"
+Content-Type: text/plain
+
+type = merge
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/merge2.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 0.115095 0.177175
+connectornextid 3
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	normal2 1 1 "input1"
+1 	split1 2 1 "input2"
+}
+inputs
+{
+0 	normal2 0 1
+1 	split1 1 1
+}
+stat
+{
+  create 1508261709
+  modify 1511365337
+  author Luiz@Luiz-PC
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/merge2.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down/merge2.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.360"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down.order"
+Content-Type: text/plain
+
+5
+normal1
+reverse1
+split1
+normal2
+merge2
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/flip_polys_that_are_facing_down.net"
+Content-Type: text/plain
+
+1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output1.init"
+Content-Type: text/plain
+
+type = output
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -2.68731 6.99354
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+}
+inputsNamed3
+{
+0 	flip_polys_that_are_facing_down 1 1 "input1"
+}
+inputs
+{
+0 	flip_polys_that_are_facing_down 0 1
+}
+stat
+{
+  create 1522783210
+  modify 1574201704
+  author MAINGEAR@DESKTOP-P98C1VA
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+outputidx	[ 0	locks=0 ]	(	0	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.360"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.order"
+Content-Type: text/plain
+
+3
+read_in_map_data
+flip_polys_that_are_facing_down
+output1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.net"
+Content-Type: text/plain
+
+1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY--

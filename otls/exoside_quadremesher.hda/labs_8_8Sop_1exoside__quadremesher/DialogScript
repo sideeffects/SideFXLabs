@@ -1,0 +1,212 @@
+# Dialog script for gamedev::sop_exoside_quadremesher automatically generated
+
+{
+    name	gamedev::sop_exoside_quadremesher
+    script	gamedev::sop_exoside_quadremesher
+    label	"Gamedev Exoside QuadRemesher"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry to Remesh"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "CookNow"
+        label   "Cook Now"
+        type    button
+        joinnext
+        default { "0" }
+        disablewhen "{ bAutoCook == 1 }"
+        parmtag { "script_callback" "kwargs['node'].hdaModule().buttonCookNow(kwargs['node'].node(\"python1\"))" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "bAutoCook"
+        label   "Auto Cook"
+        type    toggle
+        default { "on" }
+        help    "Auto Cook"
+        parmtag { "script_callback" "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "TargetQuadCount"
+        label   "Target Quad Count"
+        type    intlog
+        default { "5000" }
+        range   { 200 10000 }
+        parmtag { "export_disable" "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "Quads_sizing"
+        label   "Quads Sizing"
+
+        parm {
+            name    "AdaptiveSize"
+            label   "Adaptive Size"
+            type    float
+            default { "50" }
+            help    "Allows to control how quad's size locally adapts to curvatures.\\nThe higher it is, the smaller the quads will be on high curvature areas.\\nSet it at 0, to get uniform quads size"
+            range   { 0 100 }
+        }
+        parm {
+            name    "AdaptiveQuadCount"
+            label   "Adaptive Quad Count"
+            type    toggle
+            default { "off" }
+            help    "Adaptive Quad-Count :\\nOn: Creates more polygons than asked to fit high curvatures area. \\nOff: Tries to respect the Target-Quad-Count more exactly"
+        }
+        parm {
+            name    "UseVertexColors"
+            label   "Use Vertex Colors"
+            type    toggle
+            default { "off" }
+            help    "Use 'Vertex Colors' to control the Quads size density.\\nSee 'Paint SOP' help below..."
+            disablewhen "{ DensityAttribName != \"\" }"
+        }
+        parm {
+            name    "PaintedQuadDensity"
+            label   "Painted Quad Density"
+            type    log
+            joinnext
+            default { "1" }
+            help    "Defines the Color to paint to control locally the desired Quad Density variations (using 'Paint SOP') \\n . from 0.25 => 'divide density by 4'  =  Big Quads  =  Cyan color \\n . to 4  => 'multiply density by 4'  =  Small Quads  =  Red color."
+            disablewhen "{ UseVertexColors == 0 }"
+            range   { 0.25 4 }
+            parmtag { "script_callback" "hou.pwd().hm().onPaint(kwargs, hou.pwd()) " }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "SetColor"
+            label   "Setup 'Paint SOP'"
+            type    button
+            default { "0" }
+            help    "Set the parent 'Paint SOP' color corresponding with the 'Painted Quad Density' Value\\nand make the Paint SOP active..\\nThis button is usefull only if the input/parent node of the QuadRemesher node is a Paint SOP."
+            disablewhen "{ UseVertexColors == 0 }"
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback" "kwargs['node'].hdaModule().buttonSetPaintingColor()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "DensityAttribName"
+            label   "Use Density Attribute"
+            type    string
+            invisible
+            default { "" }
+            help    "If not empty, QuadRemesher will use the specified Point Attribute (float in [0,1]) to drive the remeshing.\\n 0 means 4 times bigger quads, 0.5 means unchanged quads and 1 means 4 times smaller quads"
+            disablewhen "{ UseVertexColors == 1 }"
+            parmtag { "script_callback" "" }
+        }
+    }
+
+    groupsimple {
+        name    "Quads_sizing_1"
+        label   "Edge Loops Control"
+
+        parm {
+            name    "UseMaterialGroups"
+            label   "Use Material Boundaries"
+            type    toggle
+            default { "off" }
+            help    "If On, QuadRemesher will use 'MaterialGroups' to drive the quad remeshing.\\n    MaterialGroups will be maintained after remeshing."
+        }
+        parm {
+            name    "DetectHardEdges"
+            label   "Detect Hard-Edges by angle"
+            type    toggle
+            default { "on" }
+            help    "Let QuadRemesher detect automatically HardEdges. If 'Use Hard Edges' is checked, it's better to uncheck 'Detect Hard Edges'"
+        }
+        parm {
+            name    "UseNormalsSplitting"
+            label   "Use Normals Splitting"
+            type    toggle
+            default { "off" }
+            help    "If On, QuadRemesher will use the existing 'Normals' to guide the remeshing on edge loops where the normals are creased.\\nAs most operations automatically set the Normals, it's advised to enable it.\\nOn smooth organic shapes, it's advised to disable it."
+        }
+        parm {
+            name    "UsePrimitiveGroups"
+            label   "Use Primitive Groups Boundaries"
+            type    toggle
+            default { "off" }
+            help    "If On, QuadRemesher will use the existing 'Primitive Groups' boundaries to guide the remeshing."
+            disablewhen "{ PrimitiveAttribName != \"\" }"
+        }
+        parm {
+            name    "PrimitiveAttribName"
+            label   "Use Primitive Attribute"
+            type    string
+            default { "" }
+            help    "If not empty, QuadRemesher will use the specified Primitive Attribute (integer) boundaries to drive the remeshing."
+            disablewhen "{ UsePrimitiveGroups == 1 }"
+            parmtag { "script_callback" "" }
+        }
+        parm {
+            name    "UseEdgeGroups"
+            label   "Use Edge Groups"
+            type    toggle
+            invisible
+            default { "off" }
+            help    "If On, QuadRemesher will use the existing 'Primitive Groups' boundaries to guide the remeshing."
+        }
+    }
+
+    groupsimple {
+        name    "Misc"
+        label   "Misc"
+
+        groupsimple {
+            name    "folder1"
+            label   "Symmetry Axis"
+
+            parm {
+                name    "SymX"
+                label   "X"
+                type    toggle
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "SymY"
+                label   "Y"
+                type    toggle
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "SymZ"
+                label   "Z"
+                type    toggle
+                default { "0" }
+                help    "These options allows to perform symmetrical quad remeshing. It's possible to combine all 3 symmetry axis."
+            }
+        }
+
+        groupcollapsible {
+            name    "folder0"
+            label   "Advanced"
+
+            parm {
+                name    "out_cache"
+                label   "Cache File"
+                type    geometry
+                default { "$HIP/{$HIPNAME}_{$OS}_QR_output.fbx" }
+            }
+        }
+
+        parm {
+            name    "LicenseMgr"
+            label   "License Manager"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hdaModule().buttonLicMgr(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

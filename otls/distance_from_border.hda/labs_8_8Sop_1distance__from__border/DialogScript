@@ -1,0 +1,145 @@
+# Dialog script for gamedev::sop_distance_from_border automatically generated
+
+{
+    name	gamedev::sop_distance_from_border
+    script	gamedev::sop_distance_from_border
+    label	"GameDev Distance From Border"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Distance Settings"
+
+        parm {
+            name    "outputtype"
+            label   "Mapping"
+            type    ordinal
+            default { "normalized" }
+            menu {
+                "raw"           "Distance"
+                "normalized"    "Normalized Distance"
+                "unboundedraw"  "Unbounded Distance"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "distmetric"
+            label   "Distance Metric"
+            type    ordinal
+            default { "edge" }
+            menu {
+                "edge"      "Edge"
+                "global"    "Radius"
+                "surface"   "Surface"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "rad"
+            label   "Radius"
+            type    float
+            default { "1.55" }
+            disablewhen "{ outputtype == unboundedraw }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "reverse"
+            label   "Reverse"
+            type    toggle
+            default { "on" }
+            disablewhen "{ outputtype == unboundedraw }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Output"
+
+        parm {
+            name    "bDistanceAsColor"
+            label   "Output Distance as Color (Cd)"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "distattr"
+            label   "Distance Attribute"
+            type    string
+            default { "distancefromborder" }
+            disablewhen "{ bDistanceAsColor == 1 }"
+            parmtag { "Output" "output" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "ramp"
+            label   "Ramp"
+            type    ramp_flt
+            default { "2" }
+            disablewhen "{ outputtype != normalized }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampbasisdefault" "monotonecubic" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( monotonecubic ) 2pos ( 1 ) 2value ( 0 ) 2interp ( monotonecubic )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Smoothing"
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "edgelength" }
+            menu {
+                "uniform"       "Uniform"
+                "edgelength"    "Edge Length"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "influencetype"
+            label   "Influence Type"
+            type    ordinal
+            default { "connectivity" }
+            menu {
+                "connectivity"  "Connectivity"
+                "proximity"     "Proximity"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "iterations"
+            label   "Blurring Iterations"
+            type    integer
+            default { "0" }
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stepsize"
+            label   "Step Size"
+            type    float
+            default { "0.5" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
