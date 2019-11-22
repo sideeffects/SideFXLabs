@@ -1,0 +1,56 @@
+= Labs Quadrangulate =
+
+#type: node
+#context: sop
+#internal: labs::sop_quadrangulate::2.0
+#icon: quadrangulate
+#tags: tech, model, gamedev, cleanup
+
+""" Simple Node to take a triangulated mesh and attempt to collapse the diagonal edges to return the mesh to a quad dominant state """
+
+The Quadrangulate Node is designed to remove obvious edges from a triangulated mesh in order to return to what the original quaded mesh would've looked like. 
+
+It works as a 2 step process, the first step is identifying the diagonal edges in the quads, this can be done iteratively or by assuming a good vertex order. 
+
+Those edges are then deleted, but in some cases this also deletes polygons that were tris on the original mesh. 
+
+The second step works by fixing those edges that have more than 4 points, you can either use a polyFill aproach to fix those areas, or another iterative approach where it divides the mesh up until quads are left. 
+
+[Image:/images/quadrangulate_2_squab.jpg]
+
+[Image:/images/quadrangulate_2_sphere.jpg]
+
+@parameters
+
+	== Reduction Method == 
+	Method: 
+		Vertex Order: 
+			Delete every Nth edge of a model 
+		
+		Longest Edge: 
+			Iteratively remove the longest edge in the mesh until there are only quads left
+	
+	Edge to Collapse:
+		While in Vertex Order Mode this selects which edge of the triangle to collapse, 1st, 2nd or 3rd
+
+	Protect Silhouette: 
+		Avoid deletion of edges that break the silhouette
+	
+	Normal Angle: 
+		When Protect Silhouette is on, this determines the angle between 2 faces to break in. 
+
+	== Refine Method == 
+	Refine Method: 
+		PolyFill: 
+			Resolve NGons by using the polyFill Quadrilaterals option. 
+					
+		Iterative Divide: 
+			Iterative slice the NGons until they are all quads or tris. 
+			
+	Fallback Fill Mode: 
+		When in PolyFill mode, how to resolve cases where the Quadrilaterals option fails 
+	
+	Edge to Dissolve:
+		When in Iterative Divide mode, how to determine which edge to be divided
+	
+		
