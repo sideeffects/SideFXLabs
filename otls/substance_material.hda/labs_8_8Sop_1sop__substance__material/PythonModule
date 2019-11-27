@@ -1,0 +1,61 @@
+type_lookup = {
+                hou.parmTemplateType.Int:hou.IntParmTemplate,
+                hou.parmTemplateType.Float:hou.FloatParmTemplate,
+                hou.parmTemplateType.String:hou.StringParmTemplate,
+                hou.parmTemplateType.Toggle:hou.ToggleParmTemplate,
+                hou.parmTemplateType.Menu:hou.MenuParmTemplate,
+                hou.parmTemplateType.Button:hou.ButtonParmTemplate,
+                hou.parmTemplateType.FolderSet:hou.FolderParmTemplate,
+                hou.parmTemplateType.Folder:hou.FolderParmTemplate,
+                hou.parmTemplateType.Separator:hou.SeparatorParmTemplate,
+                hou.parmTemplateType.Label:hou.LabelParmTemplate,
+                hou.parmTemplateType.Ramp:hou.RampParmTemplate
+
+}
+
+def allParmTemplates(group_or_folder):
+    for parm_template in group_or_folder.parmTemplates():
+        yield parm_template
+
+    # Note that we don't want to return parm templates inside multiparm
+    # blocks, so we verify that the folder parm template is actually
+    # for a folder.
+        if (parm_template.type() == hou.parmTemplateType.Folder and parm_template.isActualFolder()):
+            for sub_parm_template in allParmTemplates(parm_template):
+                yield sub_parm_template
+
+    
+def reload(node):
+    
+    substance_node = node.node("copnet/substance") 
+    substance_node.cook(force=True)
+    ptg = node.parmTemplateGroup()
+    foo = ptg.find("substance_parms2")
+    
+    for parm in substance_node.parms():
+        if "sbs_" in parm.name():
+            parm.deleteAllKeyframes() 
+    
+    if foo:
+        ptg.remove(foo)
+        node.setParmTemplateGroup(ptg)
+
+    parm_group = node.parmTemplateGroup() 
+    
+    parm_folder = hou.FolderParmTemplate("folder", "Substance Parameters")
+    sbs_folder = substance_node.parmTemplateGroup().find("stdswitcher3")
+
+    for parm in sbs_folder.parmTemplates():
+
+        if "substance_parms2" in parm.name():
+            clone = parm.clone()
+            parm_group.append(clone)
+
+    node.setParmTemplateGroup(parm_group)
+    
+    for parm in node.parms():
+        if "sbs_" in parm.name():
+            parm.set(substance_node.parm(parm.name()).eval())
+            substance_node.parm(parm.name()).set(parm)
+        
+    

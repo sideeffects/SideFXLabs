@@ -1,0 +1,125 @@
+# Dialog script for labs::sop_substance_material automatically generated
+
+{
+    name	labs::sop_substance_material
+    script	labs::sop_substance_material
+    label	"Labs Substance Material"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh To Apply Material To"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "file"
+        label   "File Path"
+        type    file
+        joinnext
+        default { "" }
+        menureplace {
+            [ "opmenu -l cop2net1/sbs_archive1 file" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "filechooser_mode" "read" }
+        parmtag { "filechooser_pattern" "*.sbsar" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().reload(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "reload"
+        label   "Reload"
+        type    button
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().reload(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "size"
+        label   "Size"
+        type    integer
+        size    2
+        default { "512" "512" }
+        range   { 1! 1000 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "group1"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l material1 group1" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nsoputils.selectMaterialGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to select without groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    groupcollapsible {
+        name    "folder0"
+        label   "Material Settings"
+
+        parm {
+            name    "baseNormal_flipY"
+            label   "Flip Normal Y"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_normalflipy" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+        parm {
+            name    "dispTex_enable"
+            label   "Enable Texture Displacement"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_use_displacemap" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "displace" }
+        }
+        parm {
+            name    "dispTex_scale"
+            label   "Displacement Effect Scale"
+            type    float
+            default { "0.025" }
+            hidewhen "{ dispTex_enable == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_displacescale" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "displace" }
+        }
+        parm {
+            name    "dispTex_offset"
+            label   "Displacement Offset"
+            type    float
+            default { "-0.5" }
+            hidewhen "{ dispTex_enable == 0 }"
+            range   { -1 0 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "ogl_displaceoffset" "1" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "displace" }
+        }
+        parm {
+            name    "gamma_diffuse"
+            label   "Gamma Correct Diffuse"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "gamma_roughness"
+            label   "Gamma Correct Roughness"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+}
