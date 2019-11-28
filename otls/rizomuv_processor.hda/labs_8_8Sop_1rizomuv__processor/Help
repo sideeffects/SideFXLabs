@@ -1,0 +1,67 @@
+= OD Rizom Bridge =
+
+#icon: opdef:.?premium_c_t.svg
+
+"""Enables the use of Rizom UV within Houdini.  Any Questions, recommendations or bugs, email Oliver Hotz @ oliver@heimlich.net."""
+
+== Overview ==
+
+The Rizom Bridge allows you to control every aspect of Rizom from Houdini via Custom Lua Commands and layer multiple RizomBridge nodes togehter doing multiple processes.  For example, one could do a basic unwrap in the first node, then add another node, and rectangularize specific polygons, or relax uvs, or straighten specific edges, etc.
+By Default, Rizom tries a simple automatic unwrap.  It is important to note, that this automatic process does not always yield acceptable results, and therefore in those cases, edge groups can be passed onto Rizom to help with the unwrap.
+
+@parameters
+
+== Options ==
+
+Delete Original UVs:
+    Removes the present UVs before processing in Rizom
+    
+UDIM Tile (X/Y):
+    Specifies the offset of the resulting tile in which you want to place the UV's.
+
+Group Type:
+    Enables the use of point/prim/edge Groups from Houdini in the Rizom Process
+    
+Select Group(s):
+    Select the actual point group thats being used as selection set in Rizom.  Multiple Groups are supported.
+
+UV Attrib to Rizom:
+    If your original object has multiple UV sets (uv, uv1, uv2, etc) you can specify which one of the sets you want to send to Rizom.  For example, if you have the default uv set (uv) but also an alternate named uv2, you can send the second set to rizom by just specifying: uv2
+    This only is relevant if the "Delete Original UVs" Toggle is checked.
+    
+UV Attrib from Rizom:
+    By default, the uv set that Rizom returns will go into the Vertex Attribute uv.  If you already had a uvset you wanted to keep, you can simply write the Rizom uvset into another attribute.
+        
+== Advanced ==
+
+Custom Lua Commands:
+    You can enter the commands straight from the Tool log window in RizomUV, to create your own batch of commands.  By doing so, you can actually create different "tools" as presets for the HDA, ie. one preset for optimizing uv's, another for packing, another for quadrangularizing uvs, etc, keeping everything procedural.
+
+Enable Custom Lua:
+    Enables the custom script.  When disabled, a simple autounwrap script will be performed.
+
+Auto Load Obj:
+    Automatically loads the object into rizom (preferred, unless you want to handle the loading yourself)
+    
+Auto Save:
+    Automatically saves the object from Rizom after the batch commands are executed
+    
+Auto Quit:
+    Automatically Quit, giving control back to Houdini (preferred, otherwise the Houdini UI is locked) - Disabling this option is great for debugging.
+    
+== Settings ==
+
+Rizom Location:
+    The full path to the RizomUV.exe Executable
+    
+Temp Obj Location:
+    The temporary object file thats created.  For ease of use, leave in the preferred location.
+    
+@presets
+
+== Creating presets ==
+
+We strongly encourage you to create presets for often used processes in rizom.  Simply use the advanced tab and create a custom lua script, saving it as a preset, so that it can be easily recalled at any time.
+Typical things would for example be Rectangularize, Pack with Scale, Pack without Scale, Optimize, and so on.
+
+The Presets can be accessed by pressing the cogwheel on the top right of the node and will be found on the bottom of that list.

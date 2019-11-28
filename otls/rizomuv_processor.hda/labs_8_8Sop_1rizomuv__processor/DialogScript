@@ -1,0 +1,203 @@
+# Dialog script for labs::rizomuv_processor automatically generated
+
+{
+    name	labs::rizomuv_processor
+    script	labs::rizomuv_processor
+    label	"Labs RizomUV Processor"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to UV"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Options"
+
+        parm {
+            name    "clearUVs"
+            label   "Delete Original UVs"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uv_tiles_offset"
+            label   "UDIM Tile Offset (x/y)"
+            type    integer
+            size    2
+            default { "0" "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "gtype"
+        label   "Group Type"
+        type    ordinal
+        default { "3" }
+        menu {
+            "3" "Edge"
+            "1" "Point"
+            "2" "Primitive"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "availGroups"
+        label   "Select Group(s)"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "result = []" ]
+            [ "geo = hou.pwd().inputs()[0].geometry()" ]
+            [ "gtype = hou.pwd().parm(\"gtype\").eval()" ]
+            [ "hou.pwd().setParms({\"availGroups\": \"\"})" ]
+            [ "if gtype == 1:" ]
+            [ "    for attr in geo.pointGroups():" ]
+            [ "        result.append(attr.name())" ]
+            [ "        result.append(attr.name())" ]
+            [ "if gtype == 2:" ]
+            [ "    for attr in geo.primGroups():" ]
+            [ "        result.append(attr.name())" ]
+            [ "        result.append(attr.name())" ]
+            [ "if gtype == 3:" ]
+            [ "    for attr in geo.edgeGroups():" ]
+            [ "        result.append(attr.name())" ]
+            [ "        result.append(attr.name())" ]
+            [ "return result" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "outgoingUV"
+        label   "UV Attrib to Rizom"
+        type    string
+        default { "uv" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "incomingUV"
+        label   "UV Attrib from Rizom"
+        type    string
+        default { "uv" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "usenewname"
+        label   "useIncomingUV"
+        type    toggle
+        invisible
+        default { "off" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm3"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    group {
+        name    "folder1"
+        label   "Advanced"
+
+        parm {
+            name    "lua"
+            label   "Custom Lua Commands"
+            type    string
+            default { "" }
+            parmtag { "editor" "1" }
+            parmtag { "editorlines" "10-100" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "enableLua"
+            label   "Enable Custom Lua"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "autoLoad"
+            label   "Auto Load Obj"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "autoSave"
+            label   "Auto Save"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "autoQuit"
+            label   "Auto Quit"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "rizomSDKHelp"
+            label   "Rizom Script Help"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "import webbrowser, os;webbrowser.open_new(\"file:///\"+os.getenv('APPDATA')+\"/RizomUV/UnfoldRef.htm\")" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rizomWeb"
+            label   "Rizom Lab Website"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "import webbrowser;webbrowser.open_new(\"https://www.rizom-lab.com/\")" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_1"
+        label   "Settings"
+
+        parm {
+            name    "rizomloc"
+            label   "Rizom Location"
+            type    file
+            default { "C:/Program Files/Rizom Lab/RizomUV 2019/rizomuv.exe" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "templocation"
+            label   "Temp Obj Location"
+            type    directory
+            default { "$HIP/sidefx_rizom_bridge_${HIPNAME}_${OS}.fbx" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

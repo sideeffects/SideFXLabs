@@ -1,0 +1,376 @@
+# Dialog script for labs::rizomuv_unwrap automatically generated
+
+{
+    name	labs::rizomuv_unwrap
+    script	gamedev::sop_rizomuv_optimize
+    label	"Labs RizomUV Unwrap"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to UV"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        disablewhen "{ auto_cook == 1 }"
+        parmtag { "script_callback" "hou.pwd().node(\"rizom_processor\").cook(force=True); hou.pwd().parm(\"file1/reload\").pressButton()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "auto_cook"
+        label   "Auto Cook"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback" "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder3"
+        label   "UV Settings"
+
+        parm {
+            name    "outgoingUV"
+            label   "UV Attrib"
+            type    string
+            default { "uv" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uv_tiles_offset"
+            label   "UDIM Tile Offset (x/y)"
+            type    integer
+            size    2
+            default { "0" "0" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Method"
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Pelt"
+                "1" "Mosaic"
+                "2" "Sharp Edge"
+                "3" "Box"
+                "4" "Custom"
+            }
+        }
+        parm {
+            name    "enable_leaf"
+            label   "Enable Leaf"
+            type    toggle
+            default { "0" }
+            hidewhen "{ method != 0 }"
+        }
+        parm {
+            name    "enable_branch"
+            label   "Enable Branch"
+            type    toggle
+            default { "0" }
+            hidewhen "{ method != 0 }"
+        }
+        parm {
+            name    "enable_trunk"
+            label   "Enable Trunk"
+            type    toggle
+            default { "0" }
+            hidewhen "{ method != 0 }"
+        }
+        parm {
+            name    "force"
+            label   "Force"
+            type    float
+            default { "0.25" }
+            disablewhen "{ enable_island_count == 1 }"
+            hidewhen "{ method != 1 }"
+            range   { 0 0.99 }
+        }
+        parm {
+            name    "fix_revolution_shapes"
+            label   "Revol Shapes"
+            type    toggle
+            default { "0" }
+            hidewhen "{ method != 1 }"
+        }
+        parm {
+            name    "enable_island_count"
+            label   "Enable Island Count"
+            type    toggle
+            default { "0" }
+            hidewhen "{ method != 1 }"
+        }
+        parm {
+            name    "island_count"
+            label   "Island Count"
+            type    integer
+            default { "5" }
+            disablewhen "{ enable_island_count == 0 }"
+            hidewhen "{ method != 1 }"
+            range   { 1 100 }
+        }
+        parm {
+            name    "sharp_edge_angle"
+            label   "Sharp Edge Angle"
+            type    float
+            default { "70" }
+            hidewhen "{ method != 2 }"
+            range   { 0 180 }
+        }
+        parm {
+            name    "xpos_ypos"
+            label   "X+Y+"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "xpos_zpos"
+            label   "X+Z+"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "xpos_yneg"
+            label   "X+Y-"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "xpos_zneg"
+            label   "X+Z-"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "ypos_zpos"
+            label   "Y+Z+"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "yneg_zpos"
+            label   "Y-Z+"
+            type    toggle
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "yneg_zneg"
+            label   "Y-Z-"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "ypos_zneg"
+            label   "Y+Z-"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "xneg_ypos"
+            label   "X-Y+"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "xneg_zpos"
+            label   "X-Z+"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "xneg_yneg"
+            label   "X-Y-"
+            type    toggle
+            joinnext
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "xneg_zneg"
+            label   "X-Z-"
+            type    toggle
+            default { "1" }
+            hidewhen "{ method != 3 }"
+        }
+        parm {
+            name    "seam_group"
+            label   "Seam Groups"
+            type    string
+            default { "" }
+            hidewhen "{ method != 4 }"
+            menutoggle {
+                [ "result = []" ]
+                [ "geo = hou.pwd().inputs()[0].geometry()" ]
+                [ "for attr in geo.edgeGroups():" ]
+                [ "    result.append(attr.name())" ]
+                [ "    result.append(attr.name())" ]
+                [ "return result" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder1"
+        label   "Advanced"
+
+        parm {
+            name    "select_handles"
+            label   "Cut Handles"
+            type    toggle
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "select_hole_links"
+            label   "Link Holes"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "on_detail_remover"
+            label   "Detail Remover"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "detail_remover"
+            label   "Detail Remover"
+            type    float
+            default { "0.5" }
+            disablewhen "{ on_detail_remover != 1 }"
+            range   { 0 1 }
+        }
+        parm {
+            name    "on_stretch_control"
+            label   "Stretch Control"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "stretch_control"
+            label   "Stretch Control"
+            type    float
+            default { "0.25" }
+            disablewhen "{ on_stretch_control == 0 }"
+            range   { 0 0.99 }
+        }
+        parm {
+            name    "on_reweld"
+            label   "Reweld"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "reweld_threshold"
+            label   "Reweld Threshold"
+            type    float
+            joinnext
+            default { "0.01" }
+            disablewhen "{ on_reweld == 0 }"
+            range   { 0.001 10 }
+        }
+        parm {
+            name    "reweld_poly_max"
+            label   "Reweld Poly Max"
+            type    integer
+            joinnext
+            default { "30" }
+            disablewhen "{ on_reweld == 0 }"
+            range   { 1 100 }
+        }
+        parm {
+            name    "reweld_length_max"
+            label   "Reweld Length Max"
+            type    float
+            default { "1" }
+            disablewhen "{ on_reweld == 0 }"
+            range   { 0 1 }
+        }
+        parm {
+            name    "on_size_limiter"
+            label   "Size Limiter"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "size_limiter"
+            label   "Size Limiter"
+            type    integer
+            default { "5" }
+            disablewhen "{ on_size_limiter == 0 }"
+            range   { 1 10 }
+        }
+        groupsimple {
+            name    "folder2"
+            label   "Settings"
+
+            parm {
+                name    "templocation"
+                label   "Temp Obj Location"
+                type    directory
+                default { "$HIP/sidefx_rizom_bridge_${HIPNAME}_${OS}.fbx" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rizomloc"
+                label   "Rizom Location"
+                type    file
+                default { "C:/Program Files/Rizom Lab/RizomUV 2019/rizomuv.exe" }
+                menureplace {
+                    [ "opmenu -l rizom_processor rizomloc" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

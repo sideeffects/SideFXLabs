@@ -1,0 +1,129 @@
+# Dialog script for labs::rizomuv_optimize automatically generated
+
+{
+    name	labs::rizomuv_optimize
+    script	labs::rizomuv_optimize
+    label	"Labs RizomUV Optimize"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to UV"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        disablewhen "{ auto_cook == 1 }"
+        parmtag { "script_callback" "hou.pwd().node(\"rizom_processor\").cook(force=True); hou.pwd().parm(\"file1/reload\").pressButton()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "auto_cook"
+        label   "Auto Cook"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback" "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "UV Settings"
+
+        parm {
+            name    "outgoingUV"
+            label   "UV Attrib to Rizom"
+            type    string
+            default { "uv" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uv_tiles_offset"
+            label   "UDIM Tile Offset (x/y)"
+            type    integer
+            size    2
+            default { "0" "0" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Optimize Options"
+
+        parm {
+            name    "iterations"
+            label   "Iterations"
+            type    integer
+            default { "1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "optimization_force"
+            label   "Power"
+            type    float
+            default { "1" }
+            range   { 0 1 }
+        }
+        parm {
+            name    "angle_distance_mix"
+            label   "Angles/Lengths"
+            type    float
+            default { "1" }
+            range   { 0 1 }
+        }
+        parm {
+            name    "fill_holes"
+            label   "Fill Holes"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "prevent_flips"
+            label   "Prevent Flips"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "prevent_overlaps"
+            label   "Prevent Self Overlaps"
+            type    toggle
+            default { "0" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder2"
+        label   "Settings"
+
+        parm {
+            name    "rizomloc"
+            label   "Rizom Location"
+            type    file
+            default { "C:/Program Files/Rizom Lab/RizomUV 2019/rizomuv.exe" }
+            menureplace {
+                [ "opmenu -l rizom_processor rizomloc" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "templocation"
+            label   "Temp Obj Location"
+            type    directory
+            default { "$HIP/sidefx_rizom_bridge_${HIPNAME}_${OS}.fbx" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
