@@ -1,0 +1,636 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="node_type"
+Content-Type: text/plain
+
+Sop
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.init"
+Content-Type: text/plain
+
+type = gamedev::sop_av_analyze_images::3.0
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 4.3329 -1.34536
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+1 	sop_av_initialize1 0 1 "input1"
+}
+inputs
+{
+0 	sop_av_initialize1 0 1
+}
+stat
+{
+  create 1569624135
+  modify 1569624841
+  author paula@DESKTOP-5213MPP
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":""
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.inp"
+Content-Type: text/plain
+
+1
+0 2.3078500204890968 6.742668872499201 2 0 __NO_OWNER_NETWORK_BOX__ "FROMOUTPUT"
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/02_Feature_Extraction.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/02_Feature_Extraction.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 0 5.2176
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	(0) "" 1 "input1"
+}
+inputs
+{
+0 	(0) 0 1
+}
+stat
+{
+  create 1546634656
+  modify 1555463479
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/02_Feature_Extraction.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, shutil, gamedevutils
+
+node = hou.pwd()
+geo = node.geometry()
+
+bin = geo.attribValue(\"bin\")
+cache = geo.attribValue(\"cache\")
+srcimg = geo.attribValue(\"src_img\")
+
+gamedevutils.empty_directory_recursive(os.path.join(cache, \"02_FeatureExtraction\"))
+
+func = \"aliceVision_featureExtraction\"
+
+cmd = os.path.join(bin,func)  
+cmd = [cmd]
+
+cmd.append(\"--input\")
+cmd.append(os.path.join(cache, \"01_CameraInit\",\"cameraInit.sfm\"))
+
+cmd.append(\"--describerTypes\")
+cmd.append(node.parent().parm(\"dsc_type\").evalAsString().replace(\" \", \",\"))
+
+cmd.append(\"--describerPreset\")
+cmd.append(node.parent().parm(\"dsc_pre\").evalAsString())
+
+cmd.append(\"--forceCpuExtraction\")
+cmd.append(\"%s\" % node.parent().parm(\"cpu\").evalAsInt())
+
+cmd.append(\"--verboseLevel\")
+cmd.append(\"error\")
+
+cmd.append(\"--output\")
+cmd.append(os.path.join(cache, \"02_FeatureExtraction\"))
+
+cmd.append(\"--rangeStart\")
+cmd.append(\"0\")
+
+cmd.append(\"--rangeSize\")
+cmd.append(str(len(os.listdir(srcimg))))
+
+hou.pwd().parent().hdaModule().log(cmd, cache, \"02_FeatureExtraction\", node)"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/02_Feature_Extraction.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/03_Image_Matching.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/03_Image_Matching.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 0 4.2176
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	02_Feature_Extraction 1 1 "input1"
+}
+inputs
+{
+0 	02_Feature_Extraction 0 1
+}
+stat
+{
+  create 1546639690
+  modify 1555463471
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/03_Image_Matching.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, shutil, gamedevutils
+
+node = hou.pwd()
+geo = node.geometry()
+
+bin = geo.attribValue(\"bin\")
+cache = geo.attribValue(\"cache\")
+share = geo.attribValue(\"share\")
+
+gamedevutils.empty_directory_recursive(os.path.join(cache, \"03_ImageMatching\"))
+
+func = \"aliceVision_imageMatching\"
+
+cmd = os.path.join(bin, func) 
+cmd = [cmd]
+
+cmd.append(\"--input\")
+cmd.append(os.path.join(cache, \"01_CameraInit\", \"cameraInit.sfm\"))
+
+cmd.append(\"--featuresFolders\")
+cmd.append(os.path.join(cache, \"02_FeatureExtraction\"))
+
+cmd.append(\"--tree\")
+cmd.append(os.path.join(share, \"aliceVision\", \"vlfeat_K80L3.SIFT.tree\"))
+
+cmd.append(\"--minNbImages\")
+cmd.append(\"%s\" % node.parent().parm(\"minNImg\").evalAsInt())
+
+cmd.append(\"--maxDescriptors\")
+cmd.append(\"%s\" % node.parent().parm(\"max_desc\").evalAsInt())
+
+cmd.append(\"--nbMatches\")
+cmd.append(\"%s\" % node.parent().parm(\"nMatch\").evalAsInt())
+
+cmd.append(\"--verboseLevel\")
+cmd.append(\"error\")
+
+cmd.append(\"--weights\")
+cmd.append(\"\")
+
+cmd.append(\"--output\")
+cmd.append(os.path.join(cache, \"03_ImageMatching\", \"imageMatches.txt\"))
+
+hou.pwd().parent().hdaModule().log(cmd, cache, \"03_ImageMatching\", node)"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/03_Image_Matching.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/04_Feature_Matching.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/04_Feature_Matching.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 5.55112e-17 3.2176
+connectornextid 2
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	03_Image_Matching 1 1 "input1"
+}
+inputs
+{
+0 	03_Image_Matching 0 1
+}
+stat
+{
+  create 1546648278
+  modify 1569624843
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/04_Feature_Matching.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, shutil, gamedevutils
+
+node = hou.pwd()
+geo = node.geometry()
+
+bin = geo.attribValue(\"bin\")
+cache = geo.attribValue(\"cache\")
+srcimg = geo.attribValue(\"src_img\")
+
+gamedevutils.empty_directory_recursive(os.path.join(cache, \"04_FeatureMatching\"))
+
+func = \"aliceVision_featureMatching\"
+
+cmd = os.path.join(bin, func) 
+cmd = [cmd]
+
+cmd.append(\"--input\")
+cmd.append(os.path.join(cache, \"01_CameraInit\", \"cameraInit.sfm\"))
+
+cmd.append(\"--output\")
+cmd.append(os.path.join(cache, \"04_FeatureMatching\"))
+
+cmd.append(\"--featuresFolders\")
+cmd.append(os.path.join(cache, \"02_FeatureExtraction\"))
+
+cmd.append(\"--geometricFilterType\")
+cmd.append(node.parent().parm(\"geoFilter\").evalAsString())
+
+cmd.append(\"--describerTypes\")
+cmd.append(node.parent().parm(\"dsc_type2\").evalAsString().replace(\" \", \",\"))
+
+cmd.append(\"--imagePairsList\")
+cmd.append(os.path.join(cache, \"03_ImageMatching\", \"imageMatches.txt\"))
+
+cmd.append(\"--photometricMatchingMethod\")
+cmd.append(node.parent().parm(\"photo\").evalAsString())
+
+cmd.append(\"--geometricEstimator\")
+cmd.append(node.parent().parm(\"geoEst\").evalAsString())
+
+cmd.append(\"--geometricError\")
+cmd.append(\"%s\" % node.parent().parm(\"geometricError\").evalAsInt())
+
+cmd.append(\"--savePutativeMatches\")
+cmd.append(\"%s\" % node.parent().parm(\"savePut\").evalAsInt())
+
+cmd.append(\"--guidedMatching\")
+cmd.append(\"%s\" % node.parent().parm(\"guide\").evalAsInt())
+
+cmd.append(\"--matchFilePerImage\")
+cmd.append(\"%s\" % node.parent().parm(\"matchFilePerImage\").evalAsInt())
+
+cmd.append(\"--distanceRatio\")
+cmd.append(\"%s\" % node.parent().parm(\"dist\").evalAsFloat())
+
+cmd.append(\"--maxIteration\")
+cmd.append(\"%s\" % node.parent().parm(\"maxIter\").evalAsInt())
+
+cmd.append(\"--useGridSort\")
+cmd.append(\"%s\" % node.parent().parm(\"useGridSort\").evalAsInt())
+
+cmd.append(\"--exportDebugFiles\")
+cmd.append(\"%s\" % node.parent().parm(\"expDebug\").evalAsInt())
+
+cmd.append(\"--maxMatches\")
+cmd.append(\"%s\" % node.parent().parm(\"maxMatch\").evalAsInt())
+
+cmd.append(\"--verboseLevel\")
+cmd.append(\"error\")
+
+cmd.append(\"--rangeStart\") 
+cmd.append(\"0\")
+
+cmd.append(\"--rangeSize\")
+cmd.append(str(len(os.listdir(srcimg))))
+
+hou.pwd().parent().hdaModule().log(cmd, cache, \"04_FeatureMatching\", node)"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/04_Feature_Matching.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.init"
+Content-Type: text/plain
+
+type = switch
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 2.30785 1.55909
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	04_Feature_Matching 1 1 "input1"
+1 	null1 0 1 "input2"
+}
+inputs
+{
+0 	04_Feature_Matching 0 1
+1 	null1 0 1
+}
+stat
+{
+  create 1547589222
+  modify 1569624135
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 1 0.7 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.chn"
+Content-Type: text/plain
+
+{
+    channel input {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../manual_mode\") }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	},
+	"___toolcount___":{
+		"type":"string",
+		"value":"16"
+	},
+	"___toolid___":{
+		"type":"string",
+		"value":"generic_delete"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.init"
+Content-Type: text/plain
+
+type = null
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 4.36199 5.2126
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+1 	(0) "" 1 "input1"
+}
+inputs
+{
+0 	(0) 0 1
+}
+stat
+{
+  create 1547589226
+  modify 1550008156
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.6 0.7 0.77 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+copyinput	[ 0	locks=0 ]	(	"on"	)
+cacheinput	[ 0	locks=0 ]	(	"off"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	},
+	"___toolcount___":{
+		"type":"string",
+		"value":"16"
+	},
+	"___toolid___":{
+		"type":"string",
+		"value":"generic_delete"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.init"
+Content-Type: text/plain
+
+type = output
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 2.30785 0.49949
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+}
+inputsNamed3
+{
+0 	switch1 2 1 "input1"
+}
+inputs
+{
+0 	switch1 0 1
+}
+stat
+{
+  create 1549916881
+  modify 1554916256
+  author Paul_Ambrosiussen@DESKTOP-A0373M3
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+outputidx	[ 0	locks=0 ]	(	0	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.order"
+Content-Type: text/plain
+
+6
+02_Feature_Extraction
+03_Image_Matching
+04_Feature_Matching
+switch1
+null1
+output0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.net"
+Content-Type: text/plain
+
+1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY--

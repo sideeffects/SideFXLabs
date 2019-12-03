@@ -1,0 +1,562 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="node_type"
+Content-Type: text/plain
+
+Sop
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.init"
+Content-Type: text/plain
+
+type = gamedev::sop_av_depth_map::3.0
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 4.3329 -3.34536
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+1 	sop_av_structure_from_motion1 0 1 "input1"
+}
+inputs
+{
+0 	sop_av_structure_from_motion1 0 1
+}
+stat
+{
+  create 1569627052
+  modify 1569627113
+  author paula@DESKTOP-5213MPP
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":""
+	},
+	"___toolcount___":{
+		"type":"string",
+		"value":"14"
+	},
+	"___toolid___":{
+		"type":"string",
+		"value":"object_spotlight"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.inp"
+Content-Type: text/plain
+
+1
+0 1.3620705882352944 5.5527529411764709 2 0 __NO_OWNER_NETWORK_BOX__ "FROMOUTPUT"
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/07_Depth_Map.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/07_Depth_Map.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -0.670871 4.50397
+connectornextid 2
+flags =  lock off model off template on footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	(0) "" 1 "input1"
+}
+inputs
+{
+0 	(0) 0 1
+}
+stat
+{
+  create 1546896411
+  modify 1555462382
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/07_Depth_Map.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, gamedevutils
+
+node = hou.pwd()
+geo = node.geometry()
+
+bin = geo.attribValue(\"bin\")
+cache = geo.attribValue(\"cache\")
+srcimg = geo.attribValue(\"src_img\")
+
+gamedevutils.empty_directory_recursive(os.path.join(cache, \"07_DepthMap\"))
+
+func = \"aliceVision_depthMapEstimation\"
+
+cmd = os.path.join(bin, func) 
+cmd = [cmd]
+
+# cmd.append(\"--ini\")
+# ini = os.path.join(cache, \"06_PrepareDenseScene\", \"mvs.ini\")
+# cmd.append(ini)
+
+##############
+cmd.append(\"--input\")
+cmd.append(os.path.join(cache, \"05_StructureFromMotion\", \"sfm.abc\"))
+
+cmd.append(\"--imagesFolder\")
+cmd.append(os.path.join(cache, \"06_PrepareDenseScene\"))
+
+cmd.append(\"--minViewAngle\")
+cmd.append(\"%s\" % node.parent().parm(\"minViewAngle\").evalAsFloat())
+
+cmd.append(\"--maxViewAngle\")
+cmd.append(\"%s\" % node.parent().parm(\"maxViewAngle\").evalAsFloat())
+
+cmd.append(\"--exportIntermediateResults\")
+cmd.append(\"0\")
+
+cmd.append(\"--nbGPUs\")
+cmd.append(\"%s\" % node.parent().parm(\"nbGPUs\").evalAsInt())
+
+##############
+
+cmd.append(\"--downscale\")
+cmd.append(\"%s\" % node.parent().parm(\"down\").evalAsInt())
+
+cmd.append(\"--sgmMaxTCams\")
+cmd.append(\"%s\" % node.parent().parm(\"sNumCam\").evalAsInt())
+
+cmd.append(\"--sgmWSH\")
+cmd.append(\"%s\" % node.parent().parm(\"sWSH\").evalAsInt()) 
+
+cmd.append(\"--sgmGammaC\")
+cmd.append(\"%s\" % node.parent().parm(\"sGamC\").evalAsFloat())
+
+cmd.append(\"--sgmGammaP\")
+cmd.append(\"%s\" % node.parent().parm(\"sGamP\").evalAsFloat())
+
+cmd.append(\"--refineNSamplesHalf\")
+cmd.append(\"%s\" % node.parent().parm(\"rNumSamp\").evalAsInt())
+
+cmd.append(\"--refineNDepthsToRefine\")
+cmd.append(\"%s\" % node.parent().parm(\"rNumDepth\").evalAsInt())
+
+cmd.append(\"--refineNiters\")
+cmd.append(\"%s\" % node.parent().parm(\"rNumIter\").evalAsInt())
+
+cmd.append(\"--refineWSH\")
+cmd.append(\"%s\" % node.parent().parm(\"rWSH\").evalAsInt())
+
+cmd.append(\"--refineMaxTCams\")
+cmd.append(\"%s\" % node.parent().parm(\"rNumCam\").evalAsInt())
+
+cmd.append(\"--refineSigma\")
+cmd.append(\"%s\" % node.parent().parm(\"rSigma\").evalAsFloat())
+
+cmd.append(\"--refineGammaC\")
+cmd.append(\"%s\" % node.parent().parm(\"rGamC\").evalAsFloat())
+
+cmd.append(\"--refineGammaP\")
+cmd.append(\"%s\" % node.parent().parm(\"rGamP\").evalAsFloat())
+
+cmd.append(\"--refineUseTcOrRcPixSize\")
+cmd.append(\"%s\" % node.parent().parm(\"rTcRc\").evalAsInt())
+
+cmd.append(\"--verboseLevel\")
+cmd.append(\"error\")
+
+cmd.append(\"--output\")
+cmd.append(os.path.join(cache, \"07_DepthMap\"))
+
+cmd.append(\"--rangeStart\")
+cmd.append(\"0\")
+
+cmd.append(\"--rangeSize\")
+cmd.append(str(len(os.listdir(srcimg))))
+
+hou.pwd().parent().hdaModule().log(cmd, cache, \"07_DepthMap\", node)"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/07_Depth_Map.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/08_Depth_Map_Filter.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/08_Depth_Map_Filter.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -0.670871 3.58569
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	07_Depth_Map 1 1 "input1"
+}
+inputs
+{
+0 	07_Depth_Map 0 1
+}
+stat
+{
+  create 1546975940
+  modify 1569627075
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/08_Depth_Map_Filter.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, gamedevutils
+
+node = hou.pwd()
+geo = node.geometry()
+
+bin = geo.attribValue(\"bin\")
+cache = geo.attribValue(\"cache\")
+srcimg = geo.attribValue(\"src_img\")
+
+gamedevutils.empty_directory_recursive(os.path.join(cache, \"08_DepthMapFilter\"))
+
+func = \"aliceVision_depthMapFiltering\"
+
+cmd = os.path.join(bin, func) 
+cmd = [cmd]
+
+##########
+cmd.append(\"--input\")
+cmd.append(os.path.join(cache, \"05_StructureFromMotion\", \"sfm.abc\"))
+
+cmd.append(\"--depthMapsFolder\") 
+cmd.append(os.path.join(cache, \"07_DepthMap\"))
+
+cmd.append(\"--output\")
+cmd.append(os.path.join(cache, \"08_DepthMapFilter\"))
+
+cmd.append(\"--rangeStart\")
+cmd.append(\"0\")
+
+cmd.append(\"--rangeSize\")
+cmd.append(str(len(os.listdir(srcimg))))
+
+cmd.append(\"--minViewAngle\")
+cmd.append(\"%s\" % node.parent().parm(\"minViewAngle2\").evalAsFloat())
+
+cmd.append(\"--maxViewAngle\")
+cmd.append(\"%s\" % node.parent().parm(\"maxViewAngle2\").evalAsFloat())
+
+cmd.append(\"--minNumOfConsistentCams\")
+cmd.append(\"%s\" % node.parent().parm(\"minCon\").evalAsInt())
+
+cmd.append(\"--minNumOfConsistentCamsWithLowSimilarity\")
+cmd.append(\"%s\" % node.parent().parm(\"minConBad\").evalAsInt())
+
+cmd.append(\"--pixSizeBall\")
+cmd.append(\"%s\" % node.parent().parm(\"filter\").evalAsInt())
+
+cmd.append(\"--pixSizeBallWithLowSimilarity\")
+cmd.append(\"%s\" % node.parent().parm(\"filterBad\").evalAsInt())
+
+cmd.append(\"--nNearestCams\")
+cmd.append(\"%s\" % node.parent().parm(\"numCam\").evalAsInt())
+
+cmd.append(\"--computeNormalMaps\")
+cmd.append(\"%s\" % node.parent().parm(\"computeNormalMaps\").evalAsInt())
+
+cmd.append(\"--verboseLevel\")
+cmd.append(\"error\")
+
+hou.pwd().parent().hdaModule().log(cmd, cache, \"08_DepthMapFilter\", node)"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/08_Depth_Map_Filter.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.init"
+Content-Type: text/plain
+
+type = switch
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 1.03788 1.71661
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	08_Depth_Map_Filter 1 1 "input1"
+1 	null1 0 1 "input2"
+}
+inputs
+{
+0 	08_Depth_Map_Filter 0 1
+1 	null1 0 1
+}
+stat
+{
+  create 1547594900
+  modify 1569627052
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 1 0.7 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.chn"
+Content-Type: text/plain
+
+{
+    channel input {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../manual_mode\") }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.init"
+Content-Type: text/plain
+
+type = null
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 3.55873 3.87152
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+1 	(0) "" 1 "input1"
+}
+inputs
+{
+0 	(0) 0 1
+}
+stat
+{
+  create 1547594905
+  modify 1547596110
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.6 0.7 0.77 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+copyinput	[ 0	locks=0 ]	(	"on"	)
+cacheinput	[ 0	locks=0 ]	(	"off"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.init"
+Content-Type: text/plain
+
+type = output
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 1.03788 0.217489
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+}
+inputsNamed3
+{
+0 	switch1 2 1 "input1"
+}
+inputs
+{
+0 	switch1 0 1
+}
+stat
+{
+  create 1549920941
+  modify 1554919061
+  author Paul_Ambrosiussen@DESKTOP-A0373M3
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+outputidx	[ 0	locks=0 ]	(	0	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"17.5.369"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.order"
+Content-Type: text/plain
+
+5
+07_Depth_Map
+08_Depth_Map_Filter
+switch1
+null1
+output0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.net"
+Content-Type: text/plain
+
+1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY--
