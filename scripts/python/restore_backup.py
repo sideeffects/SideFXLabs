@@ -67,9 +67,9 @@ def recoverFile():
         return False
     
     prefix, ext = os.path.splitext(destPath)
-    os.rename(destPath, prefix + '_copy' + ext)
-    os.rename(bakPath, destPath)
+    newDest = prefix + '_recovered' + ext
+    os.rename(bakPath, newDest)
     
-    if hou.ui.displayMessage('Do you want to open the file?', ('Yes', 'Cancel'), close_choice=1):
-        hou.hipFile.load(destPath)
+    if hou.ui.displayMessage('Do you want to open the file?', ('Yes', 'Cancel'), close_choice=1) == 0:
+        hou.hipFile.load(newDest)
     
