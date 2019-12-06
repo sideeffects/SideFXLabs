@@ -71,12 +71,6 @@ def MainFunction():
         ObjMerge.parm("objpath1").set(ThisNode.path()+"/IN")
         ObjMerge.parm("xformtype").set("local")
 
-        TimeShift = Geometry.createNode("timeshift")
-        TimeShift.parm("frame").deleteAllKeyframes()
-        TimeShift.parm("frame").set(FrameRange[0])
-        TimeShift.setNextInput(ObjMerge)
-        TimeShift.moveToGoodPosition()
-
         # STATIC GEOMETRY
         if ThisNode.parm("sStaticGroup").evalAsString() != "":
             StaticGeometry = ContainerObject.createNode("geo")
@@ -97,18 +91,37 @@ def MainFunction():
 
         CaptureNode = None
         if CaptureMethod == 0:
-                CaptLines = Geometry.createNode("bonecapturelines")
-                CaptLines.parm("rootpath").set(Root.path())
-                SolidEmbed = Geometry.createNode("solidembed::2.0")
-                SolidEmbed.setInput(0, TimeShift)
-                SolidEmbed.setInput(1, CaptLines)
-                CaptureNode = Geometry.createNode("bonecapturebiharmonic")
-                CaptureNode.setInput(0, TimeShift)
-                CaptureNode.setInput(1, SolidEmbed)
-                for node in [CaptLines, SolidEmbed, CaptureNode]:
-                        node.moveToGoodPosition()
+                Util = Geometry.createNode("labs::skinningconverter_utility")
+                Util.parm("rootpath").set(Root.path())
+                Util.parm("startFrame").set(FrameRange[0])
+                Util.parm("endFrame").set(FrameRange[1])
+                Util.parm("bUseConnectivity").set(ThisNode.parm("bUseMeshConnectivity").evalAsInt())
+                Util.setNextInput(ObjMerge)
+                Util.moveToGoodPosition()
+                Deform = Geometry.createNode("bonedeform")
+                Deform.setNextInput(Util)
+                Deform.parm("skelrootpath").set(Root.parent().path())
+                Deform.parm("method").set("dualquat")
+                Deform.moveToGoodPosition()
+                # CaptLines = Geometry.createNode("bonecapturelines")
+                # CaptLines.parm("rootpath").set(Root.path())
+                # SolidEmbed = Geometry.createNode("solidembed::2.0")
+                # SolidEmbed.setInput(0, TimeShift)
+                # SolidEmbed.setInput(1, CaptLines)
+                # CaptureNode = Geometry.createNode("bonecapturebiharmonic")
+                # CaptureNode.setInput(0, TimeShift)
+                # CaptureNode.setInput(1, SolidEmbed)
+                # for node in [CaptLines, SolidEmbed, CaptureNode]:
+                #         node.moveToGoodPosition()
 
         elif CaptureMethod == 1:
+
+                TimeShift = Geometry.createNode("timeshift")
+                TimeShift.parm("frame").deleteAllKeyframes()
+                TimeShift.parm("frame").set(FrameRange[0])
+                TimeShift.setNextInput(ObjMerge)
+                TimeShift.moveToGoodPosition()
+
                 CaptureNode = Geometry.createNode("captureproximity")
                 CaptureNode.setNextInput(TimeShift)
                 CaptureNode.parm("rootpath").set(Root.path())
@@ -117,11 +130,11 @@ def MainFunction():
                 CaptureNode.parm("forcecook").pressButton()
                 CaptureNode.moveToGoodPosition()
 
-        Deform = Geometry.createNode("deform")
-        Deform.setNextInput(CaptureNode)
-        Deform.parm("donormal").set(1)
-        Deform.parm("fast").set(1)
-        Deform.moveToGoodPosition()
+                Deform = Geometry.createNode("deform")
+                Deform.setNextInput(CaptureNode)
+                Deform.parm("donormal").set(1)
+                Deform.parm("fast").set(1)
+                Deform.moveToGoodPosition()
 
         Deform.setDisplayFlag(True)
         Deform.setRenderFlag(True)
