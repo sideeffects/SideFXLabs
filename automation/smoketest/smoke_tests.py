@@ -141,11 +141,13 @@ if __name__ == '__main__':
 
     cop_node = hou.node("/img").createNode("img")
     obj_node = hou.node("/obj")
-    geo_node = hou.node("/obj").createNode("geo")
+    sop_node = hou.node("/obj").createNode("geo")
+    dop_node = hou.node("/obj").createNode("dopnet")
+    vop_node = hou.node("/mat")
     rop_node = hou.node("/out")
     shop_node = hou.node("/shop")
 
-    categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node, "Sop": geo_node, "Shop": shop_node}
+    categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node, "Sop": sop_node, "Shop": shop_node, "Dop": dop_node, "Vop": vop_node}
 
     num_nodes = 0
     num_skipped = 0
