@@ -1,9 +1,9 @@
-# Dialog script for gamedev::sop_maps_baker::3.0 automatically generated
+# Dialog script for labs::maps_baker::3.0 automatically generated
 
 {
-    name	gamedev::sop_maps_baker::3.0
+    name	labs::maps_baker::3.0
     script	sop_attribute_to_map
-    label	"GameDev Maps Baker"
+    label	"Labs Maps Baker"
 
     help {
 	""
@@ -11,7 +11,7 @@
 
     inputlabel	1	"LOW Resolution Geometry"
     inputlabel	2	"HIGH Resolution Geometry"
-    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	3	"CAGE Geometry"
     inputlabel	4	"Sub-Network Input #4"
     outputlabel	1	"Baked Map"
 
@@ -105,15 +105,25 @@
             menu {
                 "0" "Nearest Surface"
                 "1" "Surface Normal"
+                "2" "Cage Input"
             }
         }
         parm {
             name    "fMaxTraceDist"
             label   "Max Trace Distance"
             type    float
+            joinnext
             default { "3" }
             hidewhen "{ mBakeMode != 1 }"
             range   { 0.001 10 }
+        }
+        parm {
+            name    "visualize"
+            label   "Visualize"
+            type    toggle
+            default { "0" }
+            hidewhen "{ mBakeMode == 0 }"
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "preview_channel"
