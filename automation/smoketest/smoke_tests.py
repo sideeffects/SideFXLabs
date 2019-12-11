@@ -5,6 +5,11 @@ import os
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
+
+# Remove logs we don't care about.
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+
 current_folder = os.path.dirname(__file__)
 repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
 
@@ -148,5 +153,5 @@ if __name__ == '__main__':
                 print("Tests Completed on : " + name)
 
             # run_tests(node)
+    print("Completed tests")
     hou.exit()
-
