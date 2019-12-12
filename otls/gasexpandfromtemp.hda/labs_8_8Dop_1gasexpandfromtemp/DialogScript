@@ -1,0 +1,130 @@
+# Dialog script for labs::gasexpandfromtemp automatically generated
+
+{
+    name	labs::gasexpandfromtemp
+    script	labs::gasexpandfromtemp
+    label	"Labs Expansion from Temperature (Beta)"
+
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+    inputlabel	2	"Input 2"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+
+    parm {
+        name    "tempexpand"
+        label   "Expansion from Temp"
+        type    float
+        default { "1" }
+        range   { 0 1 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder2"
+        label   "Properties"
+
+        parm {
+            name    "temperature0"
+            label   "Ambient Temp (K)"
+            type    float
+            default { "300" }
+            range   { 300 3000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "temperature1"
+            label   "Reference Temp (K)"
+            type    float
+            default { "2500" }
+            range   { 300 3000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Visualize"
+
+        parm {
+            name    "vis_oldtemperature_showguide"
+            label   "Show Guide Geometry"
+            type    toggle
+            nolabel
+            joinnext
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vis_oldtemperature_guideplaneval"
+            label   "Old Temp"
+            type    float
+            joinnext
+            default { "0" }
+            disablewhen "{ vis_oldtemperature_showguide == 0 }"
+            range   { -1! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vis_oldtemperature_guideplane"
+            label   "Old Temp"
+            type    ordinal
+            nolabel
+            default { "xy" }
+            disablewhen "{ vis_oldtemperature_showguide == 0 }"
+            menu {
+                "xy"    "XY Plane"
+                "yz"    "YZ Plane"
+                "zx"    "ZX Plane"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder0"
+        label   "Bindings"
+
+        parm {
+            name    "bind_temperature"
+            label   "Temperature"
+            type    string
+            default { "temperature" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "bind_oldtemperature"
+            label   "Old Temperature"
+            type    string
+            default { "oldtemperature" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "bind_divergence"
+            label   "Divergence"
+            type    string
+            default { "divergence" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "timescale"
+        label   "Time Scale"
+        type    float
+        default { "1" }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+}
