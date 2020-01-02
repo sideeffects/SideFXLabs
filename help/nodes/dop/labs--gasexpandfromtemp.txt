@@ -1,0 +1,55 @@
+#type: node
+#context: sop
+#internal: labs::gasexpandfromtemp
+#icon: DOP/gas
+
+= Labs Gas Expand from Temperature  =
+
+"""Creates divergence from temperature change. """
+
+This microsolver can be used to augment a pyro network to expand
+or compress the fluid according to temperature change.  This is done
+by storing the old temperature in an `oldtemperature` field that
+should be advected with the simulation.
+
+It is important to setup the pyrosolver to process the oldtemperature field.
+Rather than performing advection internally to this solver, it is expected
+the field is added to the extra advection fields of the pyrosolver.
+
+The Advanced::Advection::Extra Fields should have `oldtemperature` added.
+
+@parameters
+    Expansion from Temp:
+	Changes in temperature will trigger expansion and compression of
+	the field.  This scales how much to apply that expansion.
+
+    == Properties ==
+
+    Ambient Temp (K):
+	Used by divergence-from-temperature change to map the zero temperature.
+
+    Reference Temp (K):
+	Used by divergence-from-temperature change to map the one temperature.
+
+    == Visualize ==
+
+    Simple visualization options are included for the oldtemperature field.
+    This is most useful to ensure it is properly advected.
+
+    == Bindings ==
+
+    These override which DOP fields will be used for each of the semantic
+    operations.
+
+    Temperature:
+	Stores the current temperature and is used to detect the
+	change in temperature.
+
+    Old Temperature:
+	Stores the previous temperature.  Will be re-initialized to the
+	temperature value during this operation.
+
+    Divergence:
+	The field to add the desired volume-change to.
+
+    [Include:standard_gas_timestep]

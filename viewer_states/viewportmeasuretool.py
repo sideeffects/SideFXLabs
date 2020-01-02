@@ -35,7 +35,7 @@ class MyState(object):
 
         line_verb.execute(self.guide_geo1, [])
 
-        self.drawable1 = hou.Drawable(self.scene_viewer, self.guide_geo1, "guide_1")
+        self.drawable1 = hou.SimpleDrawable(self.scene_viewer, self.guide_geo1, "guide_1")
         self.drawable1.enable(True)
         self.drawable1.show(True)
 
@@ -51,7 +51,7 @@ class MyState(object):
 
         line_verb.execute(self.guide_geo2, [])
 
-        self.drawable2 = hou.Drawable(self.scene_viewer, self.guide_geo2, "guide_2")
+        self.drawable2 = hou.SimpleDrawable(self.scene_viewer, self.guide_geo2, "guide_2")
         self.drawable2.enable(True)
         self.drawable2.show(True)
 

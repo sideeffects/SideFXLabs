@@ -1,0 +1,106 @@
+#type: node
+#context: sop
+#internal: labs::gasflamefront
+#icon: DOP/gas
+
+= Labs Gas Flamefront =
+
+"""A simple flamefront combustion model. """
+
+This microsolver can be used to augment a pyro network with a flamefront
+based combustion model.  Instead of relying on temperature diffusion to
+ignite fuel, this will use an explicit flamefront.  This allows the speed
+of the flamefront to be tuned with greater control.
+
+Several additional solver fields are created and used by this microsolver.
+
+`fuel`:
+    The amount of fuel in a voxel.  This should be a mass-fraction, so
+    be a 0..1 range.  1 implies the voxel has 100% fuel and no other
+    constituent.  Usually this is sourced by the pyrosolver using maximum.
+
+`waste`:
+    The result of burning fuel and ambient air; this is the waste products.
+    Tracking this allows for oxygen limited burning.  Like fuel, this should
+    be a 0..1 range.
+
+`flamefront`:
+    A signed distance field specifying the flame front.  Anything inside
+    this field is considered burning so will combust if sufficient air
+    and fuel is present.
+
+`burn`:
+    This is an output field that records how much combustion occurred
+    in a voxel.
+
+`ignite`:
+    An input field used to trigger combustion wherever it is greater
+    than 0.5 and fuel exists.  This is reset after applying, so can
+    be sourced in the pyrosolver using maximum.
+
+It is important to setup the pyrosolver to process these extra fields.
+Rather than performing advection internally to this solver, it is expected
+the fields are added to the extra advection fields of the pyrosolver.
+
+The PyroSolver's Advanced::Resizing::Extra Fields should have `fuel waste flamefront` added to it.  The Advanced::Resizing::Reference Fields should have `fuel` added to it.  The Advanced::Advection::Extra Fields should have `fuel waste flamefront` added.
+
+@parameters
+    == Properties ==
+
+    Voxel Size:
+	Should be linked to the division size of the pyrosolver.  Used to
+	slowly combust fuel as it crosses the flamefront boundary in
+	a sub-voxel step.
+
+    == Flame Front ==
+
+    Ignition Temperature:
+	If a voxel's temperature exceeds this point it will add itself to
+	the flame front and ignite.  Note too low of an ignition temperature
+	will cause the fire to spread primarily from heat diffusion,
+	making the flame speed irrelevant.
+
+    Flame Speed:
+	How far the flame front moves in one second.  If units are meters,
+	a value of 0.35 will correspond to natural gas. 0.55 would be
+	methan, and 7.7 hydrogen.
+
+    Min Speed Ratio:
+	The speed of flame is dependent on how far off the stoichiometric
+	conditions the fuel/air ratio is.  The fuel is treated as an
+	ideal substance with a 1:1 ideal ratio, with full speed
+	at that ratio and falling to this percentage of that speed at the
+	extremes.  A min speed ratio of 0.2 means the flame will travel
+	at 20% of its ideal speed when in the least advantageous conditions.
+	
+    Bandwidth:
+	The flamefront has to be re-initialized to ensure the signed distance
+	field can be updated in a single step.  Sufficient bandwidth is needed
+	or the entire object will burst into flame in a single step.
+
+	`(flamespeed / (FPS * substeps)) < bandwidth * voxelsize`
+    
+    == Burning ==
+
+    Expansion on Combust:
+	When fuel burns it directly adds to the divergence field by this
+	amount.  This covers instanteous heating and molar changes due
+	to chemical reactions.
+
+    Temp Gain on Combust:
+	The amount to add to the temperure field when a unit of fuel burns.
+	Since it is oxygen limited, this often is greater than one as
+	an entire unit of fuel can't burn as it lacks air.
+
+    Diffusion Rate:
+	Without fresh oxygen the fuel will burn out and be replaced
+	by waste products, quenching any further reaction.  Diffusion
+	allows the fuel and waste to transport and mix into air, creating
+	a diffusion flame.
+
+    == Visualize ==
+
+    Simple visualization options are included for the main fields.  They
+    can also be exported from the pyrosolver and processed farther.
+
+    [Include:standard_gas_timestep]

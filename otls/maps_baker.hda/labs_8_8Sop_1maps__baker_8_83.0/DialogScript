@@ -1,9 +1,9 @@
-# Dialog script for gamedev::sop_maps_baker::3.0 automatically generated
+# Dialog script for labs::maps_baker::3.0 automatically generated
 
 {
-    name	gamedev::sop_maps_baker::3.0
+    name	labs::maps_baker::3.0
     script	sop_attribute_to_map
-    label	"GameDev Maps Baker"
+    label	"Labs Maps Baker"
 
     help {
 	""
@@ -11,7 +11,7 @@
 
     inputlabel	1	"LOW Resolution Geometry"
     inputlabel	2	"HIGH Resolution Geometry"
-    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	3	"CAGE Geometry"
     inputlabel	4	"Sub-Network Input #4"
     outputlabel	1	"Baked Map"
 
@@ -105,15 +105,25 @@
             menu {
                 "0" "Nearest Surface"
                 "1" "Surface Normal"
+                "2" "Cage Input"
             }
         }
         parm {
             name    "fMaxTraceDist"
             label   "Max Trace Distance"
             type    float
+            joinnext
             default { "3" }
-            hidewhen "{ mBakeMode != 1 }"
+            hidewhen "{ mBakeMode == 0 }"
             range   { 0.001 10 }
+        }
+        parm {
+            name    "visualize"
+            label   "Visualize"
+            type    toggle
+            default { "0" }
+            hidewhen "{ mBakeMode == 0 }"
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "preview_channel"
@@ -153,8 +163,18 @@
                 name    "sDiffuse"
                 label   "Diffuse Map"
                 type    string
+                joinnext
                 default { "diffuse" }
                 disablewhen "{ bDiffuse == 0 }"
+            }
+            parm {
+                name    "fDiffuseGamma"
+                label   "Gamma"
+                type    float
+                default { "2.2" }
+                disablewhen "{ bDiffuse == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
             }
             parm {
                 name    "bNormal"
@@ -168,8 +188,18 @@
                 name    "sNormal"
                 label   "Normal Map"
                 type    string
+                joinnext
                 default { "normal" }
                 disablewhen "{ bNormal == 0 }"
+            }
+            parm {
+                name    "fNormalGamma"
+                label   "Gamma"
+                type    float
+                default { "1" }
+                disablewhen "{ bNormal == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
             }
             parm {
                 name    "bOpacity"
@@ -198,8 +228,18 @@
                 name    "sRoughness"
                 label   "Roughness Map"
                 type    string
+                joinnext
                 default { "roughness" }
                 disablewhen "{ bRoughness == 0 }"
+            }
+            parm {
+                name    "fRoughnessGamma"
+                label   "Gamma"
+                type    float
+                default { "1" }
+                disablewhen "{ bRoughness == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
             }
             parm {
                 name    "bMetallic"
@@ -213,8 +253,18 @@
                 name    "sMetallic"
                 label   "Metallic Map"
                 type    string
+                joinnext
                 default { "metallic" }
                 disablewhen "{ bMetallic == 0 }"
+            }
+            parm {
+                name    "fMetallicGamma"
+                label   "Gamma"
+                type    float
+                default { "1" }
+                disablewhen "{ bMetallic == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
             }
         }
 
@@ -234,8 +284,18 @@
                 name    "sVertexColor"
                 label   "Vertex Color"
                 type    string
+                joinnext
                 default { "color" }
                 disablewhen "{ bVertexCd == 0 }"
+            }
+            parm {
+                name    "fVertexColorGamma"
+                label   "Gamma"
+                type    float
+                default { "2.2" }
+                disablewhen "{ bVertexCd == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
             }
             parm {
                 name    "bAO"
@@ -249,8 +309,18 @@
                 name    "sAO"
                 label   "AO"
                 type    string
+                joinnext
                 default { "ao" }
                 disablewhen "{ bAO == 0 }"
+            }
+            parm {
+                name    "fAOGamma"
+                label   "Gamma"
+                type    float
+                default { "1" }
+                disablewhen "{ bAO == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
             }
             parm {
                 name    "bCurvature"
