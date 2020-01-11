@@ -13,9 +13,15 @@ def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_E
         BoneList = []
 
         print "Generating Skeleton..."
-        for point in hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry().points():
+        Geometry = hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry()
+        HasNameAttr = Geometry.findPointAttrib("name")
+        for point in Geometry.points():
                 CaptureRadius = point.attribValue("BoneRadius")
-                Bone = a_Subnet.createNode("bone")
+                if HasNameAttr != None:
+                    BoneName = point.attribValue("name")
+                    Bone = a_Subnet.createNode("bone", BoneName)
+                else:
+                    Bone = a_Subnet.createNode("bone")
                 Bone.parm("rOrd").set(0)
                 CaptureLength = [0.1, 0.001]
                 Bone.parm("length").set(CaptureLength[a_CaptureMode])
@@ -91,7 +97,7 @@ def MainFunction():
 
         CaptureNode = None
         if CaptureMethod == 0:
-                Util = Geometry.createNode("labs::skinningconverter_utility", exact_type_name=True)
+                Util = Geometry.createNode("labs::skinningconverter_utility::2.0")
                 Util.parm("rootpath").set(Root.path())
                 Util.parm("startFrame").set(FrameRange[0])
                 Util.parm("endFrame").set(FrameRange[1])
