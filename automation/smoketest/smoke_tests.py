@@ -24,18 +24,17 @@ def check_gamedev_namespace(node):
 
 
 def check_gamedev_prefix(node):
-
     return node.type().description().split()[0] == "Labs"
 
 
 def check_icon(node):
     # print("Checking Icon")
-    return node.type().icon() != "SOP_subnet"
+    return "subnet" not in node.type().icon()
 
 
 def check_output_node(node):
     # print("Checking Output Node")
-    if node.type().category().name() != "Sop":
+    if node.type().category().name() not in ["Sop", "Top"]:
         return True
 
     for child in node.children():
@@ -146,8 +145,9 @@ if __name__ == '__main__':
     vop_node = hou.node("/mat")
     rop_node = hou.node("/out")
     shop_node = hou.node("/shop")
+    top_node = hou.node("/obj").createNode("topnet")
 
-    categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node, "Sop": sop_node, "Shop": shop_node, "Dop": dop_node, "Vop": vop_node}
+    categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node, "Sop": sop_node, "Shop": shop_node, "Dop": dop_node, "Vop": vop_node, "Top": top_node}
 
     num_nodes = 0
     num_skipped = 0
