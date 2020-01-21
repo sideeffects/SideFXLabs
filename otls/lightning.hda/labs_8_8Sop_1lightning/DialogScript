@@ -1,0 +1,596 @@
+# Dialog script for labs::lightning automatically generated
+
+{
+    name	labs::lightning
+    script	Lightning_Tool_around_geo
+    label	"Labs Lightning"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Mesh
+    inputlabel	2	"Begin Point"
+    inputlabel	3	"End Point"
+    inputlabel	4	"Sub-Network Input #4"
+
+    group {
+        name    "folder1"
+        label   "Settings"
+
+        parm {
+            name    "primseed"
+            label   "Global Seed"
+            type    integer
+            invisible
+            default { "59" }
+            range   { 0 200 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "folder2"
+            label   "Setup"
+
+            parm {
+                name    "startpts"
+                label   "Start Point"
+                type    string
+                default { "0" }
+                disablewhen "{ T_Begin == 1 }"
+                menutoggle {
+                    [ "opmenu -l -a findshortestpath1 startpts" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Points,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+            }
+            parm {
+                name    "endpts"
+                label   "End Point"
+                type    string
+                default { "1" }
+                disablewhen "{ T_End == 1 }"
+                menutoggle {
+                    [ "opmenu -l -a findshortestpath1 endpts" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Points,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+            }
+            parm {
+                name    "T_Begin"
+                label   "Use custom Begin point"
+                type    toggle
+                invisible
+                default { "npoints(1)>0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "T_End"
+                label   "Use custom End point"
+                type    toggle
+                invisible
+                default { "npoints(2)>0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "lightningarcs"
+                label   "Lightning Arcs"
+                type    integer
+                default { "5" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupcollapsible {
+                name    "contactspreadfolder"
+                label   "Contact Spread"
+
+                groupsimple {
+                    name    "startpointfolder"
+                    label   "Start Point"
+
+                    parm {
+                        name    "numsteps2"
+                        label   "Spread"
+                        type    integer
+                        default { "0" }
+                        range   { 0 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "relaxiterations2"
+                        label   "Relax Scatter"
+                        type    integer
+                        default { "10" }
+                        range   { 0! 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "T_Spread_Begin"
+                        label   "Debug begin spread"
+                        type    toggle
+                        default { "0" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+                groupsimple {
+                    name    "endpointfolder"
+                    label   "End Point"
+
+                    parm {
+                        name    "numsteps"
+                        label   "Spread"
+                        type    integer
+                        default { "4" }
+                        range   { 0 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "relaxiterations"
+                        label   "Relax Scatter"
+                        type    integer
+                        default { "10" }
+                        range   { 0! 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "T_Spread_End"
+                        label   "Debug end spread"
+                        type    toggle
+                        default { "0" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        parm {
+            name    "ramp"
+            label   "shape along lines"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0.0018484145402908325 ) 1value ( 0 ) 1interp ( catmull-rom ) 2pos ( 0.30314233899116516 ) 2value ( 1 ) 2interp ( catmull-rom ) 3pos ( 0.75785583257675171 ) 3value ( 0.15000000596046448 ) 3interp ( catmull-rom ) 4pos ( 1 ) 4value ( 0 ) 4interp ( catmull-rom )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "F_Radius"
+            label   "Beam Thickness"
+            type    float
+            default { "1" }
+            range   { 0 3 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cols"
+            label   "Columns"
+            type    integer
+            default { "3" }
+            range   { 2! 12 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "length"
+            label   "Curve Section Length"
+            type    float
+            default { "1" }
+            range   { 0.01! 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "dist"
+            label   "Distance from model"
+            type    float
+            default { "0" }
+            range   { -2 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "domainu2"
+            label   "Length until end"
+            type    float
+            default { "1" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "dist2"
+            label   "Push End"
+            type    float
+            default { "0" }
+            range   { 0 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rad"
+            label   "Push Falloff"
+            type    float
+            default { "1" }
+            range   { 0! 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "folder0"
+            label   "Vertex Colors"
+
+            parm {
+                name    "I_Channel_R"
+                label   "Red Channel"
+                type    integer
+                default { "1" }
+                menu {
+                    "0" "None"
+                    "1" "By order"
+                    "2" "Random"
+                    "3" "Gradient"
+                }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "I_Channel_G"
+                label   "Green Channel"
+                type    integer
+                default { "1" }
+                menu {
+                    "0" "None"
+                    "1" "By order"
+                    "2" "Random"
+                    "3" "Gradient"
+                }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "I_Channel_B"
+                label   "Blue Channel"
+                type    integer
+                default { "1" }
+                menu {
+                    "0" "None"
+                    "1" "By order"
+                    "2" "Random"
+                    "3" "Gradient"
+                }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder1_1"
+        label   "Noise"
+
+        parm {
+            name    "T_Noise"
+            label   "Add noise"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "basis"
+            label   "Noise Type"
+            type    string
+            default { "simplex" }
+            disablewhen "{ T_Noise == 0 }"
+            menu {
+                "sine"      "Sinusoid"
+                "perlin"    "Perlin"
+                "pperlin"   "Periodic Perlin"
+                "simplex"   "Simplex (Improved Perlin)"
+                "sparse"    "Sparse Convolution"
+                "flow"      "Flow"
+                "pflow"     "Periodic Flow"
+                "worleyFA"  "Worley (cellular) F1"
+                "worleyFB"  "Worley (cellular) F2-F1"
+                "mworleyFA" "Manhattan Worley (cellular) F1"
+                "mworleyFB" "Manhattan Worley (cellular) F2-F1"
+                "cworleyFA" "Chebyshev Worley (cellular) F1"
+                "cworleyFB" "Chebyshev Worley (cellular) F2-F1"
+                "alligator" "Alligator"
+            }
+            range   { 0 1 }
+            unquoted
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "height"
+            label   "Height"
+            type    float
+            default { "0.86" }
+            disablewhen "{ T_Noise == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "elementsize"
+            label   "Element Size"
+            type    float
+            default { "0.43" }
+            disablewhen "{ T_Noise == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "rough"
+            label   "Roughness"
+            type    float
+            default { "0.5" }
+            disablewhen "{ T_Noise == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "elementscale"
+            label   "Scale"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            disablewhen "{ T_Noise == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "clipmin"
+            label   "Clipping Minimum"
+            type    float
+            default { "0.4" }
+            disablewhen "{ T_Noise == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "clipmax"
+            label   "Clipping Maximum"
+            type    float
+            default { "1" }
+            disablewhen "{ T_Noise == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        groupsimple {
+            name    "folder6"
+            label   "Stick To Surface"
+            disablewhentab "{ T_Noise == 0 }"
+
+            groupsimple {
+                name    "stickbeginfolder"
+                label   "Start"
+
+                parm {
+                    name    "start2"
+                    label   "Start range"
+                    type    integer
+                    default { "1" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "blend3"
+                    label   "Stick To Surface"
+                    type    float
+                    default { "1" }
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "stickendfolder"
+                label   "End"
+
+                parm {
+                    name    "end1"
+                    label   "End range"
+                    type    integer
+                    default { "1" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "blend2"
+                    label   "Stick To Surface"
+                    type    float
+                    default { "1" }
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "T_Jitter"
+            label   "Add Jitter"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scale"
+            label   "Scale"
+            type    float
+            default { "1" }
+            disablewhen "{ T_Jitter == 0 }"
+            range   { 0 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "axisscale"
+            label   "Axis Scales"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            disablewhen "{ T_Jitter == 0 }"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_2"
+        label   "Previews"
+
+        parm {
+            name    "T_Merge"
+            label   "Show Input"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "T_Color_Blue"
+            label   "Tint Blue"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "I_Previews"
+            label   "Preview modes"
+            type    integer
+            default { "0" }
+            menu {
+                "0" "None"
+                "1" "UV"
+                "2" "Animation"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "texture"
+            label   "Checker map"
+            type    image
+            default { "uvgrid_grey.pic" }
+            hidewhen "{ I_Previews != 1 }"
+            menureplace {
+                "Mandril.pic"                   "Mandril.pic"
+                "default.pic"                   "default.pic"
+                "data/smurf_dragtree_$F.pic"    "data/smurf_dragtree_$F.pic"
+                "data/pull_with_snow_$F.pic"    "data/pull_with_snow_$F.pic"
+                "data/snowball_fight_$F.pic"    "data/snowball_fight_$F.pic"
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "labelparm"
+            label   "Instruction:"
+            type    label
+            default { "Press play to see the animation" }
+            hidewhen "{ I_Previews != 2 }"
+        }
+        parm {
+            name    "labelparm2"
+            label   "Info:"
+            type    label
+            default { "This is looking at the red channel" }
+            hidewhen "{ I_Previews != 2 }"
+        }
+    }
+
+    group {
+        name    "folder1_3"
+        label   "Export"
+
+        parm {
+            name    "execute"
+            label   "Save to Disk"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "takecontrol" "always" }
+        }
+        parm {
+            name    "namemodel"
+            label   "Model name"
+            type    string
+            default { "Lightning_strikes_01" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sopoutput"
+            label   "Output File"
+            type    file
+            default { "$HIP/export/`chs('namemodel')`.fbx" }
+            menureplace {
+                [ "opmenu -l -a rop_fbx3 sopoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "exportkind"
+            label   "Export in ASCII Format"
+            type    toggle
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
