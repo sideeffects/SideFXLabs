@@ -37,3 +37,9 @@ Instead of tying the examples as HDAs, we will be generating separate hip files 
 
 ## Data Analytics
 SideFX Labs *optionally* collects data about what tools are used through Google Analytics. We do this in order to focus our resources on the more active tools and therefore be able to help more people. This does *not* track any personal user data such as IP, Name, License use etc. To opt-out of this tracking, you can disable the "Send Anonymous Usage Statistics" toggle under preferences. Additionally, you can bypass this behavior entirely by setting the environment variable "HOUDINI_ANONYMOUS_STATISTICS = 0".
+
+## Other Environment Variables
+SideFX Labs has a few other environment variables that can be set to modify the behavior of the toolset and its installation process:
+1. "SIDEFXLABS_NOINSTALL_MESSAGE = Your message here" - Disables the installing of the toolset on the machine, and shows the text stored in the environment variable.
+2. "SIDEFXLABS_ADMIN_UPDATES = 1" - This prevents users from updating the already installed toolset on their machine. Useful for studios where one version of the toolset is enforced.
+
