@@ -1,11 +1,17 @@
 from __future__ import print_function
 from __future__ import division
+from houdinihelp import api
 
 import xml.etree.ElementTree as ET
 import glob
 import os
+import sys
 
 import logging
+import hou
+
+HOUDINI_VERSION = ["17.5", "18.0", "18.5"]
+MAJOR_MINOR = "%s.%s" % hou.applicationVersion()[:2]
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -13,27 +19,22 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
-current_folder = os.path.dirname(__file__)
-repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
 
-NODES_TO_IGNORE = ["labs::sop_rc_register_images", "labs::rc_texture_model", "labs::instant_meshes::2.0", "labs::instant_meshes", "labs::substance_material"]
-
-def check_gamedev_namespace(node):
-    # print("Checking GameDev Namespace")
-    return node.type().nameComponents()[1] == "labs"
+def check_labs_namespace(node):
+    correct_namespace = "gamedev" if MAJOR_MINOR == "17.5" else "labs"
+    return node.type().nameComponents()[1] == correct_namespace
 
 
-def check_gamedev_prefix(node):
-    return node.type().description().split()[0] == "Labs"
+def check_labs_prefix(node):
+    correct_prefix = "GameDev" if MAJOR_MINOR == "17.5" else "Labs"
+    return node.type().description().split()[0] == correct_prefix
 
 
 def check_icon(node):
-    # print("Checking Icon")
     return "subnet" not in node.type().icon()
 
 
 def check_output_node(node):
-    # print("Checking Output Node")
     if node.type().category().name() not in ["Sop", "Top"]:
         return True
 
@@ -45,7 +46,6 @@ def check_output_node(node):
 
 
 def check_input_names(node):
-
     for name in node.inputLabels():
         if "Sub-Network" in name:
             return False
@@ -54,7 +54,6 @@ def check_input_names(node):
 
 
 def check_tab_submenu(node):
-    # print("Checking Tab SubMenu")
     xml_data = node.type().definition().sections()['Tools.shelf'].contents()
     root = ET.fromstring(xml_data)
 
@@ -63,19 +62,26 @@ def check_tab_submenu(node):
         submenu_name = submenu.text
         break
 
-    if "Labs" not in submenu_name or submenu_name == None:
+    correct_submenu_name = "GameDev" if MAJOR_MINOR == "17.5" else "Labs"
+    if correct_submenu_name not in submenu_name or submenu_name is None:
         return False
 
     return True
 
 
 def check_version(node):
-    # print("Checking Version")
-
     version = node.type().definition().version()
     if version != "":
         return True
     return False
+
+def check_docs(node):
+    nodetype = node.type()
+    pages = api.get_pages()
+    helppath = api.nodetype_to_path(nodetype)
+    sourcepath = pages.source_path(helppath)
+    return pages.store.exists(sourcepath)
+
 
 
 def check_analytics(node):
@@ -84,12 +90,13 @@ def check_analytics(node):
         if "analytics" in sections["OnCreated"].contents():
             return True
 
+
 def check_parm_names(node):
     parmTemplates = list(node.type().parmTemplates())
 
     for parmtemplate in parmTemplates:
         name = parmtemplate.name()
-    
+
         if name.startswith('newparameter') or name.startswith('parm') or name.startswith('folder'):
             return False
     return True
@@ -99,7 +106,7 @@ def run_tests(node):
     node_name = node.type().description() + "(" + node.type().name() + ")"
     ok = True
 
-    if not check_gamedev_namespace(node):
+    if not check_labs_namespace(node):
         print(node_name + ": __SmoketestError__ : Incorrect Namespace")
         ok = False
 
@@ -123,31 +130,57 @@ def run_tests(node):
         print(node_name + ": __SmoketestWarning__ : No Analytics Code")
         ok = False
 
+    if not check_docs(node):
+        print(node_name + ": __SmoketestWarning__ : No Documentation")
+        ok = False
+
     if not check_parm_names(node):
-        #print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
-        #ok = False
+        # print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
+        # ok = False
         pass
 
     return ok
 
 
 if __name__ == '__main__':
-    import hou
+    if MAJOR_MINOR not in HOUDINI_VERSION:
+        print("Houdini %s is not supported. Please use Houdini 17.5-18.5" % MAJOR_MINOR)
+        sys.exit(1)
 
-    # node = hou.selectedNodes()[0]
+    nodes_to_ignore = \
+        ["sop_rc_register_images", "rc_texture_model", "gamedev::sop_substance_material", 
+         "meshes.hda", "gamedev::sop_instant_meshes", "gamedev::sop_instant_meshes::2.0"]
+    if MAJOR_MINOR != "17.5":
+        nodes_to_ignore = \
+            ["labs::sop_rc_register_images", "labs::rc_texture_model",
+             "labs::instant_meshes::2.0", "labs::instant_meshes",
+             "labs::substance_material"]
+
+    current_folder = os.path.dirname(__file__)
+    repo_dir = os.getenv("WORKSPACE", "D:\\work\\SideFX\\GameDevelopmentToolset")
+    if MAJOR_MINOR != "17.5":
+        repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
+    if len(sys.argv) > 1:
+        repo_dir = sys.argv[1] + "/SideFXLabs"
 
     hda_files = glob.glob(os.path.join(repo_dir, "otls/*.hda"))
 
     cop_node = hou.node("/img").createNode("img")
     obj_node = hou.node("/obj")
     sop_node = hou.node("/obj").createNode("geo")
-    dop_node = hou.node("/obj").createNode("dopnet")
-    vop_node = hou.node("/mat")
+    dop_node = hou.node("/obj").createNode("dopnet") if MAJOR_MINOR != "17.5" else None
+    vop_node = hou.node("/mat") if MAJOR_MINOR != "17.5" else None
     rop_node = hou.node("/out")
     shop_node = hou.node("/shop")
     top_node = hou.node("/obj").createNode("topnet")
 
-    categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node, "Sop": sop_node, "Shop": shop_node, "Dop": dop_node, "Vop": vop_node, "Top": top_node}
+    categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node,
+                  "Sop": sop_node, "Shop": shop_node}
+    if MAJOR_MINOR != "17.5":
+        categories["Dop"] = dop_node
+        categories["Vop"] = vop_node
+        categories["Top"] = top_node
+
 
     num_nodes = 0
     num_skipped = 0
@@ -163,7 +196,7 @@ if __name__ == '__main__':
 
             num_nodes = num_nodes + 1
 
-            if name not in NODES_TO_IGNORE:
+            if name not in nodes_to_ignore:
                 print("Attempting to Create Node : " + name)
                 ok = True
                 try:
