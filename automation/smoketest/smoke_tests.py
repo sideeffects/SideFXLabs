@@ -130,9 +130,9 @@ def run_tests(node):
         print(node_name + ": __SmoketestWarning__ : No Analytics Code")
         ok = False
 
-    if not check_docs(node):
-        print(node_name + ": __SmoketestWarning__ : No Documentation")
-        ok = False
+    # if not check_docs(node):
+    #     print(node_name + ": __SmoketestWarning__ : No Documentation")
+    #     ok = False
 
     if not check_parm_names(node):
         # print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
