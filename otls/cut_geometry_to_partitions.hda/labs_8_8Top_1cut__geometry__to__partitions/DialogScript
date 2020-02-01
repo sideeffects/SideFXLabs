@@ -1,0 +1,102 @@
+# Dialog script for labs::cut_geometry_to_partitions automatically generated
+
+{
+    name	labs::cut_geometry_to_partitions
+    script	labs::cut_geometry_to_partitions
+    label	"Labs Cut Geometry to Partitions"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Incoming Geometry Work-Items"
+    inputlabel	2	"Input 2"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+
+    parm {
+        name    "iOutputMode"
+        label   "Output"
+        type    integer
+        default { "1" }
+        menu {
+            "0" "Bounding Boxes"
+            "1" "Sliced Geometry"
+        }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "divisions"
+        label   "Divisions"
+        type    intvector
+        size    3
+        default { "2" "2" "2" }
+        range   { 1! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "storag"
+        label   "Storage"
+
+        parm {
+            name    "indextype"
+            label   "Set Item Index To"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Element Index"
+                "1" "Upstream Item Index"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "storagetype"
+            label   "Store Geometry As"
+            type    ordinal
+            default { "1" }
+            menu {
+                "0" "None"
+                "1" "External File"
+                "2" "Geometry Attribute"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "externalpath"
+            label   "External File Path"
+            type    string
+            default { "$HIP/geo/`@pdg_name`.bgeo.sc" }
+            disablewhen "{ storagetype != 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "externaltag"
+            label   "External File Tag"
+            type    string
+            default { "file/geo" }
+            disablewhen "{ storagetype != 1 }"
+            menureplace {
+                [ "opmenu -l -a geometryimport1 externaltag" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "attributename"
+            label   "Atttribute Name"
+            type    string
+            default { "geometry" }
+            disablewhen "{ storagetype != 2 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

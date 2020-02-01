@@ -51,6 +51,24 @@ restore_backup.recoverFile()
 
     </subMenu>
 
+    <subMenu id="assets_menu">
+
+     <scriptItem id="check_tool_versions">
+        <label>Check Asset Versions in Scene</label>
+        <insertAfter>h.refreshotl</insertAfter>
+        <scriptCode>
+        <![CDATA[
+LabsNodeInstances = [x for x in hou.node("/").allSubChildren() if x.type().nameComponents()[1] == "labs"] 
+for node in LabsNodeInstances:
+  if node.type().definition().nodeType().name() != hou.nodeType(node.type().definition().nodeTypeCategory(), node.type().definition().nodeTypeName()).namespaceOrder()[0]:
+    print "Warning... Node instance is using older definition:", node.path()
+]]>
+      </scriptCode>
+      </scriptItem>
+
+
+    </subMenu>
+
   </menuBar>
 
 

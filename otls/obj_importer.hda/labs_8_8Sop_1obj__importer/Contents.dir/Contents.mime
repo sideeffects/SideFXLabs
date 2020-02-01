@@ -2,6 +2,12 @@ MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename=".OPfallbacks"
+Content-Type: application/external-reference
+
+.OPfallbacks
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename=".OPdummydefs"
 Content-Type: application/external-reference
 
@@ -17,7 +23,7 @@ Sop
 Content-Disposition: attachment; filename="hdaroot.init"
 Content-Type: text/plain
 
-type = gamedev::sop_obj_importer
+type = labs::obj_importer
 matchesdef = 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -26,9 +32,9 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -3.63421 -1.16473
+position -2.98932 0.218163
 connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
@@ -40,8 +46,8 @@ inputs
 }
 stat
 {
-  create 1571436552
-  modify 1571436589
+  create 1580259274
+  modify 1580261060
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -65,7 +71,7 @@ Content-Type: text/plain
 Content-Disposition: attachment; filename="hdaroot/mesh_materials.init"
 Content-Type: text/plain
 
-type = gamedev::sop_quickmaterial::2.0
+type = labs::quickmaterial::2.0
 matchesdef = 1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -75,11 +81,11 @@ Content-Type: text/plain
 sopflags sopflags = 
 comment ""
 position 0 2.68794
-connectornextid 2
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
-1 "output1"
+0 "output1"
 }
 inputsNamed3
 {
@@ -92,7 +98,7 @@ inputs
 stat
 {
   create 1569973296
-  modify 1571368762
+  modify 1580261740
   author paula@DESKTOP-5213MPP
   access 0777
 }
@@ -149,7 +155,7 @@ inputs
 stat
 {
   create 1532947640
-  modify 1571368794
+  modify 1580261277
   author paula@DESKTOP-5213MPP
   access 0777
 }
@@ -179,7 +185,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.327"
+		"value":"18.0.350"
 	}
 }
 
@@ -213,7 +219,7 @@ inputs
 stat
 {
   create 1532953615
-  modify 1571368900
+  modify 1580263138
   author paula@DESKTOP-5213MPP
   access 0777
 }
@@ -242,7 +248,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.327"
+		"value":"18.0.350"
 	}
 }
 
@@ -275,7 +281,7 @@ inputs
 stat
 {
   create 1569973072
-  modify 1570058106
+  modify 1580261030
   author paula@DESKTOP-5213MPP
   access 0777
 }
@@ -336,7 +342,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.327"
+		"value":"18.0.350"
 	}
 }
 
@@ -355,7 +361,7 @@ sopflags sopflags =
 comment ""
 position -1.92984 3.0222
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -371,7 +377,7 @@ inputs
 stat
 {
   create 1569973134
-  modify 1570058742
+  modify 1580261246
   author paula@DESKTOP-5213MPP
   access 0777
 }
@@ -388,6 +394,13 @@ Content-Type: text/plain
 version 0.8
 python	[ 0	locks=0 ]	(	"import os
 
+
+def findInSubdirectory(filename, subdirectory):
+    for root, dirs, names in os.walk(subdirectory):
+        if filename in names:
+            return os.path.join(root, filename)
+
+
 def LoadMTL():
     node = hou.pwd()
     geo = node.geometry()
@@ -397,7 +410,7 @@ def LoadMTL():
     obj_dir, obj_name = os.path.split(obj_path)
 
     if node.parent().parm(\"bCustomMTLFile\").evalAsInt() == 1:
-        mtl_file = node.parent().parm(\"sCustomMTL\").evalAsString()
+        mtl_file = node.parent().parm(\"sCustomMTL\").evalAsString() 
     else:
         mtl_file = os.path.join(obj_dir, \".\".join(obj_name.split(\".\")[:-1])+ \".mtl\")
 
@@ -414,8 +427,8 @@ def LoadMTL():
             comment_index = line.find('#') # strip comments
             if comment_index!=-1:
                 line = line[0:comment_index-1]
-                
-            tokens = line.strip().split(' ') # tokenize the lines
+
+            tokens = [x for x in line.strip().split(' ') if x != \"\"]
             
             if len(tokens) < 2 or tokens[0].startswith('#'): #skip invalid lines
                 continue
@@ -447,15 +460,17 @@ def LoadMTL():
         for a,av in sorted(mtl.items()):
             if a == \"newmtl\":
                 point.setAttribValue(a, av[-1] )
-
             if a in [\"Kd\"]:
                 point.setAttribValue(a, [float(av[0]),float(av[1]),float(av[2])])
             if a in [\"Ni\"]:
                 point.setAttribValue(a, float(av[0]))
-                    
+            
+            
             elif a in [\"map_Kd\",\"map_Ks\", \"map_d\", \"map_bump\"]:
                 av_dir, av_name = os.path.split(av[-1])
-                point.setAttribValue(a, os.path.join(obj_dir, av_name))
+                output =  findInSubdirectory(av_name, obj_dir)
+                if output != None:
+                    point.setAttribValue(a, output)
 
 LoadMTL()"	)
 }
@@ -467,7 +482,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.327"
+		"value":"18.0.350"
 	}
 }
 
@@ -526,7 +541,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.327"
+		"value":"18.0.350"
 	}
 }
 
@@ -587,7 +602,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.327"
+		"value":"18.0.350"
 	}
 }
 

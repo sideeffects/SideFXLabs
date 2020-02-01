@@ -11,6 +11,9 @@ def export(node):
     node_name = node.parm("export_node").eval()
     csv_path = node.parm("csv_path").eval()
     separate_components = node.parm("separate_components").eval()
+    export_header = node.parm("export_header").evalAsInt()
+    use_custom_header = node.parm("use_custom_header").evalAsInt()
+    custom_header_data = node.parm("custom_header_data").evalAsString()
     
     suffix_x = node.parm("suff_x").eval()
     suffix_y = node.parm("suff_y").eval()
@@ -41,23 +44,26 @@ def export(node):
     
         # construct the csv writer object 
         writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-       
-        # write the first line, which is the header with all of the attributes 
-        attributes = []
-        
-        # grab all of the point attributes, and if it's a vector attribute, add multiples
-        for point_attr_name in ExportAttributes:
-            point_attr = None
-            if geo.findPointAttrib(point_attr_name) != None:
-                point_attr = geo.findPointAttrib(point_attr_name)
-                if separate_components and point_attr.size()>1:
-                    for i in range(point_attr.size()):
-                        attributes.append(point_attr.name() + component_suffixes[i])
-                else:
-                    attributes.append(point_attr.name())
-                
-        # write the first row to file                
-        writer.writerow(attributes)
+        if export_header == 1:
+
+            # write the first line, which is the header
+            attributes = []
+            if use_custom_header == 1:
+                attributes = [custom_header_data]
+            else:      
+                # grab all of the point attributes, and if it's a vector attribute, add multiples
+                for point_attr_name in ExportAttributes:
+                    point_attr = None
+                    if geo.findPointAttrib(point_attr_name) != None:
+                        point_attr = geo.findPointAttrib(point_attr_name)
+                        if separate_components and point_attr.size()>1:
+                            for i in range(point_attr.size()):
+                                attributes.append(point_attr.name() + component_suffixes[i])
+                        else:
+                            attributes.append(point_attr.name())
+                    
+            # write the first row to file                
+            writer.writerow(attributes)
         
         # iterate through each point in the geo and write out a line per point 
         for point in geo.points():
