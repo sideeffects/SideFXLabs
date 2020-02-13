@@ -16,13 +16,15 @@ class State(object):
         self.scene_viewer = scene_viewer
         self.vector_handle = hou.Handle(self.scene_viewer, "Direction")
         self.dist_handle = hou.Handle(self.scene_viewer, "Magnitude")
-        self.grid_handle = hou.Handle(self.scene_viewer, "Grid Transform")
+        #self.grid_handle = hou.Handle(self.scene_viewer, "Grid Transform")
        
     def onEnter(self, kwargs):
         self.vector_handle.show(True)
         self.dist_handle.show(True)
-        self.grid_handle.show(True)
-        node = kwargs["node"]
+       # self.grid_handle.show(True)
+
+        self.dist_handle.update()
+        #self.grid_handle.update()
         
     def onHandleToState(self, kwargs):
         """ Used with bound dynamic handles to implement the state 
@@ -30,21 +32,25 @@ class State(object):
         """
         handle = kwargs["handle"]
         parms = kwargs["parms"]
-        node = kwargs["node"]
         mod_parms = kwargs["mod_parms"]
         prev_parms = kwargs["prev_parms"]
         ui_event = kwargs["ui_event"]
+
+        node = kwargs["node"]
+
         if handle == self.dist_handle.name():
             node.setParms({"mag": parms["dist"]})
-        if handle == self.grid_handle.name():
-            node.setParms({"grid_rotx": parms["rx"], "grid_roty": parms["ry"], "grid_rotz": parms["rz"], "sizex": parms["sizex"], "sizey": parms["sizey"], "grid_uni_scale": parms["uniform_scale"]})
+
+        # if handle == self.grid_handle.name():
+        #     node.setParms({"grid_rotx": parms["rx"], "grid_roty": parms["ry"], "grid_rotz": parms["rz"], "sizex": parms["sizex"], "sizey": parms["sizey"], "grid_uni_scale": parms["uniform_scale"]})
             
-            if node.evalParm("snapgrid") == 1:
-                node.setParms({"grid_transx": (parms["centerx"] - node.evalParm("grid_pos_on_trajx"))})
-                node.setParms({"grid_transy": (parms["centery"] - node.evalParm("grid_pos_on_trajy"))})
-                node.setParms({"grid_transz": (parms["centerz"] - node.evalParm("grid_pos_on_trajz"))})
-            else:
-                node.setParms({"grid_transx": parms["centerx"], "grid_transy": parms["centery"], "grid_transz": parms["centerz"]})
+        #     if node.evalParm("snapgrid") == 1:
+        #         node.setParms({"grid_transx": (parms["centerx"] - node.evalParm("grid_pos_on_trajx"))})
+        #         node.setParms({"grid_transy": (parms["centery"] - node.evalParm("grid_pos_on_trajy"))})
+        #         node.setParms({"grid_transz": (parms["centerz"] - node.evalParm("grid_pos_on_trajz"))})
+        #     else:
+        #         node.setParms({"grid_transx": parms["centerx"], "grid_transy": parms["centery"], "grid_transz": parms["centerz"]})
+        
         self.log(parms)
 
     def onStateToHandle(self, kwargs):
@@ -54,27 +60,29 @@ class State(object):
         handle = kwargs["handle"]
         parms = kwargs["parms"]
         node = kwargs["node"]
-        if node.evalParm("enable_grid") * node.evalParm("grid_vis") == 0:
-            self.grid_handle.show(False)
-        else:
-            self.grid_handle.show(True)
-        if handle == self.grid_handle.name():
-            parms["orient"] = node.evalParm("orient")
-            parms["sizex"] = node.evalParm("sizex")
-            parms["sizey"] = node.evalParm("sizey")
-            parms["rx"] = node.evalParm("grid_rotx")
-            parms["ry"] = node.evalParm("grid_roty")
-            parms["rz"] = node.evalParm("grid_rotz")
-            parms["uniform_scale"] = node.evalParm("grid_uni_scale")
-            if node.evalParm("snapgrid") == 1:
-                # adjust relative to the position on trajectory
-                parms["centerx"] = node.evalParm("grid_transx") + node.evalParm("grid_pos_on_trajx")
-                parms["centery"] = node.evalParm("grid_transy") + node.evalParm("grid_pos_on_trajy")
-                parms["centerz"] = node.evalParm("grid_transz") + node.evalParm("grid_pos_on_trajz")
-            else:
-                parms["centerx"] = node.evalParm("grid_transx")
-                parms["centery"] = node.evalParm("grid_transy")
-                parms["centerz"] = node.evalParm("grid_transz")
+
+        # if node.evalParm("enable_grid") * node.evalParm("grid_vis") == 0:
+        #    self.grid_handle.show(False)
+        # else:
+        #    self.grid_handle.show(True)
+
+        # if handle == self.grid_handle.name():
+        #     parms["orient"] = node.evalParm("orient")
+        #     parms["sizex"] = node.evalParm("sizex")
+        #     parms["sizey"] = node.evalParm("sizey")
+        #     parms["rx"] = node.evalParm("grid_rotx")
+        #     parms["ry"] = node.evalParm("grid_roty")
+        #     parms["rz"] = node.evalParm("grid_rotz")
+        #     parms["uniform_scale"] = node.evalParm("grid_uni_scale")
+        #     if node.evalParm("snapgrid") == 1:
+        #         # adjust relative to the position on trajectory
+        #         parms["centerx"] = node.evalParm("grid_transx") + node.evalParm("grid_pos_on_trajx")
+        #         parms["centery"] = node.evalParm("grid_transy") + node.evalParm("grid_pos_on_trajy")
+        #         parms["centerz"] = node.evalParm("grid_transz") + node.evalParm("grid_pos_on_trajz")
+        #     else:
+        #         parms["centerx"] = node.evalParm("grid_transx")
+        #         parms["centery"] = node.evalParm("grid_transy")
+        #         parms["centerz"] = node.evalParm("grid_transz")
         if handle == self.dist_handle.name():
             # this will control the distance handle with the vector handle         
             parms["vx"] = node.evalParm("dirx")
@@ -109,7 +117,7 @@ def createViewerStateTemplate():
             
         ])
     template.bindHandle("distance", "Magnitude")
-    template.bindHandle("boundingrect", "Grid Transform")
+    #template.bindHandle("boundingrect", "Grid Transform")
 
 
     return template
