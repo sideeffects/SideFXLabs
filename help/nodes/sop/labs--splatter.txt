@@ -1,0 +1,143 @@
+= Labs Splatter =
+
+#type: node
+#context: sop
+#internal: labs::splatter
+#icon: VOP_splatter
+#tags: gamedev, pop, fluid
+
+""" Creates a POP Fluid simulation setup for splattering. """
+
+A wrapper of a complete POP Fluid simulation with a ground plane, with tools for easily adjusting velocity and visualized trajectory.
+@inputs
+    Fluid Source Geometry:
+        The geometry to use as the fluid source. If nothing is connected, the default source will be a sphere. The trajectory arrow starts at the center of mass of this geometry.
+    Collision Geometry:
+        Optional geometry can be added as a static object that the fluid will collide with.
+
+@parameters
+    == Fluid ==
+    Particle Separation:
+        The desired distance between nearby particles in the fluid.
+    Impulse Activation:
+        Controls when particles spawn as a burst. A value of 0 means off, any other value means on.
+    Impulse Fluid Density:
+        Scales how many particles get spawned when Impulse Activation is on. Particles spawned = Source size * Particle Separation * Density. A Density of 1 will use all available spawn points within the source.
+    Const. Activation:
+        Will cause particles to spawn as long as this is on. A value of 0 means off, any other value means on.
+    Const. Fluid Density:
+        Scales how many particles get spawned when Constant Activation is on. Particles spawned = Source size * Particle Separation * Density. A Density of 1 will use all available spawn points within the source.
+    Stiffness:
+        Determines how closely Particle Separation will be matched.
+    Viscosity:
+        Amount of velocity diffusion, creating a more coherent motion among nearby particles. This can also be considered the "thickness" of the fluid. Can become unstable at higher values.
+    Maximum Acceleration:
+        The maximum acceleration that can be applied to the particles when applying Particle Separation and Tensile Strength. Lowering this parameter can help mitigate instabilities.
+    Tensile Radius:
+        Tensile force causes particles to repel eachother to prevent clustering. This parameter determines the distance (as a fraction of the particles kernel radius) at which this force is equal to Tensile Strength.
+    Tensile Strength:
+        Magnitude of repulsive forces applied to nearby particles.
+    Vorticity Confinement:
+        Counteracts energy dissipation by maintaining vortices.
+    Bounce:
+        The elasticity of the fluid.
+    Bounce Forward:
+        The tangential elasticity of the fluid. If two objects with bounce forward 1.0 collide, their tangential motion will be affected only by fricion. If two objects of bounce forward 0.0 collide, their tangential motion will be matched.
+    Friction:
+        The coefficient of friction of the fluid. A value of 0 means the fluid is frictionless.
+    Dynamic Friction Scale:
+        An object sliding may have a lower friction coefficient than an object at rest. This is the scale factor that relates the two. It is a scale between 0 and 1.
+    Temperature:
+        Temperature marks how warm or cool the fluid is. This is used in gas simulations for ignition points or for buoyancy computations.
+    Direction:
+        Direction of Initial Velocity. Can be set here manually or with the vector handle.
+    Magnitude:
+        A multiplier of the explosion force.
+    Variance:
+        How much the force can vary.
+    Initial Velocity:
+        The calculated velocity based on Direction multiplied by Magnitude, plus or minus variance.
+    Enable Gravity:
+        When gravity is disabled, Initial Velocity will remain constant until collision.
+    Gravity:
+        A constant acceleration in the given direction, the default being (0, -9.80665, 0).
+    Enable Explosion Force:
+        Enables a radial force that pushes particles outward.
+    Spread:
+        How much the force will radiate away from the explosion direction. If there is no explosion direction, a Spread value of 1 will cause the explosion will be equally radial.
+    Explosion Direction:
+        The direction the explosion force will be directed towards. A value of (0, 0, 0) will be an equally radial force.
+    Source Wireframe:
+        Display a wireframe representation of the source geometry.
+    == Ground Plane ==
+    Enable Ground Plane:
+        The Ground Plane is a grid for the fluid to collide with.
+    Snap Ground Plane to Trajectory:
+        Enabling this will cause the Ground Plane to be centered on the trajectory curve. Transforms of the Ground Plane will act as an offset from the snap location along the trajectory curve.
+    Distance:
+        How far along the trajectory curve the Ground Plane will be snapped to. A value of 1 means the Ground Plane will snap to the tip of the arrow.
+    Orientation:
+        Which axes the grid will be aligned with.
+    Rows:
+        Vertical divisions on the grid.
+    Columns:
+        Horizontal divisions on the grid.
+    Size:
+        Size of the grid.
+    Grid Guide:
+        This is a wireframe representation of the ground plane.
+    == Collision Object ==
+    Geometry can be connected to the 2nd input if a static object other than the ground plane is desired.
+    Animated:
+        Enable if your geometry has animations.
+    Display Geometry:
+        Enable to display the static geometry.
+    == Visualization ==
+    Fluid Display Mode:
+        How to display the fluid output. Displaying as Particles while adjusting parameters is recommended.
+        Particles:
+            Displays the fluid particles as they are in the POP simulation.
+        Surface VDB:
+            Displays the fluid as a surface VDB.
+        Surface Polygons:
+            Displays the fluid as full surface polygons (not polygon soup).
+    Voxel Scale:
+        The voxel side length to use for the generated VDB volume. This is a scale on the Particle Separation length. For example, if Particle separation is 0.1 and Voxel size is 0.5, the side length of the voxels of the output field will be 0.05.
+    Influence Scale:
+        The maximum distance at which particles interact. Small increases can give smoother results but increase the cooking time and memory usage greatly. This is a scale on the Particle Separation length. For example, if Particle Separation is 0.1 and Influence radius is 3, particles will interact if they are within 0.6 units of each other.
+    Droplet Scale:
+        Must be smaller than Influence Scale.
+    Fluid Color:
+        Color of fluid displayed in the viewport.
+    Dilate:
+        Expands the surface of the fluid outward.
+    Smooth:
+        Smooths the fluid surface using the selected method for the number of iterations.
+    Erode:
+        Contracts the surface of the fluid inward.
+    Final Smooth:
+        Smoothing performed after Erode and Dilate operations using the selected method for the number of iterations.
+    == Guides ==
+    Initial Velocity:
+        Shows direction and magnitude of initial velocity without gravity.
+    Show Trajectory:
+        Trajectory based on timeline.
+    Trajectory Curve:
+        This shows the calculated trajectory based on the initial velocity and gravity force. Does not factor in explosion force.
+    Length:
+        Timeline:
+            Trajectory length is based on the local variables $RFSTART and $RFEND.
+        Manual Time:
+            Use the Time parameter to generate the length of the trajectory.
+    Time:
+        Time in seconds to calculate the length of the trajectory.
+    == Solver ==
+    Time Scale:
+        A multiplier for time within the simulation.
+    Min Substeps:
+        The minimum number of calculations to perform between frames.
+    Max Substeps:
+        The maximum number of calculations to perform between frames. A higher number of substeps will produce more accurate results at the cost of simulation time.
+    Enable Auto Sleep:
+        Enabling will cause the fluid to freeze when it dips below a threshold for movement.
+    
