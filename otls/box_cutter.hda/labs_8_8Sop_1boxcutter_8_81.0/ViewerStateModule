@@ -112,17 +112,20 @@ class State(object):
         position = su.cplaneIntersection(self.scene_viewer, origin, direction)
         intersected, pos, _, _ = su.sopGeometryIntersection(preboolgeo, origin, direction)
 
+        
+
         # START POSITION
         if reason == hou.uiEventReason.Start:
-
-            self.ToolActive(kwargs, 1)
-            self.transform_handle.show(True)
-
-            self.shapeboundpoints[0] = pos
 
             if intersected >= 0:
                 prim = preboolgeo.prim(intersected)
                 self.starthit_surfacenormal = prim.normal().normalized()
+
+            self.ToolActive(kwargs, 1)
+            self.transform_handle.show(True)
+
+            self.shapeboundpoints[0] = pos + self.starthit_surfacenormal * 0.0001
+
 
         # SECOND POINT WITH DRAG
         if reason == hou.uiEventReason.Active:
@@ -132,8 +135,8 @@ class State(object):
 
             if not device.isCtrlKey():
                 planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
-                self.shapeboundpoints[1] = planepos
-                self.shapeboundpoints[2] = planepos
+                self.shapeboundpoints[1] = planepos + self.starthit_surfacenormal * 0.0001
+                self.shapeboundpoints[2] = planepos + self.starthit_surfacenormal * 0.0001
 
             # THIRD POINT AFTER HOLDING CNTRL
             else:
