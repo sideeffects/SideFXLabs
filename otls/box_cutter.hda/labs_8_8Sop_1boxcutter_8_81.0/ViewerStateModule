@@ -1,0 +1,203 @@
+"""
+State:          Labs::box cutter::1.0
+State type:     labs::box_cutter::1.0
+Description:    Labs::box cutter::1.0
+Author:         Paul_Ambrosiussen
+Computer Name:  LAPTOP-P8R7FBPF
+Date Created:   February 16, 2020 - 12:41:00
+"""
+
+
+import hou
+import viewerstate.utils as su
+
+class State(object):
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer
+        self.node = None
+        self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3()]
+        self.starthit_surfacenormal = hou.Vector3()
+        self.transform_handle = hou.Handle(self.scene_viewer, "Transformer")
+
+
+    def onEnter(self, kwargs):
+        self.node = kwargs["node"]
+
+        if not self.node:
+            raise
+
+        self.SetPrompt(kwargs)
+        self.transform_handle.show(False)
+
+    def onResume(self, kwargs):
+        self.SetPrompt(kwargs)
+
+
+    def ToolActive(self, kwargs, active):
+        self.node.parm("bDrawing").set(active)
+
+    def SetPrompt(self, kwargs):
+
+        prompt = (
+            "1. Left-click and drag on the geometry to create the cutting plane.\n"
+            "2. Hold CONTROL and drag mouse to add depth.\n"
+            "3. Press A to stamp shape."
+        )
+        self.scene_viewer.setPromptMessage(prompt)
+
+
+
+    def ResetShapeBoundParms(self, kwargs):
+        self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3()]
+        self.node.parmTuple("vShapeBound0").set((0.0,0.0,0.0))
+        self.node.parmTuple("vShapeBound1").set((0.0,0.0,0.0))
+        self.node.parmTuple("vShapeBound2").set((0.0,0.0,0.0))
+        self.node.parm("iBevelDivisions").set(0)
+        self.node.parm("fBevelDistance").set(0.0)
+        self.node.parmTuple("vTranslate").set((0.0,0.0,0.0))
+        self.node.parmTuple("vRotate").set((0.0,0.0,0.0))
+        self.node.parmTuple("vScale").set((1.0,1.0,1.0))
+        self.node.parmTuple("vPivot").set((0.0,0.0,0.0))
+        self.ToolActive(kwargs, 0)
+
+    def SetShapeBoundParms(self, kwargs):
+        self.node.parmTuple("vShapeBound0").set(self.shapeboundpoints[0])
+        self.node.parmTuple("vShapeBound1").set(self.shapeboundpoints[1])
+        self.node.parmTuple("vShapeBound2").set(self.shapeboundpoints[2])
+
+    def UpdateShapeBoundMultiParm(self, kwargs):
+        multiparm = self.node.parm("multishapeboundlist")
+        numentries = multiparm.evalAsInt()
+        multiparm.set(numentries+1)
+
+        self.node.parmTuple("vShapeBound0_%s" % str(numentries+1)).set(self.node.parmTuple("vShapeBound0").eval())
+        self.node.parmTuple("vShapeBound1_%s" % str(numentries+1)).set(self.node.parmTuple("vShapeBound1").eval())
+        self.node.parmTuple("vShapeBound2_%s" % str(numentries+1)).set(self.node.parmTuple("vShapeBound2").eval())
+        self.node.parmTuple("vTranslate_%s" % str(numentries+1)).set(self.node.parmTuple("vTranslate").eval())
+        self.node.parmTuple("vRotate_%s" % str(numentries+1)).set(self.node.parmTuple("vRotate").eval())
+        self.node.parmTuple("vScale_%s" % str(numentries+1)).set(self.node.parmTuple("vScale").eval())
+        self.node.parmTuple("vPivot_%s" % str(numentries+1)).set(self.node.parmTuple("vPivot").eval())
+        self.node.parm("opShape_%s" % str(numentries+1)).set(self.node.parm("opShape").eval())
+        self.node.parm("iBevelDivisions_%s" % str(numentries+1)).set(self.node.parm("iBevelDivisions").evalAsInt())
+        self.node.parm("fBevelDistance_%s" % str(numentries+1)).set(self.node.parm("fBevelDistance").evalAsFloat())
+
+    def UpdateStashedGeo(self, kwargs):
+        self.node.parm("stash").set(self.node.node("OUTPUT").geometry())
+
+    def onMouseWheelEvent(self, kwargs):
+        # Get the UI device object
+        device = kwargs["ui_event"].device()
+        scroll = device.mouseWheel()
+
+        self.ToolActive(kwargs, 1)
+
+        # Control Bevel Parms with Mousewheel
+        if not device.isShiftKey():
+            bevel = self.node.parm("iBevelDivisions").evalAsInt() + scroll
+            self.node.parm("iBevelDivisions").set(max(int(bevel),0))
+        else:
+            beveldist = self.node.parm("fBevelDistance").evalAsFloat() + scroll*0.001
+            self.node.parm("fBevelDistance").set(max(beveldist,0.0))
+
+    # Handler methods go here
+    def onMouseEvent(self, kwargs):
+        ui_event = kwargs["ui_event"]
+        reason = ui_event.reason()
+        device = ui_event.device()
+        origin, direction = ui_event.ray()
+
+        # Geometry and Intersected Position
+        preboolgeo = self.node.node("OUTPUT").geometry()
+        position = su.cplaneIntersection(self.scene_viewer, origin, direction)
+        intersected, pos, _, _ = su.sopGeometryIntersection(preboolgeo, origin, direction)
+
+        
+
+        # START POSITION
+        if reason == hou.uiEventReason.Start:
+
+            if intersected >= 0:
+                prim = preboolgeo.prim(intersected)
+                self.starthit_surfacenormal = prim.normal().normalized()
+
+            self.ToolActive(kwargs, 1)
+            self.transform_handle.show(True)
+
+            self.shapeboundpoints[0] = pos + self.starthit_surfacenormal * 0.0001
+
+
+        # SECOND POINT WITH DRAG
+        if reason == hou.uiEventReason.Active:
+
+            # Update the handle pivot to match drawn shape
+            self.node.parmTuple("vPivot").set(self.node.node("util/transform2").parmTuple("p").eval())
+
+            if not device.isCtrlKey():
+                planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
+                self.shapeboundpoints[1] = planepos + self.starthit_surfacenormal * 0.0001
+                self.shapeboundpoints[2] = planepos + self.starthit_surfacenormal * 0.0001
+
+            # THIRD POINT AFTER HOLDING CNTRL
+            else:
+                pos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal.cross((self.shapeboundpoints[0] - self.shapeboundpoints[1]).normalized()), origin, direction) 
+                v = pos - self.shapeboundpoints[1]
+                d = v.dot(self.starthit_surfacenormal)
+                #self.shapedepth = d
+                self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
+                
+
+        self.SetShapeBoundParms(kwargs)
+
+
+    def onKeyEvent(self, kwargs):
+        ui_event = kwargs['ui_event']
+
+        self.key_pressed = ui_event.device().keyString()
+
+        # User pressed A to commit boolean shape
+        if self.key_pressed in ('a'):
+            self.UpdateShapeBoundMultiParm(kwargs)
+            self.UpdateStashedGeo(kwargs)
+            self.ResetShapeBoundParms(kwargs)
+            self.transform_handle.show(False)
+            return True
+
+    # Clear the stash so we're working with live geo
+    def onExit(self, kwargs):
+        self.node.parm("stash").set(None) 
+        self.ResetShapeBoundParms(kwargs)
+        self.transform_handle.show(False)
+        self.ToolActive(kwargs, 0)      
+
+
+def createViewerStateTemplate():
+    """ Mandatory entry point to create and return the viewer state 
+        template to register. """
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Box Cutter"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+    template.bindHandleStatic( "xform", "Transformer", 
+        [
+            ("vTranslatex", "tx"),
+            ("vTranslatey", "ty"),
+            ("vTranslatez", "tz"),
+            ("vRotatex", "rx"),
+            ("vRotatey", "ry"),
+            ("vRotatez", "rz"),
+            ("vScalex", "sx"),
+            ("vScaley", "sy"),
+            ("vScalez", "sz"),
+            ("vPivotx", "px"),
+            ("vPivoty", "py"),
+            ("vPivotz", "pz")
+        ])
+
+
+    return template
