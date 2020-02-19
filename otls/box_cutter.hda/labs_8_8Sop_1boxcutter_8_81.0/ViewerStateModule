@@ -16,7 +16,7 @@ class State(object):
         self.state_name = state_name
         self.scene_viewer = scene_viewer
         self.node = None
-        self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3()]
+        self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]
         self.starthit_surfacenormal = hou.Vector3()
         self.transform_handle = hou.Handle(self.scene_viewer, "Transformer")
 
@@ -49,7 +49,7 @@ class State(object):
 
 
     def ResetShapeBoundParms(self, kwargs):
-        self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3()]
+        self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]
         self.node.parmTuple("vShapeBound0").set((0.0,0.0,0.0))
         self.node.parmTuple("vShapeBound1").set((0.0,0.0,0.0))
         self.node.parmTuple("vShapeBound2").set((0.0,0.0,0.0))
@@ -65,6 +65,7 @@ class State(object):
         self.node.parmTuple("vShapeBound0").set(self.shapeboundpoints[0])
         self.node.parmTuple("vShapeBound1").set(self.shapeboundpoints[1])
         self.node.parmTuple("vShapeBound2").set(self.shapeboundpoints[2])
+        self.node.parmTuple("vShapeBound3").set(self.shapeboundpoints[3])
 
     def UpdateShapeBoundMultiParm(self, kwargs):
         multiparm = self.node.parm("multishapeboundlist")
@@ -74,6 +75,7 @@ class State(object):
         self.node.parmTuple("vShapeBound0_%s" % str(numentries+1)).set(self.node.parmTuple("vShapeBound0").eval())
         self.node.parmTuple("vShapeBound1_%s" % str(numentries+1)).set(self.node.parmTuple("vShapeBound1").eval())
         self.node.parmTuple("vShapeBound2_%s" % str(numentries+1)).set(self.node.parmTuple("vShapeBound2").eval())
+        self.node.parmTuple("vShapeBound3_%s" % str(numentries+1)).set(self.node.parmTuple("vShapeBound3").eval())
         self.node.parmTuple("vTranslate_%s" % str(numentries+1)).set(self.node.parmTuple("vTranslate").eval())
         self.node.parmTuple("vRotate_%s" % str(numentries+1)).set(self.node.parmTuple("vRotate").eval())
         self.node.parmTuple("vScale_%s" % str(numentries+1)).set(self.node.parmTuple("vScale").eval())
@@ -137,6 +139,7 @@ class State(object):
                 planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
                 self.shapeboundpoints[1] = planepos + self.starthit_surfacenormal * 0.0001
                 self.shapeboundpoints[2] = planepos + self.starthit_surfacenormal * 0.0001
+                self.shapeboundpoints[3] = self.shapeboundpoints[0] - self.starthit_surfacenormal * 0.0001
 
             # THIRD POINT AFTER HOLDING CNTRL
             else:
@@ -145,6 +148,7 @@ class State(object):
                 d = v.dot(self.starthit_surfacenormal)
                 #self.shapedepth = d
                 self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
+                self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
                 
 
         self.SetShapeBoundParms(kwargs)
@@ -156,7 +160,7 @@ class State(object):
 
         # User pressed A to commit boolean shape
         if key_pressed == "a" and ui_event.device().isKeyUp():
-            if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3()]:
+            if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]:
                 self.UpdateShapeBoundMultiParm(kwargs)
                 self.UpdateStashedGeo(kwargs)
                 self.ResetShapeBoundParms(kwargs)
