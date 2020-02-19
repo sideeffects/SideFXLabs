@@ -150,18 +150,18 @@ class State(object):
         self.SetShapeBoundParms(kwargs)
 
 
-    def onKeyEvent(self, kwargs):
+    def onKeyTransitEvent(self, kwargs):
         ui_event = kwargs['ui_event']
-
-        self.key_pressed = ui_event.device().keyString()
+        key_pressed = ui_event.device().keyString()
 
         # User pressed A to commit boolean shape
-        if self.key_pressed in ('a'):
-            self.UpdateShapeBoundMultiParm(kwargs)
-            self.UpdateStashedGeo(kwargs)
-            self.ResetShapeBoundParms(kwargs)
-            self.transform_handle.show(False)
-            return True
+        if key_pressed == "a" and ui_event.device().isKeyUp():
+            if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3()]:
+                self.UpdateShapeBoundMultiParm(kwargs)
+                self.UpdateStashedGeo(kwargs)
+                self.ResetShapeBoundParms(kwargs)
+                self.transform_handle.show(False)
+                return True
 
     # Clear the stash so we're working with live geo
     def onExit(self, kwargs):
