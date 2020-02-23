@@ -59,7 +59,6 @@ class State(object):
         self.node.parmTuple("vRotate").set((0.0,0.0,0.0))
         self.node.parmTuple("vScale").set((1.0,1.0,1.0))
         self.node.parmTuple("vPivot").set((0.0,0.0,0.0))
-        self.ToolActive(kwargs, 0)
 
     def SetShapeBoundParms(self, kwargs):
         self.node.parmTuple("vShapeBound0").set(self.shapeboundpoints[0])
@@ -83,9 +82,10 @@ class State(object):
         self.node.parm("opShape_%s" % str(numentries+1)).set(self.node.parm("opShape").eval())
         self.node.parm("iBevelDivisions_%s" % str(numentries+1)).set(self.node.parm("iBevelDivisions").evalAsInt())
         self.node.parm("fBevelDistance_%s" % str(numentries+1)).set(self.node.parm("fBevelDistance").evalAsFloat())
+        self.node.parm("mBoxCutterMode_%s" % str(numentries+1)).set(self.node.parm("mBoxCutterMode").evalAsInt())
 
     def UpdateStashedGeo(self, kwargs):
-        self.node.parm("stash").set(self.node.node("OUTPUT").geometry())
+        self.node.parm("stash").set(self.node.node("STASH_GEO").geometry())
 
     def onMouseWheelEvent(self, kwargs):
         # Get the UI device object
@@ -163,6 +163,7 @@ class State(object):
             if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]:
                 self.UpdateShapeBoundMultiParm(kwargs)
                 self.UpdateStashedGeo(kwargs)
+                self.ToolActive(kwargs, 0) 
                 self.ResetShapeBoundParms(kwargs)
                 self.transform_handle.show(False)
                 return True
@@ -172,7 +173,7 @@ class State(object):
         self.node.parm("stash").set(None) 
         self.ResetShapeBoundParms(kwargs)
         self.transform_handle.show(False)
-        self.ToolActive(kwargs, 0)      
+             
 
 
 def createViewerStateTemplate():
@@ -200,8 +201,10 @@ def createViewerStateTemplate():
             ("vScalez", "sz"),
             ("vPivotx", "px"),
             ("vPivoty", "py"),
-            ("vPivotz", "pz")
+            ("vPivotz", "pz"),
+            ("vPivotRotx", "pivot_rx"),
+            ("vPivotRoty", "pivot_ry"),
+            ("vPivotRotz", "pivot_rx")
         ])
-
 
     return template
