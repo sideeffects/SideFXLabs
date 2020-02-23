@@ -1,0 +1,27 @@
+import toolutils 
+
+def MakeLive(kwargs):
+
+    if toolutils.sceneViewer().currentState() != "labs::box_cutter::1.0":
+        toolutils.sceneViewer().enterCurrentNodeState()
+
+    node = kwargs['node']
+    index = kwargs['parm'].name()[-1]
+    
+    parmswithindex = []
+    parms = node.parm("multishapeboundlist").multiParmInstances()
+    
+    for parm in parms:
+        if index in parm.name().split("_")[-1] and "folder" not in parm.name():
+            parmswithindex.append(parm)
+    
+    for parm in parmswithindex:
+        parentparmname = parm.name().replace('_%s' % index,'')
+        
+        if node.parm(parentparmname) != None:
+            node.parm(parentparmname).set(parm.eval())
+            node.parm("bDrawing").set(1)
+   
+
+    node.parm("multishapeboundlist").removeMultiParmInstance(int(index)-1)
+    toolutils.sceneViewer().runStateCommand('make_live')

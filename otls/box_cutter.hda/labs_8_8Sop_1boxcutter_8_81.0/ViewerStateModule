@@ -19,6 +19,7 @@ class State(object):
         self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]
         self.starthit_surfacenormal = hou.Vector3()
         self.transform_handle = hou.Handle(self.scene_viewer, "Transformer")
+        #self.drawing = False
 
 
     def onEnter(self, kwargs):
@@ -29,6 +30,7 @@ class State(object):
 
         self.SetPrompt(kwargs)
         self.transform_handle.show(False)
+        #self.drawing = False
 
     def onResume(self, kwargs):
         self.SetPrompt(kwargs)
@@ -53,6 +55,7 @@ class State(object):
         self.node.parmTuple("vShapeBound0").set((0.0,0.0,0.0))
         self.node.parmTuple("vShapeBound1").set((0.0,0.0,0.0))
         self.node.parmTuple("vShapeBound2").set((0.0,0.0,0.0))
+        self.node.parmTuple("vShapeBound3").set((0.0,0.0,0.0))
         self.node.parm("iBevelDivisions").set(0)
         self.node.parm("fBevelDistance").set(0.0)
         self.node.parmTuple("vTranslate").set((0.0,0.0,0.0))
@@ -65,6 +68,24 @@ class State(object):
         self.node.parmTuple("vShapeBound1").set(self.shapeboundpoints[1])
         self.node.parmTuple("vShapeBound2").set(self.shapeboundpoints[2])
         self.node.parmTuple("vShapeBound3").set(self.shapeboundpoints[3])
+
+    def onCommand( self, kwargs ):        
+        # Command to update the viewport text 
+        name = kwargs['command']
+        args = kwargs['command_args']
+        state_parms = kwargs['state_parms']
+
+        if name == 'make_live':
+            self.shapeboundpoints[0] = self.node.parmTuple("vShapeBound0").eval()
+            self.shapeboundpoints[1] = self.node.parmTuple("vShapeBound1").eval()
+            self.shapeboundpoints[2] = self.node.parmTuple("vShapeBound2").eval()
+            self.shapeboundpoints[3] = self.node.parmTuple("vShapeBound3").eval()
+            self.node.parm("stash").set(self.node.node("CLEAN_GEO").geometry())
+            self.transform_handle.show(True)
+            self.ToolActive(kwargs, 1)
+
+
+
 
     def UpdateShapeBoundMultiParm(self, kwargs):
         multiparm = self.node.parm("multishapeboundlist")
@@ -118,6 +139,7 @@ class State(object):
 
         # START POSITION
         if reason == hou.uiEventReason.Start:
+            #self.drawing = True
 
             if intersected >= 0:
                 prim = preboolgeo.prim(intersected)
@@ -130,7 +152,7 @@ class State(object):
 
 
         # SECOND POINT WITH DRAG
-        if reason == hou.uiEventReason.Active:
+        if reason == hou.uiEventReason.Active and self.shapeboundpoints[0] != hou.Vector3():
 
             # Update the handle pivot to match drawn shape
             self.node.parmTuple("vPivot").set(self.node.node("util/transform2").parmTuple("p").eval())
@@ -150,7 +172,10 @@ class State(object):
                 self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
                 self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
                 
+        #if reason == hou.uiEventReason.Changed:
+            #self.drawing = False
 
+        #if self.drawing:
         self.SetShapeBoundParms(kwargs)
 
 
@@ -170,9 +195,11 @@ class State(object):
 
     # Clear the stash so we're working with live geo
     def onExit(self, kwargs):
+        #print "EXIT"
         self.node.parm("stash").set(None) 
         self.ResetShapeBoundParms(kwargs)
         self.transform_handle.show(False)
+        self.drawing = False
              
 
 
