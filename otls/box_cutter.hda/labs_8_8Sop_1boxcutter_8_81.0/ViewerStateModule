@@ -62,6 +62,8 @@ class State(object):
         self.node.parmTuple("vRotate").set((0.0,0.0,0.0))
         self.node.parmTuple("vScale").set((1.0,1.0,1.0))
         self.node.parmTuple("vPivot").set((0.0,0.0,0.0))
+        self.node.parm("iNumCopies").set(0)
+        self.node.parmTuple("vCopyTranslate").set((0.0,0.0,0.0))
 
     def SetShapeBoundParms(self, kwargs):
         self.node.parmTuple("vShapeBound0").set(self.shapeboundpoints[0])
@@ -103,6 +105,8 @@ class State(object):
         self.node.parm("fBevelDistance_%s" % str(numentries+1)).set(self.node.parm("fBevelDistance").evalAsFloat())
         self.node.parm("mBoxCutterMode_%s" % str(numentries+1)).set(self.node.parm("mBoxCutterMode").evalAsInt())
         self.node.parm("sBooleanOperation_%s" % str(numentries+1)).set(self.node.parm("sBooleanOperation").evalAsInt())
+        self.node.parm("iNumCopies_%s" % str(numentries+1)).set(self.node.parm("iNumCopies").eval())
+        self.node.parmTuple("vCopyTranslate_%s" % str(numentries+1)).set(self.node.parmTuple("vCopyTranslate").eval())
 
     def UpdateStashedGeo(self, kwargs):
         self.node.parm("stash").set(self.node.node("STASH_GEO").geometry())
@@ -232,5 +236,19 @@ def createViewerStateTemplate():
             ("vPivotRoty", "pivot_ry"),
             ("vPivotRotz", "pivot_rx")
         ])
+
+    # template.bindHandleStatic("angle", "CopyPivot",
+    #     [
+    #         ("tcopyx", "tx"),
+    #         ("tcopyy", "ty"),
+    #         ("tcopyz", "tz"),
+    #         ("rcopyx", "rx"),
+    #         ("rcopyy", "ry"),
+    #         ("rcopyz", "rz"),
+    #         ("pcopyx", "px"),
+    #         ("pcopyy", "py"),
+    #         ("pcopyz", "pz")
+
+    #     ])
 
     return template

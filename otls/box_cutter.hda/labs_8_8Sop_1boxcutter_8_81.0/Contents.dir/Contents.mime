@@ -50,7 +50,7 @@ inputs
 stat
 {
   create 1582089365
-  modify 1583112602
+  modify 1583380154
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -115,7 +115,7 @@ inputs
 stat
 {
   create 1581888500
-  modify 1582494454
+  modify 1582506779
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -143,6 +143,8 @@ v@val3 = chv(sprintf(\"../vShapeBound2_%g\", iteration));
 v@val4 = chv(sprintf(\"../vShapeBound3_%g\", iteration));
 i@mode = chi(sprintf(\"../mBoxCutterMode_%g\", iteration));
 i@boolmode = chi(sprintf(\"../sBooleanOperation_%g\", iteration));
+i@copies = chi(sprintf(\"../iNumCopies_%g\", iteration));
+v@copytranslate = chv(sprintf(\"../vCopyTranslate_%g\", iteration));
 
 string path = chsraw(sprintf(\"../opShape_%g\", iteration));
 
@@ -213,7 +215,7 @@ inputs
 stat
 {
   create 1581988939
-  modify 1582494906
+  modify 1582506804
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -382,6 +384,31 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../sBooleanOperation\") }
     }
+    channel ncy {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../iNumCopies\")+1 }
+    }
+    channel tcopyx {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vCopyTranslatex\") }
+    }
+    channel tcopyy {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vCopyTranslatey\") }
+    }
+    channel tcopyz {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vCopyTranslatez\") }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -396,12 +423,16 @@ s	[ 0	locks=0 ]	(	[ sx	1 ] 	[ sy	1 ] 	[ sz	1 ] 	)
 pt0	[ 0	locks=0 ]	(	[ pt0x	0 ] 	[ pt0y	0 ] 	[ pt0z	0 ] 	)
 pt1	[ 0	locks=0 ]	(	[ pt1x	0 ] 	[ pt1y	0 ] 	[ pt1z	0 ] 	)
 pt2	[ 0	locks=0 ]	(	[ pt2x	0 ] 	[ pt2y	0 ] 	[ pt2z	0 ] 	)
-pt3	[ 0	locks=0 ]	(	[ pt3x	0 ] 	[ pt3y	0 ] 	[ pt3z	0 ] 	)
-offset	[ 0	locks=0 ]	(	[ offset	0.0060000000000000001 ] 	)
+pt3	[ 8	locks=0 ]	(	[ pt3x	0 ] 	[ pt3y	0 ] 	[ pt3z	0 ] 	)
+offset	[ 0	locks=0 ]	(	[ offset	0 ] 	)
 divisions	[ 0	locks=0 ]	(	[ divisions	0 ] 	)
 opShape	[ 8	locks=0 ]	(	`chsop(\"../opShape\")`	)
 input	[ 0	locks=0 ]	(	[ input	0 ] 	)
 booleanop	[ 8	locks=0 ]	(	[ booleanop	0 ] 	)
+ncy	[ 8	locks=0 ]	(	[ ncy	1 ] 	)
+tcopy	[ 0	locks=0 ]	(	[ tcopyx	0 ] 	[ tcopyy	0 ] 	[ tcopyz	0 ] 	)
+rcopy	[ 0	locks=0 ]	(	0	0	0	)
+pcopy	[ 0	locks=0 ]	(	0	0	0	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -446,7 +477,7 @@ inputs
 stat
 {
   create 1581989803
-  modify 1582494906
+  modify 1582507053
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -673,6 +704,39 @@ Content-Type: text/plain
 
 	 length = 0 expr = "detail(\"../attribwrangle1\", \"boolmode\", 0)" }
     }
+    channel ncy {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copies\", 0)+1" }
+    }
+    channel tcopyx {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copytranslate\", 0)" }
+    }
+    channel tcopyy {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copytranslate\", 1)" }
+    }
+    channel tcopyz {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copytranslate\", 2)" }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -684,15 +748,19 @@ version 0.8
 t	[ 8	locks=0 ]	(	[ tx	0 ] 	[ ty	0 ] 	[ tz	0 ] 	)
 r	[ 0	locks=0 ]	(	[ rx	0 ] 	[ ry	0 ] 	[ rz	0 ] 	)
 s	[ 0	locks=0 ]	(	[ sx	1 ] 	[ sy	1 ] 	[ sz	1 ] 	)
-pt0	[ 0	locks=0 ]	(	[ pt0x	-0.062371894717216492 ] 	[ pt0y	0.50010013580322266 ] 	[ pt0z	-0.24461738765239716 ] 	)
-pt1	[ 0	locks=0 ]	(	[ pt1x	0.96106481552124023 ] 	[ pt1y	0.50020015239715576 ] 	[ pt1z	0.29528117179870605 ] 	)
-pt2	[ 8	locks=0 ]	(	[ pt2x	0.96106481552124023 ] 	[ pt2y	-1.3673555850982666 ] 	[ pt2z	0.29528117179870605 ] 	)
-pt3	[ 0	locks=0 ]	(	[ pt3x	-0.062371894717216492 ] 	[ pt3y	-1.3674556016921997 ] 	[ pt3z	-0.24461738765239716 ] 	)
-offset	[ 0	locks=0 ]	(	[ offset	0.0060000000521540642 ] 	)
+pt0	[ 0	locks=0 ]	(	[ pt0x	-0.38116762042045593 ] 	[ pt0y	0.50010001659393311 ] 	[ pt0z	0.34838372468948364 ] 	)
+pt1	[ 0	locks=0 ]	(	[ pt1x	-0.020457491278648376 ] 	[ pt1y	0.50019991397857666 ] 	[ pt1z	0.7673913836479187 ] 	)
+pt2	[ 8	locks=0 ]	(	[ pt2x	-0.020457491278648376 ] 	[ pt2y	-0.37766647338867188 ] 	[ pt2z	0.7673913836479187 ] 	)
+pt3	[ 0	locks=0 ]	(	[ pt3x	-0.38116762042045593 ] 	[ pt3y	-0.37776637077331543 ] 	[ pt3z	0.34838372468948364 ] 	)
+offset	[ 0	locks=0 ]	(	[ offset	0 ] 	)
 divisions	[ 0	locks=0 ]	(	[ divisions	0 ] 	)
 opShape	[ 8	locks=0	autoscope=1	autosel=4294967295 ]	(	[ opShape	"" ] 	)
 input	[ 0	locks=0 ]	(	[ input	0 ] 	)
 booleanop	[ 0	locks=0 ]	(	[ booleanop	0 ] 	)
+ncy	[ 8	locks=0 ]	(	[ ncy	1 ] 	)
+tcopy	[ 0	locks=0 ]	(	[ tcopyx	0 ] 	[ tcopyy	0 ] 	[ tcopyz	0 ] 	)
+rcopy	[ 0	locks=0 ]	(	0	0	0	)
+pcopy	[ 0	locks=0 ]	(	0	0	0	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -721,7 +789,7 @@ sopflags sopflags =
 comment ""
 position -6.39933 -7.038
 connectornextid 2
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -737,7 +805,7 @@ inputs
 stat
 {
   create 1581817887
-  modify 1582494762
+  modify 1582507019
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -914,7 +982,7 @@ sopflags sopflags =
 comment ""
 position -11.9411 3.16393
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 1 "output1"
@@ -930,7 +998,7 @@ inputs
 stat
 {
   create 1581888241
-  modify 1582486378
+  modify 1582507039
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -961,7 +1029,7 @@ Content-Type: text/plain
 version 0.8
 itermethod	[ 0	locks=0 ]	(	"count"	)
 method	[ 0	locks=0 ]	(	"feedback"	)
-iterations	[ 0	locks=0 ]	(	[ iterations	2 ] 	)
+iterations	[ 0	locks=0 ]	(	[ iterations	3 ] 	)
 startvalue	[ 0	locks=0 ]	(	1	)
 increment	[ 0	locks=0 ]	(	1	)
 class	[ 0	locks=0 ]	(	"point"	)
@@ -1020,7 +1088,7 @@ inputs
 stat
 {
   create 1581888241
-  modify 1582502499
+  modify 1582507067
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1082,7 +1150,7 @@ inputs
 stat
 {
   create 1581888241
-  modify 1582502499
+  modify 1582507067
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1148,7 +1216,7 @@ inputs
 stat
 {
   create 1581888320
-  modify 1582428164
+  modify 1582507039
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1789,7 +1857,7 @@ inputs
 stat
 {
   create 1582486115
-  modify 1582486193
+  modify 1582507043
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
