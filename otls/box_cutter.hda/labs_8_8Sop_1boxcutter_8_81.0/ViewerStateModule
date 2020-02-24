@@ -19,7 +19,6 @@ class State(object):
         self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]
         self.starthit_surfacenormal = hou.Vector3()
         self.transform_handle = hou.Handle(self.scene_viewer, "Transformer")
-        #self.drawing = False
 
 
     def onEnter(self, kwargs):
@@ -28,12 +27,13 @@ class State(object):
         if not self.node:
             raise
 
-        self.SetPrompt(kwargs)
-        self.transform_handle.show(False)
-        #self.drawing = False
+        with hou.undos.disabler():
+            self.SetPrompt(kwargs)
+            self.transform_handle.show(False)
 
     def onResume(self, kwargs):
-        self.SetPrompt(kwargs)
+        with hou.undos.disabler():
+            self.SetPrompt(kwargs)
 
 
     def ToolActive(self, kwargs, active):
@@ -143,47 +143,43 @@ class State(object):
         intersected, pos, _, _ = su.sopGeometryIntersection(preboolgeo, origin, direction)
 
         
+        with hou.undos.disabler():
+            # START POSITION
+            if reason == hou.uiEventReason.Start:
 
-        # START POSITION
-        if reason == hou.uiEventReason.Start:
-            #self.drawing = True
+                if intersected >= 0:
+                    prim = preboolgeo.prim(intersected)
+                    self.starthit_surfacenormal = prim.normal().normalized()
 
-            if intersected >= 0:
-                prim = preboolgeo.prim(intersected)
-                self.starthit_surfacenormal = prim.normal().normalized()
+                self.ToolActive(kwargs, 1)
+                self.transform_handle.show(True)
 
-            self.ToolActive(kwargs, 1)
-            self.transform_handle.show(True)
-
-            self.shapeboundpoints[0] = pos + self.starthit_surfacenormal * 0.0001
+                self.shapeboundpoints[0] = pos + self.starthit_surfacenormal * 0.0001
 
 
-        # SECOND POINT WITH DRAG
-        if reason == hou.uiEventReason.Active and self.shapeboundpoints[0] != hou.Vector3():
+            # SECOND POINT WITH DRAG
+            if reason == hou.uiEventReason.Active and self.shapeboundpoints[0] != hou.Vector3():
 
-            # Update the handle pivot to match drawn shape
-            self.node.parmTuple("vPivot").set(self.node.node("util/transform2").parmTuple("p").eval())
+                # Update the handle pivot to match drawn shape
+                self.node.parmTuple("vPivot").set(self.node.node("util/transform2").parmTuple("p").eval())
 
-            if not device.isCtrlKey():
-                planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
-                self.shapeboundpoints[1] = planepos + self.starthit_surfacenormal * 0.0001
-                self.shapeboundpoints[2] = planepos + self.starthit_surfacenormal * 0.0001
-                self.shapeboundpoints[3] = self.shapeboundpoints[0] - self.starthit_surfacenormal * 0.0001
+                if not device.isCtrlKey():
+                    planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
+                    self.shapeboundpoints[1] = planepos + self.starthit_surfacenormal * 0.0001
+                    self.shapeboundpoints[2] = planepos + self.starthit_surfacenormal * 0.0001
+                    self.shapeboundpoints[3] = self.shapeboundpoints[0] - self.starthit_surfacenormal * 0.0001
 
-            # THIRD POINT AFTER HOLDING CNTRL
-            else:
-                pos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal.cross((self.shapeboundpoints[0] - self.shapeboundpoints[1]).normalized()), origin, direction) 
-                v = pos - self.shapeboundpoints[1]
-                d = v.dot(self.starthit_surfacenormal)
-                #self.shapedepth = d
-                self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
-                self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
-                
-        #if reason == hou.uiEventReason.Changed:
-            #self.drawing = False
+                # THIRD POINT AFTER HOLDING CNTRL
+                else:
+                    pos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal.cross((self.shapeboundpoints[0] - self.shapeboundpoints[1]).normalized()), origin, direction) 
+                    v = pos - self.shapeboundpoints[1]
+                    d = v.dot(self.starthit_surfacenormal)
+                    #self.shapedepth = d
+                    self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
+                    self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
 
-        #if self.drawing:
-        self.SetShapeBoundParms(kwargs)
+            
+            self.SetShapeBoundParms(kwargs)
 
 
     def onKeyTransitEvent(self, kwargs):
@@ -192,21 +188,21 @@ class State(object):
 
         # User pressed A to commit boolean shape
         if key_pressed == "a" and ui_event.device().isKeyUp():
-            if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]:
-                self.UpdateShapeBoundMultiParm(kwargs)
-                self.UpdateStashedGeo(kwargs)
-                self.ToolActive(kwargs, 0) 
-                self.ResetShapeBoundParms(kwargs)
-                self.transform_handle.show(False)
-                return True
+            with hou.undos.group("Commit Cut"):
+                if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]:
+                    self.UpdateShapeBoundMultiParm(kwargs)
+                    self.UpdateStashedGeo(kwargs)
+                    self.ToolActive(kwargs, 0) 
+                    self.ResetShapeBoundParms(kwargs)
+                    self.transform_handle.show(False)
+                    return True
 
     # Clear the stash so we're working with live geo
     def onExit(self, kwargs):
-        #print "EXIT"
-        self.node.parm("stash").set(None) 
-        self.ResetShapeBoundParms(kwargs)
-        self.transform_handle.show(False)
-        self.drawing = False
+        with hou.undos.disabler():
+            self.node.parm("stash").set(None) 
+            self.ResetShapeBoundParms(kwargs)
+            self.transform_handle.show(False)
              
 
 
@@ -240,19 +236,5 @@ def createViewerStateTemplate():
             ("vPivotRoty", "pivot_ry"),
             ("vPivotRotz", "pivot_rx")
         ])
-
-    # template.bindHandleStatic("angle", "CopyPivot",
-    #     [
-    #         ("tcopyx", "tx"),
-    #         ("tcopyy", "ty"),
-    #         ("tcopyz", "tz"),
-    #         ("rcopyx", "rx"),
-    #         ("rcopyy", "ry"),
-    #         ("rcopyz", "rz"),
-    #         ("pcopyx", "px"),
-    #         ("pcopyy", "py"),
-    #         ("pcopyz", "pz")
-
-    #     ])
 
     return template
