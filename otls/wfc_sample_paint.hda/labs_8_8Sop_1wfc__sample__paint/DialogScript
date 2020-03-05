@@ -1,0 +1,734 @@
+# Dialog script for labs::wfc_sample_paint automatically generated
+
+{
+    name	labs::wfc_sample_paint
+    script	SOP_Paint
+    label	"Labs WFC Sample Paint"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"WFC Grid"
+    inputlabel	2	Modules
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"WFC Grid"
+    outputlabel	2	Geometry
+
+    parm {
+        name    "stroke_group"
+        label   "Group"
+        type    string
+        invisible
+        default { "" }
+        menutoggle {
+            [ "kwargs['node'].generateInputGroupMenu(0, hou.geometryType.Points)" ]
+            language python
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils; kwargs['geometrytype'] = hou.geometryType.Points; kwargs['inputindex'] = 0; soputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "displaygroup"
+        label   "Display Group"
+        type    toggle
+        invisible
+        default { "0" }
+    }
+    parm {
+        name    "attribute"
+        label   "Attribute"
+        type    integer
+        invisible
+        default { "0" }
+        menu {
+            [ "" ]
+            [ "node = kwargs['node']" ]
+            [ "numattribs = node.evalParm('numattribs')" ]
+            [ "" ]
+            [ "result = []" ]
+            [ "type_names = ('Color', 'Float', 'Integer')" ]
+            [ "for idx in range(1, numattribs + 1):" ]
+            [ "    num = str(idx)" ]
+            [ "    result.append(idx)" ]
+            [ "    attrib_name = node.evalParm('attribname' + num)" ]
+            [ "    attrib_type = node.evalParm('attribtype' + num)" ]
+            [ "    result.append(attrib_name + ' (' + type_names[attrib_type] + ')')" ]
+            [ "    " ]
+            [ "return result" ]
+            language python
+        }
+        range   { 0 10 }
+        export  all
+        parmtag { "script_action" "kwargs['node'].hdaViewerStateModule().visualize(kwargs)" }
+        parmtag { "script_action_help" "Toggle visualization\nCtrl-LMB: Open the visualization editor" }
+        parmtag { "script_action_icon" "VIEW_visualization" }
+        parmtag { "script_callback" "kwargs['node'].hdaViewerStateModule().updateattribute(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "stroke_attrib"
+        label   "Attribute Name"
+        type    string
+        invisible
+        joinnext
+        default { "mask" }
+        menutoggle {
+            [ "import terraintoolutils " ]
+            [ "" ]
+            [ "return terraintoolutils.buildNameMenu(kwargs['node'])" ]
+            language python
+        }
+        parmtag { "script_action" "from soputils import actionToggleVisualizer; actionToggleVisualizer(kwargs)" }
+        parmtag { "script_action_icon" "VIEW_visualization" }
+        parmtag { "script_callback" "from soputils import actionToggleVisualizer kwargs['parmtuple'] = \"attribname\" + str(kwargs['parm'].eval() + 1) actionToggleVisualizer(kwargs) " }
+    }
+    parm {
+        name    "stroke_attribtype"
+        label   "Attribute Type"
+        type    ordinal
+        invisible
+        default { "1" }
+        menu {
+            "color"     "Color"
+            "float"     "Float"
+            "integer"   "Integer"
+        }
+        range   { 0 10 }
+    }
+    parm {
+        name    "btnAddInputsToDict"
+        label   "Initialize Value Mapping with Input"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().SetDictparm(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    multiscroll {
+        name    "mpPaintObjects"
+        label    "Objects"
+
+        parm {
+            name    "sObject_#"
+            label   "Object #"
+            type    string
+            default { "" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0_1"
+        label   "Brush"
+        invisibletab
+
+        parm {
+            name    "reset"
+            label   "Reset All Changes"
+            type    button
+            default { "0" }
+            export  dialog
+            parmtag { "script_callback" "kwargs['node'].hdaViewerStateModule().reset(hou.pwd())" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fgint"
+            label   "Value to Draw"
+            type    integer
+            default { "1" }
+            hidewhen "{ stroke_attribtype != integer }"
+            range   { 0 10 }
+            export  all
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "lmboperation"
+            label   "LMB Operation"
+            type    ordinal
+            invisible
+            joinnext
+            default { "0" }
+            menu {
+                "paint"     "Paint"
+                "smooth"    "Smooth"
+                "erase"     "Erase"
+                "sample"    "Eyedropper"
+            }
+        }
+        parm {
+            name    "lmboperation2"
+            label   "Ctrl"
+            type    ordinal
+            invisible
+            joinnext
+            default { "1" }
+            menu {
+                "paint"     "Paint"
+                "smooth"    "Smooth"
+                "erase"     "Erase"
+                "sample"    "Eyedropper"
+            }
+        }
+        parm {
+            name    "lmboperation3"
+            label   "Ctrl-Shift"
+            type    ordinal
+            invisible
+            default { "3" }
+            menu {
+                "paint"     "Paint"
+                "smooth"    "Smooth"
+                "erase"     "Erase"
+                "sample"    "Eyedropper"
+            }
+        }
+        parm {
+            name    "mmboperation"
+            label   "MMB Operation"
+            type    ordinal
+            invisible
+            joinnext
+            default { "0" }
+            menu {
+                "paint"     "Paint"
+                "smooth"    "Smooth"
+                "erase"     "Erase"
+                "sample"    "Eyedropper"
+            }
+        }
+        parm {
+            name    "mmboperation2"
+            label   "Ctrl"
+            type    ordinal
+            invisible
+            joinnext
+            default { "2" }
+            menu {
+                "paint"     "Paint"
+                "smooth"    "Smooth"
+                "erase"     "Erase"
+                "sample"    "Eyedropper"
+            }
+        }
+        parm {
+            name    "mmboperation3"
+            label   "Ctrl-Shift"
+            type    ordinal
+            invisible
+            default { "3" }
+            menu {
+                "paint"     "Paint"
+                "smooth"    "Smooth"
+                "erase"     "Erase"
+                "sample"    "Eyedropper"
+            }
+        }
+        parm {
+            name    "stroke_operation"
+            label   "Operation"
+            type    ordinal
+            invisible
+            default { "0" }
+            menu {
+                "paint"     "Paint"
+                "smooth"    "Smooth"
+                "erase"     "Erase"
+                "sample"    "Eyedropper"
+            }
+            export  all
+        }
+        parm {
+            name    "stroke_paintmode"
+            label   "Paint Mode"
+            type    ordinal
+            invisible
+            default { "0" }
+            menu {
+                "over"  "Over"
+                "add"   "Add"
+                "max"   "Maximum"
+                "min"   "Minimum"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "stroke_shape"
+            label   "Shape"
+            type    ordinal
+            invisible
+            default { "2" }
+            menu {
+                "sphere"    "Volume"
+                "surface"   "Surface"
+                "screen"    "Screen"
+                "fill"      "Fill"
+                "nearest"   "Nearest Point"
+            }
+            export  all
+        }
+        parm {
+            name    "fgcolor"
+            label   "FG Color"
+            type    color
+            invisible
+            size    3
+            default { "1" "1" "1" }
+            hidewhen "{ stroke_attribtype != color }"
+            range   { 0 1 }
+            export  all
+        }
+        parm {
+            name    "bgcolor"
+            label   "BG Color"
+            type    color
+            invisible
+            size    3
+            default { "0" "0" "0" }
+            hidewhen "{ stroke_attribtype != color }"
+            range   { 0 1 }
+            export  all
+        }
+        parm {
+            name    "fgfloat"
+            label   "FG Float"
+            type    float
+            invisible
+            default { "1" }
+            hidewhen "{ stroke_attribtype != float }"
+            range   { 0 10 }
+            export  all
+        }
+        parm {
+            name    "bgfloat"
+            label   "BG Float"
+            type    float
+            invisible
+            default { "0" }
+            hidewhen "{ stroke_attribtype != float }"
+            range   { 0 10 }
+            export  all
+        }
+        parm {
+            name    "bgint"
+            label   "BG Integer"
+            type    integer
+            invisible
+            default { "0" }
+            hidewhen "{ stroke_attribtype != integer }"
+            range   { 0 10 }
+            export  all
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "stroke_radius"
+            label   "Radius"
+            type    float
+            invisible
+            default { "0.1" }
+            hidewhen "{ stroke_shape == spray } { stroke_shape == flood } { stroke_shape == nearest }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stroke_screensize"
+            label   "Spray Size"
+            type    float
+            invisible
+            default { "15" }
+            hidewhen "{ stroke_shape != spray }"
+            range   { 0! 100 }
+        }
+        parm {
+            name    "stroke_opacity"
+            label   "Opacity"
+            type    float
+            invisible
+            default { "1" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stroke_softedge"
+            label   "Soft Edge"
+            type    float
+            invisible
+            default { "1" }
+            range   { 0! 1! }
+        }
+        parm {
+            name    "stroke_connectivity"
+            label   "Connected Only"
+            type    toggle
+            invisible
+            default { "0" }
+            export  all
+        }
+        parm {
+            name    "stroke_frontface"
+            label   "Front Face Only"
+            type    toggle
+            invisible
+            default { "0" }
+            export  all
+        }
+        parm {
+            name    "stroke_visibility"
+            label   "Visible Only"
+            type    toggle
+            invisible
+            default { "0" }
+            export  all
+        }
+        parm {
+            name    "visibilitybias"
+            label   "Visibility Bias"
+            type    log
+            invisible
+            default { "0.001" }
+            hidewhen "{ stroke_visibility == 0 }"
+            range   { 0.001 1 }
+        }
+        parm {
+            name    "stroke_opacitypressure"
+            label   "Opacity Pressure"
+            type    float
+            invisible
+            default { "1" }
+            range   { 0! 1! }
+        }
+        parm {
+            name    "stroke_radiuspressure"
+            label   "Radius Pressure"
+            type    float
+            invisible
+            default { "1" }
+            range   { 0! 1! }
+        }
+    }
+
+    group {
+        name    "folder0_1_1"
+        label   "Stroke"
+        invisibletab
+
+        parm {
+            name    "stroke_tool"
+            label   "Tool"
+            type    integer
+            invisible
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stroke_color"
+            label   "Stroke Color"
+            type    color
+            invisible
+            size    3
+            default { "1" "1" "1" }
+            hidewhen "{ stroke_attribtype != color }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stroke_projtype"
+            label   "Projection"
+            type    ordinal
+            invisible
+            default { "geometry" }
+            menu {
+                "xy"        "XY Plane"
+                "yz"        "YZ Plane"
+                "zx"        "ZX Plane"
+                "screen"    "Screen Plane"
+                "geometry"  "Geometry"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stroke_projcenter"
+            label   "Projection Center"
+            type    vector
+            invisible
+            size    3
+            default { "0" "0" "0" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "stroke_float"
+            label   "Stroke Float"
+            type    float
+            invisible
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "stroke_int"
+            label   "Stroke Integer"
+            type    integer
+            invisible
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        multiswitcher {
+            name    "stroke_numstrokes"
+            label    "Number of Strokes"
+            default 0
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "multistartoffset" "1" }
+
+            parm {
+                name    "stroke#_enable"
+                label   "Enable Stroke"
+                type    toggle
+                default { "1" }
+            }
+            parm {
+                name    "stroke#_radius"
+                label   "Radius"
+                type    float
+                default { "0.1" }
+                range   { 0! 1 }
+            }
+            parm {
+                name    "stroke#_tool"
+                label   "Tool"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "stroke#_color"
+                label   "Color"
+                type    color
+                invisible
+                size    3
+                default { "1" "1" "1" }
+                range   { 0 1 }
+            }
+            parm {
+                name    "stroke#_opacity"
+                label   "Opacity"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "stroke#_projtype"
+                label   "Projection"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "stroke#_projcenter"
+                label   "Projection Center"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                range   { -1 1 }
+            }
+            parm {
+                name    "stroke#_projdir"
+                label   "Projection Direction"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                range   { -1 1 }
+            }
+            parm {
+                name    "stroke#_data"
+                label   "Raw Data"
+                type    string
+                default { "" }
+            }
+            parm {
+                name    "stroke#_metadata"
+                label   "Meta Data"
+                type    string
+                default { "" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1_1_1"
+        label   "Attributes"
+        invisibletab
+
+        multiparm {
+            name    "numattribs"
+            label    "Attributes"
+            invisible
+            default 1
+
+            parm {
+                name    "attribname#"
+                label   "Attribute Name"
+                type    string
+                invisible
+                joinnext
+                default { "nameindex" }
+            }
+            parm {
+                name    "attribtype#"
+                label   "Attribute Type"
+                type    ordinal
+                invisible
+                default { "integer" }
+                menu {
+                    "color"     "Color"
+                    "float"     "Float"
+                    "integer"   "Integer"
+                }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1_1_2"
+        label   "Symmetry"
+        invisibletab
+
+        parm {
+            name    "domirror"
+            label   "Enable Mirroring"
+            type    toggle
+            invisible
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mirror_t"
+            label   "Origin"
+            type    vector
+            invisible
+            size    3
+            default { "0" "0" "0" }
+            disablewhen "{ domirror == 0 }"
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mirror_dir"
+            label   "Direction"
+            type    vector
+            invisible
+            size    3
+            default { "1" "0" "0" }
+            disablewhen "{ domirror == 0 }"
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder0_1_1_3"
+        label   "Recache"
+        invisibletab
+
+        parm {
+            name    "recachemethod"
+            label   "Recache Method"
+            type    ordinal
+            invisible
+            joinnext
+            default { "0" }
+            menu {
+                "original"  "Original Values"
+                "ray"       "Re-Send Rays"
+                "primuv"    "Primitive UV"
+                "texuv"     "Texture UV"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "recache"
+            label   "Recache Strokes"
+            type    button
+            invisible
+            default { "0" }
+            export  dialog
+            parmtag { "script_callback" "kwargs['node'].hdaViewerStateModule().recache(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "savecache"
+            label   "Save Point Cache to Hip File"
+            type    toggle
+            invisible
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "livemode"
+            label   "Bypass Point Cache"
+            type    toggle
+            invisible
+            default { "0" }
+        }
+        parm {
+            name    "docaching"
+            label   "Update Point Cache on Stroke"
+            type    toggle
+            invisible
+            default { "1" }
+        }
+        parm {
+            name    "strokegeo"
+            label   "Stroke Geometry"
+            type    data
+            invisible
+            default { "0" }
+        }
+        parm {
+            name    "isectgeo"
+            label   "Intersect Geometry"
+            type    geometrydata
+            invisible
+            default { "0" }
+            parmtag { "sidefx::save_value" "0" }
+        }
+        parm {
+            name    "activestrokegeo"
+            label   "Active Stroke Stencil Geometry"
+            type    data
+            invisible
+            default { "0" }
+            parmtag { "sidefx::save_value" "0" }
+        }
+        parm {
+            name    "bakedgeo"
+            label   "Baked Geometry"
+            type    data
+            invisible
+            default { "0" }
+        }
+        parm {
+            name    "unsavedbakedgeo"
+            label   "Unsaved Baked Geometry"
+            type    data
+            invisible
+            default { "0" }
+            parmtag { "sidefx::save_value" "0" }
+        }
+        parm {
+            name    "erasestrokes"
+            label   "Clear Stroke History"
+            type    button
+            invisible
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hdaViewerStateModule().clearStrokes(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

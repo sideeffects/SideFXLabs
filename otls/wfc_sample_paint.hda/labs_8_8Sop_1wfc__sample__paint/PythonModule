@@ -1,0 +1,20 @@
+import json, collections
+
+def SetDictparm(kwargs):
+    
+    node = kwargs['node']
+    
+    geo = node.node("ALL_NAME_VALS").geometry()
+    attribvals = list(set([x.attribValue("name") for x in geo.points()]))
+    
+    node.parm("mpPaintObjects").set(len(attribvals))
+    
+    #dict = collections.OrderedDict()
+    #dict["0"] = "WFC_Initialize"
+    for i, x in enumerate(list(attribvals)):
+        node.parm("sObject_%s" % int(i+1)).set(str(attribvals[i]))#dict[str(i+1)] = x
+    #sorteddict = collections.OrderedDict(sorted(dict.items()))
+    
+    #print dict
+    #print json.dumps(dict, sort_keys = True)
+    #node.parm("dictValueMapper").set(dict)

@@ -1,0 +1,605 @@
+
+from __future__ import print_function
+import hou
+import viewerstate.utils as su
+import toolutils
+from sidefx_stroke import StrokeState, StrokeCursor, StrokeMetaData
+
+import math
+import json
+import soputils
+import toolutils
+
+def different(geo1, geo2):
+    if geo1 is None or geo2 is None:
+        return True
+    geo1_pid = geo1.findPointAttrib("P").dataId()
+    geo2_pid = geo2.findPointAttrib("P").dataId()
+    return geo1_pid != geo2_pid
+
+def _eval_parm(node, parm, default):
+    if node is None:
+        return default
+    p = node.parm(parm)
+    if p is None:
+        return default
+    return p.eval()
+    
+def _eval_parmtuple(node, parm, default):
+    if node is None:
+        return default
+    p = node.parmTuple(parm)
+    if p is None:
+        return default
+    return p.eval()
+    
+def _eval_parmF(node, parm, default):
+    if node is None:
+        return default
+    p = node.parm(parm)
+    if p is None:
+        return default
+    return p.evalAsFloat()
+    
+def _findBaseNode(node):
+    """ Generic rules for finding the attribute paint node that
+        is inside the given node.
+    """
+    if node.type().name() == 'labs::wfc_sample_paint':
+        return node
+    return toolutils.findChildNodeOfType(node, 'attribpaint', True)
+
+    
+def computeattribname(node, basenode=None):
+    try:
+        attrib_idx = node.evalParm("attribute")
+        attrib_name = node.evalParm("attribname" + str(attrib_idx + 1))
+        attrib_type = node.evalParm("attribtype" + str(attrib_idx + 1))
+    except:
+        # Default name/type if the user has somehow got invalid
+        # attribute index.  Could be from deleting the multiparm.
+        if basenode is not None:
+            return computeattribname(basenode, None)
+        attrib_name = 'mask'
+        attrib_type = 1
+    return (attrib_name, attrib_type)
+
+def updateattribute(node):
+    """ Callback from the attribute menu.  Resets visualizers
+        and ensures we have all the stroke_ parameters updated.
+    """
+    enablevisualizer(node, True)
+    (attribname, attribtype) = computeattribname(node, _findBaseNode(node))
+    node.parm("stroke_attrib").set(attribname)
+    node.parm("stroke_attribtype").set(attribtype)
+    
+def enablevisualizer(node, onoff):
+    viewports = toolutils.sceneViewer().viewports()
+    curviewport = toolutils.sceneViewer().curViewport()
+    if len(viewports) == 0 or curviewport is None:
+        return False
+    if onoff:
+        for viewport in viewports:
+            soputils.turnOffVisualizers(hou.viewportVisualizers.type('vis_color'), hou.viewportVisualizerCategory.Scene, None, viewport)
+    (attribname, attribtype) = computeattribname(node, _findBaseNode(node))
+    viz = soputils.findVisualizer(attribname, hou.viewportVisualizerCategory.Scene, None)
+    if viz is None:
+        if onoff:
+            kwargs = {}
+            kwargs['node'] = node
+            visualize(kwargs)
+        return
+    # We have a visualizer, make sure it matches desired state
+    oldactive = viz.isActive(curviewport)
+    for viewport in viewports:
+        viz.setIsActive(onoff, viewport)
+    return oldactive
+    
+def visualize(kwargs):
+    node = kwargs['node']
+    (attribname, attribtype) = computeattribname(node, _findBaseNode(node))
+    kwargs['attribname'] = attribname
+    vizdefault = None
+    if attribtype == 0:
+        vizdefault = soputils.getDirectColorVisualizerDefaults()
+    elif attribtype == 1:
+        vizdefault = soputils.getFalseColorVisualizerDefaults()
+    elif attribtype == 2:
+        # Set up for random colours.
+        vizdefault = soputils.getRandomColorVisualizerDefaults()
+    
+    soputils.actionToggleVisualizer(kwargs, vizdefault)
+    
+def should_isect_input(node):
+    scene_viewer = toolutils.sceneViewer()
+    displaynode = scene_viewer.pwd().displayNode()
+    return displaynode == node
+
+def get_visible_geometry(node):
+    scene_viewer = toolutils.sceneViewer()
+    displaynode = scene_viewer.pwd().displayNode()
+    if displaynode != node:
+        intersect_geometry = scene_viewer.pwd().displayNode().geometry()
+        if intersect_geometry is not None:
+            return intersect_geometry.freeze(True, True)
+
+    # Use our input instead.
+    if len(node.inputs()) > 0 and node.inputs()[0] and node.inputs()[0].geometry() is not None:
+        return node.inputs()[0].geometry().freeze(True, True)
+    
+    if node.geometry() is not None:
+        return node.geometry().freeze(True, True)
+    return None
+
+def cache_stencil_clear_strokes(base_node, node, forceupdate=False):
+    if forceupdate or node.parm('stroke_numstrokes').eval():
+        # cache guide geometry
+        post_geometry = base_node.node('POST_APPLY_EACH_STROKE').geometry()
+        if post_geometry is not None:
+            post_geometry = post_geometry.freeze(True, True)
+        if node.parm('savecache').eval():
+            node.parm('bakedgeo').set(post_geometry)
+            node.parm('unsavedbakedgeo').set(None)
+        else:
+            node.parm('unsavedbakedgeo').set(post_geometry)
+            node.parm('bakedgeo').set(None)
+    
+        # cache strokes
+        strokes_parm = node.parm('strokegeo')
+        stroke_geo = base_node.node('all_strokes').geometry()
+        strokes_parm.set(stroke_geo)
+        node.parm('stroke_numstrokes').set(0)
+    
+def reset(node):
+    node.parm('bakedgeo').set(None)
+    node.parm('unsavedbakedgeo').set(None)
+    node.parm('strokegeo').set(None)
+    node.parm('stroke_numstrokes').set(0)
+
+def clearStrokes(node):
+    node.parm('strokegeo').set(None)
+
+def recache(node):
+    livemode_parm = node.parm('livemode')
+    livemode = livemode_parm.eval()
+    docache = node.parm('docaching').eval()
+    try:
+        if not livemode:
+            livemode_parm.set(1)
+            livemode = 1
+        base_node = _findBaseNode(node)
+        cache_stencil_clear_strokes(base_node, node, True)
+        if docache:
+            livemode_parm.set(0)
+    except hou.Error:
+        livemode_parm.set(livemode)
+
+class PaintState(StrokeState):
+    DEFAULT_CURSOR_PROMPT = "LMB/MMB to Paint.  Scroll mouse wheel of Shift-LMB to resize.  Ctrl and Ctrl-Shift LMB/MMB for additional operations."
+    OPTIONS = [
+        ("paint", "Paint"),
+        ("smooth", "Smooth"),
+        ("erase", "Erase"),
+        ("sample", "Eyedropper"),
+    ]
+    MENU_TOGGLES = ('connectivity', 'visibility', 'frontface')
+    SHAPES = ('sphere', 'surface', 'screen', 'fill', 'nearest')
+    SHAPE_NAMES = ('Volume', 'Surface', 'Screen Brush', 'Fill', 'Nearest Point')
+    BRUSHES = ('sphere', 'circle', 'cone', 'line')
+    BRUSH_LIST = [('sphere', {}), 
+                  ('circle', {}), 
+                  ('tube', {'t':(0,0,.5),'orient':2, 'rad' : (.25, 0)}),
+                  ('line', {'dir':(0,0,1)})]
+    SHAPE_TO_BRUSH = {
+        'sphere': 'sphere', 
+        'surface': 'circle',
+        'screen': 'circle',
+        'fill': 'cone',
+        'nearest': 'line',
+    }
+    def __init__(self, **kwargs):
+        super(PaintState, self).__init__(**kwargs)
+        # self.enable_shift_drag_resize = False
+        self.cursor.prompt = PaintState.DEFAULT_CURSOR_PROMPT
+        self.capture_parms += ['lmb_option', 'mmb_option', 'brush_shape']
+        
+        self.cursor.brushes = []
+        self.cursor.init_brushlist(PaintState.BRUSH_LIST)
+        self.addedVisualizer = False
+        self.continuous_application = False
+        self.eyedropperactive = False
+        self.fgorbg = 'fg'
+        self.hidden = False
+        self.group_highlight = None
+
+        self.base_node = None
+        
+        self.uvisect_attrib = ""
+        self.uvisect_geo = None
+        self.uvisect_dataid = None
+
+        # EXTRA
+        self._guide = None
+        
+    def onEnter(self, kwargs):
+        super(PaintState, self).onEnter(kwargs)
+        node = kwargs['node']
+        self.base_node = self.findBaseNode(node)
+        self.addedVisualizer = not enablevisualizer(node, True)
+        self.hideIfNodeDisplayed(node)
+        geo = self.base_node.node('GROUP_HIGHLIGHT').geometry()
+        self.group_highlight = hou.GeometryDrawable(self.scene_viewer, 
+                                                    hou.drawableGeometryType.Face, 
+                                                    self.state_name + '_grouphighlight', 
+                                                    geo, 
+                                                    { 'color1' : ( 1, 0, 0, 0.3) } )
+        self.group_highlight.show(_eval_parm(node, 'displaygroup', False))
+
+
+        # EXTRA
+        geo = node.node("DRAWABLE").geometry()
+
+        self._guide = hou.SimpleDrawable(
+            self.scene_viewer, geo,
+            self.state_name + "_stampguide"
+        )
+        self._guide.enable(True)
+        self._guide.show(True)
+
+
+
+    def findBaseNode(self, node):
+        """ Finds the node that should be used for geometry lookups.
+            This usually is the attribpaint node inside the HDA.
+        """
+        return _findBaseNode(node)
+
+    def hideIfNodeDisplayed(self, node):
+        """ If the display flag isn't with us, we
+            set our output to -1 to stop drawing.
+        """
+        scene_viewer = toolutils.sceneViewer()
+        displaynode = scene_viewer.pwd().displayNode()
+        if displaynode != node:
+            self.scene_viewer.showCurrentSopGeometry(False)
+        else:
+            self.scene_viewer.showCurrentSopGeometry(True)
+        
+    def onExit(self, kwargs):
+        super(PaintState, self).onExit(kwargs)
+        if self.addedVisualizer and 'node' in kwargs:
+            enablevisualizer(kwargs['node'], False)
+        self.base_node = None
+            
+    def onInterrupt(self, kwargs):
+        super(PaintState, self).onInterrupt(kwargs)
+        self.group_highlight.show(False)
+        self._guide.show(False)
+
+    def onMouseEvent(self, kwargs):
+        super(PaintState, self).onMouseEvent(kwargs)
+
+        ui_event = kwargs['ui_event']
+        node = kwargs['node']
+        (mouse_point, mouse_dir) = ui_event.ray()
+
+       # print(kwargs["ui_event"])
+
+        mouse_point += mouse_dir*0.01
+
+        if self.scene_viewer.curViewport().defaultCamera().isOrthographic() == True:
+            val = 1
+        else: val = 0.025
+
+        xform = hou.hmath.buildTranslate(mouse_point[0], mouse_point[1], mouse_point[2])
+        
+        scale = hou.hmath.buildScale(hou.Vector3(val, val, val))
+        xform = scale * xform
+        self._guide.show(not self.cursor.resizing)
+
+        self._guide.setTransform(xform)
+
+    def onMouseWheelEvent(self, kwargs):
+        #super(PaintState, self).onMouseWheelEvent(kwargs)
+        # Get the UI device object
+        device = kwargs["ui_event"].device()
+        scroll = device.mouseWheel()
+
+        new_value = self.base_node.parm("fgint").evalAsInt() + int(scroll)
+        new_value = max(0, min(new_value, self.base_node.parm("mpPaintObjects").evalAsInt()))
+        
+        self.base_node.parm("fgint").set(new_value)
+        return True
+
+        
+
+    def onResume(self, kwargs):
+        super(PaintState, self).onResume(kwargs)
+        node = kwargs['node']
+        self.group_highlight.show(_eval_parm(node, 'displaygroup', False))
+        self.hideIfNodeDisplayed(node)
+        self._guide.show(True)
+
+    def onDraw(self, kwargs):
+        super(PaintState, self).onDraw(kwargs)
+        handle = kwargs['draw_handle']
+        
+        self.group_highlight.draw(handle, {} )
+
+    def onPreMouseEvent(self, node, ui_event, captured_parms):
+        self.updateCursorShape(node)
+        
+    def onPostMouseEvent(self, node, ui_event, captured_parms):
+        pass
+        
+    def intersectGeometry(self, node):
+        # If we should just draw on input, use the default
+        basegeo = None
+        if should_isect_input(node):
+            basegeo = super(PaintState, self).intersectGeometry(node)
+        else:
+            # Otherwise use what our current cached intersect_geometry
+            # is.
+            if self.intersect_geometry is None:
+                # Not yet cached an intersect geometry, so cache it.
+                self.intersect_geometry = get_visible_geometry(node)
+            basegeo = self.intersect_geometry
+        # Check if we should use the unwrapped geometry, and if so, which one
+        curviewport = toolutils.sceneViewer().curViewport()
+        if curviewport is not None and curviewport.isActive2D():
+            uvattrib = curviewport.settings().uvDisplayAttribute()
+            if uvattrib != self.uvisect_attrib or self.uvisect_geo is None or self.uvisect_dataid != basegeo.vexAttribDataId():
+                self.uvisect_attrib = uvattrib
+                self.uvisect_geo = basegeo.freeze(False, True)
+                self.uvisect_dataid = basegeo.vexAttribDataId()
+                # Unwrap.
+                splitverb = hou.sopNodeTypeCategory().nodeVerb("splitpoints")
+                splitverb.setParms( { 'useattrib' : 1, 'attribname' : 'uv', 'promote' : 1 } )
+                swapverb = hou.sopNodeTypeCategory().nodeVerb('attribswap')
+                swapverb.setParms( { 'numswaps' : [ { 'enable#' : 1, 'srcattribs#' : 'P', 'dstattribs#' : 'uv' }  ] } )
+                self.uvisect_geo.execute(splitverb).execute(swapverb)
+            return self.uvisect_geo
+        return basegeo
+        
+    def onPreStroke(self, node, ui_event, captured_parms):
+        device = ui_event.device()
+        (attribname, attribtype) = computeattribname(node, self.base_node)
+        if node.parm('stroke_attrib'):
+            node.parm("stroke_attrib").set(attribname)
+        if node.parm('stroke_attribtype'):
+            node.parm("stroke_attribtype").set(attribtype)
+        
+        self.hideIfNodeDisplayed(node)
+        
+        # Update intersect geometry
+        if should_isect_input(node):
+            # we want a null isect as we want to isect
+            # with the input
+            current_geometry = node.parm('isectgeo').eval()
+            if current_geometry is not None:
+                node.parm('isectgeo').set(None)
+        else:
+            visible_geometry = get_visible_geometry(node)
+            current_geometry = node.parm('isectgeo').eval()
+            if different(visible_geometry, current_geometry):
+                # print("Intersect geometry outdated: replacing")
+                node.parm('isectgeo').set(visible_geometry)
+                self.intersect_geometry = visible_geometry
+            else:
+                # print("Intersect geometry okay: not replacing")
+                self.intersect_geometry = current_geometry
+                pass
+        cache_and_clear = False
+        if node.parm('livemode').eval() and node.parm('docaching').eval():
+            cache_and_clear = True
+        if not node.parm('savecache').eval() and node.parm('unsavedbakedgeo').eval() is None:
+            cache_and_clear = True
+        if cache_and_clear:
+            # If already live, we should cache our
+            # current results before going non-live
+            cache_stencil_clear_strokes(self.base_node, node, True)
+            node.parm('livemode').set(0)
+
+        # Clear any active strokes
+        activestrokegeo = node.parm('activestrokegeo').eval()
+        if activestrokegeo is not None:
+            node.parm('activestrokegeo').set(None)
+            activestrokegeo = None
+            
+        # Set stroke values
+        button = 0 if device.isLeftButton() else 1
+        modifier = int(device.isCtrlKey()) + int(device.isShiftKey())
+        
+        operations = ((_eval_parm(node, 'lmboperation', 0), _eval_parm(node, 'lmboperation2', 1), _eval_parm(node, 'lmboperation3', 3)),
+                      (_eval_parm(node, 'mmboperation', 0), _eval_parm(node, 'mmboperation2', 2), _eval_parm(node, 'mmboperation3', 3)))
+        colors = (_eval_parmtuple(node, 'fgcolor', (1,1,1)), _eval_parmtuple(node, 'bgcolor', (0,0,0)))
+        floats = (_eval_parm(node, 'fgfloat', 1), _eval_parm(node, 'bgfloat', 0))
+        ints = (_eval_parm(node, 'fgint', 1), _eval_parm(node, 'bgint', 0))
+        operation = operations[button][modifier]
+
+        if node.parm('stroke_operation'):
+            node.parm('stroke_operation').set(operation)
+        if node.parmTuple('stroke_color'):
+            node.parmTuple('stroke_color').set(colors[button])
+        if node.parmTuple('stroke_float'):
+            node.parm('stroke_float').set(floats[button])
+        if node.parmTuple('stroke_int'):
+            node.parm('stroke_int').set(ints[button])
+        
+        self.fgorbg = 'bg' if button else 'fg'
+        
+        # Set our continous operation depending on operation type.
+        self.continuous_application = False
+        if operation == 1:      # Smooth
+            self.continuous_application = True
+        self.eyedropperactive = False
+        if operation == 3:      # Eyedropper
+            self.eyedropperactive = True
+
+        cache_stencil_clear_strokes(self.base_node, node)
+    
+    def onPreApplyStroke(self, node, ui_event, captured_parms):
+        pass
+        
+    def onPostApplyStroke(self, node, ui_event, captured_parms):
+        if self.eyedropperactive:
+            self.onEyeDropper(node, self.fgorbg)
+            self.reset_active_stroke()
+        elif self.continuous_application:
+            cache_stencil_clear_strokes(self.base_node, node)
+            self.reset_active_stroke()
+        else:
+            # Update our stroke/negalpha cache
+            post_geometry = self.base_node.node('STENCIL_CACHE').geometry()
+            if post_geometry is not None:
+                post_geometry = post_geometry.freeze(True, True)
+            node.parm('activestrokegeo').set(post_geometry)
+        
+    def onPostStroke(self, node, ui_event, captured_parms):
+        cache_stencil_clear_strokes(self.base_node, node)
+
+        # Clear any active strokes
+        activestrokegeo = node.parm('activestrokegeo').eval()
+        if activestrokegeo is not None:
+            node.parm('activestrokegeo').set(None)
+            activestrokegeo = None
+
+        self.cursor.prompt = PaintState.DEFAULT_CURSOR_PROMPT
+    
+    def buildMetaDataArray(self, node, ui_event, captured_parms, mirrorxform):
+        meta_data_array = super(PaintState, self).buildMetaDataArray(node, ui_event, captured_parms, mirrorxform)
+
+        # Construct the geometry to viewport transform so we can
+        # convert to pixels for operations.
+        viewport = ui_event.curViewport()
+        screen_to_geo = viewport.viewportToNDCTransform() * viewport.ndcToCameraTransform() * viewport.cameraToModelTransform() * viewport.modelToGeometryTransform()
+        screen_to_geo = screen_to_geo * mirrorxform
+        screen_to_geo = screen_to_geo.inverted()
+        meta_data = StrokeMetaData()
+        meta_data.size = 16
+        meta_data.name = "stroke_toscreenxform"
+        meta_data.type = "float"
+        meta_data.value = " ".join(map(str, screen_to_geo.asTuple()))
+        meta_data_array.append(meta_data.__dict__)
+
+        meta_data = StrokeMetaData()
+        meta_data.size = 1
+        meta_data.name = "stroke_isuv"
+        meta_data.type = "int"
+        if viewport.isActive2D():
+            meta_data.value = "1"
+        else:
+            meta_data.value = "0"
+        meta_data_array.append(meta_data.__dict__)
+        
+        meta_data = StrokeMetaData()
+        meta_data.size = 1
+        meta_data.name = "stroke_uvattrib"
+        meta_data.type = "string"
+        if viewport.isActive2D():
+            meta_data.value = viewport.settings().uvDisplayAttribute()
+        else:
+            meta_data.value = ""
+        meta_data.value = "uv"
+        meta_data_array.append(meta_data.__dict__)
+        
+        return meta_data_array
+
+    def radiusParmName(self, node):
+        current_shape = node.evalParm('stroke_shape')
+        if current_shape == 2:
+            return 'stroke_screensize'
+
+        return super(PaintState, self).radiusParmName(node)
+    
+    def activeMirrorTransforms(self, node):
+        # Return any active mirror transformations.
+        # first get the usual identity.
+        mirrorlist = super(PaintState, self).activeMirrorTransforms(node)
+        
+        if _eval_parm(node, 'domirror', False):
+            mirrorpos = _eval_parmtuple(node, 'mirror_t', (0,0,0))
+            mirrordir = _eval_parmtuple(node, 'mirror_dir', (1, 0, 0))
+            xlate = hou.hmath.buildTranslate(mirrorpos)
+            scale = hou.hmath.buildScale(1, 1, -1)
+            rotate = hou.hmath.buildRotateZToAxis(mirrordir)
+            mirrorxform = xlate.inverted() * rotate.inverted() * scale * rotate * xlate
+            mirrorlist.append(mirrorxform)
+        return mirrorlist
+    
+    def onEyeDropper(self, node, fgorbg):
+        # Actively eyedropping, run through self.strokes and update
+        # for any present.
+        (attribname, attribtype) = computeattribname(node, self.base_node)
+        cur_geometry = node.geometry()
+        if cur_geometry is None:
+            return
+
+        for stroke in self.strokes:
+            # stroke is of type StrokeData
+            if stroke.proj_prim >= 0:
+                # valid hit, read it off.
+                prim = cur_geometry.prim(stroke.proj_prim)
+                if prim is None:
+                    continue
+                try:
+                    val = prim.attribValueAtInterior(attribname, stroke.proj_uv.x(), stroke.proj_uv.y(), stroke.proj_uv.z())
+                    if attribtype == 0:
+                        # Colour
+                        if node.parmTuple(fgorbg + 'color'):
+                            node.parmTuple(fgorbg + 'color').set(val)
+                    elif attribtype == 1:
+                        # float
+                        if node.parm(fgorbg + 'float'):
+                            node.parm(fgorbg + 'float').set(val)
+                    elif attribtype == 2:
+                        # int
+                        if node.parm(fgorbg + 'int'):
+                            node.parm(fgorbg + 'int').set(val)
+                except:
+                    continue
+
+    def updateCursorShape(self, node):
+        # Reads the current stroke shape and sets the various
+        # locate requirements in the self.cursor.
+        shape_name = PaintState.SHAPES[node.parm("stroke_shape").eval()]
+        brush_prim = PaintState.SHAPE_TO_BRUSH[shape_name]
+        brush_idx = PaintState.BRUSHES.index(brush_prim)
+        self.cursor.select(brush_idx)
+        #self.cursor.select()
+        #print(self.cursor)
+        if shape_name == 'screen':
+            self.cursor.position_type = StrokeCursor.POSITION_SCREEN
+        else:
+            self.cursor.position_type = StrokeCursor.POSITION_GEOMETRY
+        if shape_name == 'volume':
+            self.cursor.orient_to_surface = False
+        else:
+            self.cursor.orient_to_surface = True
+        
+    
+def addRadioStrip(menu, menu_name, menu_description, options, default):
+    menu.addRadioStrip(menu_name, menu_description, default)
+    for option_name, option_description in options:
+        menu.addRadioStripItem(menu_name, option_name, option_description)
+        
+def createViewerStateTemplate():
+    node_type = kwargs["type"]
+    state_typename = node_type.definition().sections()["DefaultState"].contents()
+    state_label = 'Labs WFC Sample Paint'
+    state_cat = hou.sopNodeTypeCategory()
+    t = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    t.bindFactory(PaintState)
+    t.bindIcon(kwargs["type"].icon())
+
+    # hotkeys
+    realtime = su.hotkey(state_typename, 'realtime_mode', '0', 'realtime', 'Enable realtime mode')
+
+    # define the popup menu
+    m = hou.ViewerStateMenu('stroke_menu', 'Stroke')
+
+    m.addToggleItem('realtime_mode', 'Draw realtime', True, hotkey=realtime)
+    
+    # bind the popup menu to the stroke state
+    t.bindMenu(m)
+    return t
