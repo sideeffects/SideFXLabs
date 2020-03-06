@@ -20,10 +20,27 @@
         label   "Grid Resolution"
 
         parm {
+            name    "bFromTexture"
+            label   "From Texture"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filename"
+            label   "Texture"
+            type    image
+            default { "" }
+            hidewhen "{ bFromTexture == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "read" }
+        }
+        parm {
             name    "rows"
             label   "Rows"
             type    integer
             default { "20" }
+            hidewhen "{ bFromTexture == 1 }"
             range   { 4! 50 }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
@@ -33,6 +50,7 @@
             label   "Columns"
             type    integer
             default { "20" }
+            hidewhen "{ bFromTexture == 1 }"
             range   { 4! 50 }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
@@ -55,7 +73,7 @@
                 menutoggle {
                     [ "opmenu -l -a group1 basegroup" ]
                 }
-                parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Points\nkwargs['inputindex'] = 0\n## I am using an internal node inide the HDA as the geometry to select from, so I am changing the node value of kwargs\nkwargs['node'] = kwargs['node'].node(\"attribwrangle3\")\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Points\nkwargs['inputindex'] = 0\n## I am using an internal node inide the HDA as the geometry to select from, so I am changing the node value of kwargs\nkwargs['node'] = kwargs['node'].node(\"SELECTOR\")\nsoputils.selectGroupParm(kwargs)" }
                 parmtag { "script_action_help    " "Select geometry from an available viewport." }
                 parmtag { "script_action_icon" "BUTTONS_reselect" }
             }
