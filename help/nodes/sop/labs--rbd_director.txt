@@ -1,0 +1,41 @@
+= Labs RBD Director =
+
+#type: node
+#context: sop
+#internal: labs::rbd_director
+#icon: DOP/bulletdata
+#tags: rbd, bullet, gamedev
+
+""" A simplified controller for rbd bullet objects to be used with the Labs rbd solver. """
+
+The RBD director attempts to simplify managing the state of rbd objects as well as velocities and forces. Recommended usage is for relatively straight forward bullet simulations. For greater control, look at [Node:sop/rbdconfigure] and it's associated nodes. The node can set the state from static to active or set the state to animated. A second input can be used to transfer forces or velocity to the rbd points based on the sdf of the second input or isolate points to apply the transition from static to active.
+
+@parameters
+    Bullet Type:
+        The initial state of the bullet objects. Static will not be effected by forces or other objects. Animated will use the intrinsic transform of the incoming points to drive the position and rotation of the bullet objects.
+    Set Frame to Activate:
+        Turning this on allows the objects to switch from either static or animated to active - essentially transferring from a driven state to a simulated state.
+    Activate at Frame::
+        The frame number to switch from static to active.
+    == Forces ==
+    === Bounding Object ===
+    Create Force From Object:
+        If the second input is connected and this is turned on the second input's geometry shell will be used to calcule a vector based on it's SDF.
+    Add Impulse As::
+        Create and apply force or velocity attribute when the state of the objects changes. 
+    Force:
+        This is a multiplier of the gradient vector from the SDF.
+    Normalize Force:
+        By default the force is stronger in the centre of the second input. Turning this on guarantees a uniform force.
+    Apply Force in Range:
+        The advantage of using force over velocity is that you can apply the force over a range of time. Velocity is only applied on the frame that the object switches from static to active. Turn this on to expose the frame range values.
+    Start/End:
+        The Start and End Range to apply a force to the bullet objects.
+    === Uniform Force ===
+    Add Uniform Force:
+        Turning this on is similar to adding a wind force.
+    == Visualize ==
+    Visualise Active:
+        Turning this on will add a colour to all active bullet objects. This is helpful for debugging how the second input is affecting the objects.
+    Active Colour:
+        Color assigned to active bullet objects.

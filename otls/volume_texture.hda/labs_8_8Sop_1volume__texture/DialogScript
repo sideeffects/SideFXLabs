@@ -1,9 +1,9 @@
-# Dialog script for gamedev::rop_volume_texture automatically generated
+# Dialog script for labs::volume_texture automatically generated
 
 {
-    name	gamedev::rop_volume_texture
+    name	labs::volume_texture
     script	gamedev::rop_volume_texture
-    label	"GameDev ROP Volume Texture"
+    label	"Labs ROP Volume Texture"
 
     help {
 	""
@@ -37,13 +37,14 @@
         label   "Start/End/Inc"
         type    float
         size    3
-        default { "$RFSTART" "$RFEND" "1" }
+        default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] "1" }
         range   { 0 10 }
         parmtag { "autoscope" "0000000000000000" }
     }
     groupsimple {
         name    "folder2"
         label   "Sampling"
+        grouptag { "group_type" "simple" }
 
         parm {
             name    "up_axis"
@@ -77,6 +78,7 @@
     groupsimple {
         name    "folder0"
         label   "Slicing"
+        grouptag { "group_type" "simple" }
 
         parm {
             name    "slices"
@@ -93,6 +95,12 @@
             range   { 0 10 }
         }
         parm {
+            name    "expectedres"
+            label   "Expected Resolution"
+            type    label
+            default { "`int(ch('slices')*ch('images_per_line'))` x `int(ch('slices')*ch('slices')/ch('images_per_line'))`" }
+        }
+        parm {
             name    "vm_uvunwrapres"
             label   "Resolution"
             type    intvector2
@@ -105,8 +113,8 @@
         parm {
             name    "uvresmenu"
             label   "uvresmenu"
-            type    button
-            default { "256 256" }
+            type    ordinal
+            default { [ "256 256" hscript-expr ] }
             menumini {
                 "1024 32 32 32"     "1024 x 32"
                 "512 512 64 8"      "512 x 512"
@@ -124,6 +132,7 @@
     groupsimple {
         name    "folder1"
         label   "Output"
+        grouptag { "group_type" "simple" }
 
         parm {
             name    "preview"

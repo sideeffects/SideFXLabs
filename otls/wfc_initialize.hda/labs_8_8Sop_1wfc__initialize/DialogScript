@@ -1,0 +1,91 @@
+# Dialog script for labs::wfc_initialize automatically generated
+
+{
+    name	labs::wfc_initialize
+    script	labs::wfc_initialize
+    label	"Labs WFC Initialize Grid"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Points
+
+    groupsimple {
+        name    "folder0"
+        label   "Grid Resolution"
+
+        parm {
+            name    "bFromTexture"
+            label   "From Texture"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filename"
+            label   "Texture"
+            type    image
+            default { "" }
+            hidewhen "{ bFromTexture == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "read" }
+        }
+        parm {
+            name    "rows"
+            label   "Rows"
+            type    integer
+            default { "20" }
+            hidewhen "{ bFromTexture == 1 }"
+            range   { 4! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cols"
+            label   "Columns"
+            type    integer
+            default { "20" }
+            hidewhen "{ bFromTexture == 1 }"
+            range   { 4! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    multiparm {
+        name    "mpUserConstraints"
+        label    "Overrides"
+
+        groupsimple {
+            name    "folder0_#"
+            label   "Constraint"
+
+            parm {
+                name    "basegroup_#"
+                label   "Selection"
+                type    string
+                default { "" }
+                menutoggle {
+                    [ "opmenu -l -a group1 basegroup" ]
+                }
+                parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Points\nkwargs['inputindex'] = 0\n## I am using an internal node inide the HDA as the geometry to select from, so I am changing the node value of kwargs\nkwargs['node'] = kwargs['node'].node(\"SELECTOR\")\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action_help    " "Select geometry from an available viewport." }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+            }
+            parm {
+                name    "sName_#"
+                label   "Value"
+                type    string
+                default { "" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

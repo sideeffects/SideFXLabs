@@ -1,0 +1,1188 @@
+# Dialog script for labs::splatter automatically generated
+
+{
+    name	labs::splatter
+    script	labs::splatter
+    label	"Labs Splatter"
+
+    help {
+	""
+    }
+    bindhandle centx vector "Direction" tx ""
+    bindhandle centy vector "Direction" ty ""
+    bindhandle centz vector "Direction" tz ""
+    bindhandle dirx vector "Direction" vx ""
+    bindhandle diry vector "Direction" vy ""
+    bindhandle dirz vector "Direction" vz ""
+
+    inputlabel	1	"Fluid Source Geometry"
+    inputlabel	2	"Collision Geometry"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Fluid Simulation"
+    outputlabel	2	Geometry
+
+    groupcollapsible {
+        name    "sphere_settings"
+        label   "Default Fluid Source"
+        hidewhentab "{ hasinput(0) == 1 }"
+        grouptag { "group_type" "collapsible" }
+
+        parm {
+            name    "rad"
+            label   "Radius"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            help    "[Needs parameter tooltip]"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "t"
+            label   "Center"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            help    "[Needs parameter tooltip]"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "r"
+            label   "Rotate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            range   { 0 360 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scale"
+            label   "Uniform Scale"
+            type    float
+            default { "1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "freq"
+            label   "Frequency"
+            type    integer
+            default { "3" }
+            help    "[Needs parameter tooltip]"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm5"
+            label   "sepparm5"
+            type    separator
+            default { "" }
+        }
+        groupcollapsible {
+            name    "folder6"
+            label   "Noise Settings"
+            grouptag { "group_type" "collapsible" }
+
+            parm {
+                name    "add_noise"
+                label   "Add Noise"
+                type    toggle
+                default { "0" }
+                help    "Distort the surface of the source geometry, which can result in a more \"organic\" look."
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "height"
+                label   "Height"
+                type    float
+                default { "2" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ add_noise == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "elementsize"
+                label   "Element Size"
+                type    float
+                default { "1" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ add_noise == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "rough"
+                label   "Roughness"
+                type    float
+                default { "0.5" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ add_noise == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "lac"
+                label   "Lacunarity"
+                type    float
+                default { "1.841" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ add_noise == 0 }"
+                range   { 0 4 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "oct"
+                label   "Max Octaves"
+                type    integer
+                default { "8" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ add_noise == 0 }"
+                range   { 0 16 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "elementscale"
+                label   "Scale"
+                type    vector
+                size    3
+                default { "1" "1" "1" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ add_noise == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "offset"
+                label   "Offset"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ add_noise == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fluid"
+        label   "Fluid"
+
+        group {
+            name    "sphere_settings_1"
+            label   "Birth"
+
+            parm {
+                name    "startframe"
+                label   "Start Frame"
+                type    integer
+                default { "$RFSTART" }
+                range   { 1 240 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "particleseparation"
+                label   "Particle Separation"
+                type    float
+                default { "0.1" }
+                help    "The desired distance between nearby particles."
+                range   { 0! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "units" "m1" }
+            }
+            parm {
+                name    "sepparm4"
+                label   "sepparm4"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "impulseactiveate"
+                label   "Impulse Activation"
+                type    integer
+                default { [ "if($F == ch(\"startframe\"), 1, 0)" hscript-expr ] }
+                help    "Also known as burst spawn. A value of 0 means off, any other value means on."
+                range   { 0 1 }
+                parmtag { "autoscope" "1000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "impulse_density"
+                label   "Impulse Fluid Density"
+                type    float
+                default { "1" }
+                help    "Scales how many particles get spawned when Impulse Activation is on. Particles spawned = Source size * Particle Separation * Density. A Density of 1 will use all available spawn points within the source."
+                range   { 0! 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm3"
+                label   "sepparm3"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "constantactivate"
+                label   "Const. Activation"
+                type    integer
+                default { "0" }
+                help    "Will cause particles to spawn as long as this is on. A value of 0 means off, any other value means on."
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "const_density"
+                label   "Const. Fluid Density"
+                type    float
+                default { "1" }
+                help    "Scales how many particles get spawned when Constant Activation is on. Particles spawned = Source dize * Particle Separation * Density. A Density of 1 will use all available spawn points within the source."
+                range   { 0! 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        group {
+            name    "sphere_settings_1_1"
+            label   "Dynamic Properties"
+
+            groupsimple {
+                name    "folder2"
+                label   "Fluid Properties"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "defstiffness"
+                    label   "Stiffness"
+                    type    float
+                    default { "5" }
+                    help    "Determines how closely Particle Separation will be matched."
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "m2s-2" }
+                }
+                parm {
+                    name    "viscosityc"
+                    label   "Viscosity"
+                    type    float
+                    default { "0.0001" }
+                    help    "Amount of velocity diffusion, creating a more coherent motion among nearby particles. This can also be considered the \"thickness\" of the fluid. Can become unstable at higher values."
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sepparm"
+                    label   "sepparm"
+                    type    separator
+                    default { "" }
+                }
+                groupcollapsible {
+                    name    "folder5"
+                    label   "Advanced"
+                    grouptag { "group_type" "collapsible" }
+
+                    parm {
+                        name    "maxacceleration"
+                        label   "Maximum Acceleration"
+                        type    float
+                        default { "70" }
+                        help    "The maximum acceleration that can be applied to the particles when applying Particle Separation and Tensile Strength. Lowering this parameter can help mitigate instabilities."
+                        range   { 0 100 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "units" "m1s-2" }
+                    }
+                    parm {
+                        name    "tensileq"
+                        label   "Tensile Radius"
+                        type    float
+                        default { "0.01" }
+                        help    "Tensile force causes particles to repel eachother to prevent clustering. This parameter determines the distance (as a fraction of the particles kernel radius) at which this force is equal to Tensile Strength."
+                        range   { 0! 1! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "tensilek"
+                        label   "Tensile Strength"
+                        type    float
+                        default { "0.01" }
+                        help    "Magnitude of repulsive forces applied to nearby particles."
+                        range   { 0 0.1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "units" "m2" }
+                    }
+                    parm {
+                        name    "vorticitystrength"
+                        label   "Vorticity Confinement"
+                        type    float
+                        default { "0.001" }
+                        help    "Counteracts energy dissipation by maintaining vortices."
+                        range   { 0 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "units" "m1s-1" }
+                    }
+                }
+
+            }
+
+            groupsimple {
+                name    "folder1"
+                label   "Physical Properties"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "bounce"
+                    label   "Bounce"
+                    type    float
+                    default { "0" }
+                    help    "The elasticity of the fluid."
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "bounceforward"
+                    label   "Bounce Forward"
+                    type    float
+                    default { "0.5" }
+                    help    "The tangential elasticity of the fluid. If two objects with bounce forward 1.0 collide, their tangential motion will be affected only by fricion. If two objects of bounce forward 0.0 collide, their tangential motion will be matched."
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "" }
+                }
+                parm {
+                    name    "friction"
+                    label   "Friction"
+                    type    float
+                    default { "0.5" }
+                    help    "The coefficient of friction of the fluid. A value of 0 means the fluid is frictionless."
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "dynamicfriction"
+                    label   "Dynamic Friction Scale"
+                    type    float
+                    default { "0.1" }
+                    help    "An object sliding may have a lower friction coefficient than an object at rest. This is the scale factor that relates the two. It is a scale between 0 and 1."
+                    range   { 0! 1! }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "temperature"
+                    label   "Temperature"
+                    type    float
+                    default { "0" }
+                    help    "Temperature marks how warm or cool the fluid is. This is used in gas simulations for ignition points or for buoyancy computations."
+                    range   { 0 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+            }
+
+        }
+
+        group {
+            name    "sphere_settings_1_2"
+            label   "Forces"
+
+            groupsimple {
+                name    "init_vel_"
+                label   "Initial Velocity"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "cent"
+                    label   "Centroid"
+                    type    vector
+                    invisible
+                    size    3
+                    default { [ "detail(\"./src_geo\", \"centroid\", 0)" hscript-expr ] [ "detail(\"./src_geo\", \"centroid\", 1)" hscript-expr ] [ "detail(\"./src_geo\", \"centroid\", 2)" hscript-expr ] }
+                    range   { -1 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "dir"
+                    label   "Direction"
+                    type    vector
+                    size    3
+                    default { "1" "0" "0" }
+                    help    "Direction of Initial Velocity. Can be set here manually or with the vector handle."
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback" "" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "mag"
+                    label   "Magnitude"
+                    type    float
+                    default { "1" }
+                    help    "Magnitude is the multiplier of the direction. Can be adjusted here manually or with the distance handle."
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "var"
+                    label   "Variance"
+                    type    direction
+                    size    3
+                    default { "1" "1" "1" }
+                    help    "How much the initial velocity can vary."
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "units" "m1s-1" }
+                }
+            }
+
+            groupsimple {
+                name    "grav_force_"
+                label   "Gravity"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "enable_grav"
+                    label   "Enable Gravity"
+                    type    toggle
+                    default { "1" }
+                    help    "When gravity is disabled, Initial Velocity will remain constant until collision."
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "grav"
+                    label   "Gravity"
+                    type    vector
+                    size    3
+                    default { "0" "-9.80665" "0" }
+                    help    "A constant acceleration in the given direction, the default being (0, -9.80665, 0)."
+                    disablewhen "{ enable_grav == 0 }"
+                    range   { -1 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "exp_force_"
+                label   "Explosion Force"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "enable_exp_force"
+                    label   "Enable Explosion Force"
+                    type    toggle
+                    default { "0" }
+                    help    "Enables a radial force that pushes particles outward."
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "spread"
+                    label   "Spread"
+                    type    float
+                    default { "1" }
+                    help    "How much the force will radiate away from the explosion direction. If there is no explosion direction, a Spread value of 1 will cause the explosion will be equally radial."
+                    disablewhen "{ enable_exp_force != 1 }"
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "Explosion_Direction"
+                    label   "Explosion Direction"
+                    type    vector
+                    size    3
+                    default { "0" "0" "0" }
+                    help    "The direction the explosion force will be directed towards. A value of (0, 0, 0) will be an equally radial force."
+                    disablewhen "{ enable_exp_force != 1 }"
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "exp_vis_"
+                    label   "Enable Visualizer"
+                    type    toggle
+                    invisible
+                    default { "0" }
+                    disablewhen "{ enable_exp_force != 1 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "Magnitude"
+                    label   "Magnitude"
+                    type    float
+                    default { "1" }
+                    help    "A multiplier of the explosion force."
+                    disablewhen "{ enable_exp_force != 1 }"
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "Variance"
+                    label   "Variance"
+                    type    float
+                    default { "0.5" }
+                    help    "How much the force can vary."
+                    disablewhen "{ enable_exp_force != 1 }"
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        parm {
+            name    "show_initial_geo"
+            label   "Show Source"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            help    "Display a wireframe representation of the source geometry."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "src_geo_color"
+            label   "Source Wireframe"
+            type    color
+            size    3
+            default { "1" "1" "1" }
+            help    "Display a wireframe representation of the source geometry."
+            disablewhen "{ show_initial_geo == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    group {
+        name    "fluid_1"
+        label   "Ground Plane"
+
+        parm {
+            name    "enable_grid"
+            label   "Enable Ground Plane"
+            type    toggle
+            default { "1" }
+            help    "The Ground Plane is a grid for the fluid to collide with."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "snapgrid"
+            label   "Snap Ground Plane to Trajectory"
+            type    toggle
+            default { "1" }
+            help    "Enabling this will cause the Ground Plane to be centered on the trajectory curve. Transforms of the Ground Plane will act as an offset from the snap location along the trajectory curve."
+            disablewhen "{ enable_grid != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "grid_dist"
+            label   "Distance"
+            type    float
+            default { "1" }
+            help    "How far along the trajectory curve the Ground Plane will be snapped to. A value of 1 means the Ground Plane will snap to the tip of the arrow."
+            disablewhen "{ enable_grid != 1 } { snapgrid != 1 }"
+            range   { 0! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "folder7"
+            label   "Grid Settings"
+            grouptag { "group_type" "collapsible" }
+
+            parm {
+                name    "orient"
+                label   "Orientation"
+                type    ordinal
+                default { "zx" }
+                help    "Which axes the grid will be aligned with."
+                disablewhen "{ enable_grid != 1 }"
+                menu {
+                    "xy"    "XY Plane"
+                    "yz"    "YZ Plane"
+                    "zx"    "ZX Plane"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rows"
+                label   "Rows"
+                type    integer
+                default { "20" }
+                help    "Vertical divisions on the grid."
+                range   { 1! 50 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cols"
+                label   "Columns"
+                type    integer
+                default { "20" }
+                help    "Horizontal divisions on the grid."
+                range   { 1! 50 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "size"
+                label   "Size"
+                type    vector2
+                size    2
+                default { "20" "20" }
+                help    "[Needs parameter tooltip]"
+                disablewhen "{ enable_grid != 1 }"
+                range   { -1 1 }
+                parmtag { "autoscope" "1100000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "grid_vis"
+                label   "Show Guide"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+                help    "This is a representation of the ground plane."
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "grid_col"
+                label   "Grid Guide"
+                type    color
+                size    3
+                default { "0" "0" "1" }
+                help    "Displays a wireframe representation of the ground plane."
+                range   { 0 1 }
+                parmtag { "colortype" "val" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "grid_xform"
+            label   "Transform"
+            disablewhen "{ enable_grid != 1 }"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "grid_trans"
+                label   "Translate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "Translation of the ground plane."
+                disablewhen "{ enable_grid != 1 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "grid_rot"
+                label   "Rotate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "Rotation of the ground plane."
+                disablewhen "{ enable_grid != 1 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "grid_uni_scale"
+                label   "Uniform Scale"
+                type    float
+                default { "1" }
+                help    "Uniform scale of the ground plane."
+                disablewhen "{ enable_grid != 1 }"
+                range   { 0! 2 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder8"
+            label   "Physical Properties"
+            disablewhen "{ enable_grid != 1 }"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "ground_bounce"
+                label   "Bounce"
+                type    float
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "units" "" }
+            }
+            parm {
+                name    "ground_bounceforward"
+                label   "Bounce Forward"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "units" "" }
+            }
+            parm {
+                name    "ground_friction"
+                label   "Friction"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "ground_dynamicfriction"
+                label   "Dynamic Friction Scale"
+                type    float
+                default { "1" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "ground_temperature"
+                label   "Temperature"
+                type    float
+                default { "0" }
+                range   { 0 100 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fluid_2"
+        label   "Collision Object"
+        hidewhentab "{ hasinput(1) != 1 }"
+
+        parm {
+            name    "animategeo"
+            label   "Animated"
+            type    toggle
+            default { [ "off" hscript-expr ] }
+            help    "Enable if your geometry has animations."
+            disablewhen "{ hasinput(1) != 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "display2"
+            label   "Display Geometry"
+            type    toggle
+            default { [ "on" hscript-expr ] }
+            help    "Enable to display the static geometry."
+            disablewhen "{ hasinput(1) != 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "folder9"
+            label   "Physical Properties"
+            disablewhentab "{ hasinput(1) != 1 }"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "static_bounce"
+                label   "Bounce"
+                type    float
+                default { "0.5" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "units" "" }
+            }
+            parm {
+                name    "static_bounceforward"
+                label   "Bounce Forward"
+                type    float
+                default { "1" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "units" "" }
+            }
+            parm {
+                name    "static_friction"
+                label   "Friction"
+                type    float
+                default { "1" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "static_dynamic_friction"
+                label   "Dynamic Friction Scale"
+                type    float
+                default { "1" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "static_temperature"
+                label   "Temperature"
+                type    float
+                default { "0" }
+                range   { 0 100 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fluid_3"
+        label   "Visualization"
+
+        parm {
+            name    "fluid_display"
+            label   "Output"
+            type    ordinal
+            default { "0" }
+            help    "How to display the fluid output. Use particles while adjusting parameters."
+            menu usetokenvalue {
+                "0" "Particles"
+                "3" "Surface VDB"
+                "4" "Surface Polygons"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupsimple {
+            name    "folder3"
+            label   "Fluid Surface Options"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "voxelsize"
+                label   "Voxel Scale"
+                type    float
+                default { "0.75" }
+                help    "The voxel side length to use for the generated VDB volume. This is a scale on the Particle Separation length. For example, if Particle separation is 0.1 and Voxel size is 0.5, the side length of the voxels of the output field will be 0.05."
+                range   { 0.01 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "influenceradius"
+                label   "Influence Scale"
+                type    float
+                default { "3" }
+                help    "The maximum distance at which particles interact. Small increases can give smoother results but increase the cooking time and memory usage greatly. This is a scale on the Particle Separation length. For example, if Particle Separation is 0.1 and Influence radius is 3, particles will interact if they are within 0.6 units of each other."
+                range   { 0.01 5 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "surfacedistance"
+                label   "Droplet Scale"
+                type    float
+                default { "1" }
+                help    "Must be smaller than Influence Scale."
+                range   { 0.01 5 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "fluidcolor"
+                label   "Fluid Color"
+                type    color
+                size    3
+                default { "0" "0.5" "1" }
+                help    "Color of fluid displayed in the viewport."
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            groupcollapsible {
+                name    "folder4"
+                label   "Advanced"
+                grouptag { "group_type" "collapsible" }
+
+                parm {
+                    name    "dodilate"
+                    label   "Enable Dilate"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "off" hscript-expr ] }
+                    help    "Dilation extrudes the fluid surface out along the normals."
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "dilateoffset"
+                    label   "Dilate"
+                    type    float
+                    default { "1" }
+                    help    "Amount to dilate the fluid surface."
+                    disablewhen "{ dodilate == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "dosmooth"
+                    label   "Enable Smooth"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "off" hscript-expr ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "smoothoperation"
+                    label   "Smooth"
+                    type    string
+                    joinnext
+                    default { "meancurvature" }
+                    help    "Smoothing performed on the fluid surface geometry."
+                    disablewhen "{ dosmooth == 0 }"
+                    menu {
+                        "meanvalue"     "Mean Value"
+                        "gaussian"      "Gaussian"
+                        "medianvalue"   "Median Value"
+                        "meancurvature" "Mean Curvature Flow"
+                        "laplacianflow" "Laplacian Flow"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "smoothiterations"
+                    label   "Iterations"
+                    type    integer
+                    nolabel
+                    default { "2" }
+                    disablewhen "{ dosmooth == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "doerode"
+                    label   "Erode"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "off" hscript-expr ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "erodeoffset"
+                    label   "Erode"
+                    type    float
+                    default { "2" }
+                    help    "[Needs parameter tooltip]"
+                    disablewhen "{ doerode == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "dofinalsmooth"
+                    label   "Final Smooth"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "off" hscript-expr ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "finalsmoothoperation"
+                    label   "Final Smooth"
+                    type    string
+                    joinnext
+                    default { "meanvalue" }
+                    help    "Smoothing taking place after the dilate and erode operations."
+                    disablewhen "{ dofinalsmooth == 0 }"
+                    menu {
+                        "meanvalue"     "Mean Value"
+                        "gaussian"      "Gaussian"
+                        "medianvalue"   "Median Value"
+                        "meancurvature" "Mean Curvature Flow"
+                        "laplacianflow" "Laplacian Flow"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "finalsmoothiterations"
+                    label   "Iterations"
+                    type    integer
+                    nolabel
+                    default { "2" }
+                    help    "How many iterations of final smoothing to be performed."
+                    disablewhen "{ dofinalsmooth == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fluid_settings2_4"
+            label   "Guides"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "arrow_vis"
+                label   "Show Arrow"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+                help    "Shows direction of fluid trajectory."
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "arrow_col"
+                label   "Initial Velocity"
+                type    color
+                size    3
+                default { "0" "1" "0" }
+                help    "Shows direction and magnitude of initial velocity without gravity."
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "sepparm2"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "traj_vis"
+                label   "Show Trajectory"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+                help    "Trajectory based on timeline."
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "traj_col"
+                label   "Trajectory Curve"
+                type    color
+                size    3
+                default { "1" "0" "0" }
+                help    "This shows the calculated trajectory based on the initial velocity and gravity force. Does not factor in explosion force."
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "trajlen_type"
+                label   "Length"
+                type    ordinal
+                default { "1" }
+                help    "Timeline:"
+                menu {
+                    "0" "Timeline"
+                    "1" "Manual Time"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "time"
+                label   "Time"
+                type    float
+                default { "1" }
+                help    "Time in seconds to generate the length of trajectory."
+                disablewhen "{ trajlen_type != 1 }"
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fluid_4"
+        label   "Solver"
+
+        parm {
+            name    "resimulate"
+            label   "Reset Simulation"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "timescale"
+            label   "Time Scale"
+            type    float
+            default { "1" }
+            help    "A multiplier of time in the simulation."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "minimumsubsteps"
+            label   "Min Substeps"
+            type    integer
+            default { "1" }
+            help    "Minimum number of substeps calculated between frames."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "substeps"
+            label   "Max Substeps"
+            type    integer
+            default { "1" }
+            help    "Maximum number of substeps calculated between frames."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "doautosleep"
+            label   "Enable Auto Sleep"
+            type    toggle
+            default { [ "on" hscript-expr ] }
+            help    "Enabling will cause fluid to sleep once movement is under a certain threshold."
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "useopencl"
+            label   "Use OpenCL"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "grid_pos_on_traj"
+        label   "Grid Position on Trajectory"
+        type    vector
+        invisible
+        size    3
+        default { [ "point(\"guides/grid_location_point/\", pointlist(\"guides/grid_location_point/\", \"snaptopt\"), \"P\", 0)" hscript-expr ] [ "point(\"guides/grid_location_point/\", pointlist(\"guides/grid_location_point/\", \"snaptopt\"), \"P\", 1)" hscript-expr ] [ "point(\"guides/grid_location_point/\", pointlist(\"guides/grid_location_point/\", \"snaptopt\"), \"P\", 2)" hscript-expr ] }
+        range   { -1 1 }
+        parmtag { "script_callback_language" "python" }
+    }
+}
