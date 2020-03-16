@@ -1,1 +1,1 @@
-..\..\GoZBrush\GoZLocateApp.exe Houdini "Houdini*.exe"
+..\..\GoZBrush\GoZLocateApp.exe Houdini "Houdini.exe"

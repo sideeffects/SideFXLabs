@@ -1,7 +1,7 @@
 import hrpyc
 import os
 
-connection, hou = hrpyc.import_remote_module()
+connection, hou = hrpyc.import_remote_module(port=18815)
 ZBRUSH_DIR = "C:\Users\Public\Pixologic\GoZBrush"
 
 
@@ -38,7 +38,7 @@ def create_new_goz_instance():
         parent = cur_node.parent()
         if parent != hou.node("/"): 
             
-            goz_instance = parent.createNode("sop_goz_import", "GoZ_Mesh")
+            goz_instance = parent.createNode("labs::goz_import", "GoZ_Mesh")
             selected_nodes = hou.selectedNodes()
 
             pos = cur_node.position()
@@ -50,7 +50,7 @@ def create_new_goz_instance():
             if go_z_node.node("file1"):
                 go_z_node.node("file1").destroy()    
             go_z_node.moveToGoodPosition()
-            goz_instance = go_z_node.createNode("sop_goz_import", "GoZ_Mesh")
+            goz_instance = go_z_node.createNode("labs::goz_import", "GoZ_Mesh")
 
         goz_instance.parm("reload").pressButton()
         goz_instance.setDisplayFlag(True)
