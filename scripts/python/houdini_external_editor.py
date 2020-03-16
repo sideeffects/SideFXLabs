@@ -250,7 +250,7 @@ def add_watcher(parm):
     try:
         data = parm.expression()
     except hou.OperationFailed:
-        data = str(parm.eval().encode("utf-8"))
+        data = str(parm.eval()).encode("utf-8")
 
     with open(file_path, 'w') as f:
         f.write(data)
