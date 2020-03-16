@@ -32,22 +32,26 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -3.5976 -0.280958
-connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+position 14.9549 -66.0276
+connectornextid 2
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
 inputsNamed3
 {
+0 	OUT_GRASS_GEO 1 1 "input1"
+1 	attribrandomize1 1 1 "input2"
 }
 inputs
 {
+0 	OUT_GRASS_GEO 0 1
+1 	attribrandomize1 0 1
 }
 stat
 {
-  create 1584136510
-  modify 1584136526
+  create 1575501870
+  modify 1584398034
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -85,7 +89,7 @@ Content-Type: text/plain
 }
 {
   create 1502819760
-  modify 1584136581
+  modify 1584388222
   author admin@DESKTOP-PINH
   access 0777
 }
@@ -108,7 +112,7 @@ Content-Type: text/plain
 }
 {
   create 1502819970
-  modify 1584136532
+  modify 1584388173
   author admin@DESKTOP-PINH
   access 0777
 }
@@ -259,7 +263,7 @@ inputs
 stat
 {
   create 1501993647
-  modify 1561654633
+  modify 1584397928
   author paula@DESKTOP-JOVQSE4
   access 0777
 }
@@ -293,6 +297,9 @@ vector PivotPosition = point(1, \"P\", matchingPoint);
 vector UV2 = set(PivotPosition.x, PivotPosition.y,-1);
 vector UV3 = set(PivotPosition.z, rand(matchingPoint*1337), -1);
 
+if (ch(\"../bCustomRandomValue\") == 1)
+    UV3.y = point(1, chsraw(\"../sCustomValAttr\"), matchingPoint);
+    
 vector  VertColor = normalize(point(1, \"N\", matchingPoint));
 float VertAlpha = vector(point(0, \"Cd\", @ptnum)).r; //len(vector(point(0, \"Cd\", matchingPoint))) > 0.0 ? 1.0 : 0.0;
 
@@ -821,7 +828,7 @@ inputs
 stat
 {
   create 1501993647
-  modify 1561655796
+  modify 1584397928
   author paula@DESKTOP-JOVQSE4
   access 0777
 }
@@ -854,6 +861,9 @@ if (matchingPoint == -1) {
 vector PivotPosition = point(1, \"P\", matchingPoint);
 vector UV2 = set(PivotPosition.x, PivotPosition.y,-1);
 vector UV3 = set(PivotPosition.z, rand(matchingPoint*1337), -1);
+
+if (ch(\"../bCustomRandomValue\") == 1)
+    UV3.y = point(1, chsraw(\"../sCustomValAttr\"), matchingPoint);
 
 vector  VertColor = normalize(point(1, \"N\", matchingPoint));
 
@@ -4384,7 +4394,7 @@ inputs
 stat
 {
   create 1502320080
-  modify 1561655257
+  modify 1584398026
   author admin@DESKTOP-PINH
   access 0777
 }
@@ -4404,7 +4414,7 @@ Content-Type: text/plain
       defaultString = "\"return 0\""
       flags = 0
       segment { length = 0 expr = "Tool = hou.pwd().parent()
-Attributes = [\"pivotPos1\", \"pivotPos2\", \"pivotPos3\", \"forwardAxis1\", \"forwardAxis2\", \"forwardAxis3\", \"motionMask\"]
+Attributes = [\"pivotPos1\", \"pivotPos2\", \"pivotPos3\", \"forwardAxis1\", \"forwardAxis2\", \"forwardAxis3\", \"motionMask\", \"randomValue\"]
 FullAttributeList = [Tool.evalParm(x) for x in Attributes]
 SplitList = list(set([x.split('.')[0] for x in FullAttributeList]))
 return \" \".join(SplitList)" language = python }
@@ -4417,7 +4427,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-inname	[ 8	locks=0 ]	(	[ inname	"Alpha uv2 uv3 Cd" ] 	)
+inname	[ 0	locks=0 ]	(	[ inname	"Alpha uv2 uv3 fs Cd" ] 	)
 inclass	[ 0	locks=0 ]	(	"point"	)
 outclass	[ 0	locks=0 ]	(	"vertex"	)
 usepieceattrib	[ 0	locks=0 ]	(	"off"	)
@@ -4500,7 +4510,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -8444,7 +8454,7 @@ t	[ 0	locks=0 ]	(	0	0	0	)
 r	[ 0	locks=0 ]	(	0	0	0	)
 s	[ 0	locks=0 ]	(	1	1	1	)
 shear	[ 0	locks=0 ]	(	0	0	0	)
-scale	[ 8	locks=0 ]	(	[ scale	0.002 ] 	)
+scale	[ 8	locks=0 ]	(	[ scale	0 ] 	)
 parmgroup_pivotxform	[ 0	locks=0 ]	(	0	)
 p	[ 0	locks=0 ]	(	0	0	0	)
 pr	[ 0	locks=0 ]	(	0	0	0	)
@@ -8551,7 +8561,7 @@ t	[ 0	locks=0 ]	(	0	0	0	)
 r	[ 0	locks=0 ]	(	0	0	0	)
 s	[ 0	locks=0 ]	(	1	1	1	)
 shear	[ 0	locks=0 ]	(	0	0	0	)
-scale	[ 8	locks=0 ]	(	[ scale	500 ] 	)
+scale	[ 8	locks=0 ]	(	[ scale	0 ] 	)
 parmgroup_pivotxform	[ 0	locks=0 ]	(	0	)
 p	[ 0	locks=0 ]	(	0	0	0	)
 pr	[ 0	locks=0 ]	(	0	0	0	)
@@ -9200,7 +9210,7 @@ inputs
 stat
 {
   create 1502525144
-  modify 1561654397
+  modify 1584397921
   author paula@DESKTOP-JOVQSE4
   access 0777
 }
@@ -9215,7 +9225,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-ptdel	[ 0	locks=0 ]	(	"* ^name ^N ^uv"	)
+ptdel	[ 0	locks=0 ]	(	"* ^name ^N ^uv ^`chs(\"../sCustomValAttr\")`"	)
 vtxdel	[ 0	locks=0 ]	(	"* ^uv ^N"	)
 primdel	[ 0	locks=0 ]	(	*	)
 dtldel	[ 0	locks=0 ]	(	""	)
