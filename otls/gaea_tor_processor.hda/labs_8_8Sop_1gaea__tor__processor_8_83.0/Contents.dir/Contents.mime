@@ -32,9 +32,9 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -3.54032 -1.54667
+position 1.71903 -2.57627
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
@@ -48,8 +48,8 @@ inputs
 }
 stat
 {
-  create 1579120152
-  modify 1579130983
+  create 1584487569
+  modify 1584487829
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -99,64 +99,96 @@ Content-Type: text/plain
         label   "Gaea Controls"
 
         parm {
-            name    "scale"
-            label   "Scale"
+            name    "duration"
+            label   "Duration"
             type    float
-            default { "0.4" }
-            range   { 0.4! 1! }
+            default { "0.04" }
+            range   { 0.001! 1! }
             parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "rift"
-            label   "Rift"
+            name    "rocksoftness"
+            label   "Rock Softness"
             type    float
-            default { "0.1" }
+            default { "0.65" }
+            range   { 0.05! 1! }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "strength"
+            label   "Strength"
+            type    float
+            default { "0.5" }
+            range   { 0.001! 1! }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "inhibition"
+            label   "Inhibition"
+            type    float
+            default { "0.5" }
             range   { 0! 1! }
             parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "folding"
-            label   "Folding"
-            type    float
-            default { "0.1" }
-            range   { 0.05! 0.5! }
-            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "midpoint"
-            label   "Midpoint"
+            name    "baselevel"
+            label   "Base Level"
             type    float
             default { "0" }
-            range   { -1! 1! }
-            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "range"
-            label   "Range"
-            type    float
-            default { "0.3" }
             range   { 0! 1! }
             parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "angle"
-            label   "Angle"
-            type    integer
-            default { "0" }
-            range   { 0! 360! }
-            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "elevate"
-            label   "Elevate"
+            name    "realscale"
+            label   "Real Scale"
             type    toggle
-            default { "0" }
+            default { "1" }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "featurescale"
+            label   "Feature Scale"
+            type    integer
+            default { "2000" }
+            range   { 50! 20000! }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "terrainscale"
+            label   "Terrain Scale"
+            type    integer
+            default { "10000" }
+            range   { 500! 20000! }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "verticality"
+            label   "Verticality"
+            type    integer
+            default { "2000" }
+            range   { 50! 20000! }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mask"
+            label   "Mask"
+            type    ordinal
+            default { "2" }
+            menu {
+                "Erosion Strength"      "Erosion Strength"
+                "Rock Softness"         "Rock Softness"
+                "Precipitation Amount"  "Precipitation Amount"
+                "None"                  "None"
+            }
             parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
             parmtag { "script_callback_language" "python" }
         }
@@ -164,8 +196,16 @@ Content-Type: text/plain
             name    "seed"
             label   "Seed"
             type    integer
-            default { "2516" }
+            default { "3594" }
             range   { 0! 128000! }
+            parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "aggressivemode"
+            label   "Aggressive Mode"
+            type    toggle
+            default { "1" }
             parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
             parmtag { "script_callback_language" "python" }
         }
@@ -174,8 +214,26 @@ Content-Type: text/plain
             label   "To Gaea"
 
             parm {
-                name    "fileInput"
+                name    "filein"
                 label   "Height"
+                type    string
+                default { "" }
+                menureplace {
+                    [ "import hou" ]
+                    [ "try:" ]
+                    [ "    AllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))" ]
+                    [ "    ModulePairs = [[x, x] for x in AllModuleNames]" ]
+                    [ "    return sum(ModulePairs, [])" ]
+                    [ "except:" ]
+                    [ "    return ['', '']" ]
+                    language python
+                }
+                parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rainmask"
+                label   "Mask"
                 type    string
                 default { "" }
                 menureplace {
@@ -198,8 +256,62 @@ Content-Type: text/plain
             label   "From Gaea"
 
             parm {
-                name    "fileOutput"
+                name    "fileout"
                 label   "Height"
+                type    string
+                default { "" }
+                menureplace {
+                    [ "import hou" ]
+                    [ "try:" ]
+                    [ "    AllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))" ]
+                    [ "    ModulePairs = [[x, x] for x in AllModuleNames]" ]
+                    [ "    return sum(ModulePairs, [])" ]
+                    [ "except:" ]
+                    [ "    return ['', '']" ]
+                    language python
+                }
+                parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outWear"
+                label   "Wear Mask"
+                type    string
+                default { "" }
+                menureplace {
+                    [ "import hou" ]
+                    [ "try:" ]
+                    [ "    AllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))" ]
+                    [ "    ModulePairs = [[x, x] for x in AllModuleNames]" ]
+                    [ "    return sum(ModulePairs, [])" ]
+                    [ "except:" ]
+                    [ "    return ['', '']" ]
+                    language python
+                }
+                parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outDeposit"
+                label   "Deposit Mask"
+                type    string
+                default { "" }
+                menureplace {
+                    [ "import hou" ]
+                    [ "try:" ]
+                    [ "    AllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))" ]
+                    [ "    ModulePairs = [[x, x] for x in AllModuleNames]" ]
+                    [ "    return sum(ModulePairs, [])" ]
+                    [ "except:" ]
+                    [ "    return ['', '']" ]
+                    language python
+                }
+                parmtag { "script_callback" "kwargs[\"node\"].hm().ParmCallback(kwargs[\"node\"])" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outFlow"
+                label   "Flow Mask"
                 type    string
                 default { "" }
                 menureplace {
@@ -289,6 +401,7 @@ Content-Type: text/plain
             name    "pdg_logoutput"
             baseparm
             label   "Log Output for PDG"
+            invisible
             export  none
         }
     }
@@ -323,7 +436,7 @@ Content-Type: text/plain
 }
 {
   create 1565312758
-  modify 1579130953
+  modify 1584487571
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -346,7 +459,7 @@ Content-Type: text/plain
 }
 {
   create 1565312894
-  modify 1579130954
+  modify 1584487572
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -369,7 +482,7 @@ Content-Type: text/plain
 }
 {
   create 1565312900
-  modify 1579130952
+  modify 1584487570
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -394,9 +507,9 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -12.5264 -6.41766
+position -11.911 -8.22917
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -412,7 +525,7 @@ inputs
 stat
 {
   create 1563808696
-  modify 1570226532
+  modify 1584487802
   author MAINGEAR@DESKTOP-P98C1VA
   access 0777
 }
@@ -481,7 +594,7 @@ inputs
 stat
 {
   create 1541633966
-  modify 1579121249
+  modify 1584487588
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -637,8 +750,8 @@ out_format	[ 0	locks=0 ]	(	"single"	)
 output_type	[ 0	locks=0 ]	(	"i16"	)
 specify_res	[ 0	locks=0 ]	(	"off"	)
 resolution	[ 0	locks=0 ]	(	256	256	)
-volume_res	[ 0	locks=0 ]	(	[ volume_resx	256 ] 	[ volume_resy	256 ] 	)
-actual_res	[ 0	locks=0 ]	(	256	256	)
+volume_res	[ 0	locks=0 ]	(	[ volume_resx	500 ] 	[ volume_resy	500 ] 	)
+actual_res	[ 0	locks=0 ]	(	500	500	)
 trange	[ 0	locks=0 ]	(	"off"	)
 f	[ 0	locks=0 ]	(	[ f1	1 ] 	[ f2	240 ] 	1	)
 folder3	[ 0	locks=0 ]	(	1	)
@@ -669,10 +782,10 @@ alpha_channel	[ 0	locks=0 ]	(	""	)
 alpha_out_range	[ 0	locks=0 ]	(	"none"	)
 alpha_from_range	[ 0	locks=0 ]	(	0	1	)
 alpha_to_range	[ 0	locks=0 ]	(	0	1	)
-deep_raster	[ 0	locks=0 ]	(	0	)
 deep_raster_layers	[ 0	locks=0 ]	(	""	)
 deep_raster_layers01	[ 0	locks=0 ]	(	""	)
 deep_raster_layers_11	[ 0	locks=0 ]	(	""	)
+pdg_logoutput	[ 0	locks=0 ]	(	"off"	)
 folder2	[ 0	locks=0 ]	(	0	)
 tile_output	[ 0	locks=0 ]	(	"off"	)
 tile_method	[ 0	locks=0 ]	(	[ tile_method	0 ] 	)
@@ -736,7 +849,7 @@ inputs
 stat
 {
   create 1564189557
-  modify 1579120159
+  modify 1584487590
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -826,8 +939,8 @@ out_format	[ 0	locks=0 ]	(	"single"	)
 output_type	[ 0	locks=0 ]	(	"i16"	)
 specify_res	[ 0	locks=0 ]	(	"off"	)
 resolution	[ 0	locks=0 ]	(	256	256	)
-volume_res	[ 0	locks=0 ]	(	[ volume_resx	256 ] 	[ volume_resy	256 ] 	)
-actual_res	[ 0	locks=0 ]	(	256	256	)
+volume_res	[ 0	locks=0 ]	(	[ volume_resx	500 ] 	[ volume_resy	500 ] 	)
+actual_res	[ 0	locks=0 ]	(	500	500	)
 trange	[ 0	locks=0 ]	(	"off"	)
 f	[ 0	locks=0 ]	(	[ f1	1 ] 	[ f2	240 ] 	1	)
 folder3	[ 0	locks=0 ]	(	0	)
@@ -858,10 +971,10 @@ alpha_channel	[ 0	locks=0 ]	(	""	)
 alpha_out_range	[ 0	locks=0 ]	(	"none"	)
 alpha_from_range	[ 0	locks=0 ]	(	0	1	)
 alpha_to_range	[ 0	locks=0 ]	(	0	1	)
-deep_raster	[ 0	locks=0 ]	(	0	)
 deep_raster_layers	[ 0	locks=0 ]	(	""	)
 deep_raster_layers01	[ 0	locks=0 ]	(	""	)
 deep_raster_layers_11	[ 0	locks=0 ]	(	""	)
+pdg_logoutput	[ 0	locks=0 ]	(	"off"	)
 folder2	[ 0	locks=0 ]	(	0	)
 tile_output	[ 0	locks=0 ]	(	"off"	)
 tile_method	[ 0	locks=0 ]	(	"tilesize"	)
@@ -926,7 +1039,7 @@ inputs
 stat
 {
   create 1563806975
-  modify 1579130958
+  modify 1584487814
   author MAINGEAR@DESKTOP-P98C1VA
   access 0777
 }
@@ -972,7 +1085,7 @@ Content-Type: text/plain
 version 0.8
 source	[ 0	locks=0 ]	(	"file"	)
 coppath	[ 0	locks=0 ]	(	""	)
-filename	[ 8	locks=0	autoscope=1	autosel=4294967295 ]	(	C:/Projects/Support/GaeaShowcase/render/GaeaShowcase_3_height.tif	)
+filename	[ 8	locks=0	autoscope=1	autosel=4294967295 ]	(	"C:/Users/Paul Ambrosiussen/render/read_-109844707__flow.tif"	)
 reload	[ 8	locks=0 ]	(	0	)
 monoop	[ 0	locks=0 ]	(	"lum"	)
 type	[ 0	locks=0 ]	(	"heightfield"	)
@@ -985,7 +1098,7 @@ layerborder	[ 0	locks=0 ]	(	"constant"	)
 layerborderval	[ 0	locks=0 ]	(	0	)
 folder0	[ 0	locks=0 ]	(	0	)
 sizemethod	[ 0	locks=0 ]	(	"size"	)
-size	[ 8	locks=0 ]	(	[ size	512 ] 	)
+size	[ 8	locks=0 ]	(	[ size	1000 ] 	)
 gridspacing	[ 0	locks=0 ]	(	2	)
 uniformscale	[ 0	locks=0 ]	(	1	)
 folder2	[ 0	locks=0 ]	(	0	)
@@ -1049,7 +1162,7 @@ inputs
 stat
 {
   create 1564254076
-  modify 1579120159
+  modify 1584487569
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1129,7 +1242,7 @@ inputs
 stat
 {
   create 1563806975
-  modify 1579120159
+  modify 1584487812
   author MAINGEAR@DESKTOP-P98C1VA
   access 0777
 }
@@ -1184,7 +1297,7 @@ Content-Type: text/plain
 version 0.8
 source	[ 0	locks=0 ]	(	"file"	)
 coppath	[ 0	locks=0 ]	(	""	)
-filename	[ 8	locks=0	autoscope=1	autosel=4294967295 ]	(	[ filename	"" ] 	)
+filename	[ 8	locks=0	autoscope=1	autosel=4294967295 ]	(	[ filename	"C:/Users/Paul Ambrosiussen/render/read_-109844707__flow.tif" ] 	)
 reload	[ 8	locks=0 ]	(	0	)
 monoop	[ 0	locks=0 ]	(	"lum"	)
 type	[ 0	locks=0 ]	(	"mask"	)
@@ -1197,7 +1310,7 @@ layerborder	[ 0	locks=0 ]	(	"constant"	)
 layerborderval	[ 0	locks=0 ]	(	0	)
 folder0	[ 0	locks=0 ]	(	0	)
 sizemethod	[ 0	locks=0 ]	(	"size"	)
-size	[ 8	locks=0 ]	(	[ size	502 ] 	)
+size	[ 8	locks=0 ]	(	[ size	1000 ] 	)
 gridspacing	[ 0	locks=0 ]	(	1	)
 uniformscale	[ 0	locks=0 ]	(	1	)
 folder2	[ 0	locks=0 ]	(	0	)
@@ -1261,7 +1374,7 @@ inputs
 stat
 {
   create 1567100600
-  modify 1579120159
+  modify 1584487569
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1303,6 +1416,97 @@ vex_precision	[ 0	locks=0 ]	(	auto	)
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/attribwrangle1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":""
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribwrangle2.init"
+Content-Type: text/plain
+
+type = attribwrangle
+matchesdef = 1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribwrangle2.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -11.914 -6.2841
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	switch2 1 1 "input1"
+1 	(__dot3) "" 1 "input2"
+}
+inputs
+{
+0 	switch2 0 1
+1 	(__dot3) 0 1
+}
+stat
+{
+  create 1584487519
+  modify 1584487746
+  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribwrangle2.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+folder0	[ 0	locks=0 ]	(	0	0	)
+group	[ 0	locks=0 ]	(	""	)
+grouptype	[ 0	locks=0 ]	(	"guess"	)
+class	[ 0	locks=0 ]	(	"primitive"	)
+vex_numcount	[ 0	locks=0 ]	(	10	)
+vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
+snippet	[ 0	locks=0 ]	(	"if (s@name != point(1, \"layer\", 0))
+    removeprim(0, @primnum,1);
+    
+
+if (s@name == \"height\")
+    i@sort = 0;  
+else if (s@name == \"mask\")
+    i@sort = 1; 
+else
+    i@sort = 2;
+    "	)
+exportlist	[ 0	locks=0 ]	(	*	)
+vex_strict	[ 0	locks=0 ]	(	"off"	)
+autobind	[ 0	locks=0 ]	(	"on"	)
+bindings	[ 0	locks=0 ]	(	0	)
+groupautobind	[ 0	locks=0 ]	(	"on"	)
+groupbindings	[ 0	locks=0 ]	(	0	)
+vex_cwdpath	[ 0	locks=0 ]	(	.	)
+vex_outputmask	[ 0	locks=0 ]	(	*	)
+vex_updatenmls	[ 0	locks=0 ]	(	"off"	)
+vex_matchattrib	[ 0	locks=0 ]	(	id	)
+vex_inplace	[ 0	locks=0 ]	(	"off"	)
+vex_selectiongroup	[ 0	locks=0 ]	(	""	)
+vex_precision	[ 0	locks=0 ]	(	auto	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribwrangle2.userdata"
 Content-Type: text/plain
 
 {
@@ -1369,7 +1573,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -1386,7 +1590,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.56849 -13.6864
+position -1.56849 -16.6864
 connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -1403,7 +1607,7 @@ inputs
 stat
 {
   create 1563803605
-  modify 1578613462
+  modify 1584487800
   author MAINGEAR@DESKTOP-P98C1VA
   access 0777
 }
@@ -1428,7 +1632,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -1454,7 +1658,7 @@ inputs
 stat
 {
   create 1474476437
-  modify 1579121253
+  modify 1584487599
   author nobody@nowhere
   access 0777
 }
@@ -1511,7 +1715,7 @@ take	[ 0	locks=0 ]	(	_current_	)
 copswitcher	[ 0	locks=0 ]	(	0	0	0	0	0	)
 coppath	[ 0	locks=0 ]	(	../../../heightfield_output_height/cop2net1/flip1	)
 tres	[ 0	locks=0 ]	(	"natural"	)
-res	[ 0	locks=0 ]	(	256	256	)
+res	[ 0	locks=0 ]	(	500	500	)
 resmenu	[ 0	locks=0 ]	(	0	)
 copoutput	[ 0	locks=0 ]	(	`chs(\"../../output\")`	)
 mkpath	[ 0	locks=0 ]	(	"on"	)
@@ -1526,7 +1730,7 @@ batchmode	[ 0	locks=0 ]	(	"off"	)
 batchsize	[ 0	locks=0 ]	(	2	)
 reloadfiles	[ 0	locks=0 ]	(	"off"	)
 outputarea	[ 0	locks=0 ]	(	"frame"	)
-pixelcrop	[ 0	locks=0 ]	(	0	0	255	255	)
+pixelcrop	[ 0	locks=0 ]	(	0	0	499	499	)
 uvcrop	[ 0	locks=0 ]	(	0	0	1	1	)
 limitcanvaspixels	[ 0	locks=0 ]	(	"on"	)
 canvaspixels	[ 0	locks=0 ]	(	64	)
@@ -1582,7 +1786,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -1608,7 +1812,7 @@ inputs
 stat
 {
   create 1474476437
-  modify 1579120159
+  modify 1584487569
   author nobody@nowhere
   access 0777
 }
@@ -2212,7 +2416,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -2245,7 +2449,7 @@ inputs
 stat
 {
   create 1564189494
-  modify 1579121248
+  modify 1584487587
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -2299,7 +2503,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -2325,7 +2529,7 @@ inputs
 stat
 {
   create 1474476437
-  modify 1579120159
+  modify 1584487599
   author nobody@nowhere
   access 0777
 }
@@ -2382,7 +2586,7 @@ take	[ 0	locks=0 ]	(	_current_	)
 copswitcher	[ 0	locks=0 ]	(	0	0	0	0	0	)
 coppath	[ 0	locks=0 ]	(	../../cop2net1/flip1	)
 tres	[ 0	locks=0 ]	(	"natural"	)
-res	[ 0	locks=0 ]	(	256	256	)
+res	[ 0	locks=0 ]	(	500	500	)
 resmenu	[ 0	locks=0 ]	(	0	)
 copoutput	[ 0	locks=0 ]	(	`chs(\"../../output\")`	)
 mkpath	[ 0	locks=0 ]	(	"on"	)
@@ -2397,7 +2601,7 @@ batchmode	[ 0	locks=0 ]	(	"off"	)
 batchsize	[ 0	locks=0 ]	(	2	)
 reloadfiles	[ 0	locks=0 ]	(	"off"	)
 outputarea	[ 0	locks=0 ]	(	"frame"	)
-pixelcrop	[ 0	locks=0 ]	(	0	0	255	255	)
+pixelcrop	[ 0	locks=0 ]	(	0	0	499	499	)
 uvcrop	[ 0	locks=0 ]	(	0	0	1	1	)
 limitcanvaspixels	[ 0	locks=0 ]	(	"on"	)
 canvaspixels	[ 0	locks=0 ]	(	64	)
@@ -2453,7 +2657,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -2479,7 +2683,7 @@ inputs
 stat
 {
   create 1474476437
-  modify 1579120159
+  modify 1584487569
   author nobody@nowhere
   access 0777
 }
@@ -3089,7 +3293,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3108,7 +3312,7 @@ sopflags sopflags =
 comment ""
 position -2.82159 4.23896
 connectornextid 2
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 0 "output1"
@@ -3124,7 +3328,7 @@ inputs
 stat
 {
   create 1564253167
-  modify 1579121253
+  modify 1584487681
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -3193,7 +3397,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3210,7 +3414,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -12.5248 -5.37836
+position -11.9094 -7.18987
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -3219,16 +3423,16 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	switch2 1 1 "input1"
+0 	attribwrangle2 2 1 "input1"
 }
 inputs
 {
-0 	switch2 0 1
+0 	attribwrangle2 0 1
 }
 stat
 {
   create 1564253697
-  modify 1579120159
+  modify 1584487569
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -3269,7 +3473,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3304,7 +3508,7 @@ inputs
 stat
 {
   create 1564253697
-  modify 1579130958
+  modify 1584487815
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -3333,7 +3537,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3370,7 +3574,7 @@ inputs
 stat
 {
   create 1564253719
-  modify 1579120159
+  modify 1584487569
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -3398,7 +3602,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -3408,7 +3612,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3469,7 +3673,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3540,7 +3744,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3611,7 +3815,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3682,7 +3886,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3719,7 +3923,7 @@ inputs
 stat
 {
   create 1564256136
-  modify 1579120159
+  modify 1584487569
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -3763,7 +3967,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3780,7 +3984,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.56849 -9.39795
+position -1.56849 -12.398
 connectornextid 3
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -3790,17 +3994,17 @@ outputsNamed3
 inputsNamed3
 {
 1 	merge2 2 1 "input1"
-0 	heightfield_xform1 1 1 "input2"
+0 	attribdelete2 1 1 "input2"
 }
 inputs
 {
 0 	merge2 0 1
-1 	heightfield_xform1 0 1
+1 	attribdelete2 0 1
 }
 stat
 {
   create 1564268754
-  modify 1579120159
+  modify 1584487801
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -3841,7 +4045,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3902,7 +4106,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -3971,7 +4175,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4032,7 +4236,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4093,7 +4297,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4154,7 +4358,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4171,7 +4375,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.56964 -12.6588
+position -1.56964 -15.6588
 connectornextid 3
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -4191,7 +4395,7 @@ inputs
 stat
 {
   create 1565374526
-  modify 1567101322
+  modify 1584487800
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -4215,7 +4419,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4232,7 +4436,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -5.72344 -11.5772
+position -5.72344 -14.5772
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -4250,7 +4454,7 @@ inputs
 stat
 {
   create 1565374533
-  modify 1567101322
+  modify 1584487800
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -4276,7 +4480,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4293,7 +4497,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -5.72344 -10.4745
+position -5.72344 -13.4745
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -4311,7 +4515,7 @@ inputs
 stat
 {
   create 1565312041
-  modify 1570226524
+  modify 1584487800
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -4337,7 +4541,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4372,7 +4576,7 @@ inputs
 stat
 {
   create 1567100593
-  modify 1579120159
+  modify 1584487569
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -4454,7 +4658,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4553,7 +4757,7 @@ inputs
 stat
 {
   create 1570208814
-  modify 1579120159
+  modify 1584487569
   author paula@DESKTOP-5213MPP
   access 0777
 }
@@ -4582,7 +4786,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
 	}
 }
 
@@ -4617,7 +4821,7 @@ inputs
 stat
 {
   create 1570208839
-  modify 1579120159
+  modify 1584487569
   author paula@DESKTOP-5213MPP
   access 0777
 }
@@ -4646,7 +4850,151 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.350"
+		"value":"18.0.391"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/sort1.init"
+Content-Type: text/plain
+
+type = sort
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/sort1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -11.911 -9.22917
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	heightfield_xform1 1 1 "input1"
+}
+inputs
+{
+0 	heightfield_xform1 0 1
+}
+stat
+{
+  create 1584487666
+  modify 1584487811
+  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/sort1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+ptsort	[ 0	locks=0 ]	(	"none"	)
+pointseed	[ 0	locks=0 ]	(	0	)
+pointoffset	[ 0	locks=0 ]	(	0	)
+pointprox	[ 0	locks=0 ]	(	0	0	0	)
+pointobjpath	[ 0	locks=0 ]	(	""	)
+pointdir	[ 0	locks=0 ]	(	0	1	0	)
+pointexpr	[ 0	locks=0 ]	(	0	)
+pointattrib	[ 0	locks=0 ]	(	""	)
+pointattribcomp	[ 0	locks=0 ]	(	0	)
+pointreverse	[ 0	locks=0 ]	(	"off"	)
+primsort	[ 0	locks=0 ]	(	"attribute"	)
+primseed	[ 0	locks=0 ]	(	0	)
+primoffset	[ 0	locks=0 ]	(	0	)
+primprox	[ 0	locks=0 ]	(	0	0	0	)
+primobjpath	[ 0	locks=0 ]	(	""	)
+primdir	[ 0	locks=0 ]	(	0	1	0	)
+primexpr	[ 0	locks=0 ]	(	0	)
+primattrib	[ 0	locks=0 ]	(	sort	)
+primattribcomp	[ 0	locks=0 ]	(	0	)
+primreverse	[ 0	locks=0 ]	(	"off"	)
+vertexprimorder	[ 0	locks=0 ]	(	"on"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/sort1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"18.0.391"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribdelete2.init"
+Content-Type: text/plain
+
+type = attribdelete
+matchesdef = 1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribdelete2.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -11.911 -10.2292
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	sort1 1 1 "input1"
+}
+inputs
+{
+0 	sort1 0 1
+}
+stat
+{
+  create 1584487761
+  modify 1584487800
+  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribdelete2.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+ptdel	[ 0	locks=0 ]	(	""	)
+vtxdel	[ 0	locks=0 ]	(	""	)
+primdel	[ 0	locks=0 ]	(	sort	)
+dtldel	[ 0	locks=0 ]	(	""	)
+updatevar	[ 0	locks=0 ]	(	"on"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribdelete2.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":""
 	}
 }
 
@@ -4677,10 +5025,23 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/__dot3.networkdotinit"
+Content-Type: text/plain
+
+{
+	"version":1,
+	"posx":-13.8309836468211316,
+	"posy":-2.13201028334558096,
+	"pinned":false,
+	"color":"FROMOUTPUT",
+	"input":"point_in 0 1"
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.order"
 Content-Type: text/plain
 
-32
+35
 in
 output0
 heightfield_xform1
@@ -4713,6 +5074,9 @@ attribwrangle1
 attribdelete1
 foreach_begin1_metadata1
 foreach_begin1_metadata1_metadata1
+attribwrangle2
+sort1
+attribdelete2
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.net"
