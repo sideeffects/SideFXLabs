@@ -146,7 +146,16 @@ class FractureExporter(object):
         if len(frame_prims) == 0:
             raise hou.Error("No geometry found at the specified starting export frame. Please ensure the export frame range is set correctly.")
 
+        isolate_group = None 
+        isolate_group_name = hou.pwd().parent().parm("group").eval()
+        if isolate_group_name:
+            isolate_group = self.geo.findPrimGroup(isolate_group_name)
+        
         for prim in frame_prims:
+        
+            if isolate_group and not isolate_group.contains(prim):
+                continue 
+
             point = prim.vertices()[0].point()
             packed_name = prim.attribValue("name")
 
@@ -248,6 +257,8 @@ class FractureExporter(object):
             # cache the hou node
             export_object.hou_node = geo_node
             geo_node.cook(force=True)
+            
+            
 
     def animate_individual_nodes(self):
 
