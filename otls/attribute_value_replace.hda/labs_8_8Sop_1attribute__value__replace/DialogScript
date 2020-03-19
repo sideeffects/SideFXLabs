@@ -1,0 +1,97 @@
+# Dialog script for labs::attribute_value_replace automatically generated
+
+{
+    name	labs::attribute_value_replace
+    script	labs::attribute_value_replace
+    label	"Labs Attribute Value Replace"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "pointattriblist"
+        label   "Attribute"
+        type    string
+        default { "name" }
+        menutoggle {
+            [ "opmenu -l -a attribstringedit1 pointattriblist" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "bRenameAttr"
+        label   "Rename Attribute"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sNewAttributeName"
+        label   "New Name"
+        type    string
+        default { "" }
+        disablewhen "{ bRenameAttr == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "btnInitializeValues"
+        label   "Initialize Values"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().SetParmValues(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    multiparm {
+        name    "filters"
+        label    "Replace"
+        default 0
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "multistartoffset" "0" }
+
+        parm {
+            name    "regex#"
+            label   "Use Regular Expressions"
+            type    toggle
+            invisible
+            default { "0" }
+            disablewhen "{ filter# == 0 }"
+        }
+        parm {
+            name    "global#"
+            label   "Global"
+            type    toggle
+            invisible
+            default { "0" }
+            disablewhen "{ filter# == 0 }"
+        }
+        parm {
+            name    "from_#"
+            label   "From"
+            type    string
+            joinnext
+            default { "" }
+            disablewhen "{ filter# == 0 }"
+        }
+        parm {
+            name    "to_#"
+            label   "To"
+            type    string
+            default { "" }
+            disablewhen "{ filter# == 0 }"
+        }
+    }
+
+}

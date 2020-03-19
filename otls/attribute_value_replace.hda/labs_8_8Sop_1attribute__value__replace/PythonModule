@@ -1,0 +1,19 @@
+import json, collections
+
+def SetParmValues(kwargs):
+    
+    node = kwargs['node']
+    
+    geo = node.node("ALL_NAME_VALS").geometry()
+    attrname = node.parm("pointattriblist").evalAsString()
+    
+    if geo.findPointAttrib(attrname) == None:
+        raise hou.NodeWarning("The attribute specified does either not exist, or is not of type point!")
+    
+    attribvals = list(set([x.attribValue(attrname) for x in geo.points()]))
+    
+    node.parm("filters").set(len(attribvals))
+    
+    for i, x in enumerate(list(attribvals)):
+        node.parm("from_%s" % int(i)).set(str(attribvals[i]))
+        node.parm("to_%s" % int(i)).set(str(attribvals[i]))
