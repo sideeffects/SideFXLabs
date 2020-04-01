@@ -11,13 +11,11 @@ def ManualCook(node):
         node.node("sop_av_texturing1").hm().cookNode(node.node("sop_av_texturing1"))
 
 def add_images(node):
-    files = QFileDialog.getOpenFileNames(
-                        None,
-                        "Select one or more files to open",
-                        "",
-                        "Images (*.png *.xpm *.jpg *.cr2 *.bmp *.gif *.ico *.jpeg *.tif *.tiff *.dng *.wmphoto *.dds *.raw)");
-    
-    if not len(files[0]):
+
+    files = hou.ui.selectFile(start_directory="$HIP", title="Select one or more files to open", collapse_sequences=False, file_type=hou.fileType.Image, pattern=None, default_value=None, multiple_select=True, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
+    files = files.split(";")
+        
+    if len(files) == 0:
         return 
         
     parm = node.parm("src_img")
@@ -25,7 +23,7 @@ def add_images(node):
     for i in range(length):
         parm.removeMultiParmInstance(0)
     
-    for i, filename in enumerate(files[0]):
+    for i, filename in enumerate(files):
         parm.insertMultiParmInstance(i)
         instance = parm.multiParmInstances()[i]
-        instance.set(filename)
+        instance.set(filename.strip())
