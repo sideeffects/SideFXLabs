@@ -3,7 +3,7 @@
 {
     name	labs::align_and_distribute
     script	gamedev::sop_align_and_distribute
-    label	"Gamedev Align and Distribute"
+    label	"Labs Align and Distribute"
 
     help {
 	""
@@ -14,42 +14,59 @@
     inputlabel	3	"Sub-Network Input #3"
     inputlabel	4	"Sub-Network Input #4"
 
-    parm {
-        name    "split_by"
-        label   "Split By "
-        type    ordinal
-        default { "0" }
-        help    "How to identify elements to be distributed; by contiguous islands (connectivity), or by @name."
-        menu {
-            "0" "Connectivity"
-            "1" "Name"
+    groupsimple {
+        name    "folder1"
+        label   "Folder Name"
+
+        parm {
+            name    "split_by"
+            label   "Split By "
+            type    ordinal
+            default { "0" }
+            help    "How to identify elements to be distributed; by contiguous islands (connectivity), or by @name."
+            menu {
+                "0" "Connectivity"
+                "1" "Name"
+            }
+        }
+        parm {
+            name    "sort_by"
+            label   "Sort By"
+            type    ordinal
+            default { "0" }
+            help    "Choose to not sort, or sort by name, or by size."
+            menu {
+                "0" "None"
+                "1" "Size"
+                "2" "Polycount"
+            }
+        }
+        parm {
+            name    "offset"
+            label   "Spacing"
+            type    float
+            default { "1" }
+            help    "Spacing applied between each element."
+            range   { 0 10 }
         }
     }
-    parm {
-        name    "sort_by"
-        label   "Sort By"
-        type    ordinal
-        default { "0" }
-        help    "Choose to not sort, or sort by name, or by size."
-        menu {
-            "0" "None"
-            "1" "Size"
-            "2" "Polycount"
-        }
-    }
-    parm {
-        name    "offset"
-        label   "Spacing"
-        type    float
-        default { "1" }
-        help    "Spacing applied between each element."
-        range   { 0 10 }
-    }
+
     groupsimple {
         name    "folder0"
         label   "Global Alignment"
         grouptag { "group_type" "simple" }
 
+        parm {
+            name    "mAlignMode"
+            label   "Alignment Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Linear"
+                "1" "Grid"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
         parm {
             name    "axis"
             label   "Axis"
@@ -57,6 +74,7 @@
             joinnext
             default { "0" }
             help    "Determine which axis the elements should be spread along."
+            disablewhen "{ mAlignMode == 1 }"
             menu {
                 "0" "X"
                 "1" "Y"
@@ -69,6 +87,7 @@
             type    ordinal
             default { "0" }
             help    "Determine if elements should be spread along the positive or negative direction of the selected axis."
+            disablewhen "{ mAlignMode == 1 }"
             menu {
                 "0" "Positive"
                 "1" "Center"
