@@ -46,7 +46,7 @@ function vector4 coord_swizzle_vector(vector4 coord; int coord_swizzle, coord_fl
         else if (coord_flip == 7) flip = set(1,-1,-1);
         
         result = swizzle(coord, swizzle.x, swizzle.y, swizzle.z) * flip;
-        result.z = coord.z;
+        result.w = coord.w;
 
         return result;
 }
