@@ -19,6 +19,7 @@ class State(object):
         self.shapeboundpoints = [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]
         self.starthit_surfacenormal = hou.Vector3()
         self.transform_handle = hou.Handle(self.scene_viewer, "Transformer")
+        self.cutmode = None
 
 
     def onEnter(self, kwargs):
@@ -30,6 +31,7 @@ class State(object):
         with hou.undos.disabler():
             self.SetPrompt(kwargs)
             self.transform_handle.show(False)
+            self.cutmode = self.node.parm("sBooleanOperation").evalAsInt()
 
     def onResume(self, kwargs):
         with hou.undos.disabler():
@@ -43,7 +45,7 @@ class State(object):
 
         prompt = (
             "1. Left-click and drag on the geometry to create the cutting plane.\n"
-            "(hold CONTROL and drag mouse to add depth)\n"
+            "(without letting go of the mouse button, hold CONTROL and drag mouse to add depth)\n"
             "2. Press A to stamp shape."
         )
         self.scene_viewer.setPromptMessage(prompt)
@@ -64,6 +66,7 @@ class State(object):
         self.node.parmTuple("vPivot").set((0.0,0.0,0.0))
         self.node.parm("iNumCopies").set(0)
         self.node.parmTuple("vCopyTranslate").set((0.0,0.0,0.0))
+
 
     def SetShapeBoundParms(self, kwargs):
         self.node.parmTuple("vShapeBound0").set(self.shapeboundpoints[0])
@@ -141,45 +144,61 @@ class State(object):
         preboolgeo = self.node.node("PREBOOL").geometry()
         position = su.cplaneIntersection(self.scene_viewer, origin, direction)
         intersected, pos, _, _ = su.sopGeometryIntersection(preboolgeo, origin, direction)
+        surfaceoffset = hou.Vector3()
 
         
         with hou.undos.disabler():
-            # START POSITION
-            if reason == hou.uiEventReason.Start:
 
-                if intersected >= 0:
-                    prim = preboolgeo.prim(intersected)
-                    self.starthit_surfacenormal = prim.normal().normalized()
 
-                self.ToolActive(kwargs, 1)
+            InputMode = self.node.parm("mBoxCutterMode").evalAsInt()
+
+            if InputMode == 2:
                 self.transform_handle.show(True)
+                self.ToolActive(kwargs, 1)
+            else:
 
-                self.shapeboundpoints[0] = pos + self.starthit_surfacenormal * 0.0001
+                # START POSITION
+                if reason == hou.uiEventReason.Start:
+
+                    if intersected >= 0:
+                        prim = preboolgeo.prim(intersected)
+                        self.starthit_surfacenormal = prim.normal().normalized()
+
+                    self.ToolActive(kwargs, 1)
+                    self.transform_handle.show(True)
+
+                    if self.cutmode != 2:
+                        surfaceoffset = self.starthit_surfacenormal * 0.0001
+
+                    self.shapeboundpoints[0] = pos + surfaceoffset
 
 
-            # SECOND POINT WITH DRAG
-            if reason == hou.uiEventReason.Active and self.shapeboundpoints[0] != hou.Vector3():
+                # SECOND POINT WITH DRAG
+                if reason == hou.uiEventReason.Active and self.shapeboundpoints[0] != hou.Vector3():
 
-                # Update the handle pivot to match drawn shape
-                self.node.parmTuple("vPivot").set(self.node.node("util/transform2").parmTuple("p").eval())
+                    # Update the handle pivot to match drawn shape
+                    self.node.parmTuple("vPivot").set(self.node.node("util/transform2").parmTuple("p").eval())
 
-                if not device.isCtrlKey():
-                    planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
-                    self.shapeboundpoints[1] = planepos + self.starthit_surfacenormal * 0.0001
-                    self.shapeboundpoints[2] = planepos + self.starthit_surfacenormal * 0.0001
-                    self.shapeboundpoints[3] = self.shapeboundpoints[0] - self.starthit_surfacenormal * 0.0001
+                    if self.cutmode != 2:
+                        surfaceoffset = self.starthit_surfacenormal * 0.0001
 
-                # THIRD POINT AFTER HOLDING CNTRL
-                else:
-                    pos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal.cross((self.shapeboundpoints[0] - self.shapeboundpoints[1]).normalized()), origin, direction) 
-                    v = pos - self.shapeboundpoints[1]
-                    d = v.dot(self.starthit_surfacenormal)
-                    #self.shapedepth = d
-                    self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
-                    self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
+                    if not device.isCtrlKey():
+                        planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
+                        self.shapeboundpoints[1] = planepos + surfaceoffset
+                        self.shapeboundpoints[2] = planepos + surfaceoffset
+                        self.shapeboundpoints[3] = self.shapeboundpoints[0] - surfaceoffset
 
-            
-            self.SetShapeBoundParms(kwargs)
+                    # THIRD POINT AFTER HOLDING CNTRL
+                    else:
+                        pos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal.cross((self.shapeboundpoints[0] - self.shapeboundpoints[1]).normalized()), origin, direction) 
+                        v = pos - self.shapeboundpoints[1]
+                        d = v.dot(self.starthit_surfacenormal)
+                        #self.shapedepth = d
+                        self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
+                        self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
+
+                
+                self.SetShapeBoundParms(kwargs)
 
 
     def onKeyTransitEvent(self, kwargs):
@@ -188,8 +207,9 @@ class State(object):
 
         # User pressed A to commit boolean shape
         if key_pressed == "a" and ui_event.device().isKeyUp():
+            InputMode = self.node.parm("mBoxCutterMode").evalAsInt()
             with hou.undos.group("Commit Cut"):
-                if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()]:
+                if self.shapeboundpoints != [hou.Vector3(),hou.Vector3(),hou.Vector3(), hou.Vector3()] or InputMode == 2:
                     self.UpdateShapeBoundMultiParm(kwargs)
                     self.UpdateStashedGeo(kwargs)
                     self.ToolActive(kwargs, 0) 
@@ -203,6 +223,7 @@ class State(object):
             self.node.parm("stash").set(None) 
             self.ResetShapeBoundParms(kwargs)
             self.transform_handle.show(False)
+            self.ToolActive(kwargs, 0) 
              
 
 
@@ -236,5 +257,6 @@ def createViewerStateTemplate():
             ("vPivotRoty", "pivot_ry"),
             ("vPivotRotz", "pivot_rx")
         ])
+
 
     return template
