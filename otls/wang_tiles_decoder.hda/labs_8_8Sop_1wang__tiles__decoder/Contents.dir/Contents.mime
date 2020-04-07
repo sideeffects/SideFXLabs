@@ -32,7 +32,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 24.2344 -5.07385
+position -1.96242 -0.591176
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -41,16 +41,16 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	wfc_initialize1 0 1 "input1"
+0 	attribwrangle1 1 1 "input1"
 }
 inputs
 {
-0 	wfc_initialize1 0 1
+0 	attribwrangle1 0 1
 }
 stat
 {
-  create 1585681670
-  modify 1585682188
+  create 1586298440
+  modify 1586301326
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -92,7 +92,7 @@ sopflags sopflags =
 comment ""
 position 0.152594 4.69374
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -108,7 +108,7 @@ inputs
 stat
 {
   create 1579746962
-  modify 1585681835
+  modify 1586301384
   author MAINGEAR@DESKTOP-P98C1VA
   access 0777
 }
@@ -296,6 +296,13 @@ Content-Type: text/plain
         default { "0" }
         range   { 0 10 }
     }
+    parm {
+        name    "channel"
+        label   "Channel"
+        type    integer
+        default { "0" }
+        range   { 0 10 }
+    }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/pointwrangle7.chn"
@@ -316,6 +323,12 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 value = 20 20 expr = ch(\"../cols\") }
     }
+    channel channel {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../mColorChannel\") }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -333,27 +346,29 @@ vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"// http://www.cr31.co.uk/stagecast/wang/blob.html
 int gridX = chi('rows');
 int gridZ = chi('cols');
+int channel = chi('channel');
 
 int eastnum = (@ptnum % gridX == gridX-1) ? -1 : @ptnum+1;
 int westnum = (@ptnum % gridX == 0) ? -1 : @ptnum-1;
 int northnum =  (@ptnum < gridX) ? -1 : @ptnum-gridX;
 int southnum = (@ptnum > (gridX*gridZ) - gridX-1) ? -1 : @ptnum+gridX;
 int northeastnum = (((@ptnum + 1)-gridX) <= 0 || @ptnum % gridX == gridX-1) ? -1 : ((@ptnum + 1)-gridX);
-int northwestnum = (((@ptnum - 1)-gridX) <= 0 || @ptnum % gridX == 0) ? -1 : ((@ptnum - 1)-gridX);
+int northwestnum = (((@ptnum - 1)-gridX) < 0 || @ptnum % gridX == 0) ? -1 : ((@ptnum - 1)-gridX);
 int southeastnum = (@ptnum > (gridX*gridZ) - gridX-1 || @ptnum % gridX == gridX-1) ? -1 : ((@ptnum + 1)+gridX);
 int southwestnum = (@ptnum > (gridX*gridZ) - gridX-1 || @ptnum % gridX == 0) ? -1 : ((@ptnum - 1)+gridX);
 
 // Get axis aligned neighbor values
-int east = (eastnum == -1) ? 0 : 1-int(rint(point(0,'Cd',eastnum)));
-int west = (westnum == -1) ? 0 : 1-int(rint(point(0,'Cd',westnum)));
-int south = (southnum == -1) ? 0 : 1-int(rint(point(0,'Cd',southnum)));
-int north = (northnum == -1) ? 0 : 1-int(rint(point(0,'Cd',northnum)));
+
+int east = (eastnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',eastnum))[channel]));
+int west = (westnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',westnum))[channel]));
+int south = (southnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',southnum))[channel]));
+int north = (northnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',northnum))[channel]));
 
 // Get diagonal neighbors
-int north_east = (northeastnum == -1) ? 0 : 1-int(rint(point(0,'Cd',northeastnum)));
-int north_west = (northwestnum == -1) ? 0 : 1-int(rint(point(0,'Cd',northwestnum)));
-int south_east = (southeastnum == -1) ? 0 : 1-int(rint(point(0,'Cd',southeastnum)));
-int south_west = (southwestnum == -1) ? 0 : 1-int(rint(point(0,'Cd',southwestnum)));
+int north_east = (northeastnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',northeastnum))[channel]));
+int north_west = (northwestnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',northwestnum))[channel]));
+int south_east = (southeastnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',southeastnum))[channel]));
+int south_west = (southwestnum == -1) ? 0 : 1-int(rint(vector(point(0,'Cd',southwestnum))[channel]));
 
 // Flood fill diagonal neighbors if direct neighbors are not 1
 if (north == 0) {
@@ -380,7 +395,7 @@ if (south == 0)
 // Get index
 int index = (north) * 1 + (north_east) * 2 + (east) * 4 + (south_east) * 8 + (south) * 16 + (south_west) * 32 + (west) * 64 + (north_west) * 128; 
 
-if (rint(v@Cd.x) == 1)
+if (rint(v@Cd[channel]) == 1)
     index =0;
 
 // Convert to name attribute for copytopoints sop
@@ -401,6 +416,7 @@ vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 rows	[ 0	locks=0 ]	(	[ rows	20 ] 	)
 cols	[ 0	locks=0 ]	(	[ cols	20 ] 	)
+channel	[ 0	locks=0 ]	(	[ channel	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -429,7 +445,7 @@ sopflags sopflags =
 comment ""
 position 0.147188 1.53624
 connectornextid 1
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
@@ -444,7 +460,7 @@ inputs
 stat
 {
   create 1585674405
-  modify 1585681835
+  modify 1586301213
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
