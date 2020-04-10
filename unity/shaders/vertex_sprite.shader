@@ -1,3 +1,5 @@
+// Upgrade NOTE: upgraded instancing buffer 'Props' to new syntax.
+
 Shader "sidefx/vertex_sprite_shader" {
 	Properties {
 		_Color ("Color", Color) = (1,1,1,1)
@@ -49,9 +51,9 @@ Shader "sidefx/vertex_sprite_shader" {
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
 		// #pragma instancing_options assumeuniformscaling
-		UNITY_INSTANCING_CBUFFER_START(Props)
+		UNITY_INSTANCING_BUFFER_START(Props)
 			// put more per-instance properties here
-		UNITY_INSTANCING_CBUFFER_END
+		UNITY_INSTANCING_BUFFER_END(Props)
 
 		//vertex function
 		void vert(inout appdata_full v){
@@ -61,12 +63,14 @@ Shader "sidefx/vertex_sprite_shader" {
 			//get position and colour from textures
 			float4 texturePos = tex2Dlod(_posTex,float4(v.texcoord1.x, (timeInFrames + v.texcoord1.y), 0, 0));
 			float3 textureCd = tex2Dlod(_colorTex,float4(v.texcoord1.x, (timeInFrames + v.texcoord1.y), 0, 0));
+			//comment out the line below if your colour space is set to linear
+			texturePos.xyz = pow(texturePos.xyz, 2.2)
 
 			//expand normalised position texture values to world space
 			float expand = _boundingMax - _boundingMin;
 			texturePos.xyz *= expand;
 			texturePos.xyz += _boundingMin;
-			texturePos.x *= -1;  //flipped to account for right-handedness of unity
+			// texturePos.x *= -1;  //flipped to account for right-handedness of unity
 
 			//create camera facing billboard based on uv coordinates
 			float3 cameraF = float3(v.texcoord.x - 0.5, v.texcoord.y - 0.5, 0);
@@ -74,7 +78,7 @@ Shader "sidefx/vertex_sprite_shader" {
 			cameraF = mul(cameraF, UNITY_MATRIX_MV);
 			v.vertex.xyz = cameraF;
 
-			v.vertex.xyz += texturePos.xzy;  //swizzle y and z because textures are exported with z-up
+			v.vertex.xyz += texturePos.xyz;  //swizzle y and z because textures are exported with z-up
 			
 			//set vertex colour
 			v.color.rgb = textureCd;

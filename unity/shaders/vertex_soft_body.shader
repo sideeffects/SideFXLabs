@@ -1,3 +1,5 @@
+// Upgrade NOTE: upgraded instancing buffer 'Props' to new syntax.
+
 Shader "sidefx/vertex_soft_body_shader" {
 	Properties {
 		_Color ("Color", Color) = (1,1,1,1)
@@ -43,9 +45,9 @@ Shader "sidefx/vertex_soft_body_shader" {
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
 		// #pragma instancing_options assumeuniformscaling
-		UNITY_INSTANCING_CBUFFER_START(Props)
+		UNITY_INSTANCING_BUFFER_START(Props)
 			// put more per-instance properties here
-		UNITY_INSTANCING_CBUFFER_END
+		UNITY_INSTANCING_BUFFER_END(Props)
 
 		//vertex function
 		void vert(inout appdata_full v){
@@ -55,13 +57,15 @@ Shader "sidefx/vertex_soft_body_shader" {
 			//get position and normal from textures
 			float4 texturePos = tex2Dlod(_posTex,float4(v.texcoord1.x, (timeInFrames + v.texcoord1.y), 0, 0));
 			float3 textureN = tex2Dlod(_nTex,float4(v.texcoord1.x, (timeInFrames + v.texcoord1.y), 0, 0));
+			//comment out the line below if your colour space is set to linear
+			texturePos.xyz = pow(texturePos.xyz, 2.2);
 
 			//expand normalised position texture values to world space
 			float expand = _boundingMax - _boundingMin;
 			texturePos.xyz *= expand;
 			texturePos.xyz += _boundingMin;
-			texturePos.x *= -1;  //flipped to account for right-handedness of unity
-			v.vertex.xyz += texturePos.xzy;  //swizzle y and z because textures are exported with z-up
+			//texturePos.x *= -1;  //flipped to account for right-handedness of unity
+			v.vertex.xyz += texturePos.xyz;  //swizzle y and z because textures are exported with z-up
 
 			//calculate normal
 			if (_pack_normal){
@@ -79,14 +83,14 @@ Shader "sidefx/vertex_soft_body_shader" {
 				f3.xy = sqrt(1 - (f2dot/4.0)) * f2;
 				f3.z = 1 - (f2dot/2.0);
 				f3 = clamp(f3, -1.0, 1.0);
-				f3 = f3.xzy;
-				f3.x *= -1;
+				//f3 = f3.xzy;
+				//f3.x *= -1;
 				v.normal = f3;
 			} else {
-				textureN = textureN.xzy;
+				// textureN = textureN.xzy;
 				textureN *= 2;
 				textureN -= 1;
-				textureN.x *= -1; 
+				// textureN.x *= -1; 
 				v.normal = textureN;
 			}
 		}

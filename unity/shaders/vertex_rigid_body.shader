@@ -1,4 +1,6 @@
-﻿Shader "sidefx/vertex_rigid_body_shader" {
+﻿// Upgrade NOTE: upgraded instancing buffer 'Props' to new syntax.
+
+Shader "sidefx/vertex_rigid_body_shader" {
 	Properties {
 		_Color ("Color", Color) = (1,1,1,1)
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
@@ -49,9 +51,9 @@
 		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
 		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
 		// #pragma instancing_options assumeuniformscaling
-		UNITY_INSTANCING_CBUFFER_START(Props)
+		UNITY_INSTANCING_BUFFER_START(Props)
 			// put more per-instance properties here
-		UNITY_INSTANCING_CBUFFER_END
+		UNITY_INSTANCING_BUFFER_END(Props)
 
 		//vertex function
 		void vert(inout appdata_full v){
@@ -61,21 +63,24 @@
 			//get position and rotation(quaternion) from textures
 			float3 texturePos = tex2Dlod(_posTex,float4(v.texcoord1.x, (1 - timeInFrames) + v.texcoord1.y, 0, 0));
 			float4 textureRot = tex2Dlod(_rotTex,float4(v.texcoord1.x, (1 - timeInFrames) + v.texcoord1.y, 0, 0));
+			//comment out the 2 lines below if your colour space is set to linear
+			texturePos.xyz = pow(texturePos.xyz, 2.2)
+			textureRot.xyz = pow(textureRot.xyz, 2.2)
 
 			//expand normalised position texture values to world space
 			float expand1 = _boundingMax1 - _boundingMin1;
 			texturePos.xyz *= expand1;
 			texturePos.xyz += _boundingMin1;
-			texturePos.x *= -1;  //flipped to account for right-handedness of unity
-			texturePos = texturePos.xzy;  //swizzle y and z because textures are exported with z-up
+			// texturePos.x *= -1;  //flipped to account for right-handedness of unity
+			texturePos = texturePos.xyz;  //swizzle y and z because textures are exported with z-up
 
 			//expand normalised pivot vertex colour values to world space
 			float expand = _boundingMax - _boundingMin;
 			float3 pivot = v.color.rgb;
 			pivot.xyz *= expand;
 			pivot.xyz += _boundingMin;
-			pivot.x *=  -1;
-			pivot = pivot.xzy;
+			// pivot.x *=  -1;
+			// pivot = pivot.xzy;
 			float3 atOrigin = v.vertex.xyz - pivot;
 
 			//calculate rotation
@@ -89,11 +94,12 @@
 			// quat.xyz = -textureRot.xzy;
 			// quat.w = textureRot.w;
 			// quat.yz = -quat.yz;
-			quat.x = -textureRot.x;
-			quat.y = textureRot.z;
-			quat.z = textureRot.y;
-			quat.w = textureRot.w;
+			// quat.x = -textureRot.x;
+			// quat.y = textureRot.z;
+			// quat.z = textureRot.y;
+			// quat.w = textureRot.w;
 			// quat = float4(0,0,0,1);
+			quat = textureRot;
 
 			float3 rotated = atOrigin + 2.0 * cross(quat.xyz, cross(quat.xyz, atOrigin) + quat.w * atOrigin);
 
