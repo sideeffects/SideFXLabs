@@ -1,0 +1,50 @@
+<menuDocument>
+  <!-- menuDocument can only contain 1 menu element, whose id is 
+         implicitly "root_menu"
+      -->
+  <menu>
+    <scriptItem id="expreditor_edit_python_code">
+      <label>Edit python source code</label>
+      <context>
+        <expression>
+          <![CDATA[
+try:
+  from HoudiniExprEditor import ParmWatcher
+  return ParmWatcher.is_python_node(kwargs["node"])
+except Exception as e:
+  return False]]>
+        </expression>
+      </context>
+      <scriptCode>
+        <![CDATA[
+from HoudiniExprEditor import ParmWatcher
+reload(ParmWatcher)
+ParmWatcher.add_watcher(kwargs["node"], type_="python_node")]]>
+      </scriptCode>
+    </scriptItem>
+
+    <scriptItem id="expreditor_edit_extra_sections">
+      <label>Edit Extra Sections Source Code</label>
+      <context>
+        <expression>
+          <![CDATA[
+try:
+  import os
+  if os.environ.get("HOUDINI_EXPR_DISABLE_SECTIONS") == "1":
+    return False
+  from HoudiniExprEditor import ParmWatcher
+  return len(ParmWatcher.get_extra_file_scripts(kwargs["node"])) > 0
+except Exception as e:
+  return False]]>
+        </expression>
+      </context>
+      <scriptCode>
+        <![CDATA[
+from HoudiniExprEditor import ParmWatcher
+reload(ParmWatcher)
+ParmWatcher.add_watcher_to_section(kwargs["node"])]]>
+      </scriptCode>
+    </scriptItem>
+
+  </menu>
+</menuDocument>
