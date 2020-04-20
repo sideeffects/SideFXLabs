@@ -66,6 +66,8 @@ class State(object):
         self.node.parmTuple("vPivot").set((0.0,0.0,0.0))
         self.node.parm("iNumCopies").set(0)
         self.node.parmTuple("vCopyTranslate").set((0.0,0.0,0.0))
+        self.node.parmTuple("vPivotCopy").set((0.0,0.0,0.0))
+        self.node.parmTuple("vRotCopy").set((0.0,0.0,0.0))
 
 
     def SetShapeBoundParms(self, kwargs):
@@ -114,6 +116,8 @@ class State(object):
         self.node.parm("sBooleanOperation_%s" % str(numentries+1)).set(self.node.parm("sBooleanOperation").evalAsInt())
         self.node.parm("iNumCopies_%s" % str(numentries+1)).set(self.node.parm("iNumCopies").eval())
         self.node.parmTuple("vCopyTranslate_%s" % str(numentries+1)).set(self.node.parmTuple("vCopyTranslate").eval())
+        self.node.parmTuple("vPivotCopy_%s" % str(numentries+1)).set(self.node.parmTuple("vPivotCopy").eval())
+        self.node.parmTuple("vRotCopy_%s" % str(numentries+1)).set(self.node.parmTuple("vRotCopy").eval())
 
     def UpdateStashedGeo(self, kwargs):
         self.node.parm("stash").set(self.node.node("STASH_GEO").geometry())
@@ -126,7 +130,7 @@ class State(object):
         self.ToolActive(kwargs, 1)
 
         # Control Bevel Parms with Mousewheel
-        if not device.isShiftKey():
+        if device.isShiftKey():
             bevel = self.node.parm("iBevelDivisions").evalAsInt() + scroll
             self.node.parm("iBevelDivisions").set(max(int(bevel),0))
         else:
@@ -182,20 +186,21 @@ class State(object):
                     if self.cutmode != 2:
                         surfaceoffset = self.starthit_surfacenormal * 0.0001
 
-                    if not device.isCtrlKey():
-                        planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
-                        self.shapeboundpoints[1] = planepos + surfaceoffset
-                        self.shapeboundpoints[2] = planepos + surfaceoffset
-                        self.shapeboundpoints[3] = self.shapeboundpoints[0] - surfaceoffset
+                    if device.isLeftButton():
+                        if not device.isCtrlKey():
+                            planepos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal, origin, direction) 
+                            self.shapeboundpoints[1] = planepos + surfaceoffset
+                            self.shapeboundpoints[2] = planepos + surfaceoffset
+                            self.shapeboundpoints[3] = self.shapeboundpoints[0] - surfaceoffset
 
-                    # THIRD POINT AFTER HOLDING CNTRL
-                    else:
-                        pos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal.cross((self.shapeboundpoints[0] - self.shapeboundpoints[1]).normalized()), origin, direction) 
-                        v = pos - self.shapeboundpoints[1]
-                        d = v.dot(self.starthit_surfacenormal)
-                        #self.shapedepth = d
-                        self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
-                        self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
+                        # THIRD POINT AFTER HOLDING CNTRL
+                        else:
+                            pos = hou.hmath.intersectPlane(self.shapeboundpoints[0], self.starthit_surfacenormal.cross((self.shapeboundpoints[0] - self.shapeboundpoints[1]).normalized()), origin, direction) 
+                            v = pos - self.shapeboundpoints[1]
+                            d = v.dot(self.starthit_surfacenormal)
+                            #self.shapedepth = d
+                            self.shapeboundpoints[2] = self.shapeboundpoints[1] + (self.starthit_surfacenormal * d)
+                            self.shapeboundpoints[3] = self.shapeboundpoints[0] + (self.starthit_surfacenormal * d)
 
                 
                 self.SetShapeBoundParms(kwargs)
@@ -256,6 +261,13 @@ def createViewerStateTemplate():
             ("vPivotRotx", "pivot_rx"),
             ("vPivotRoty", "pivot_ry"),
             ("vPivotRotz", "pivot_rx")
+        ])
+
+    template.bindHandleStatic( "pivot", "Copy Pivot", 
+        [
+            ("vPivotCopyx", "tx"),
+            ("vPivotCopyy", "ty"),
+            ("vPivotCopyz", "tz")
         ])
 
 

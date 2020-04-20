@@ -32,7 +32,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -2.39865 -0.912518
+position -2.58606 -0.0525055
 connectornextid 2
 flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -41,17 +41,17 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	box1 0 1 "input1"
+0 	tube1 0 1 "input1"
 }
 inputs
 {
-0 	box1 0 1
+0 	tube1 0 1
 }
 stat
 {
-  create 1582089365
-  modify 1585840676
-  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
+  create 1586829785
+  modify 1586834158
+  author paula@DESKTOP-5213MPP
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -115,7 +115,7 @@ inputs
 stat
 {
   create 1581888500
-  modify 1582506779
+  modify 1586827593
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -145,6 +145,8 @@ i@mode = chi(sprintf(\"../mBoxCutterMode_%g\", iteration));
 i@boolmode = chi(sprintf(\"../sBooleanOperation_%g\", iteration));
 i@copies = chi(sprintf(\"../iNumCopies_%g\", iteration));
 v@copytranslate = chv(sprintf(\"../vCopyTranslate_%g\", iteration));
+v@copypivot = chv(sprintf(\"../vPivotCopy_%g\", iteration));
+v@copyrotate = chv(sprintf(\"../vRotCopy_%g\", iteration));
 
 string path = chsraw(sprintf(\"../opShape_%g\", iteration));
 
@@ -215,7 +217,7 @@ inputs
 stat
 {
   create 1581988939
-  modify 1585787431
+  modify 1586829753
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -415,6 +417,42 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../bDrawing\") }
     }
+    channel pcopyx {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vPivotCopyx\") }
+    }
+    channel pcopyy {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vPivotCopyy\") }
+    }
+    channel pcopyz {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vPivotCopyz\") }
+    }
+    channel rcopyx {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vRotCopyx\") }
+    }
+    channel rcopyy {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vRotCopyy\") }
+    }
+    channel rcopyz {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../vRotCopyz\") }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -431,15 +469,15 @@ pt0	[ 0	locks=0 ]	(	[ pt0x	0 ] 	[ pt0y	0 ] 	[ pt0z	0 ] 	)
 pt1	[ 0	locks=0 ]	(	[ pt1x	0 ] 	[ pt1y	0 ] 	[ pt1z	0 ] 	)
 pt2	[ 0	locks=0 ]	(	[ pt2x	0 ] 	[ pt2y	0 ] 	[ pt2z	0 ] 	)
 pt3	[ 8	locks=0 ]	(	[ pt3x	0 ] 	[ pt3y	0 ] 	[ pt3z	0 ] 	)
-offset	[ 0	locks=0 ]	(	[ offset	0 ] 	)
+offset	[ 0	locks=0 ]	(	[ offset	0.0050000000000000001 ] 	)
 divisions	[ 0	locks=0 ]	(	[ divisions	0 ] 	)
 opShape	[ 8	locks=0 ]	(	`chsop(\"../opShape\")`	)
-input	[ 0	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	2 ] 	)
 booleanop	[ 8	locks=0 ]	(	[ booleanop	0 ] 	)
 ncy	[ 8	locks=0 ]	(	[ ncy	1 ] 	)
 tcopy	[ 0	locks=0 ]	(	[ tcopyx	0 ] 	[ tcopyy	0 ] 	[ tcopyz	0 ] 	)
-rcopy	[ 0	locks=0 ]	(	0	0	0	)
-pcopy	[ 0	locks=0 ]	(	0	0	0	)
+rcopy	[ 0	locks=0 ]	(	[ rcopyx	0 ] 	[ rcopyy	0 ] 	[ rcopyz	0 ] 	)
+pcopy	[ 0	locks=0 ]	(	[ pcopyx	0 ] 	[ pcopyy	0 ] 	[ pcopyz	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -484,7 +522,7 @@ inputs
 stat
 {
   create 1581989803
-  modify 1585787431
+  modify 1586829753
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -744,6 +782,54 @@ Content-Type: text/plain
 
 	 length = 0 expr = "detail(\"../attribwrangle1\", \"copytranslate\", 2)" }
     }
+    channel rcopyx {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copyrotate\", 0)" }
+    }
+    channel rcopyy {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copyrotate\", 1)" }
+    }
+    channel rcopyz {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copyrotate\", 2)" }
+    }
+    channel pcopyx {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copypivot\", 0)" }
+    }
+    channel pcopyy {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copypivot\", 1)" }
+    }
+    channel pcopyz {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(\"../attribwrangle1\", \"copypivot\", 2)" }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -753,22 +839,22 @@ Content-Type: text/plain
 {
 version 0.8
 bActive	[ 0	locks=0 ]	(	"on"	)
-t	[ 8	locks=0 ]	(	[ tx	0 ] 	[ ty	0 ] 	[ tz	0 ] 	)
+t	[ 8	locks=0 ]	(	[ tx	0 ] 	[ ty	0.70327800512313843 ] 	[ tz	0 ] 	)
 r	[ 0	locks=0 ]	(	[ rx	0 ] 	[ ry	0 ] 	[ rz	0 ] 	)
-s	[ 0	locks=0 ]	(	[ sx	1 ] 	[ sy	1 ] 	[ sz	1 ] 	)
-pt0	[ 0	locks=0 ]	(	[ pt0x	0.37088638544082642 ] 	[ pt0y	0.50010001659393311 ] 	[ pt0z	-0.12343261390924454 ] 	)
-pt1	[ 0	locks=0 ]	(	[ pt1x	0.88477081060409546 ] 	[ pt1y	0.50019997358322144 ] 	[ pt1z	-0.89691108465194702 ] 	)
-pt2	[ 8	locks=0 ]	(	[ pt2x	0.88477081060409546 ] 	[ pt2y	-0.74950432777404785 ] 	[ pt2z	-0.89691108465194702 ] 	)
-pt3	[ 0	locks=0 ]	(	[ pt3x	0.37088638544082642 ] 	[ pt3y	-0.74960428476333618 ] 	[ pt3z	-0.12343261390924454 ] 	)
-offset	[ 0	locks=0 ]	(	[ offset	0 ] 	)
+s	[ 0	locks=0 ]	(	[ sx	0.85493123531341553 ] 	[ sy	0.85493123531341553 ] 	[ sz	0.85493123531341553 ] 	)
+pt0	[ 0	locks=0 ]	(	[ pt0x	0 ] 	[ pt0y	0 ] 	[ pt0z	0 ] 	)
+pt1	[ 0	locks=0 ]	(	[ pt1x	0 ] 	[ pt1y	0 ] 	[ pt1z	0 ] 	)
+pt2	[ 8	locks=0 ]	(	[ pt2x	0 ] 	[ pt2y	0 ] 	[ pt2z	0 ] 	)
+pt3	[ 0	locks=0 ]	(	[ pt3x	0 ] 	[ pt3y	0 ] 	[ pt3z	0 ] 	)
+offset	[ 0	locks=0 ]	(	[ offset	0.030999999493360519 ] 	)
 divisions	[ 0	locks=0 ]	(	[ divisions	0 ] 	)
-opShape	[ 8	locks=0	autoscope=1	autosel=4294967295 ]	(	[ opShape	"" ] 	)
-input	[ 0	locks=0 ]	(	[ input	0 ] 	)
+opShape	[ 8	locks=0	autoscope=1	autosel=4294967295 ]	(	[ opShape	/obj/geo1/tube2 ] 	)
+input	[ 0	locks=0 ]	(	[ input	2 ] 	)
 booleanop	[ 0	locks=0 ]	(	[ booleanop	0 ] 	)
 ncy	[ 8	locks=0 ]	(	[ ncy	1 ] 	)
 tcopy	[ 0	locks=0 ]	(	[ tcopyx	0 ] 	[ tcopyy	0 ] 	[ tcopyz	0 ] 	)
-rcopy	[ 0	locks=0 ]	(	0	0	0	)
-pcopy	[ 0	locks=0 ]	(	0	0	0	)
+rcopy	[ 0	locks=0 ]	(	[ rcopyx	0 ] 	[ rcopyy	0 ] 	[ rcopyz	0 ] 	)
+pcopy	[ 0	locks=0 ]	(	[ pcopyx	0 ] 	[ pcopyy	0 ] 	[ pcopyz	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -797,7 +883,7 @@ sopflags sopflags =
 comment ""
 position -6.39933 -7.038
 connectornextid 2
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -813,7 +899,7 @@ inputs
 stat
 {
   create 1581817887
-  modify 1585787477
+  modify 1586827803
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -838,7 +924,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -873,7 +959,7 @@ inputs
 stat
 {
   create 1581885789
-  modify 1585787477
+  modify 1586829651
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -899,7 +985,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -932,7 +1018,7 @@ inputs
 stat
 {
   create 1581885864
-  modify 1582513288
+  modify 1586829189
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -971,7 +1057,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -990,7 +1076,7 @@ sopflags sopflags =
 comment ""
 position -11.9411 3.16393
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 1 "output1"
@@ -1006,7 +1092,7 @@ inputs
 stat
 {
   create 1581888241
-  modify 1582509728
+  modify 1586829950
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1037,7 +1123,7 @@ Content-Type: text/plain
 version 0.8
 itermethod	[ 0	locks=0 ]	(	"count"	)
 method	[ 0	locks=0 ]	(	"feedback"	)
-iterations	[ 0	locks=0 ]	(	[ iterations	1 ] 	)
+iterations	[ 0	locks=0 ]	(	[ iterations	2 ] 	)
 startvalue	[ 0	locks=0 ]	(	1	)
 increment	[ 0	locks=0 ]	(	1	)
 class	[ 0	locks=0 ]	(	"point"	)
@@ -1049,7 +1135,7 @@ blockpath	[ 0	locks=0 ]	(	../foreach_begin1	)
 templatepath	[ 0	locks=0 ]	(	../foreach_begin1	)
 resetcookpass	[ 0	locks=0 ]	(	0	)
 dosinglepass	[ 0	locks=0 ]	(	"off"	)
-singlepass	[ 0	locks=0 ]	(	0	)
+singlepass	[ 0	locks=0 ]	(	1	)
 stopcondition	[ 0	locks=0 ]	(	0	)
 multithread	[ 0	locks=0 ]	(	"off"	)
 }
@@ -1061,7 +1147,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1096,7 +1182,7 @@ inputs
 stat
 {
   create 1581888241
-  modify 1585788495
+  modify 1586829959
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1125,7 +1211,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1158,7 +1244,7 @@ inputs
 stat
 {
   create 1581888241
-  modify 1585788495
+  modify 1586829959
   author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
@@ -1187,7 +1273,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1266,7 +1352,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1341,7 +1427,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1413,7 +1499,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1492,7 +1578,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1577,7 +1663,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1650,7 +1736,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1709,7 +1795,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1770,7 +1856,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1831,7 +1917,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
@@ -1891,7 +1977,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"18.0.391"
+		"value":"18.0.416"
 	}
 }
 
