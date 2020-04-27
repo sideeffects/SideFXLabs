@@ -1,0 +1,120 @@
+"""
+State:          Labs::trim texture utility
+State type:     labs::trim_texture_utility
+Description:    Labs::trim texture utility
+Author:         Paul_Ambrosiussen
+Date Created:   April 25, 2020 - 17:21:13
+"""
+
+# Usage: This sample draws highlights when hovering over geometry polygons.
+# Make sure to add an input on the node, connect a polygon mesh geometry and
+# hit enter in the viewer.
+
+import hou
+import viewerstate.utils as su
+
+class State(object):
+    MSG = "Click to create a new Trim Strip. Hold shift while clicking to add to the previous selection."
+
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer
+        self.poly_id = -1
+        self.geometry = None
+        self.mouse_screen = hou.Vector2()
+        self.multiparm = None
+        self.visualizer = 0
+        
+        # Drawable for drawing the polygon under the cursor.
+        self.face = hou.GeometryDrawable(self.scene_viewer, 
+            hou.drawableGeometryType.Face, 
+            "face", 
+            params = {
+                "style": hou.drawableGeometryFaceStyle.Plain,
+                "color1": (1.0,0.28,0.0,0.3) }
+        )
+                
+    def show(self, visible):
+        """ Display or hide drawables.
+        """
+        self.face.show(visible)
+
+    def onEnter(self, kwargs):
+        """ Assign the geometry to drawabled
+        """
+        node = kwargs["node"]
+        self.multiparm = node.parm("iTrimStrips")
+        self.geometry = node.geometry()
+        self.visualizer = node.parm("bVisualize").evalAsInt()
+        node.parm("bVisualize").set(1)
+        self.show(True)
+
+        self.scene_viewer.setPromptMessage( State.MSG )
+
+    def onExit(self, kwargs):
+        node = kwargs["node"]
+        node.parm("bVisualize").set(self.visualizer)
+
+    def onResume(self, kwargs):
+        self.show(True)
+        self.scene_viewer.setPromptMessage( State.MSG )
+
+    def onInterrupt(self,kwargs):
+        self.show(False)
+
+    def onMouseEvent(self, kwargs):
+        """ Computes the cursor text position and drawable geometry
+        """
+
+        # Set the drawable with the polygon under the cursor
+        ui_event = kwargs["ui_event"]
+        (origin, dir) = ui_event.ray()   
+        reason = ui_event.reason()  
+        device = ui_event.device()   
+        node = kwargs["node"]
+
+        ## GEOMETRY
+        giGeometry = su.GeometryIntersector(self.geometry)
+        giGeometry.intersect(origin, dir, snapping=False)
+
+        if giGeometry.prim_num != -1:
+
+            if reason == hou.uiEventReason.Picked:
+
+                currentassignments = self.multiparm.evalAsInt()
+
+                if not device.isShiftKey() or currentassignments == 0:
+                    self.multiparm.set(currentassignments+1)
+
+                    node.parm("basegroup_%s" % (currentassignments+1)).set(str(giGeometry.prim_num))
+
+                else:
+                    CurSel = node.parm("basegroup_%s" % (currentassignments)).rawValue()
+                    CurSel += " " + str(giGeometry.prim_num)
+                    CurSel = " ".join(set(CurSel.split(" ")))
+                    node.parm("basegroup_%s" % (currentassignments)).set(CurSel)
+
+    def onDraw( self, kwargs ):
+        """ This callback is used for rendering the drawables
+        """
+        handle = kwargs["draw_handle"]
+
+        self.face.draw(handle) 
+
+
+def createViewerStateTemplate():
+    """ Mandatory entry point to create and return the viewer state 
+        template to register. """
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Trim Texture Utility"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+
+
+
+    return template

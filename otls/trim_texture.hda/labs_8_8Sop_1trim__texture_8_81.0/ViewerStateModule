@@ -1,0 +1,326 @@
+"""
+State:          Labs::trim texture::1.0
+State type:     labs::trim_texture::1.0
+Description:    Labs::trim texture::1.0
+Author:         Paul Ambrosiussen
+Date Created:   April 22, 2020 - 18:18:49
+"""
+
+import hou
+import viewerstate.utils as su
+
+class State(object):
+    MSG = (
+            "1. Click on a Trim from the Trim Sheet\n"
+            "2. Click on a primitive on your geometry to assign the Trim. (Shift to Multi-Select)\n"
+            "3. RMB to change tweaking mode.. Hold MMB to tweak Trim placement."
+        )
+
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer
+        self.geometry = None
+        self.uvgeometry = None
+        self.mouse_screen = hou.Vector2()
+        self.pickedtrimprim = -1
+        self.pickedtrimprimID = -1
+        self.pickedprim = -1
+        self.pickedprimID = -1
+        self.mousepos = (0.0,0.0)
+        self.multiparm = None
+        self.editmode = "translate"
+        self.direction = "horizontal"
+
+        
+        # Drawable for drawing the highlight polygons.
+        self.UVGeometryShell = hou.GeometryDrawable(self.scene_viewer, 
+            hou.drawableGeometryType.Face, 
+            "face", 
+            params = {
+                "style": hou.drawableGeometryFaceStyle.Plain,
+                "color1": (1.0,0.28,0.0,0.3) }
+        )
+
+        self.UVTargetShellHighlight = hou.GeometryDrawable(self.scene_viewer, 
+            hou.drawableGeometryType.Face, 
+            "face", 
+            params = {
+                "style": hou.drawableGeometryFaceStyle.Plain,
+                "color1": (1.0,0.28,0.0,0.3) }
+        )
+
+        self.UVTargetShell = hou.GeometryDrawable(self.scene_viewer, 
+            hou.drawableGeometryType.Face, 
+            "UVTargetShell", 
+            params = {
+                "style": hou.drawableGeometryFaceStyle.Plain,
+                "color1": (0.32,0.63,1.0,0.3) }
+        )
+    
+    # Control visibility for drawables
+    def show(self, visible):
+        self.UVGeometryShell.show(visible)
+        self.UVTargetShell.show(visible)
+        self.UVTargetShellHighlight.show(visible)
+
+    def onEnter(self, kwargs):
+        node = kwargs["node"]
+
+        self.multiparm = node.parm("iPrimAssignments")
+        self.geometry = node.node("SELECTION_GEO").geometry()
+        self.uvgeometry = node.node("UV_GUIDE").geometry()
+
+        node = kwargs["node"]
+        node.parm("bDrawing").set(1)
+
+        self.UpdateStashedGeo(kwargs, False)
+        self.scene_viewer.setPromptMessage( State.MSG )
+
+
+    def onExit(self, kwargs):
+        node = kwargs["node"]
+        node.parm("bDrawing").set(0)
+        self.UpdateStashedGeo(kwargs, True)
+
+    def onInterrupt(self,kwargs):
+        node = kwargs["node"]
+        node.parm("bDrawing").set(0)
+        self.UVTargetShell.show(False)
+        self.UVTargetShellHighlight.show(False)
+
+    def onResume(self, kwargs):
+        node = kwargs["node"]
+        node.parm("bDrawing").set(1)
+        self.UVTargetShell.show(True)
+        self.UVTargetShellHighlight.show(True)
+        self.scene_viewer.setPromptMessage( State.MSG )
+        
+    # Helper function to update Highlight polygons.
+    def CreateSelectionPrimitives(self, a_primselection, a_geometry):
+        poly_geo = hou.Geometry()
+
+        NumPrims = 1
+        NewNumPrims = 0
+
+        while NewNumPrims != NumPrims:
+            NumPrims = NewNumPrims
+            a_primselection.grow(a_geometry)
+            NewNumPrims = len(a_primselection.prims(a_geometry))
+
+        for prim in a_primselection.prims(a_geometry):
+
+            poly_points = prim.points()                                                              
+            poly = poly_geo.createPolygon()
+            for pt in poly_points:
+                point = poly_geo.createPoint()
+                point.setPosition(pt.position())
+                poly.addVertex(point)
+
+        return poly_geo
+
+    # Update stash geometry to prevent expensive cooks
+    def UpdateStashedGeo(self, kwargs, a_empty):
+        node = kwargs["node"]
+
+        if a_empty == True:
+            node.parm("stash").set(None)
+        else:
+            node.parm("stash").set(node.node("CLEAN").geometry())
+
+    def onMouseEvent(self, kwargs):
+
+        ui_event = kwargs["ui_event"]
+        device = ui_event.device()
+        node = kwargs["node"]
+        reason = ui_event.reason()
+        (origin, dir) = ui_event.ray()
+
+
+        ## TRIMSHEET
+        giTargetUVShell = su.GeometryIntersector(self.uvgeometry)
+        giTargetUVShell.intersect(origin, dir, snapping=False)
+
+        if giTargetUVShell.prim_num != -1:
+
+            # Trim hover highlight
+            self.UVTargetShellHighlight.setGeometry(self.CreateSelectionPrimitives(hou.Selection(self.uvgeometry, hou.geometryType.Primitives, str(giTargetUVShell.prim_num)), self.uvgeometry))
+            self.UVTargetShellHighlight.show(True)
+
+            # Selected a trim
+            if reason == hou.uiEventReason.Picked:
+                self.pickedtrimprim = giTargetUVShell.prim_num
+                self.pickedtrimprimID = self.uvgeometry.iterPrims()[self.pickedtrimprim].intAttribValue("TrimID") 
+
+                Selection = hou.Selection(self.uvgeometry, hou.geometryType.Primitives, str(self.pickedtrimprim))
+
+                self.UVTargetShell.setGeometry(self.CreateSelectionPrimitives(Selection, self.uvgeometry))
+                self.UVTargetShell.show(True)
+
+        # Not hovering
+        else:
+            self.UVTargetShellHighlight.show(False)
+
+
+        ## GEOMETRY
+        giGeometry = su.GeometryIntersector(self.geometry)
+        giGeometry.intersect(origin, dir, snapping=False)
+
+        if giGeometry.prim_num != -1 and giTargetUVShell.prim_num == -1:
+
+            # Geometry hover highlight
+            self.pickedprim = giGeometry.prim_num
+            self.UVGeometryShell.setGeometry(self.CreateSelectionPrimitives(hou.Selection(self.geometry, hou.geometryType.Primitives, str(self.pickedprim)), self.geometry))
+            self.UVGeometryShell.show(True)
+
+            # Clicked on a polygon from the target geometry
+            if reason == hou.uiEventReason.Picked and self.pickedtrimprim != -1:
+                self.pickedprimID = self.geometry.iterPrims()[self.pickedprim].intAttribValue("UVShellID")
+
+                currentassignments = self.multiparm.evalAsInt()
+
+                # Single polygon assignment
+                if not device.isShiftKey() or currentassignments == 0:
+                    node.parm("stash").set(node.node("OUTPUT").geometry())
+                    self.multiparm.set(currentassignments+1)
+
+                    node.parm("sSelection_%s" % (currentassignments+1)).set(str(self.pickedprimID))
+                    node.parm("iTargetShell_%s" % (currentassignments+1)).set(str(self.pickedtrimprimID))
+                
+                # Multi-Select
+                else:
+                    CurSel = node.parm("sSelection_%s" % (currentassignments)).rawValue()
+                    CurSel += " " + str(self.pickedprimID)
+                    CurSel = " ".join(set(CurSel.split(" ")))
+                    node.parm("sSelection_%s" % (currentassignments)).set(CurSel)
+                
+        # Not hovering the target geometry
+        else:
+            self.UVGeometryShell.show(False)
+
+
+        ### MMB behaviors
+        if ui_event.device().isMiddleButton():
+
+            # MMB held, track mouse pos
+            if reason == hou.uiEventReason.Start:
+                self.mousepos = (device.mouseX(), device.mouseY())
+
+            # Track the delta change since last change
+            deltamousepos = [self.mousepos[0]-device.mouseX(), self.mousepos[1]-device.mouseY()]
+
+            # Moving the screen Trim Texture
+            if device.isCtrlKey():
+
+                # Moving mouse while holding control
+                if reason == hou.uiEventReason.Active:
+
+                    offset = list(node.parmTuple("v2TexureOffsetInternal").eval())
+                    offset[0] -= deltamousepos[0] * 0.005
+                    offset[1] -= deltamousepos[1] * 0.005
+
+                    node.parmTuple("v2TexureOffsetInternal").set(tuple(offset))
+
+
+            ### Tweaking mode
+            else:      
+                activemultiparmindex = self.multiparm.evalAsInt()
+
+                
+                # Translation
+                if self.editmode == "translate":
+                    sensivity = 0.001
+                    if device.isShiftKey():
+                        sensivity = 0.0001
+
+                    if activemultiparmindex > 0:
+                        uvtranslateoffset = list(node.parmTuple("v2Translate_%s" % activemultiparmindex).eval())
+
+                        if self.direction == "horizontal":
+                            node.parmTuple("v2Translate_%s" % activemultiparmindex).set(tuple([uvtranslateoffset[0]-deltamousepos[0]*sensivity, uvtranslateoffset[1]]))
+                        else:
+                            node.parmTuple("v2Translate_%s" % activemultiparmindex).set(tuple([uvtranslateoffset[0], uvtranslateoffset[1]-deltamousepos[0]*sensivity]))
+                
+                # Scale
+                elif self.editmode == "scale":
+                    sensivity = 0.001
+                    if device.isShiftKey():
+                        sensivity = 0.0001
+
+                    if activemultiparmindex > 0:
+                        uvscale = list(node.parmTuple("v2Scale_%s" % activemultiparmindex).eval())
+
+                        if self.direction == "horizontal":
+                            node.parmTuple("v2Scale_%s" % activemultiparmindex).set(tuple([uvscale[0]-deltamousepos[0]*sensivity, uvscale[1]]))
+                        else:
+                            node.parmTuple("v2Scale_%s" % activemultiparmindex).set(tuple([uvscale[0], uvscale[1]-deltamousepos[0]*sensivity]))
+
+                # Rotations
+                elif self.editmode == "rotate":
+                    sensivity = 1
+                    if device.isShiftKey():
+                        sensivity = 0.1
+
+                    if activemultiparmindex > 0:
+                        uvrotate = node.parm("fRotate_%s" % activemultiparmindex).evalAsFloat()
+                        node.parm("fRotate_%s" % activemultiparmindex).set(uvrotate-deltamousepos[0]*sensivity)
+
+
+            # Reset mouse pos we stored, so we don't jump around when suddenly clicking
+            self.mousepos = (device.mouseX(), device.mouseY())
+
+
+    # Allow user to change the tweaking mode
+    def onMenuAction(self, kwargs):
+        self.editmode = kwargs["edit_mode"]
+        self.direction = kwargs["direction_mode"]
+
+
+    def onDraw( self, kwargs ):
+        handle = kwargs["draw_handle"]
+        node = kwargs["node"]
+
+        ## Handling the viewport texture transforms. Currently a hack since drawables dont support shaders yet.
+        viewport = hou.ui.curDesktop().paneTabOfType(hou.paneTabType.SceneViewer).curViewport()
+        cam = viewport.viewTransform()
+        rotation = cam.extractRotates()
+        translation = cam.extractTranslates()
+
+        node.parmTuple("vCamTranslate").set(tuple(translation))
+        node.parmTuple("vCamRotate").set(tuple(rotation))
+
+        if self.pickedtrimprim != -1:
+            self.UVTargetShell.setGeometry(self.CreateSelectionPrimitives(hou.Selection(self.uvgeometry, hou.geometryType.Primitives, str(self.pickedtrimprim)), self.uvgeometry))
+
+
+        self.UVGeometryShell.draw(handle) 
+        self.UVTargetShell.draw(handle)
+        self.UVTargetShellHighlight.draw(handle)
+
+
+def createViewerStateTemplate():
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Trim Texture"
+    state_cat = hou.sopNodeTypeCategory()
+
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+    
+
+    # Create and bind context menu
+    menu = hou.ViewerStateMenu('tweak_menu', 'Tweak Menu')
+    menu.addRadioStrip("edit_mode", "Tweak Mode", "translate")
+    #hk = su.hotkey(state_typename, 'translate', '1', 'Translate')
+    menu.addRadioStripItem("edit_mode", "translate", "Translate")#, hk)#, translate_key)
+    menu.addRadioStripItem("edit_mode", "rotate", "Rotate")#, rotate_key)
+    menu.addRadioStripItem("edit_mode", "scale", "Scale")#, scale_key)
+
+    menu.addRadioStrip("direction_mode", "Direction", "horizontal")
+    menu.addRadioStripItem("direction_mode", "horizontal", "Horizontal")
+    menu.addRadioStripItem("direction_mode", "vertical", "Vertical")
+
+    template.bindMenu(menu)
+
+    return template
