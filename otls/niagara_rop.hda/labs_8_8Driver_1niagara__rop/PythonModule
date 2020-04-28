@@ -1,0 +1,553 @@
+from collections import OrderedDict
+import copy
+import csv
+import json
+import math
+import os
+
+import hbjson
+
+import hou
+
+g_supported_attribute_data_types = (
+    hou.attribData.Float,
+    hou.attribData.Int,
+)
+
+def report_and_raise_error(message, exception_class):
+    """ Convenience function for reporting (print or UI popup)
+    an error and raising an exception.
+    
+    """
+    if hou.isUIAvailable():
+        hou.ui.displayMessage(message, severity=hou.severityType.Error)
+    else:
+        print >>sys.stderr, message
+    raise exception_class(message)
+    
+
+def preflight_checks(node):
+    """ Check that all required parms are set and settings
+    are consistent. Raise hou.ValueError for any errors.
+    
+    
+    """
+    errors = []
+    csv_path = node.evalParm('outputpath')
+    if not csv_path or not csv_path.strip():
+        errors.append('Please specify an output filepath in "outputpath".')
+    
+    export_sop = node.evalParm('soppath')
+    if not export_sop:
+        errors.append('Please specify the SOP to export in "soppath".')
+
+    if errors:
+        message = 'The following errors were encountered:\n{0}'.format(
+            '\n'.join(('  - {0}'.format(m) for m in errors))
+        )
+        report_and_raise_error(message, hou.ValueError)
+    return True
+
+    
+def get_export_sop(node):
+    """ Get the SOP containing the pre-processed export data. """
+    return node.node('sopnet1').renderNode()
+
+
+def generate_supported_point_attributes(geometry):
+    """ Returns a generator of supported point attributes
+    from the geometry.
+    
+    """
+    for point_attr in geometry.pointAttribs():
+        if (point_attr.dataType() in g_supported_attribute_data_types):
+            yield point_attr
+
+            
+def generate_attribute_columns(point_attr, point):
+    """ Generate a sequence of tuples, where each 
+    tuple contains the column title and component value
+    for the value of ``point_attr`` on ``point``.
+    
+    For example, for the attribute 'pscale' this would return
+    (('pscale', 0.1f), )
+    
+    For the attribute 'v' this would return:
+    (('v.x', 0.1f), ('v.y', 0.13f), ('v.z', 0.2f))
+    
+    For the attribute 'Cd' this would return:
+    (('Cd.r', 0.5f), ('Cd.g', 0.3f), ('Cd.b', 0.1f))
+    
+    """
+    attrib_name = point_attr.name()
+    value = None
+    if point:
+        value = point.attribValue(point_attr)
+    if point_attr.size() <= 1:
+        yield (attrib_name, value)
+    else:
+        option_type = point_attr.option('type')
+        if option_type in ('vector', 'quaternion', 'point'):
+            component_names = ('x', 'y', 'z', 'w')[:point_attr.size()]
+        elif option_type == 'color':
+            component_names = ('r', 'g', 'b')[:point_attr.size()]
+        else:
+            component_names = range(point_attr.size())
+        for index, component_name in enumerate(component_names):
+            yield (
+                '{0}.{1}'.format(attrib_name, component_name), 
+                value[index] if value is not None else None,
+            )
+
+
+def get_attribute_data(point_attr, point, attr_cast_dict):
+    """ Get a dictionary of attribute data:
+            ``name``, ``size``, ``type`` and ``value``.
+    
+        
+    """
+    attrib_name = point_attr.name()
+    value = None
+    if point:
+        value = point.attribValue(point_attr)
+
+    attrib_data_type = point_attr.dataType()
+    storage_data_type = attr_cast_dict.get(attrib_name)
+    if not storage_data_type:
+        if attrib_data_type == hou.attribData.Float:
+            storage_data_type = hbjson.Markers.TYPE_FLOAT32
+        elif attrib_data_type == hou.attribData.Int:
+            storage_data_type = hbjson.Markers.TYPE_INT32
+        else:
+            raise TypeError('Unsupported attribute data type for {0}'.format(attrib_name))
+        
+    size = point_attr.size()
+    if size <= 1:
+        return dict(
+            name=attrib_name,
+            size=size,
+            type='scalar',
+            value=value,
+            storage_data_type=storage_data_type,
+        )
+    else:
+        option_type = point_attr.option('type')
+        if option_type in ('vector', 'quaternion', 'point', 'color'):
+            return dict(
+                name=attrib_name,
+                size=size,
+                type=option_type,
+                value=value,
+                storage_data_type=storage_data_type,
+            )
+        else:
+            return dict(
+                name=attrib_name,
+                size=size,
+                type='array',
+                value=value,
+                storage_data_type=storage_data_type,
+            )
+
+
+def get_export_file_type(node):
+    """ Returns the export file type name and file extension.
+
+    Returns:
+        file_type : str
+            Either 'hcsv', 'hjson', 'hbjson' or ``None``, if the file type is unknown.
+        ext : str
+            The output file extension, '.hcsv', '.hjson' or '.hbjson'.
+    
+    """
+    output_path = node.evalParm('outputpath')
+    ext = os.path.splitext(output_path)[1]
+    ext_lower = ext.lower()
+    if ext_lower == '.hcsv':
+        return 'hcsv', ext
+    elif ext_lower == '.hjson':
+        return 'hjson', ext
+    elif ext_lower == '.hbjson':
+        return 'hbjson', ext
+    else:
+        return None, ext 
+
+   
+def pre_render_script(node, render_node=None):
+    # Do pre-flight checks and report errors (raises errors)
+    preflight_checks(node)
+
+    file_type, ext = get_export_file_type(node)
+    if file_type == 'hcsv':
+        return export_csv_header(node, render_node=render_node)
+    elif file_type == 'hjson' or file_type == 'hbjson':
+        return export_json_header(node, render_node=render_node)
+    else:
+        report_and_raise_error('Unsupported file type: {0}'.format(ext), hou.ValueError)
+
+
+def pre_frame_script(node, render_node=None, frame=None):
+    preflight_checks(node)
+
+    file_type, ext = get_export_file_type(node)
+    if file_type == 'hcsv':
+        return export_csv_body(node, render_node=render_node, frame=frame)
+    elif file_type == 'hjson' or file_type == 'hbjson':
+        return export_json_frame(node, render_node=render_node, frame=frame)
+    else:
+        report_and_raise_error('Unsupported file type: {0}'.format(ext), hou.ValueError)
+
+
+def post_render_script(node, render_node=None):
+    # Do pre-flight checks and report errors (raises errors)
+    preflight_checks(node)
+
+    file_type, ext = get_export_file_type(node)
+    if file_type == 'hjson' or file_type == 'hbjson':
+        return export_json_footer(node, render_node=render_node)
+    return True
+
+
+def export_json_header(node, render_node=None):
+    """ Build and export the header part of the file. Returns a ``hbjson.NiagaraData`` 
+    object. If the output file type is the binary format then this function
+    will write to the file. The text format is only dumped at the end of
+    the entire frame range.
+
+    """
+    if not render_node:
+        render_node = get_export_sop(node)
+ 
+    initial_frame = hou.frame()
+    # Determine the frame range to export and go to
+    # the first frame to export (we will collect the
+    # attribute definitions to export from there)
+    trange = node.parm('trange').evalAsString()
+    if trange == 'off':
+        f = (hou.frame(), hou.frame(), 1)
+    else:
+        f = node.parmTuple('f').eval()
+        # Go to first frame of export range
+        hou.setFrame(f[0])
+
+    geo = render_node.geometry()    
+    
+    # Construct the map of attribute names to target types
+    attr_cast_dict = {}
+    for cast_index in range(1, node.evalParm('attr_types') + 1):
+        _attr_to_cast = node.evalParm('attr_to_cast{0}'.format(cast_index))
+        if _attr_to_cast:
+            _type_to_cast_to = node.evalParm('attr_type{0}'.format(cast_index))
+            if _type_to_cast_to:
+                attr_cast_dict[_attr_to_cast] = _type_to_cast_to
+    
+    # get the names and number of components of all of the point attributes
+    attribute_names = []
+    attribute_sizes = []
+    # This is expanded by the size of each attribute, ie, f, f, f
+    # for 1 attribute of size 3 of type float
+    attribute_data_types = []
+    for point_attr in generate_supported_point_attributes(geo):
+        this_attrib_data = get_attribute_data(point_attr, point=None, attr_cast_dict=attr_cast_dict)
+        attr_name = this_attrib_data['name']
+        if attr_name == 'id':
+            # The id attribute must be the first attribute
+            attribute_names.insert(0, attr_name)
+            attribute_sizes.insert(0, this_attrib_data['size'])
+            attribute_data_types.insert(0, this_attrib_data['storage_data_type'])
+        elif attr_name == 'time':
+            # Don't export the 'time' attribute, since each
+            # frame is exported with its time value
+            continue
+        else:
+            attribute_names.append(attr_name)
+            attribute_sizes.append(this_attrib_data['size'])
+            if this_attrib_data['size'] > 1:
+                attribute_data_types.extend(
+                    (this_attrib_data['storage_data_type'], ) * this_attrib_data['size'])
+            else:
+                attribute_data_types.append(this_attrib_data['storage_data_type'])
+
+    # Set up the hbjson export object
+    niagara_data = hbjson.NiagaraData()
+    header = niagara_data.header
+    header.num_samples = 0
+    header.num_frames = int(math.floor((f[1] - f[0]) / f[2]) + 1)
+    header.num_points = 0
+    header.num_attrib = len(attribute_names)
+    header.attrib_name = attribute_names
+    header.attrib_size = attribute_sizes
+    header.attrib_data_type = attribute_data_types
+    header.data_type = 'linear'
+    # Keep track of how many unique points (by id) we've seen
+    header.point_ids = set()
+
+    json_path = node.evalParm('outputpath')
+
+    file_type, file_ext = get_export_file_type(node)
+    is_binary = bool(file_type == 'hbjson')
+
+    # For binary output we write the file as we progress, write
+    # from the header to just before the first frame
+    if is_binary:
+        with open(json_path, 'wb') as file_handle:
+            niagara_data.dump_begin(file_handle)
+
+    # Cache the niagara_data instance in the session, it will be used for subsequent per frame
+    # and post render calls
+    if not hasattr(hou.session, 'niagara_rop_instance_data'):
+        hou.session.niagara_rop_instance_data = {}
+    hou.session.niagara_rop_instance_data[node.path()] = {
+        'niagara_data': niagara_data,
+    }
+        
+    return niagara_data
+
+
+def get_niagara_rop_instance_data(node):
+    if not hasattr(hou.session, 'niagara_rop_instance_data'):
+        return None
+    return hou.session.niagara_rop_instance_data.get(node.path())
+
+
+def export_json_frame(node, frame, render_node=None, niagara_data=None):
+    if not niagara_data:
+        instance_data = get_niagara_rop_instance_data(node)
+        if instance_data:
+            niagara_data = instance_data.get('niagara_data')
+
+    json_path = node.evalParm('outputpath')
+    file_type, file_ext = get_export_file_type(node)
+    is_binary = bool(file_ext == '.hbjson')
+
+    if is_binary:
+        with open(json_path, 'ab') as file_handle:
+            _export_json_frame_internal(node, frame, render_node, is_binary, file_handle, niagara_data)
+    else:
+        _export_json_frame_internal(node, frame, render_node, False, None, niagara_data)            
+
+
+def _export_json_frame_internal(node, frame, render_node, is_binary, file_handle, niagara_data):
+    if not render_node:
+        render_node = get_export_sop(node)
+
+    geo = render_node.geometry()
+
+    num_points_in_frame = len(geo.iterPoints())
+
+    frame_entry = hbjson.NiagaraData.FrameEntry()
+    frame_entry.header = niagara_data.header
+    frame_entry.number = frame
+    range_mode = node.parm("range_mode").evalAsString()
+    if ((range_mode == "on" or range_mode == "normal") and node.evalParm("export_start_frame_as_time_zero")):
+        frame_entry.time = hou.time() - hou.frameToTime(node.evalParm("f1"))
+    elif ((range_mode == "off" or range_mode == "single_frame_time") and node.evalParm("export_current_frame_as_time_zero")):
+        frame_entry.time = 0
+    else:
+        frame_entry.time = hou.time()
+    frame_entry.num_points = num_points_in_frame
+    
+    # iterate over all the point attributes at this frame
+    # and make sure that the attributes from the first frame
+    # still exist
+    point_attribs = OrderedDict()
+    for attrib_name in niagara_data.header.attrib_name:
+        point_attr = geo.findPointAttrib(attrib_name)
+        if not point_attr:
+            report_and_raise_error(
+                'Attribute "{0}" no longer exists at frame {1}. Did attribute '
+                'definitions change over the ROP frame range?'.format(attrib_name, frame),
+                hou.NodeError,
+            )
+        point_attribs[attrib_name] = point_attr
+
+    if is_binary:
+        frame_entry.dump_begin(file_handle)
+
+    clamp_values_to_pack_type = node.evalParm('attr_clamp')
+    attrib_component_data_types = niagara_data.header.attrib_data_type
+
+    # iterate over each point of this frame and collect the
+    # attribute values
+    frame_data = []
+    point_index = 0
+    for point in geo.points():
+        niagara_data.header.num_samples += 1
+        
+        if is_binary:
+            hbjson.open_array(file_handle)
+        
+        point_data = []          
+        attrib_component_index = 0
+        for attrib_name, point_attr in point_attribs.iteritems():
+            attrib_value = point.attribValue(point_attr)
+            # expand attributes with more than one component
+            # directly into the point_data array
+            point_attr_size = point_attr.size()
+            if point_attr_size > 1:
+                for attrib_component_value in attrib_value:
+                    if is_binary:
+                        hbjson.write_basic_value(
+                            file_handle, attrib_component_value, attrib_component_data_types[attrib_component_index], clamp_values_to_pack_type)
+                    else:
+                        point_data.append(attrib_component_value)
+                    attrib_component_index += 1
+            else:
+                if is_binary:
+                    hbjson.write_basic_value(
+                        file_handle, attrib_value, attrib_component_data_types[attrib_component_index], clamp_values_to_pack_type)
+                else:
+                    point_data.append(attrib_value)
+                attrib_component_index += 1
+            # Keep track of unique points by id
+            if attrib_name == 'id':
+                niagara_data.header.point_ids.add(attrib_value)
+        point_index += 1
+        if is_binary:
+            hbjson.close_array(file_handle)
+        else:
+            frame_data.append(point_data)
+                
+    frame_entry.num_points = point_index
+    if is_binary:
+        frame_entry.dump_end(file_handle)
+    else:
+        frame_entry.frame_data = frame_data
+        niagara_data.add_frame(frame_entry)
+    return frame_entry
+
+
+def export_json_footer(node, render_node=None, niagara_data=None):
+    if not niagara_data:
+        instance_data = get_niagara_rop_instance_data(node)
+        if instance_data:
+            niagara_data = instance_data.get('niagara_data')
+
+    json_path = node.evalParm('outputpath')
+    file_type, file_ext = get_export_file_type(node)
+    is_binary = bool(file_ext == '.hbjson')
+
+    # Update the total number of unique points in the header
+    niagara_data.header.num_points = len(niagara_data.header.point_ids)
+    
+    if is_binary:
+        with open(json_path, 'rb+') as file_handle:
+            # Seek to end of file to write frame data
+            file_handle.seek(0, 2) 
+            niagara_data.dump_end(file_handle)
+            # Seek to beginning of file and re-write header with
+            # updated num_samples and num_points
+            file_handle.seek(0)
+            niagara_data.dump_begin(file_handle)
+    else:
+        with open(json_path, 'w') as file_handle:
+            # Dump the entire cache to text json
+            json.dump(niagara_data.to_dict(), file_handle)
+            
+    if hasattr(hou.session, 'niagara_rop_instance_data'):
+        # Clear the instance data for this ROP
+        if node.path() in hou.session.niagara_rop_instance_data:
+            del hou.session.niagara_rop_instance_data[node.path()]
+
+
+def export_csv_header(node, render_node=None):
+    """ Create a new CSV file (or truncate an existing file)
+    and write out the first row / header of the CSV.
+    
+    Args:
+        node : :class:`hou.ROPNode`
+            The ROP node.
+        render_node : :class:`hou.SOPNode`
+            The SOP to export. Defaults to ``None``, if 
+            ``None`` uses the built-in sopnet1's render node.
+    
+    """
+    # Do pre-flight checks and report errors (raises errors)
+    preflight_checks(node)
+
+    if not render_node:
+        render_node = get_export_sop(node)
+ 
+    # Get the CSV file path
+    csv_path = node.evalParm('outputpath')
+        
+    geo = render_node.geometry()    
+    
+    with open(csv_path, 'wb') as csvfile:
+        attributes = []   
+        # get the names of all of the point attributes
+        for point_attr in generate_supported_point_attributes(geo):
+            for column_name, column_value in generate_attribute_columns(point_attr, point=None):
+                attributes.append(column_name)
+                
+        # write the header row to the CSV file
+        writer = csv.DictWriter(csvfile, attributes, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer.writeheader()
+
+      
+def export_csv_body(node, render_node=None, frame=None):
+    """ Append a frame to an existing CSV file.
+    
+    Args:
+        node : :class:`hou.ROPNode`
+            The ROP node.
+        render_node : :class:`hou.SOPNode`
+            The SOP to export. Defaults to ``None``, if 
+            ``None`` uses the built-in sopnet1's render node.
+        frame : float
+            The current frame being written out. If ``None``
+            defaults to $FF.
+    
+    """
+    # Do pre-flight checks and report errors (raises errors)
+    preflight_checks(node)
+
+    if not render_node:
+        render_node = get_export_sop(node)
+    if frame is None:
+        frame = hou.hscriptExpression('$FF')
+ 
+    # Get the CSV file path
+    csv_path = node.evalParm('outputpath')
+    if not csv_path:
+        return False
+
+    # Get the header/fieldnames from the CSV, we use this to check that
+    # the attribute list does not change over the ROP frame range
+    fieldnames = None
+    with open(csv_path, 'r') as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        fieldnames = reader.fieldnames
+        
+    if not fieldnames:
+        report_and_raise_error(
+            'The csv file "{0}" does not contain the expected header.'.format(csv_path),
+            hou.NodeError,
+        )
+
+    # get the geo to export
+    geo = render_node.geometry()    
+    
+    # append to the CSV file
+    with open(csv_path, 'a') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+              
+        # iterate over each point in the geo and write out its
+        # attribute values as columns (one point per line/row)
+        for point in geo.points():
+            point_data = {}
+            # iterate over all the point attributes
+            for point_attr in generate_supported_point_attributes(geo):
+                for column_name, column_value in generate_attribute_columns(point_attr, point):
+                    if column_name not in fieldnames:
+                        report_and_raise_error(
+                            'Attribute "{0}" at frame {1} is not in CSV header. Did attribute '
+                            'definitions change over the ROP frame range?'.format(column_name, frame),
+                            hou.NodeError,
+                        )
+                    else:
+                        point_data[column_name] = column_value
+                    
+            # write the row to the CSV file
+            writer.writerow(point_data)
+            

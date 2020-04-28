@@ -1,0 +1,202 @@
+# Dialog script for labs::niagara::2.0 automatically generated
+
+{
+    name	labs::niagara::2.0
+    script	niagara_sop_rop::5
+    label	"Labs Niagara ROP"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Point Cache"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "execute"
+        label   "Render"
+        type    button
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "takecontrol" "always" }
+    }
+    group {
+        name    "folder0"
+        label   "General"
+
+        groupsimple {
+            name    "render_settings"
+            label   "ROP Settings"
+
+            parm {
+                name    "range_mode"
+                label   "Frame Range / Time Mode"
+                type    ordinal
+                default { "normal" }
+                menu {
+                    "off"               "Render Current Frame"
+                    "normal"            "Render Frame Range"
+                    "on"                "Render Frame Range Only (Strict)"
+                    "single_frame_time" "Single Frame With `time` Attribute"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "f"
+                label   "Start/End/Inc"
+                type    float
+                size    3
+                default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+                disablewhen "{ range_mode == off } { range_mode == single_frame_time }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "take"
+                label   "Render with Take"
+                type    string
+                default { "" }
+                menu {
+                    [ "opmenu -l -a ropnet1/niagara_rop take" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outputpath"
+                label   "Output Path"
+                type    file
+                default { "$HIP/$OS.hbjson" }
+                menureplace {
+                    [ "opmenu -l -a ropnet1/niagara_rop outputpath" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "write" }
+                parmtag { "filechooser_pattern" "*.hjson *.hbjson *.hcsv " }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "attributes_folder"
+            label   "Attributes"
+
+            multiparm {
+                name    "ptrenames"
+                label    "Number of Renames"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "multistartoffset" "0" }
+
+                parm {
+                    name    "frompt#"
+                    label   "Attribute From/To"
+                    type    string
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "topt#"
+                    label   "To Attribute"
+                    type    string
+                    nolabel
+                    default { "" }
+                }
+            }
+
+            parm {
+                name    "overwrite"
+                label   "Overwrite Existing Attributes"
+                type    toggle
+                default { "off" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "ptkeep"
+                label   "Keep Attributes"
+                type    string
+                default { "P id time N v life type Cd Alpha" }
+                menutoggle {
+                    [ "opmenu -l -a ropnet1/niagara_rop ptkeep" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            multiparm {
+                name    "attr_types"
+                label    "Cast Attributes"
+                default 2
+                parmtag { "autoscope" "0000000000000000" }
+
+                parm {
+                    name    "attr_to_cast#"
+                    label   "Attribute"
+                    type    string
+                    default { "" }
+                    menureplace {
+                        [ "opmenu -l ropnet1/niagara_rop1 attr_to_cast1" ]
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "attr_type#"
+                    label   "Type"
+                    type    string
+                    default { "" }
+                    menu {
+                        [ "opmenu -l ropnet1/niagara_rop1 attr_type1" ]
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            parm {
+                name    "attr_clamp"
+                label   "Clamp Attributes That Are Outside Type Range"
+                type    toggle
+                default { "on" }
+                help    "When an attribute is cast to a different type the value might be outside of the range of the target type. If this option is selected, the value will be clamped to the type range. If this option is not selected and an out of range value is encountered, an exception will be raised while writing out the file. Only applicable to binary format output (.hbjson)"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Advanced"
+
+        groupsimple {
+            name    "folder2"
+            label   "Time Settings"
+
+            parm {
+                name    "export_current_frame_as_time_zero"
+                label   "Export Current Frame As time == 0"
+                type    toggle
+                default { "on" }
+                disablewhen "{ range_mode == normal } { range_mode == on }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "export_start_frame_as_time_zero"
+                label   "Export Start Frame As time == 0"
+                type    toggle
+                default { "off" }
+                disablewhen "{ range_mode == off } { range_mode == single_frame_time }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

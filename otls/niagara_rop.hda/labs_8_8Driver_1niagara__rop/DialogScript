@@ -1,0 +1,226 @@
+# Dialog script for labs::niagara_rop automatically generated
+
+{
+    name	labs::niagara_rop
+    script	niagara_rop::5
+    label	"Labs Niagara ROP"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input #1"
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    group {
+        name    "folder0"
+        label   "General"
+
+        groupsimple {
+            name    "render_settings"
+            label   "ROP Settings"
+
+            parm {
+                name    "trange"
+                label   "Valid Frame Range"
+                type    ordinal
+                invisible
+                default { "if(strcmp(chs(\"range_mode\"), \"single_frame_time\") == 0, 0, ch(\"range_mode\"))" }
+                menu {
+                    "off"       "Render Current Frame"
+                    "normal"    "Render Frame Range"
+                    "on"        "Render Frame Range Only (Strict)"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "range_mode"
+                label   "Frame Range / Time Mode"
+                type    ordinal
+                default { "off" }
+                menu {
+                    "off"               "Render Current Frame"
+                    "normal"            "Render Frame Range"
+                    "on"                "Render Frame Range Only (Strict)"
+                    "single_frame_time" "Single Frame With `time` Attribute"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "f"
+                label   "Start/End/Inc"
+                type    float
+                size    3
+                default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+                disablewhen "{ trange == off }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "take"
+                label   "Render with Take"
+                type    string
+                default { "" }
+                menu {
+                    [ "opmenu -l -a ROP take" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "soppath"
+                label   "SOP to Export"
+                type    oppath
+                default { "" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "opfilter" "!!SOP!!" }
+                parmtag { "oprelative" "." }
+            }
+            parm {
+                name    "outputpath"
+                label   "Output Path"
+                type    file
+                default { "$HIP/$OS.hbjson" }
+                parmtag { "filechooser_mode" "write" }
+                parmtag { "filechooser_pattern" "*.hjson *.hbjson *.hcsv " }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "attributes_folder"
+            label   "Attributes"
+
+            multiparm {
+                name    "ptrenames"
+                label    "Number of Renames"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "multistartoffset" "0" }
+
+                parm {
+                    name    "frompt#"
+                    label   "Attribute From/To"
+                    type    string
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "topt#"
+                    label   "To Attribute"
+                    type    string
+                    nolabel
+                    default { "" }
+                }
+            }
+
+            parm {
+                name    "overwrite"
+                label   "Overwrite Existing Attributes"
+                type    toggle
+                default { "off" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "ptkeep"
+                label   "Keep Attributes"
+                type    string
+                default { "P id time N v life type Cd Alpha" }
+                menutoggle {
+                    [ "opmenu -l -a sopnet1/attribute_modifications ptkeep" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            multiparm {
+                name    "attr_types"
+                label    "Cast Attributes"
+
+                parm {
+                    name    "attr_to_cast#"
+                    label   "Attribute"
+                    type    string
+                    default { "" }
+                    menureplace {
+                        [ "geo_node = kwargs['node'].node('sopnet1/RENDER')" ]
+                        [ "if geo_node:" ]
+                        [ "    return geo_node.geometry().generateAttribMenu(hou.attribType.Point)" ]
+                        [ "else:" ]
+                        [ "    return []" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "attr_type#"
+                    label   "Type"
+                    type    string
+                    default { "" }
+                    menu {
+                        [ "import hbjson" ]
+                        [ "return ['', '- Select -'] + hbjson.Markers.get_type_menu()" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            parm {
+                name    "attr_clamp"
+                label   "Clamp Attributes That Are Outside Type Range"
+                type    toggle
+                default { "1" }
+                help    "When an attribute is cast to a different type the value might be outside of the range of the target type. If this option is selected, the value will be clamped to the type range. If this option is not selected and an out of range value is encountered, an exception will be raised while writing out the file. Only applicable to binary format output (.hbjson)"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Advanced"
+
+        groupsimple {
+            name    "folder2"
+            label   "Time Settings"
+
+            parm {
+                name    "export_current_frame_as_time_zero"
+                label   "Export Current Frame As time == 0"
+                type    toggle
+                default { "1" }
+                disablewhen "{ range_mode == normal } { range_mode == on }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "export_start_frame_as_time_zero"
+                label   "Export Start Frame As time == 0"
+                type    toggle
+                default { "0" }
+                disablewhen "{ range_mode == off } { range_mode == single_frame_time }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

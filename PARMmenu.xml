@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
+
 -->
 
 <menuDocument>
@@ -12,25 +13,25 @@
       <!-- External Editor -->
       
       <addScriptItem id="open_external_editor">
-			  <label>Edit in External Editor</label>
+        <label>Edit in External Editor</label>
         <parent>expression_menu</parent>
         <insertAfter>edit_expression</insertAfter>
-			  <context>
-				  <expression>
+        <context>
+          <expression>
   <![CDATA[
 try:
-  import houdini_external_editor
-  return houdini_external_editor.is_valid_parm(kwargs["parms"][0])
+  from HoudiniExprEditor import ParmWatcher
+  return ParmWatcher.is_valid_parm(kwargs["parms"][0])
 except:
   return False]]></expression>
-			  </context>
-			  <scriptCode>
+        </context>
+        <scriptCode>
           <![CDATA[
-import houdini_external_editor
-reload(houdini_external_editor)
-houdini_external_editor.add_watcher(kwargs["parms"][0])]]>
-			  </scriptCode>
-		  </addScriptItem>
+from HoudiniExprEditor import ParmWatcher
+reload(ParmWatcher)
+ParmWatcher.add_watcher(kwargs["parms"][0])]]>
+        </scriptCode>
+      </addScriptItem>
 
       <!-- Remove watcher -->
 
@@ -42,17 +43,17 @@ houdini_external_editor.add_watcher(kwargs["parms"][0])]]>
           <expression>
             <![CDATA[
 try:
-  import houdini_external_editor
-  return houdini_external_editor.parm_has_watcher(kwargs["parms"][0])
+  from HoudiniExprEditor import ParmWatcher
+  return ParmWatcher.parm_has_watcher(kwargs["parms"][0])
 except:
   return False]]>
           </expression>
         </context>
         <scriptCode>
           <![CDATA[
-import houdini_external_editor
-reload(houdini_external_editor)
-houdini_external_editor.remove_file_watched(kwargs["parms"][0])]]>
+from HoudiniExprEditor import ParmWatcher
+reload(ParmWatcher)
+ParmWatcher.remove_file_watched(kwargs["parms"][0])]]>
         </scriptCode>
       </addScriptItem>
 

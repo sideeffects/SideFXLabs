@@ -1,0 +1,57 @@
+# Dialog script for labs::trim_texture_utility automatically generated
+
+{
+    name	labs::trim_texture_utility
+    script	labs::trim_texture_utility
+    label	"Labs Trim Texture Utility"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Configured Trim Texture"
+
+    parm {
+        name    "bVisualize"
+        label   "Visualize Strips"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "basecolor_texture_1"
+        label   "Trim Texture"
+        type    image
+        default { "" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    multiparm {
+        name    "iTrimStrips"
+        label    "Trim Strips"
+
+        groupsimple {
+            name    "folder0_#"
+            label   "Trim"
+
+            parm {
+                name    "basegroup_#"
+                label   "Selection"
+                type    string
+                default { "" }
+                menutoggle {
+                    [ "opmenu -l -a group1 basegroup" ]
+                }
+                parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\n## I am using an internal node inide the HDA as the geometry to select from, so I am changing the node value of kwargs\nkwargs['node'] = kwargs['node']#.node(\"SELECTOR\")\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action_help    " "Select geometry from an available viewport." }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+            }
+        }
+
+    }
+
+}
