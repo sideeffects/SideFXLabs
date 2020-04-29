@@ -10,10 +10,21 @@
     }
 
     inputlabel	1	"Input Geometry"
-    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	2	"(Optional) Viewpoint"
     inputlabel	3	"Sub-Network Input #3"
     inputlabel	4	"Sub-Network Input #4"
 
+    parm {
+        name    "iExtractMode"
+        label   "Mode"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Silhouette"
+            "1" "Contours"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
     parm {
         name    "mTraceAxis"
         label   "Trace Axis"
@@ -23,6 +34,7 @@
             "0" "X"
             "1" "Y"
             "2" "Z"
+            "3" "Second Input Centroid"
         }
     }
     parm {
@@ -30,7 +42,25 @@
         label   "Remove Outside of Silhouette"
         type    toggle
         default { "off" }
+        hidewhen "{ iExtractMode != 0 }"
         parmtag { "autoscope" "0000000000000000" }
         parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "bResample"
+        label   "Resample"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "length"
+        label   "Resample Length"
+        type    float
+        default { "0.1" }
+        disablewhen "{ bResample == 0 }"
+        range   { 0! 5 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "units" "m1" }
     }
 }
