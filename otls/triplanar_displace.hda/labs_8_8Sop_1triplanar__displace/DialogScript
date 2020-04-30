@@ -1,0 +1,330 @@
+# Dialog script for labs::triplanar_displace automatically generated
+
+{
+    name	labs::triplanar_displace
+    script	labs::triplanar_displace
+    label	"Labs Triplanar Displace"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "basics"
+        label   "Settings"
+
+        parm {
+            name    "bDisplacement"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "texture"
+            label   "Displacement"
+            type    image
+            default { "uvgrid_grey.pic" }
+            disablewhen "{ bDisplacement == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "bColor"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "texture2"
+            label   "Color"
+            type    image
+            default { "uvgrid_grey.pic" }
+            disablewhen "{ bColor == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "scale"
+            label   "Texture Scale"
+            type    float
+            default { "0.5" }
+            range   { 0.001 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "strength"
+            label   "Displacement Amount"
+            type    float
+            default { "0.2" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "exp"
+            label   "Axis Blend"
+            type    float
+            default { "1.5" }
+            range   { 0 3 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder1"
+        label   "Advanced"
+
+        parm {
+            name    "xn__projectionoffset_mpa"
+            label   "Axis Offset"
+            type    float
+            size    3
+            default { "0" "0" "0" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "xn__DisplaceY_dja"
+            label   "Displace Y"
+            type    toggle
+            default { "1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "rest_switch"
+            label   "Rest Normals"
+            type    toggle
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "smooth_normals"
+            label   "Smooth Normals"
+            type    toggle
+            default { "0" }
+            hidewhen "{ rest_switch == 1 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "mirror_x"
+            label   "Mirror X Axis"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "mirror_z"
+            label   "Mirror Z Axis"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        groupsimple {
+            name    "noise"
+            label   "Noise Projection Offset "
+
+            parm {
+                name    "use_noise"
+                label   "Use Noise Projection Offset"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "type"
+                label   "Noise Type"
+                type    string
+                default { "xnoise" }
+                hidewhen "{ use_noise == 0 }"
+                menu {
+                    "pnoise"        "Perlin Noise"
+                    "onoise"        "Original Perlin Noise"
+                    "snoise"        "Sparse Convolution Noise"
+                    "anoise"        "Alligator Noise"
+                    "xnoise"        "Simplex Noise"
+                    "correctnoise"  "Zero Centered Perlin Noise"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "freq"
+                label   "Frequency"
+                type    float
+                size    3
+                default { "1" "1" "1" }
+                hidewhen "{ use_noise == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "offset"
+                label   "Offset"
+                type    float
+                size    3
+                default { "0" "0" "0" }
+                hidewhen "{ use_noise == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "amp"
+                label   "Amplitude"
+                type    float
+                default { "1" }
+                hidewhen "{ use_noise == 0 }"
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "rough"
+                label   "Roughness"
+                type    float
+                default { "0.5" }
+                hidewhen "{ use_noise == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "atten"
+                label   "Attenuation"
+                type    float
+                default { "1" }
+                hidewhen "{ use_noise == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "turb"
+                label   "Turbulence"
+                type    integer
+                default { "5" }
+                hidewhen "{ use_noise == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+        }
+
+        groupsimple {
+            name    "folder0"
+            label   "Displacement Scale Attribute"
+
+            parm {
+                name    "use_attrib"
+                label   "Use Displacement Scale Attribute"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "displace_scale"
+                label   "Displace Scale Attrib"
+                type    string
+                default { "displace_scale" }
+                hidewhen "{ use_attrib == 0 }"
+            }
+            parm {
+                name    "xn__invertattribute_moa"
+                label   "Invert Attribute"
+                type    toggle
+                default { "0" }
+                hidewhen "{ use_attrib == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "srcmin"
+                label   "Minimum Value In Source Range"
+                type    float
+                default { "0" }
+                hidewhen "{ use_attrib == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "srcmax"
+                label   "Maximum Value In Source Range"
+                type    float
+                default { "1" }
+                hidewhen "{ use_attrib == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "destmin"
+                label   "Minimum Value In Destination Range"
+                type    float
+                default { "0" }
+                hidewhen "{ use_attrib == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "destmax"
+                label   "Maximum Value In Destination Range"
+                type    float
+                default { "1" }
+                hidewhen "{ use_attrib == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+        }
+
+    }
+
+}
