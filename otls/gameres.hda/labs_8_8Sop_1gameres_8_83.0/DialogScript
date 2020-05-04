@@ -1,0 +1,1089 @@
+# Dialog script for labs::gameres::3.0 automatically generated
+
+{
+    name	labs::gameres::3.0
+    script	gamedev::sop_gameres::2.0
+    label	"Labs GameRes"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"High Resolution Geometry"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "preview"
+        label   "Preview"
+        type    ordinal
+        default { "4" }
+        menu {
+            "0" "Source"
+            "1" "Voxelization"
+            "2" "Reduced"
+            "3" "UV"
+            "4" "Final"
+        }
+    }
+    group {
+        name    "folder0_1"
+        label   "Reduce"
+
+        parm {
+            name    "finalcount"
+            label   "Number To Keep"
+            type    integer
+            default { "15000" }
+            range   { 1! 10000 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "use_instantmeshes"
+            label   "Use Instant Meshes"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "reducepassedtarget"
+            label   "Continue Reducing Within Quality Tolerance"
+            type    toggle
+            default { [ "off" hscript-expr ] }
+            disablewhen "{ use_instantmeshes == 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "qualitytolerance"
+            label   "Tolerance"
+            type    float
+            default { "1e-05" }
+            disablewhen "{ reducepassedtarget == 0 } { use_instantmeshes == 1 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "originalpoints"
+            label   "Use Only Original Point Positions"
+            type    toggle
+            default { [ "off" hscript-expr ] }
+            disablewhen "{ use_instantmeshes == 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "preservequads"
+            label   "Preserve Quads"
+            type    toggle
+            default { [ "off" hscript-expr ] }
+            disablewhen "{ use_instantmeshes == 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "equalizelengths"
+            label   "Equalize Lengths"
+            type    float
+            default { "1e-10" }
+            disablewhen "{ use_instantmeshes == 1 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupsimple {
+            name    "folder0"
+            label   "Voxelize"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "enable_voxelization"
+                label   "Enable Voxelization"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "res_preset"
+                label   "Resolution Preset"
+                type    ordinal
+                default { "1" }
+                disablewhen "{ enable_voxelization == 0 }"
+                menu {
+                    "0" "Low"
+                    "1" "Mid"
+                    "2" "High"
+                    "3" "Custom"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "resolution"
+                label   "Resolution"
+                type    float
+                default { "0.1" }
+                disablewhen "{ enable_voxelization == 0 }"
+                hidewhen "{ res_preset != 3 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "bounding_box_relative"
+                label   "Bounding Box Relative"
+                type    toggle
+                default { [ "on" hscript-expr ] }
+                disablewhen "{ enable_voxelization == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "adaptivity"
+                label   "Adaptivity"
+                type    float
+                default { "0" }
+                disablewhen "{ enable_voxelization == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "dilate_erode"
+                label   "Dilate/Erode"
+                type    float
+                default { "0" }
+                disablewhen "{ enable_voxelization == 0 }"
+                range   { -10 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "project"
+                label   "Project to Original"
+                type    toggle
+                default { [ "off" hscript-expr ] }
+                disablewhen "{ enable_voxelization == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "post_smooth"
+                label   "Post Smooth Iterations"
+                type    integer
+                default { "0" }
+                disablewhen "{ project == 0 } { enable_voxelization == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "sharpen_features"
+                label   "Sharpen Features"
+                type    toggle
+                default { [ "off" hscript-expr ] }
+                disablewhen "{ enable_voxelization == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "edge_tolerance"
+                label   "Edge Tolerance"
+                type    float
+                default { "0.5" }
+                disablewhen "{ sharpen_features == 0 } { enable_voxelization == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1_1"
+        label   "Auto UV"
+
+        groupsimple {
+            name    "folder3"
+            label   "Method"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "method"
+                label   "Method"
+                type    ordinal
+                default { "3" }
+                menu {
+                    "0" "Shortest Path"
+                    "1" "Cluster"
+                    "3" "UV Unwrap"
+                    "4" "UV AutoSeam"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "fuse_distance"
+                label   "Collapse Distance"
+                type    float
+                default { "0.01" }
+                hidewhen "{ method != 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "num_points"
+                label   "Number of Paths"
+                type    integer
+                default { "25" }
+                hidewhen "{ method != 0 }"
+                range   { 1 100 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "convex_multiplier"
+                label   "Convex Multiplier"
+                type    float
+                default { "0.1" }
+                hidewhen "{ method != 0 }"
+                range   { -10 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "occlusion_multiplier"
+                label   "Occlusion Multiplier"
+                type    float
+                default { "1" }
+                hidewhen "{ method != 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "num_clusters"
+                label   "Number of Clusters"
+                type    integer
+                default { "30" }
+                hidewhen "{ method != 1 }"
+                range   { 1 100 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "normal_blur_cluster"
+                label   "Normal Blur"
+                type    integer
+                default { "1" }
+                hidewhen "{ method != 1 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "random_seed"
+                label   "Random Seed"
+                type    integer
+                default { "0" }
+                hidewhen "{ method != 1 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "blur_amount"
+                label   "Normal Blur Ammount"
+                type    integer
+                default { "0" }
+                hidewhen "{ method != 2 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "nplanes"
+                label   "Planes"
+                type    ordinal
+                default { "planes6" }
+                hidewhen "{ method != 3 }"
+                menu {
+                    "planes4"   "4"
+                    "planes5"   "5"
+                    "planes6"   "6"
+                    "planes8"   "8"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "graintol"
+                label   "Grain Tolerance"
+                type    float
+                default { "0.1" }
+                hidewhen "{ method != 4 }"
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "mergethreshold"
+                label   "Merge Threshold"
+                type    float
+                default { "0.5" }
+                hidewhen "{ method != 4 }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+        groupsimple {
+            name    "folder4"
+            label   "Packing Options"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "merge_small_islands"
+                label   "Merge Small Islands"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "small_island_cutoff"
+                label   "Small Island CutOff"
+                type    float
+                default { "0.01" }
+                disablewhen "{ merge_small_islands == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "method2"
+                label   "Flattening Method"
+                type    ordinal
+                default { "scp" }
+                menu {
+                    "scp"   "Spectral (SCP)"
+                    "abf"   "Angle-Based (ABF)"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "orientation_mode"
+                label   "Orientation Mode"
+                type    ordinal
+                default { "3" }
+                menu {
+                    "1"     "Min"
+                    "4"     "Axis Aligned"
+                    "20"    "Optimal"
+                    "360"   "Best"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "packing_iterations"
+                label   "Packing Iterations"
+                type    integer
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "layout_padding"
+                label   "Island Padding"
+                type    integer
+                joinnext
+                default { "2" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "resolution2"
+                label   "Padding Resolution"
+                type    ordinal
+                default { "res3" }
+                help    "Reference Resolution for Island Padding"
+                menu {
+                    "res1"  "256"
+                    "res2"  "512"
+                    "res3"  "1024"
+                    "res4"  "2048"
+                    "res5"  "4096"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1_2"
+        label   "Bake"
+
+        groupsimple {
+            name    "folder1"
+            label   "Bake"
+
+            parm {
+                name    "bAutoBake"
+                label   "Auto Bake"
+                type    toggle
+                joinnext
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "execute"
+                label   "Bake"
+                type    button
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sOutputFile"
+                label   "Output Directory"
+                type    directory
+                default { "$HIP/render/${HIPNAME}_$(CHANNEL).png" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "i2Resolution"
+                label   "Resolution"
+                type    integer
+                joinnext
+                size    2
+                default { "1024" "1024" }
+                range   { 1! 1000 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "parm"
+                label   "Label"
+                type    button
+                default { "256 256" }
+                menumini {
+                    "256 256"   "256 x 256"
+                    "512 512"   "512 x 512"
+                    "1024 1024" "1024 x 1024"
+                    "2048 2048" "2048 x 2048"
+                    "4096 4096" "4096 x 4096"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback" "opparm . i2Resolution (`arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)`" }
+                parmtag { "script_callback_language" "hscript" }
+            }
+            parm {
+                name    "mBakeMode"
+                label   "Tracing Mode"
+                type    ordinal
+                joinnext
+                default { "1" }
+                menu {
+                    "0" "Nearest Surface"
+                    "1" "Surface Normal"
+                    "2" "Cage Input"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fMaxTraceDist"
+                label   "Max Trace Distance"
+                type    float
+                joinnext
+                default { "3" }
+                hidewhen "{ mBakeMode == 0 }"
+                range   { 0.001 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "visualize"
+                label   "Visualize"
+                type    toggle
+                default { "off" }
+                hidewhen "{ mBakeMode == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "preview_channel"
+                label   "Preview Channel"
+                type    string
+                default { "ao" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder2"
+            label   "Bake Options"
+
+            groupsimple {
+                name    "folder6"
+                label   "Transfer"
+
+                parm {
+                    name    "bDiffuse"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sDiffuse"
+                    label   "Diffuse Map"
+                    type    string
+                    joinnext
+                    default { "diffuse" }
+                    disablewhen "{ bDiffuse == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fDiffuseGamma"
+                    label   "Gamma"
+                    type    float
+                    default { "2.2" }
+                    disablewhen "{ bDiffuse == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bNormal"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sNormal"
+                    label   "Normal Map"
+                    type    string
+                    joinnext
+                    default { "normal" }
+                    disablewhen "{ bNormal == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fNormalGamma"
+                    label   "Gamma"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ bNormal == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bOpacity"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sOpacity"
+                    label   "Opacity Map"
+                    type    string
+                    default { "opacity" }
+                    disablewhen "{ bOpacity == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bRoughness"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sRoughness"
+                    label   "Roughness Map"
+                    type    string
+                    joinnext
+                    default { "roughness" }
+                    disablewhen "{ bRoughness == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fRoughnessGamma"
+                    label   "Gamma"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ bRoughness == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bMetallic"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sMetallic"
+                    label   "Metallic Map"
+                    type    string
+                    joinnext
+                    default { "metallic" }
+                    disablewhen "{ bMetallic == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fMetallicGamma"
+                    label   "Gamma"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ bMetallic == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "folder5"
+                label   "Generate"
+
+                parm {
+                    name    "bVertexCd"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "on" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sVertexColor"
+                    label   "Vertex Color"
+                    type    string
+                    joinnext
+                    default { "color" }
+                    disablewhen "{ bVertexCd == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fVertexColorGamma"
+                    label   "Gamma"
+                    type    float
+                    default { "2.2" }
+                    disablewhen "{ bVertexCd == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bAO"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "on" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sAO"
+                    label   "AO"
+                    type    string
+                    joinnext
+                    default { "ao" }
+                    disablewhen "{ bAO == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fAOGamma"
+                    label   "Gamma"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ bAO == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bCurvature"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sCurvature"
+                    label   "Curvature"
+                    type    string
+                    default { "curvature" }
+                    disablewhen "{ bCurvature == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bWorldNormal"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sWorldNormal"
+                    label   "World Normal"
+                    type    string
+                    default { "worldnormal" }
+                    disablewhen "{ bWorldNormal == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bHeight"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sHeight"
+                    label   "Height"
+                    type    string
+                    default { "height" }
+                    disablewhen "{ bHeight == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bAlpha"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sAlpha"
+                    label   "Alpha"
+                    type    string
+                    default { "alpha" }
+                    disablewhen "{ bAlpha == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bPos"
+                    label   "Label"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sPos"
+                    label   "Position"
+                    type    string
+                    default { "position" }
+                    disablewhen "{ bPos == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "folder7"
+            label   "Attributes"
+
+            multiparm {
+                name    "folder8"
+                label    "Custom Attributes"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+
+                parm {
+                    name    "sCustomAttribute#"
+                    label   "Attribute"
+                    type    string
+                    default { "" }
+                }
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder9"
+            label   "Advanced"
+
+            groupsimple {
+                name    "folder10"
+                label   "Normal Map"
+
+                parm {
+                    name    "bFlipTangentX"
+                    label   "Tangent Normal Flip X"
+                    type    toggle
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bFlipTangentY"
+                    label   "Tangent Normal Flip Y"
+                    type    toggle
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "folder11"
+                label   "AO Map"
+
+                parm {
+                    name    "numrays"
+                    label   "Number of Rays"
+                    type    integer
+                    default { "50" }
+                    range   { 1! 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "maxdist"
+                    label   "Maximum Ray Distance"
+                    type    float
+                    default { "10" }
+                    range   { 0! 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "bias"
+                    label   "Bias"
+                    type    float
+                    default { "0.5" }
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "conewidth"
+                    label   "Cone Width"
+                    type    angle
+                    default { "90" }
+                    range   { 1! 90! }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+            }
+
+            groupsimple {
+                name    "folder12"
+                label   "Curvature Map"
+
+                parm {
+                    name    "iNumRaysCurvature"
+                    label   "Number of Rays"
+                    type    integer
+                    default { "50" }
+                    range   { 1! 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "fMaxRayDistCurvature"
+                    label   "Maximum Ray Distance"
+                    type    float
+                    default { "0.1" }
+                    range   { 0! 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "fCurvatureBias"
+                    label   "Bias"
+                    type    float
+                    default { "0.5" }
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "fConeWidthCurvature"
+                    label   "Cone Width"
+                    type    angle
+                    default { "90" }
+                    range   { 1! 90! }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "fCurvaturescale"
+                    label   "Scale"
+                    type    float
+                    default { "1" }
+                    range   { 0 2 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+                parm {
+                    name    "fFlatbias"
+                    label   "Flatness Filter"
+                    type    angle
+                    default { "0.02" }
+                    range   { 0.001! 0.1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cop2" }
+                }
+            }
+
+        }
+
+    }
+
+    group {
+        name    "folder0_1_3"
+        label   "Private Parms Folder"
+        invisibletab
+
+        parm {
+            name    "overridenode"
+            label   "Override Node"
+            type    oppath
+            default { "`opfullpath(\".\")" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "initswitch"
+            label   "Init Switch"
+            type    toggle
+            default { [ "on" hscript-expr ] }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "uuid"
+            label   "Unique ID"
+            type    string
+            default { "fcfc8cad-f06f-4571-bc40-1b20675cb2de" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "current_low_mesh"
+            label   "Current Low Mesh"
+            type    oppath
+            default { "`opfullpath(\"./sop_simple_baker1/LOW\")" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "current_high_mesh"
+            label   "Current High Mesh"
+            type    oppath
+            default { "`opfullpath(\"./sop_simple_baker1/HIGH\")" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "tempexrpath"
+            label   "Temp exr path"
+            type    image
+            default { "`chs(\"./sop_simple_baker1/ropnet1/rop_games_baker/tempdirectory\")`/`chs(\"uuid\")`_tmp_exr_path1.exr" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tempcoppath"
+            label   "Temp cop path"
+            type    image
+            default { "`chs(\"./sop_simple_baker1/ropnet1/rop_games_baker/tempdirectory\")`/`chs(\"uuid\")`_tmp_cop_path.exr" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "udimpostprocess"
+            label   "UDIM post Process"
+            type    string
+            default { "diffusefill" }
+            menu {
+                "none"              "No Post Processing"
+                "borderfill"        "Border Expansion"
+                "backgroundfill"    "Fill Background With Average Color"
+                "diffusefill"       "Diffuse Fill"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "currentcoppath"
+            label   "Current COP Path"
+            type    oppath
+            default { "`opfullpath(\"./sop_simple_baker1/ropnet1/rop_games_baker/extract_net/base_image\")" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "currentcopoutput"
+            label   "Current COP Output Picture"
+            type    image
+            default { "`chs(\"./sop_simple_baker1/ropnet1/rop_games_baker/tempdirectory\")`/initcop.tga" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "currentplane"
+            label   "Current Color Plane"
+            type    string
+            default { [ "hou.pwd().node(\"sop_simple_baker1/ropnet1/rop_games_baker\").hdaModule().setplane(hou.pwd())" python ] }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "currentgamma"
+            label   "Current Gamma"
+            type    float
+            default { "2.2" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "currentcustomattr"
+            label   "Current Custom Attribute"
+            type    string
+            default { "v" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "currentcustomsuffix"
+            label   "Current Custom Suffix"
+            type    string
+            default { "velocity" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
