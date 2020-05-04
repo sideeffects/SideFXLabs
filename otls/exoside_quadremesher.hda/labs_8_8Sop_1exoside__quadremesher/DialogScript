@@ -1,9 +1,9 @@
-# Dialog script for gamedev::sop_exoside_quadremesher automatically generated
+# Dialog script for labs::exoside_quadremesher automatically generated
 
 {
-    name	gamedev::sop_exoside_quadremesher
+    name	labs::exoside_quadremesher
     script	gamedev::sop_exoside_quadremesher
-    label	"Gamedev Exoside QuadRemesher"
+    label	"Labs Exoside QuadRemesher"
 
     help {
 	""
@@ -66,7 +66,7 @@
             label   "Use Vertex Colors"
             type    toggle
             default { "off" }
-            help    "Use 'Vertex Colors' to control the Quads size density.\\nSee 'Paint SOP' help below..."
+            help    "Use 'Vertex Colors' to control the Quads size density.\\nSee 'Attribute Paint SOP' help below..."
             disablewhen "{ DensityAttribName != \"\" }"
         }
         parm {
@@ -75,7 +75,7 @@
             type    log
             joinnext
             default { "1" }
-            help    "Defines the Color to paint to control locally the desired Quad Density variations (using 'Paint SOP') \\n . from 0.25 => 'divide density by 4'  =  Big Quads  =  Cyan color \\n . to 4  => 'multiply density by 4'  =  Small Quads  =  Red color."
+            help    "Defines the Color to paint to control locally the desired Quad Density variations (using 'Attribute Paint SOP') \\n . from 0.25 => 'divide density by 4'  =  Big Quads  =  Cyan color \\n . to 4  => 'multiply density by 4'  =  Small Quads  =  Red color."
             disablewhen "{ UseVertexColors == 0 }"
             range   { 0.25 4 }
             parmtag { "script_callback" "hou.pwd().hm().onPaint(kwargs, hou.pwd()) " }
@@ -83,13 +83,13 @@
         }
         parm {
             name    "SetColor"
-            label   "Setup 'Paint SOP'"
+            label   "Setup 'Attribute Paint SOP'"
             type    button
             default { "0" }
-            help    "Set the parent 'Paint SOP' color corresponding with the 'Painted Quad Density' Value\\nand make the Paint SOP active..\\nThis button is usefull only if the input/parent node of the QuadRemesher node is a Paint SOP."
+            help    "Set the parent 'Attribute Paint SOP' color corresponding with the 'Painted Quad Density' Value\\nand make the Attribute Paint SOP active..\\nThis button is usefull only if the input/parent node of the QuadRemesher node is an Attribute Paint SOP."
             disablewhen "{ UseVertexColors == 0 }"
             parmtag { "export_disable" "1" }
-            parmtag { "script_callback" "kwargs['node'].hdaModule().buttonSetPaintingColor()" }
+            parmtag { "script_callback" "kwargs['node'].hdaModule().buttonSetPaintingColor(kwargs)" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -195,7 +195,7 @@
                 name    "out_cache"
                 label   "Cache File"
                 type    geometry
-                default { "$HIP/{$HIPNAME}_{$OS}_QR_output.fbx" }
+                default { "$HIP/${HIPNAME}_${OS}_QR_output.fbx" }
             }
         }
 
