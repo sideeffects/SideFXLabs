@@ -143,9 +143,48 @@
             parmtag { "units" "" }
         }
         parm {
-            name    "max_min_pos"
-            label   "Position Max/Min"
+            name    "posminlabel"
+            label   "Position Min/Max"
+            type    label
+            joinnext
+            default { "`ch('posminmax1')" }
+        }
+        parm {
+            name    "copyposmin"
+            label   "Copy Pos Min"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            disablewhen "{ normalize_data == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('posminlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "posmaxlabel"
+            label   "Position Min/Max"
+            type    label
+            nolabel
+            joinnext
+            default { "`ch('posminmax2')" }
+        }
+        parm {
+            name    "copyposmax"
+            label   "Copy Pos Max"
+            type    button
+            nolabel
+            default { "0" }
+            disablewhen "{ normalize_data == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('posmaxlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "posminmax"
+            label   "Position Min/Max"
             type    string
+            invisible
             size    2
             default { "0" "0" }
             help    "Remaps the max and min position delta over the course of the entire time range."
@@ -153,9 +192,50 @@
             parmtag { "units" "" }
         }
         parm {
-            name    "max_min_piv"
-            label   "Pivot Max/Min"
+            name    "pivminlabel"
+            label   "Pivot Min/Max"
+            type    label
+            joinnext
+            default { "`ch('pivminmax1')" }
+            hidewhen "{ method != 1 }"
+        }
+        parm {
+            name    "copypivmin"
+            label   "Copy Pivot Min"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ method != 1 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('pivminlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pivmaxlabel"
+            label   "Pivot Min/Max"
+            type    label
+            nolabel
+            joinnext
+            default { "`ch('pivminmax2')" }
+            hidewhen "{ method != 1 }"
+        }
+        parm {
+            name    "copypivmax"
+            label   "Copy Pivot Max"
+            type    button
+            nolabel
+            default { "0" }
+            hidewhen "{ method != 1 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('pivmaxlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pivminmax"
+            label   "Pivot Min/Max"
             type    string
+            invisible
             size    2
             default { "0" "0" }
             help    "Pivot can not be unormalized as it passes through the Cd Attribute. This is the min and max values of all the static pivots."
@@ -163,9 +243,52 @@
             parmtag { "units" "" }
         }
         parm {
-            name    "max_min_scale"
-            label   "Scale Max/Min"
+            name    "scaleminlabel"
+            label   "Scale Min/Max"
+            type    label
+            joinnext
+            default { "`ch('scaleminmax')" }
+            hidewhen "{ method == 0 } { method == 2 } { enable_scale == 0 pack_pscale == 0 }"
+        }
+        parm {
+            name    "copyscalemin"
+            label   "Copy Scale Min"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            disablewhen "{ normalize_data == 0 }"
+            hidewhen "{ method == 0 } { method == 2 } { enable_scale == 0 pack_pscale == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('scaleminlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scalemaxlabel"
+            label   "Scale Min/Max"
+            type    label
+            nolabel
+            joinnext
+            default { "`ch('scaleminmax2')" }
+            hidewhen "{ method == 0 } { method == 2 } { enable_scale == 0 pack_pscale == 0 }"
+        }
+        parm {
+            name    "copyscalemax"
+            label   "Copy Scale Max"
+            type    button
+            nolabel
+            default { "0" }
+            disablewhen "{ normalize_data == 0 }"
+            hidewhen "{ method == 0 } { method == 2 } { enable_scale == 0 pack_pscale == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('scalemaxlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scaleminmax"
+            label   "Scale Min/Max"
             type    string
+            invisible
             size    2
             default { "0" "0" }
             help    "Remaps the max and min scale over the course of the entire time range."
@@ -174,7 +297,51 @@
             parmtag { "units" "" }
         }
         parm {
-            name    "width_height"
+            name    "widthlabel"
+            label   "Width/Height"
+            type    label
+            invisible
+            joinnext
+            default { "`substr(ch('widthheight1'),0,5)" }
+            hidewhen "{ method != 3 } { engine != unity }"
+        }
+        parm {
+            name    "copywidth"
+            label   "Copy Width"
+            type    button
+            invisible
+            nolabel
+            joinnext
+            default { "`ch('widthheight')" }
+            hidewhen "{ method != 3 } { engine != unity }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('widthlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "heightlabel"
+            label   "Width/Height"
+            type    label
+            invisible
+            nolabel
+            joinnext
+            default { "`substr(ch('widthheight2'),0,5)" }
+            hidewhen "{ method != 3 } { engine != unity }"
+        }
+        parm {
+            name    "copyheight"
+            label   "Copy Height"
+            type    button
+            invisible
+            nolabel
+            default { "`ch('widthheight')" }
+            hidewhen "{ method != 3 } { engine != unity }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('heightlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "widthheight"
             label   "Width/Height"
             type    string
             size    2
@@ -184,9 +351,50 @@
             parmtag { "units" "" }
         }
         parm {
-            name    "active_pixels"
+            name    "activexlabel"
+            label   "Active Pixels"
+            type    label
+            joinnext
+            default { "`int(ch('activepixels1'))" }
+            hidewhen "{ padpowtwo == 0 }"
+        }
+        parm {
+            name    "copyactivex"
+            label   "Copy Active X"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ padpowtwo == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('activexlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "activeylabel"
+            label   "Active Pixels"
+            type    label
+            nolabel
+            joinnext
+            default { "`int(ch('activepixels2'))" }
+            hidewhen "{ padpowtwo == 0 }"
+        }
+        parm {
+            name    "copyactivey"
+            label   "Copy Pivot Max"
+            type    button
+            nolabel
+            default { "0" }
+            hidewhen "{ padpowtwo == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('activeylabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "activepixels"
             label   "Active Pixels"
             type    string
+            invisible
             size    2
             default { "0" "0" }
             help    "Set width and height from houdini for your sprite scale."
@@ -194,9 +402,50 @@
             parmtag { "units" "" }
         }
         parm {
-            name    "padded_size"
+            name    "paddedxlabel"
+            label   "Padded Size"
+            type    label
+            joinnext
+            default { "`int(ch('paddedsize1'))" }
+            hidewhen "{ padpowtwo == 0 }"
+        }
+        parm {
+            name    "copypaddedx"
+            label   "Copy Padded X"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ padpowtwo == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('paddedxlabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "paddedylabel"
+            label   "Active Pixels"
+            type    label
+            nolabel
+            joinnext
+            default { "`int(ch('paddedsize2'))" }
+            hidewhen "{ padpowtwo == 0 }"
+        }
+        parm {
+            name    "copypaddedy"
+            label   "Copy Padded Y"
+            type    button
+            nolabel
+            default { "0" }
+            hidewhen "{ padpowtwo == 0 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('paddedylabel'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "paddedsize"
             label   "Padded Size"
             type    string
+            invisible
             size    2
             default { "0" "0" }
             help    "Set width and height from houdini for your sprite scale."
