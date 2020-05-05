@@ -128,26 +128,50 @@
             name    "num_frames"
             label   "Frame Range"
             type    integer
+            joinnext
             default { [ "ch(\"f2\")-ch(\"f1\")" hscript-expr ] }
             help    "The number of calculated frames. Your end position minus your start."
             range   { 0 240 }
             parmtag { "units" "" }
         }
         parm {
+            name    "copyframes"
+            label   "Copy Frame Range"
+            type    button
+            nolabel
+            default { "0" }
+            help    "Copy Frame Range"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(str(hou.node('.').evalParm('num_frames')))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
             name    "speed"
             label   "Speed"
             type    float
+            joinnext
             default { [ "$FPS/ch(\"num_frames\")" hscript-expr ] }
             help    "The rate in houdini of your frames per a second divide by your frame range. In your engine this may vary if your frame rate is different or varying."
             range   { 0 240 }
             parmtag { "units" "" }
         }
         parm {
+            name    "copyspeed"
+            label   "Copy Speed"
+            type    button
+            nolabel
+            default { "0" }
+            help    "Copy Speed"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(str(hou.node('.').evalParm('speed')))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
             name    "posminlabel"
             label   "Position Min/Max"
             type    label
             joinnext
-            default { "`ch('posminmax1')" }
+            default { "`chs('posminmax1')" }
         }
         parm {
             name    "copyposmin"
@@ -156,6 +180,7 @@
             nolabel
             joinnext
             default { "0" }
+            help    "Copy Pos Min"
             disablewhen "{ normalize_data == 0 }"
             parmtag { "button_icon" "BUTTONS_copy" }
             parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('posminlabel'))" }
@@ -167,7 +192,7 @@
             type    label
             nolabel
             joinnext
-            default { "`ch('posminmax2')" }
+            default { "`chs('posminmax2')" }
         }
         parm {
             name    "copyposmax"
@@ -175,6 +200,7 @@
             type    button
             nolabel
             default { "0" }
+            help    "Copy Pos Max"
             disablewhen "{ normalize_data == 0 }"
             parmtag { "button_icon" "BUTTONS_copy" }
             parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('posmaxlabel'))" }
@@ -196,7 +222,7 @@
             label   "Pivot Min/Max"
             type    label
             joinnext
-            default { "`ch('pivminmax1')" }
+            default { "`chs('pivminmax1')" }
             hidewhen "{ method != 1 }"
         }
         parm {
@@ -217,7 +243,7 @@
             type    label
             nolabel
             joinnext
-            default { "`ch('pivminmax2')" }
+            default { "`chs('pivminmax2')" }
             hidewhen "{ method != 1 }"
         }
         parm {
@@ -247,7 +273,7 @@
             label   "Scale Min/Max"
             type    label
             joinnext
-            default { "`ch('scaleminmax')" }
+            default { "`chs('scaleminmax1')" }
             hidewhen "{ method == 0 } { method == 2 } { enable_scale == 0 pack_pscale == 0 }"
         }
         parm {
@@ -269,7 +295,7 @@
             type    label
             nolabel
             joinnext
-            default { "`ch('scaleminmax2')" }
+            default { "`chs('scaleminmax2')" }
             hidewhen "{ method == 0 } { method == 2 } { enable_scale == 0 pack_pscale == 0 }"
         }
         parm {
@@ -290,7 +316,7 @@
             type    string
             invisible
             size    2
-            default { "0" "0" }
+            default { "1.0" "1.0" }
             help    "Remaps the max and min scale over the course of the entire time range."
             disablewhen "{ normalize_data == 0 }"
             hidewhen "{ method == 0 } { method == 2 } { enable_scale == 0 pack_pscale == 0 }"
@@ -497,6 +523,91 @@
         }
     }
 
+    parm {
+        name    "target_texture_size"
+        label   "Target Texture Size"
+        type    string
+        joinnext
+        default { "1024" }
+        help    "This defines the maximum number of transform vertical columns. For Fluid this is the exact number of points to use to compensate for changing topology, extra points are scaled as zero."
+        menureplace {
+            "32"    "32"
+            "64"    "64"
+            "128"   "128"
+            "256"   "256"
+            "512"   "512"
+            "1024"  "1024"
+            "2048"  "2048"
+            "4096"  "4096"
+            "8192"  "8192"
+        }
+    }
+    parm {
+        name    "lb_curColumn"
+        label   "lb_curColumn"
+        type    label
+        nolabel
+        size    2
+        default { "Output: `ch(\"textures/size/size1\")` x `ch(\"textures/size/size2\")`" "" }
+    }
+    parm {
+        name    "lb_texSizeWarning"
+        label   "lb_texSizeWarning"
+        type    label
+        nolabel
+        default { "Warning : Target texture size is too low !" }
+        hidewhen "{ _fluidTexSizeWarning != -1 } { method != 2 }"
+    }
+    parm {
+        name    "_fluidTexSize"
+        label   "_fluidTexSize"
+        type    integer
+        invisible
+        nolabel
+        default { [ "(ceil(ch(\"target_texture_size\")/3)*3-npoints(\"objects/TEXTURE/SIM_GEO\"))/3" hscript-expr ] }
+        range   { 0 10 }
+    }
+    parm {
+        name    "_fluidTexSizeWarning"
+        label   "_fluidTexSizeWarning"
+        type    integer
+        invisible
+        nolabel
+        default { [ "ch(\"_fluidTexSize\")/abs(ch(\"_fluidTexSize\"))" hscript-expr ] }
+        range   { 0 10 }
+    }
+    parm {
+        name    "target_polycount"
+        label   "Target Prim Count"
+        type    integer
+        joinnext
+        default { "1024" }
+        help    "The number of primitives to poly reduce the mesh to try and maintain a constant level of prims. Due to different topologies this number is not allways exactly the same, so make sure you pad your texture size slightly above."
+        hidewhen "{ method != 2 }"
+        range   { 0 1024 }
+    }
+    parm {
+        name    "lb_curPrim"
+        label   "lb_curPrim"
+        type    label
+        nolabel
+        joinnext
+        size    2
+        default { "Active : `nprims(\"objects/TEXTURE/SIM_GEO\")`" "Margin : `ch(\"_fluidTexSize\")`" }
+        hidewhen "{ method != 2 }"
+    }
+    parm {
+        name    "checkPolycount"
+        label   "Check Polycount"
+        type    button
+        nolabel
+        default { "0" }
+        help    "This will check the primitive count on the current frame and set the value to it. You should probably pad this value by a few frames encase your margin goes into the negative."
+        hidewhen "{ method != 2 }"
+        parmtag { "button_icon" "BUTTONS_reload" }
+        parmtag { "script_callback" "import toolutils; vat_utils = toolutils.createModuleFromSection(\"vat_utils\",kwargs['type'],\"vat_utils.py\"); vat_utils.primcount(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
     groupsimple {
         name    "fd_paths"
         label   "Paths"
@@ -1102,91 +1213,6 @@
             parmtag { "shaderparmcontexts" "cop2" }
         }
         parm {
-            name    "target_polycount"
-            label   "Target Prim Count"
-            type    integer
-            joinnext
-            default { "1024" }
-            help    "The number of primitives to poly reduce the mesh to try and maintain a constant level of prims. Due to different topologies this number is not allways exactly the same, so make sure you pad your texture size slightly above."
-            hidewhen "{ method != 2 }"
-            range   { 0 1024 }
-        }
-        parm {
-            name    "lb_curPrim"
-            label   "lb_curPrim"
-            type    label
-            nolabel
-            joinnext
-            size    2
-            default { "Active : `nprims(\"objects/TEXTURE/SIM_GEO\")`" "Margin : `ch(\"_fluidTexSize\")`" }
-            hidewhen "{ method != 2 }"
-        }
-        parm {
-            name    "checkPolycount"
-            label   "Check Polycount"
-            type    button
-            nolabel
-            default { "0" }
-            help    "This will check the primitive count on the current frame and set the value to it. You should probably pad this value by a few frames encase your margin goes into the negative."
-            hidewhen "{ method != 2 }"
-            parmtag { "button_icon" "BUTTONS_reload" }
-            parmtag { "script_callback" "import toolutils; vat_utils = toolutils.createModuleFromSection(\"vat_utils\",kwargs['type'],\"vat_utils.py\"); vat_utils.primcount(kwargs['node'])" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "target_texture_size"
-            label   "Target Texture Size"
-            type    string
-            joinnext
-            default { "1024" }
-            help    "This defines the maximum number of transform vertical columns. For Fluid this is the exact number of points to use to compensate for changing topology, extra points are scaled as zero."
-            menureplace {
-                "32"    "32"
-                "64"    "64"
-                "128"   "128"
-                "256"   "256"
-                "512"   "512"
-                "1024"  "1024"
-                "2048"  "2048"
-                "4096"  "4096"
-                "8192"  "8192"
-            }
-        }
-        parm {
-            name    "lb_curColumn"
-            label   "lb_curColumn"
-            type    label
-            nolabel
-            size    2
-            default { "Column : `ch(\"textures/size/size1\")`" "Frames : `ch(\"textures/size/size2\")`" }
-        }
-        parm {
-            name    "_fluidTexSize"
-            label   "_fluidTexSize"
-            type    integer
-            invisible
-            nolabel
-            default { [ "(ceil(ch(\"target_texture_size\")/3)*3-npoints(\"objects/TEXTURE/SIM_GEO\"))/3" hscript-expr ] }
-            range   { 0 10 }
-        }
-        parm {
-            name    "_fluidTexSizeWarning"
-            label   "_fluidTexSizeWarning"
-            type    integer
-            invisible
-            nolabel
-            default { [ "ch(\"_fluidTexSize\")/abs(ch(\"_fluidTexSize\"))" hscript-expr ] }
-            range   { 0 10 }
-        }
-        parm {
-            name    "lb_texSizeWarning"
-            label   "lb_texSizeWarning"
-            type    label
-            nolabel
-            default { "Warning : Target texture size is too low !" }
-            hidewhen "{ _fluidTexSizeWarning != -1 } { method != 2 }"
-        }
-        parm {
             name    "scale"
             label   "Scale"
             type    float
@@ -1458,6 +1484,16 @@
             default { "Copy and paste into a Material Function" }
             hidewhen "{ engine != ue4 }"
         }
+        parm {
+            name    "copysoftmf"
+            label   "Copy Soft Material Function"
+            type    button
+            default { "0" }
+            hidewhen "{ method != 0 } { engine != ue4 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('soft_shader_ue4'))" }
+            parmtag { "script_callback_language" "python" }
+        }
         groupcollapsible {
             name    "folder6"
             label   "Soft Vertex Material Function"
@@ -1474,6 +1510,16 @@
             }
         }
 
+        parm {
+            name    "copyrigidmf"
+            label   "Copy Rigid Material Function"
+            type    button
+            default { "0" }
+            hidewhen "{ method != 1 } { engine != ue4 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('rigid_shader_ue4'))" }
+            parmtag { "script_callback_language" "python" }
+        }
         groupcollapsible {
             name    "folder4"
             label   "Rigid Vertex Material Function"
@@ -1490,6 +1536,16 @@
             }
         }
 
+        parm {
+            name    "copyfluidmf"
+            label   "Copy Fluid Material Function"
+            type    button
+            default { "0" }
+            hidewhen "{ method != 2 } { engine != ue4 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('fluid_shader_ue4'))" }
+            parmtag { "script_callback_language" "python" }
+        }
         groupcollapsible {
             name    "folder5"
             label   "Fluid Vertex Material Function"
@@ -1506,6 +1562,16 @@
             }
         }
 
+        parm {
+            name    "copyspritemf"
+            label   "Copy Sprite Material Function"
+            type    button
+            default { "0" }
+            hidewhen "{ method != 3 } { engine != ue4 }"
+            parmtag { "button_icon" "BUTTONS_copy" }
+            parmtag { "script_callback" "hou.ui.copyTextToClipboard(hou.node('.').evalParm('sprite_shader_ue4'))" }
+            parmtag { "script_callback_language" "python" }
+        }
         groupcollapsible {
             name    "folder8"
             label   "Sprite Vertex Material Function"

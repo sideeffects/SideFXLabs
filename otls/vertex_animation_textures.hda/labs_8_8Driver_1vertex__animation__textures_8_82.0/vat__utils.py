@@ -334,18 +334,18 @@ def mat_update(node):
                     numOfFrames = num
                 if "_speed"     in line:
                     speed       = num
-                if "_posMax"    in line:
-                    posMax      = num
                 if "_posMin"    in line:
                     posMin      = num
-                if "_scaleMax"  in line:
-                    scaleMax    = num
+                if "_posMax"    in line:
+                    posMax      = num
                 if "_scaleMin"  in line:
                     scaleMin    = num
-                if "_pivMax"    in line:
-                    pivMax      = num
+                if "_scaleMax"  in line:
+                    scaleMax    = num
                 if "_pivMin"    in line:
                     pivMin      = num
+                if "_pivMax"    in line:
+                    pivMax      = num
                 if "_packNorm"  in line:
                     packNorm    = num
                 if "_doubleTex" in line:
@@ -374,18 +374,18 @@ def mat_update(node):
             list[numOfFrames-1] = '    - _numOfFrames: '+_numOfFrames+'\n'
         if "_speed"       != -1 :    
             list[speed-1]       = '    - _speed: '      +_speed+'\n'
-        if "_posMax"      != -1 :    
-            list[posMax-1]      = '    - _posMax: '     +_posMax+'\n'
         if "_posMin"      != -1 :    
             list[posMin-1]      = '    - _posMin: '     +_posMin+'\n'
-        if "_scaleMax"    != -1 :   
-            list[scaleMax-1]    = '    - _scaleMax: '   +_scaleMax+'\n'
-        if "_scaleMin"    != -1 :  
+        if "_posMax"      != -1 :    
+            list[posMax-1]      = '    - _posMax: '     +_posMax+'\n'
+        if "_scaleMin"    != -1 :   
             list[scaleMin-1]    = '    - _scaleMin: '   +_scaleMin+'\n'
-        if "_pivMax"      != -1 :   
-            list[pivMax-1]      = '    - _pivMax: '     +_pivMax+'\n'
-        if "_pivMin"      != -1 :  
+        if "_scaleMax"    != -1 :  
+            list[scaleMax-1]    = '    - _scaleMax: '   +_scaleMax+'\n'
+        if "_pivMin"      != -1 :   
             list[pivMin-1]      = '    - _pivMin: '     +_pivMin+'\n'
+        if "_pivMax"      != -1 :  
+            list[pivMax-1]      = '    - _pivMax: '     +_pivMax+'\n'
         if "_packNorm"    != -1 :  
             list[packNorm-1]    = '    - _packNorm: '   +_packNorm+'\n'
         if "_doubleTex"    != -1 :  
