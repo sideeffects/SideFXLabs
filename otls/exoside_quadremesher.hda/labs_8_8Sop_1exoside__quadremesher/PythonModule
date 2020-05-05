@@ -23,7 +23,7 @@ def getQREngineFolder():
     else:
         #appData = os.getenv('APPDATA')  windows ... UserName/../Roaming... 
         appData = os.getenv('ALLUSERSPROFILE')  # on windows : C:\Users\All Users == C:\ProgramData\
-        engineFolder = os.path.join(appData, "Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.0")
+        engineFolder = os.path.join(appData, os.path.normpath("Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.0"))
         return engineFolder
 
 def getQREnginePath():
@@ -784,12 +784,13 @@ def buttonUpdateEngine(node):
     InstallQuadRemesherEngineIfNeeded(node, ForceInstall=True, DownloadOnly=True)
 
 
-def buttonSetPaintingColor():
-    node = hou.pwd() # this is the QuadRemesher SOP
+def buttonSetPaintingColor(kwargs):
+
+    node = kwargs["node"] # this is the QuadRemesher SOP
     paintNode = node.inputs()[0]
     
    
-    if paintNode != None and  paintNode.type().name() != 'paint':
+    if paintNode != None and  paintNode.type().name() != 'attribpaint':
         paintNode = None
 
     # problem : can't set the painting color because the QR SOP is locked!!!
@@ -803,7 +804,7 @@ def buttonSetPaintingColor():
     '''
 
     if paintNode == None:
-        print "Needs to have a Paint SOP as immediate input of the QuadRemesher SOP. Create it!"
+        print "Needs to have a Attribute Paint SOP as immediate input of the QuadRemesher SOP. Create it!"
         return
     
     #inputNodeParms = inputNode.parms()
@@ -847,10 +848,14 @@ def buttonSetPaintingColor():
     #except Exception:
     #       print("Exception: in ..\n")
 
-    # -- set the color in the PaintSOP --
-    paintNode.parm("fgr").set(r)
-    paintNode.parm("fgg").set(g)
-    paintNode.parm("fgb").set(b)
+    # -- set the color in the Attrib Paint SOP --
+    paintNode.parm("numattribs").set(1)
+    paintNode.parm("attribname1").set("Cd")
+    paintNode.parm("attribtype1").set("color")
+
+    paintNode.parm("fgcolorr").set(r)
+    paintNode.parm("fgcolorg").set(g)
+    paintNode.parm("fgcolorb").set(b)
     
     paintNode.setSelected(True, clear_all_selected=True)
      
