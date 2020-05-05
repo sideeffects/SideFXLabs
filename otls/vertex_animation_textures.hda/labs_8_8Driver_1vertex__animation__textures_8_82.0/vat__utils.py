@@ -35,23 +35,23 @@ def data(node):
     component    = node.evalParm('_component')        
     _numOfFrames = str(node.evalParm('num_frames'))
     _speed       = str(node.evalParm('speed'))
-    _posMax      = str(node.evalParm('max_min_pos1'))
-    _posMin      = str(node.evalParm('max_min_pos2'))
-    _scaleMax    = str(node.evalParm('max_min_scale1'))
-    _scaleMin    = str(node.evalParm('max_min_scale2'))
-    _pivMax      = str(node.evalParm('max_min_piv1'))
-    _pivMin      = str(node.evalParm('max_min_piv2'))
+    _posMin      = str(node.evalParm('posminmax1'))
+    _posMax      = str(node.evalParm('posminmax2'))
+    _scaleMin    = str(node.evalParm('scaleminmax1'))
+    _scaleMax    = str(node.evalParm('scaleminmax2'))
+    _pivMin      = str(node.evalParm('pivminmax1'))
+    _pivMax      = str(node.evalParm('pivminmax2'))
     _packNorm    = str(node.evalParm('pack_norm'))
     _doubleTex   = str(node.evalParm('double_textures'))
     _padPowTwo   = str(node.evalParm('padpowtwo'))
-    _textureSizeX= str(node.evalParm('active_pixels1'))
-    _textureSizeY= str(node.evalParm('active_pixels2'))
-    _paddedSizeX = str(node.evalParm('padded_size1'))
-    _paddedSizeY = str(node.evalParm('padded_size2'))
+    _textureSizeX= str(node.evalParm('activepixels1'))
+    _textureSizeY= str(node.evalParm('activepixels2'))
+    _paddedSizeX = str(node.evalParm('paddedsize1'))
+    _paddedSizeY = str(node.evalParm('paddedsize2'))
     _packPscale  = str(node.evalParm('pack_pscale'))
     _normData    = str(node.evalParm('normalize_data'))
-    _width       = str(node.evalParm('width_height1'))
-    _height      = str(node.evalParm('width_height2'))        
+    _width       = str(node.evalParm('widthheight1'))
+    _height      = str(node.evalParm('widthheight2'))        
        
     data = {}
     if engine == 'unity':
@@ -290,23 +290,23 @@ def mat_update(node):
         method       = node.evalParm('method')
         _numOfFrames = str(node.evalParm('num_frames'))
         _speed       = str(node.evalParm('speed'))
-        _posMax      = str(node.evalParm('max_min_pos1'))
-        _posMin      = str(node.evalParm('max_min_pos2'))
-        _scaleMax    = str(node.evalParm('max_min_scale1'))
-        _scaleMin    = str(node.evalParm('max_min_scale2'))
-        _pivMax      = str(node.evalParm('max_min_piv1'))
-        _pivMin      = str(node.evalParm('max_min_piv2'))
+        _posMin      = str(node.evalParm('posminmax1'))
+        _posMax      = str(node.evalParm('posminmax2'))
+        _scaleMin    = str(node.evalParm('scaleminmax1'))
+        _scaleMax    = str(node.evalParm('scaleminmax2'))
+        _pivMin      = str(node.evalParm('pivminmax1'))
+        _pivMax      = str(node.evalParm('pivminmax2'))
         _packNorm    = str(node.evalParm('pack_norm'))
         _doubleTex   = str(node.evalParm('double_textures'))
         _padPowTwo   = str(node.evalParm('padpowtwo'))
-        _textureSizeX= str(node.evalParm('active_pixels1'))
-        _textureSizeY= str(node.evalParm('active_pixels2'))
-        _paddedSizeX = str(node.evalParm('padded_size1'))
-        _paddedSizeY = str(node.evalParm('padded_size2'))
+        _textureSizeX= str(node.evalParm('activepixels1'))
+        _textureSizeY= str(node.evalParm('activepixels2'))
+        _paddedSizeX = str(node.evalParm('paddedsize1'))
+        _paddedSizeY = str(node.evalParm('paddedsize2'))
         _packPscale  = str(node.evalParm('pack_pscale'))
         _normData    = str(node.evalParm('normalize_data'))
-        _width       = str(node.evalParm('width_height1'))
-        _height      = str(node.evalParm('width_height2'))        
+        _width       = str(node.evalParm('widthheight1'))
+        _height      = str(node.evalParm('widthheight2'))        
         
         numOfFrames  = -1
         speed        = -1
@@ -334,18 +334,18 @@ def mat_update(node):
                     numOfFrames = num
                 if "_speed"     in line:
                     speed       = num
-                if "_posMax"    in line:
-                    posMax      = num
                 if "_posMin"    in line:
                     posMin      = num
-                if "_scaleMax"  in line:
-                    scaleMax    = num
+                if "_posMax"    in line:
+                    posMax      = num
                 if "_scaleMin"  in line:
                     scaleMin    = num
-                if "_pivMax"    in line:
-                    pivMax      = num
+                if "_scaleMax"  in line:
+                    scaleMax    = num
                 if "_pivMin"    in line:
                     pivMin      = num
+                if "_pivMax"    in line:
+                    pivMax      = num
                 if "_packNorm"  in line:
                     packNorm    = num
                 if "_doubleTex" in line:
@@ -374,18 +374,18 @@ def mat_update(node):
             list[numOfFrames-1] = '    - _numOfFrames: '+_numOfFrames+'\n'
         if "_speed"       != -1 :    
             list[speed-1]       = '    - _speed: '      +_speed+'\n'
-        if "_posMax"      != -1 :    
-            list[posMax-1]      = '    - _posMax: '     +_posMax+'\n'
         if "_posMin"      != -1 :    
             list[posMin-1]      = '    - _posMin: '     +_posMin+'\n'
-        if "_scaleMax"    != -1 :   
-            list[scaleMax-1]    = '    - _scaleMax: '   +_scaleMax+'\n'
-        if "_scaleMin"    != -1 :  
+        if "_posMax"      != -1 :    
+            list[posMax-1]      = '    - _posMax: '     +_posMax+'\n'
+        if "_scaleMin"    != -1 :   
             list[scaleMin-1]    = '    - _scaleMin: '   +_scaleMin+'\n'
-        if "_pivMax"      != -1 :   
-            list[pivMax-1]      = '    - _pivMax: '     +_pivMax+'\n'
-        if "_pivMin"      != -1 :  
+        if "_scaleMax"    != -1 :  
+            list[scaleMax-1]    = '    - _scaleMax: '   +_scaleMax+'\n'
+        if "_pivMin"      != -1 :   
             list[pivMin-1]      = '    - _pivMin: '     +_pivMin+'\n'
+        if "_pivMax"      != -1 :  
+            list[pivMax-1]      = '    - _pivMax: '     +_pivMax+'\n'
         if "_packNorm"    != -1 :  
             list[packNorm-1]    = '    - _packNorm: '   +_packNorm+'\n'
         if "_doubleTex"    != -1 :  
