@@ -12,11 +12,10 @@ Vertex Animation Textures are an alternative method for playing back complex sim
 
 @parameters
     User Interface:
-        Reveals different levels of UI control in the interface to minimize options for different use cases.
+        Simple (Default) shows a limited UI of the parameters that would be changed the most often.
+        Normal is a fully expanded UI with more in-depth but less used controls.
     Start/End:
         This is the begining and end frame of the export. Please account for the one frame offset of the start frame to the end frame. By default the exporter will break the dynamic variables on creation.
-    Set Play Range:
-        Sets the play range based on the start and end frames.
     Render With Take:
         If you are using takes you can change the exporter options.
     Method:
@@ -30,38 +29,46 @@ Vertex Animation Textures are an alternative method for playing back complex sim
         
         Sprite - Camera facing cards, points moving through space.
     Engine:
-        Different components of the exporter and for the preset system are known to be different for different engines, this will set the best option for each engine.
+        Set the scale, texture type and coordinate system specific to the game engine chosen.
     Initialize for Engine:
-        Applies the preset option for each engine. Do this prior to setting all your options, this will be destructive.
+        Applies the preset option for each engine. Make sure to do this as soon as possible as the result will overwrite parameters in the UI.
     SOP Path:
         The path to your geometry in sops.
     == Data For Realtime Material ==
+    NOTE:
+        Any value that needs to be copied to your game-engine material has a copy button next to it.
     Frame Range:
-        The number of calculated frames. Your end position minus your start.
+        The number of calculated frames. Your last frame minus your start frame. This value will be set by a script when you click Render.
     Speed:
-        The rate in houdini of your frames per second divided by your frame range. In your engine this may vary if your frame rate is different or varying.
-    Position Max/Min:
-        Remaps the max and min position delta over the course of the entire time range.
-    Pivot Max/Min:
-        Pivot can not be unormalized as it passes through the Cd Attribute. This is the min and max values of all the static pivots.
+        The rate in houdini of your frames per second divided by your frame range. In your engine this may vary if your frame rate is different or varying. This value will be set by a script when you click Render.
+    Position Min/Max:
+        Copy these values to the material in your game-engine to expand normalised position values back to their original range.
+    Pivot Min/Max:
+        Visible when the Rigid method has been chosen. Pivot values are stored in the vertex colour. Most game engines will clamp these values between 0 and 1. Copy these values to the material in your game-engine to expand normalised pivot values back to their original range.
     Scale Max/Min:
-        Remaps the max and min scale over the course of the entire time range.
+        Visible when the Rigid method has been chosen. Remaps the max and min scale over the course of the entire time range.
     Width/Height:
-        Set width and height from houdini for your sprite scale.
+        Visible when the Sprite method has been chosen and the Engine is set to Unity. Set width and height from houdini for your sprite scale.
     Active Pixels:
-        When Pad to Power of 2 is activated these values represent the pixel dimensions of the original texture.
+        When Pad to Power of 2 is activated these values represent the pixel dimensions of the original texture. These value will be set by a script when you click Render.
     Padded Size:
-        When Pad to Power of 2 is activated this is the smallest power of 2 value for each axis. The material will use these numbers to calculate a ratio for the uv lookup.
+        When Pad to Power of 2 is activated this is the smallest power of 2 value for each axis. The material will use these numbers to calculate a ratio for the uv lookup. These value will be set by a script when you click Render.
     Normalize data range to 0-1 space:
-        Normalize your data ranges to 0-1 space in your exported maps.
+        If you intend to use texture compression then normalized data is required for your texture maps.
     Pack normals into Position Alpha:
-        Stores the normal data in the alpha channel of the position map to save texture space.
+        Stores the normal data in the alpha channel of the position map to save texture space. This method will result in less accurate normals.
     Pack Pscale into Position Alpha:
         Stores the pscale data into the alpha channel of the position map to save texture space.
     Pad to Power of 2:
         When activated all textures will be exported to the nearest power of 2 value in each axis. Power of two textures allows for texture streaming on the GPU.
     Double Textures (Higher Precision):
-        If your engine is limited to 8bit textures a second texture can be used for higher precision.
+        If your engine is limited to 8bit textures, a second texture can be used for higher precision.
+    Target Texture Size:
+        This is the maximum width of your texture. The height is dictated by the number of frames of your animation and the number of vertices relative to your maximum width.
+    Target Prim Count:
+        This is the maximum number of triangles that will be used for your fluid export mesh. Ideally this number should be less than the triangle count of the input mesh.
+    Calculate Optimal Primcount:
+        This will set the target prim count value to the total number of triangles on the current frame of the input mesh.
     == Paths ==
     enable_project:
         Enable asset name override.
@@ -115,42 +122,24 @@ Vertex Animation Textures are an alternative method for playing back complex sim
     Initialize Simulation OPs:
         Triggers all simulation contexts to run in the cook chain prior to export.
     Equalize Edges:
-        This will even the edges of the triangles for the best compression.
+        For fluid exports. This will even the edges of the triangles for the best compression.
     Reverse Normals:
-        Reverses the normals on the mesh. Helpful for one side meshes like sprites.
+        Reverses the normals on the mesh. Helpful for one sided meshes like sprites.
     Convert to Image Format's Colorspace:
         This removes any sRGB lookup that are default for the formats.
     Raster Depth:
-        Adjust the bitdepth for the image to be exported.
-    Depth Menu:
-        Selection menu for an array of different bit depth presets.
-    Use Custom Black/White Points:
-        Enables to change the black and white value.
+        This will be set when Initialize for Engine is clicked. Adjust the bitdepth for the image to be exported.
     Black/White Points:
-        The min and max white pixels values for the exported image. This does not remap the textures to fit.
+        The min and max pixels values for the exported image. This does not remap the textures to fit.
     BC 4Channel Split:
         Renders the channels separately for different data formats.
     Position Coord:
-        Re-order the components for different coordinate systems.
-    Position Invert:
-        Invert a channel for different exported coordinate systems.
-    Rotation Coord:
-        Re-order the components for different coordinate systems.
+        This will be set when Initialize for Engine is clicked. Re-order the components for different coordinate systems.
     Color Coord:
         Re-order the components for different coordinate systems. For color this maybe be helpful if you are hijacking this map for other purposes besides color.
-    Color Invert:
-        Invert a channel for different exported coordinate systems. Only used for colors when you are hijacking this map for other uses.
-    Target Prim Count:
-        The number of primitives to poly reduce the mesh to try and maintain a constant level of prims. Due to different topologies this number is not allways exactly the same, so make sure you pad your texture size slightly above.
-    Check Polycount:
-        This will check the primitive count on the current frame and set the value to it. You should probably pad this value by a few frames encase your margin goes into the negative.
-    Target Texture Size:
-        This defines the maximum number of transform vertical columns. For Fluid this is the exact number of points to use to compensate for changing topology, extra points are scaled as zero.
-    enable_name:
-        Allows you to override the name of the object that is exported.
     Name:
         The name of the geometry object to be exported as, as opposed to being called MESH.1
-    == Position ==
+    === Position ===
     Translate:
         Allow your exported mesh to have pre-transform to the mesh, besides defaulting at origin.
     Rotate:
@@ -193,17 +182,16 @@ Vertex Animation Textures are an alternative method for playing back complex sim
         The expected color attribute going to the engine.
     Alpha (Cd.a):
         The expected alpha attribute going to the engine.
+    == Sample Shader Code ==
+    NOTE:
+        For Unreal Engine:
+        Use the copy button to copy code that can be pasted into a material function. This will not work correctly if pasted into a material.
+    NOTE:
+        For Unity:
+        Shader files are automatically created in your project path if the Shader Path option has been enabled.
     == Scripts ==
-    Pre-Render Script:
-        Enables the pre-render script.
     Pre-Render:
         Run this code before any rendering.
-    Pre-Render Script Language:
-        Set the language to Hscript or Python.
-    Post-Render Script:
-        Enables the post-render script.
     Post-Render:
         Run this code after all rendering.
-    Post-Render Script Language:
-        Set the language to Hscript or Python.
     

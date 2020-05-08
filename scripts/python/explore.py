@@ -6,12 +6,8 @@ import os
 import hou
 import platform
 import subprocess
-import toolutils
-node = hou.pwd()
-path = toolutils.createModuleFromSection("path",node.type(),"path.py")
-log = toolutils.createModuleFromSection("log",node.type(),"log.py")
-#from LaidlawFX import path
-#from LaidlawFX import log
+import path
+import log
 
 # =============================================================================
 # FUNCTIONS
