@@ -148,7 +148,7 @@ def unity(node,method):
     node.parm('invert_pos').deleteAllKeyframes()
     node.parm('invert_pos').set(1)
     node.parm('coord_rot').deleteAllKeyframes()
-    node.parm('coord_rot').set(11)     
+#    node.parm('coord_rot').set(11)     
     if method == 0 :
         node.parm('path_shader').deleteAllKeyframes()
         node.parm('path_shader').set('`chs("_project")`/shaders/SimpleLitVATSoft.shader')         
