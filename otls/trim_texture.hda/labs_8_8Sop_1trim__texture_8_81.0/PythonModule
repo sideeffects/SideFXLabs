@@ -1,3 +1,17 @@
+import toolutils
+
 def ResetTexturePos(kwargs):
     node = kwargs["node"]
     node.parmTuple("v2TexureOffsetInternal").set((0.0,0.0))
+    
+    
+def ModifyChanges(kwargs): 
+    node = kwargs['node']
+    
+    if toolutils.sceneViewer().currentState() != "labs::trim_texture":
+        node.setCurrent(True, clear_all_selected=True)
+        
+        toolutils.sceneViewer().enterCurrentNodeState()
+    
+    toolutils.sceneViewer().runStateCommand('modify_changes')
+    
