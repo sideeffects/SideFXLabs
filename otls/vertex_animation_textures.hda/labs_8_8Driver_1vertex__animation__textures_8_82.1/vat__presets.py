@@ -159,8 +159,8 @@ def unity(node,method):
         vat_utils.primcount(node)
         node.parm('path_shader').deleteAllKeyframes()
         node.parm('path_shader').set('`chs("_project")`/shaders/SimpleLitVATFluid.shader')
-        node.parm('target_texture_size').deleteAllKeyframes()
-        node.parm('target_texture_size').setExpression('ch("target_polycount")*3')
+        #node.parm('target_texture_size').deleteAllKeyframes()
+        #node.parm('target_texture_size').setExpression('ch("target_polycount")*3')
     elif method == 3 :
         node.parm('reverse_norm').deleteAllKeyframes()
         node.parm('reverse_norm').set(1)    

@@ -212,10 +212,16 @@ def shader(node):
         node.parm(parm).revertToDefaults()
         input_shader = node.evalParm(parm)
         
-        directory = os.path.dirname(path)
-        main_shader_path = "%s/SimpleLitVAT%s.shader" % (directory, fname)
-        forward_pass_path = "%s/SimpleLitVAT%sForwardPass.hlsl" % (directory, fname)
-        input_path = "%s/SimpleLitVAT%sInput.hlsl" % (directory, fname)
+        if method == 3:
+            directory = os.path.dirname(path)
+            main_shader_path = "%s/VAT_%s_SG.shadergraph" % (directory, fname)
+            forward_pass_path = "%s/VAT_%s_SubGgraph.shadersubgraph" % (directory, fname)
+            input_path = "%s/SimpleLitVAT%sInput.hlsl" % (directory, fname)
+        else:
+            directory = os.path.dirname(path)
+            main_shader_path = "%s/SimpleLitVAT%s.shader" % (directory, fname)
+            forward_pass_path = "%s/SimpleLitVAT%sForwardPass.hlsl" % (directory, fname)
+            input_path = "%s/SimpleLitVAT%sInput.hlsl" % (directory, fname)
 
         
         print("path is: %s" % path)
@@ -283,7 +289,7 @@ def mat_check(node):
 def mat_update(node):
     #print 'Updating Material'
     mat_check(node)
-    shader(node)
+    #shader(node)
     path = os.path.abspath(node.evalParm('path_mat'))  
     if os.path.isfile(path) :
         engine       = str(node.evalParm('engine'))
