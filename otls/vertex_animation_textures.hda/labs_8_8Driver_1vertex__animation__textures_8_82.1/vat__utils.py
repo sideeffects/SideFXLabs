@@ -43,11 +43,8 @@ def data(node):
     _pivMax      = str(node.evalParm('pivminmax2'))
     _packNorm    = str(node.evalParm('pack_norm'))
     _doubleTex   = str(node.evalParm('double_textures'))
-    _padPowTwo   = str(node.evalParm('padpowtwo'))
-    _textureSizeX= str(node.evalParm('activepixels1'))
-    _textureSizeY= str(node.evalParm('activepixels2'))
-    _paddedSizeX = str(node.evalParm('paddedsize1'))
-    _paddedSizeY = str(node.evalParm('paddedsize2'))
+    _paddedX     = str(node.evalParm('paddedratio1'))
+    _paddedY     = str(node.evalParm('paddedratio2'))
     _packPscale  = str(node.evalParm('pack_pscale'))
     _normData    = str(node.evalParm('normalize_data'))
     _width       = str(node.evalParm('widthheight1'))
@@ -67,11 +64,8 @@ def data(node):
             '_pivMin'       : _pivMin,
             '_packNorm'     : _packNorm,
             '_doubleTex'    : _doubleTex,
-            '_padPowTwo'    : _padPowTwo,
-            '_textureSizeX' : _textureSizeX,
-            '_textureSizeY' : _textureSizeY,
-            '_paddedSizeX' : _paddedSizeX,
-            '_paddedSizeY' : _paddedSizeY,
+            '_paddedX'      : _paddedX,
+            '_paddedY'      : _paddedY,
             '_packPscale'   : _packPscale,
             '_normData'     : _normData,
             '_width'        : _width,
@@ -83,23 +77,20 @@ def data(node):
             'Name' : "Soft",
             'numOfFrames'  : int(_numOfFrames),
             'speed'        : float(_speed),
-            'posMax' : float(_posMax),
-            'posMin' : float(_posMin),
-            'scaleMax' : float(_scaleMax),
-            'scaleMin' : float(_scaleMin),
-            'pivMax' : float(_pivMax),
-            'pivMin' : float(_pivMin),
-            'packNorm' : int(_packNorm),
+            'posMax'    : float(_posMax),
+            'posMin'    : float(_posMin),
+            'scaleMax'  : float(_scaleMax),
+            'scaleMin'  : float(_scaleMin),
+            'pivMax'    : float(_pivMax),
+            'pivMin'    : float(_pivMin),
+            'packNorm'  : int(_packNorm),
             'doubleTex' : int(_doubleTex),
-            'padPowTwo' : int(_padPowTwo),
-            'textureSizeX' : int(_textureSizeX),
-            'textureSizeY' : int(_textureSizeY),
-            'paddedSizeX' : int(_paddedSizeX),
-            'paddedSizeY' : int(_paddedSizeY),
+            'paddedX'   : float(_paddedX),
+            'paddedY'   : float(_paddedY),
             'packPscale' : int(_packPscale),
-            'normData' : int(_normData),
-            'width' : float(_width),
-            'height' : float(_height)
+            'normData'  : int(_normData),
+            'width'     : float(_width),
+            'height'    : float(_height)
         })
     with open(path, 'w') as f:  
         json.dump(data, f, indent=4, sort_keys=True)
@@ -304,11 +295,8 @@ def mat_update(node):
         _pivMax      = str(node.evalParm('pivminmax2'))
         _packNorm    = str(node.evalParm('pack_norm'))
         _doubleTex   = str(node.evalParm('double_textures'))
-        _padPowTwo   = str(node.evalParm('padpowtwo'))
-        _textureSizeX= str(node.evalParm('activepixels1'))
-        _textureSizeY= str(node.evalParm('activepixels2'))
-        _paddedSizeX = str(node.evalParm('paddedsize1'))
-        _paddedSizeY = str(node.evalParm('paddedsize2'))
+        _paddedX = str(node.evalParm('paddedratio1'))
+        _paddedY = str(node.evalParm('paddedratio2'))
         _packPscale  = str(node.evalParm('pack_pscale'))
         _normData    = str(node.evalParm('normalize_data'))
         _width       = str(node.evalParm('widthheight1'))
@@ -324,11 +312,8 @@ def mat_update(node):
         pivMin       = -1
         packNorm     = -1
         doubleTex    = -1
-        padPowTwo    = -1
-        textureSizeX = -1
-        textureSizeY = -1
-        paddedSizeX  = -1
-        paddedSizeY  = -1
+        paddedX      = -1
+        paddedY      = -1
         packPscale   = -1
         normData     = -1
         width        = -1
@@ -356,16 +341,10 @@ def mat_update(node):
                     packNorm    = num
                 if "_doubleTex" in line:
                     doubleTex   = num
-                if "_padPowTwo" in line:
-                    padPowTwo   = num
-                if "_textureSizeX" in line:
-                    textureSizeX= num
-                if "_textureSizeY" in line:
-                    textureSizeY= num
-                if "_paddedSizeX" in line:
-                    paddedSizeX = num
-                if "_paddedSizeY" in line:
-                    paddedSizeY = num
+                if "_paddedX" in line:
+                    paddedX = num
+                if "_paddedY" in line:
+                    paddedY = num
                 if "_packPscale" in line:
                     packPscale  = num 
                 if "_normData"  in line:
@@ -396,16 +375,10 @@ def mat_update(node):
             list[packNorm-1]    = '    - _packNorm: '   +_packNorm+'\n'
         if "_doubleTex"    != -1 :  
             list[doubleTex-1]    = '    - _doubleTex: '   +_doubleTex+'\n'
-        if "_padPowTwo"    != -1 :  
-            list[padPowTwo-1]    = '    - _padPowTwo: '   +_padPowTwo+'\n'
-        if "_textureSizeX"    != -1 :  
-            list[textureSizeX-1] = '    - _textureSizeX: '   +_textureSizeX+'\n'
-        if "_textureSizeY"    != -1 :  
-            list[textureSizeY-1] = '    - _textureSizeY: '   +_textureSizeY+'\n'
-        if "_paddedSizeX"    != -1 :  
-            list[paddedSizeX-1] = '    - _paddedSizeX: '   +_paddedSizeX+'\n'
+        if "_paddedX"    != -1 :  
+            list[paddedX-1] = '    - _paddedX: '   +_paddedX+'\n'
         if "_paddedSizeY"    != -1 :  
-            list[paddedSizeY-1] = '    - _paddedSizeY: '   +_paddedSizeY+'\n'
+            list[paddedY-1] = '    - _paddedY: '   +_paddedY+'\n'
         if "_packPscale"  != -1 :    
             list[packPscale-1]  = '    - _packPscale: ' +_packPscale+'\n'
         if "_normData"    != -1 :    
