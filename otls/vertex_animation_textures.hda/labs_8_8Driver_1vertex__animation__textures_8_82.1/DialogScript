@@ -105,9 +105,22 @@
         name    "apply_preset"
         label   "Initialize for Engine"
         type    button
+        joinnext
         default { "0" }
         help    "Applies the preset option for each engine. Do this prior to setting all your options, this will be destructive."
         parmtag { "script_callback" "import toolutils; vat_presets = toolutils.createModuleFromSection(\"vat_presets\",kwargs['node'].type(),\"vat_presets.py\"); vat_presets.main(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "unrealcontentpluginpath"
+        label   "Content Plugin ->"
+        type    button
+        default { "0" }
+        help    "Copy the content plugin to the plugin folder of your Unreal project."
+        hidewhen "{ engine != ue4 }"
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "button_icon" "SOP_file" }
+        parmtag { "script_callback" "node = hou.pwd(); import explore; explore.path(kwargs['node'], \"%s/unreal/4.25/SideFX_Labs\" % hou.getenv(\"SIDEFXLABS\"))" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
