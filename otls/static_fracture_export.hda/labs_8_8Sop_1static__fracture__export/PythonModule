@@ -1,5 +1,11 @@
 def CreateNewSubnet(a_ContainerName):
     a_ContainerName = a_ContainerName if a_ContainerName != "" else "FRACTURE_CONTAINER"
+    
+    existing = hou.node("/obj/" + a_ContainerName)
+    if existing and hou.pwd().parm("delete_before_export").eval():
+        existing.destroy()
+        
+    
     return hou.node("/obj").createNode("subnet", a_ContainerName)
 
 def CreateGeoFracContainer(a_Source, a_ContainerDir, a_ContainerName, a_PieceIndex, a_GroupName, a_Frame):

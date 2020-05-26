@@ -1,9 +1,9 @@
-# Dialog script for gamedev::sop_static_fracture_export automatically generated
+# Dialog script for labs::static_fracture_export automatically generated
 
 {
-    name	gamedev::sop_static_fracture_export
+    name	labs::static_fracture_export
     script	gamedev::sop_static_fracture_export
-    label	"GameDev Static Fracture Export"
+    label	"Labs Static Fracture Export"
 
     help {
 	""
@@ -15,10 +15,13 @@
     inputlabel	4	"Sub-Network Input #4"
 
     parm {
-        name    "sepparm2"
-        label   "Separator"
-        type    separator
-        default { "" }
+        name    "static_export"
+        label   "Static Export"
+        type    button
+        nolabel
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().Main()" }
+        parmtag { "script_callback_language" "python" }
     }
     groupsimple {
         name    "folder0"
@@ -35,7 +38,15 @@
             name    "sContainerName"
             label   "Container Name"
             type    string
+            joinnext
             default { "FRACTURE_CONTAINER" }
+        }
+        parm {
+            name    "delete_before_export"
+            label   "Delete If Already Exists"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "sepparm"
@@ -59,20 +70,6 @@
             type    string
             default { "name" }
             disablewhen "{ mExportMode == 0 }"
-        }
-    }
-
-    groupsimple {
-        name    "folder1"
-        label   "Export"
-
-        parm {
-            name    "generate"
-            label   "Static Export"
-            type    button
-            default { "0" }
-            parmtag { "script_callback" "hou.pwd().hdaModule().Main()" }
-            parmtag { "script_callback_language" "python" }
         }
     }
 
