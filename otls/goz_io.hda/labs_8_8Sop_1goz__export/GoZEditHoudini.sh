@@ -1,0 +1,1 @@
+/Applications/Houdini/Current/Frameworks/Houdini.framework/Versions/Current/Resources/bin/hython GoZBrushToHoudini.py

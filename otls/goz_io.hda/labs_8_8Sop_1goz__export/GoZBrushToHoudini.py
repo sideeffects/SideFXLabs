@@ -1,8 +1,11 @@
 import hrpyc
 import os
+import platform
 
 connection, hou = hrpyc.import_remote_module(port=18815)
 ZBRUSH_DIR = "C:\Users\Public\Pixologic\GoZBrush"
+if platform.system()=='Darwin':
+    ZBRUSH_DIR = "/Users/Shared/Pixologic/GoZBrush"
 
 
 def load_goz_files():

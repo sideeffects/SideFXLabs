@@ -1,0 +1,1 @@
+/Users/Shared/Pixologic/GoZBrush/GoZLocateApp.app/Contents/MacOS/GoZLocateApp "Houdini" "Houdini*.app"

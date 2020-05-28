@@ -1,8 +1,15 @@
 import os
 import subprocess
+import platform
 
 zbrush_dir = "C:\Users\Public\Pixologic\GoZBrush"
+zbrush_dir = "/Users/Shared/Pixologic/GoZBrush"
 zbrush_proj_dir = "C:\Users\Public\Pixologic\GoZProjects\Default"
+zbrush_proj_dir = "/Users/Shared/Pixologic/GoZProjects/Default"
+OS = platform.system()
+MacOS = False
+if OS == 'Darwin':
+    MacOS = True
 
 ascii_file_map = {
             "GoZ_Info.txt":"C:/Users/Public/Pixologic/GoZApps/Houdini/GoZ_Info.txt",
@@ -10,6 +17,13 @@ ascii_file_map = {
             "GoZEditHoudini.bat":"C:/Users/Public/Pixologic/GoZApps/Houdini/GoZEditHoudini.bat",
             "GoZLocateHoudini.bat":"C:/Users/Public/Pixologic/GoZApps/Houdini/GoZLocateHoudini.bat",
 }
+if MacOS:
+    ascii_file_map = {
+                "GoZ_Info_MacOS.txt":"/Users/Shared/Pixologic/GoZApps/Houdini/GoZ_Info.txt",
+                "GoZBrushToHoudini.py":"/Users/Shared/Pixologic/GoZApps/Houdini/GoZBrushToHoudini.py",
+                "GoZEditHoudini.sh":"/Users/Shared/Pixologic/GoZApps/Houdini/GoZEditHoudini.sh",
+                "GoZLocateHoudini.sh":"/Users/Shared/Pixologic/GoZApps/Houdini/GoZLocateHoudini.sh",
+    }
 
 def get_unique_names_from_node(node):
     export_geo = node.geometry()
@@ -27,6 +41,8 @@ def get_mesh_paths(meshes_to_send):
         f.close()
 
         object_path_exe = os.path.join(zbrush_dir, "GoZMakeObjectPath.exe")
+        if MacOS:
+            object_path_exe = os.path.join(zbrush_dir, "GoZMakeObjectPath.app/Contents/MacOS/GoZMakeObjectPath")
         subprocess.call(object_path_exe)
 
         object_path_file = os.path.join(zbrush_dir, "GoZ_ObjectPath.txt")
@@ -72,10 +88,12 @@ def export(kwargs):
     if hou.pwd().inputs():
         for name in meshes_to_send:
             node.parm("__name_expression").set("@name=" + name)
-            node.parm("__export_file").set(zbrush_proj_dir + "\\" + name + ".GoZ")
+            node.parm("__export_file").set(zbrush_proj_dir + "/" + name + ".GoZ")
             rop_node.parm("execute").pressButton()
     
     object_path_exe = os.path.join(zbrush_dir, "GoZBrushFromApp.exe")
+    if MacOS:
+        object_path_exe = os.path.join(zbrush_dir, "GoZBrushFromApp.app/Contents/MacOS/GoZBrushFromApp")
     subprocess.call(object_path_exe)   
     
 def saveSectionToFile(section, file_name, mode="w"):
