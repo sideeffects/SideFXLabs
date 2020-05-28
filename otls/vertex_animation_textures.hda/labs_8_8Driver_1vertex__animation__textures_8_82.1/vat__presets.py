@@ -121,7 +121,8 @@ def ue4(node,method):
 
 def unity(node,method):
     print('unity')
-    node.parm('path_mat').deleteAllKeyframes()    node.parm('path_mat').set('`chs("_project")`/materials/`chs(\"_component\")`_mat.mat')     
+    node.parm('path_mat').deleteAllKeyframes()    
+    node.parm('path_mat').set('`chs("_project")`/materials/`chs(\"_component\")`_mat.mat')     
     node.parm('convertcolorspace').deleteAllKeyframes()
     node.parm('convertcolorspace').set(0)
     node.parm('coord_pos').deleteAllKeyframes()
