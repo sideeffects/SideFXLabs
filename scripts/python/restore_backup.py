@@ -56,7 +56,7 @@ def recoverFile():
     
     
     # Ask whether restore or not
-    msg = "The backup of the most recent opened file has found. Do you want to restore it?"
+    msg = "The backup of the most recent opened file was found. Do you want to restore it?"
     details = (
         "Location: " + os.path.dirname(destPath) + "\n"
         "Original: " + filename + "\n"
