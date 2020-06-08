@@ -35,10 +35,12 @@ def ImportFBX(kwargs):
                 node.parm("sImportPath").set(GeneratedSubnet.path())
 
 
-                MaterialAssignment = GeneratedSubnet.children()
-
                 geos = [x for x in GeneratedSubnet.children() if x.type().name() == "geo"]
                 for geo in geos:
+
+                        for capture in [x for x in geo.children() if x.type().name() == "capture"]:
+                                capture.setHardLocked(False)
+
                         matassignmentnodes = [x for x in geo.children() if x.type().name() == "material"]
                         for matassignment in matassignmentnodes:
                                 numassignments = matassignment.parm("num_materials").evalAsInt()
