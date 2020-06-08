@@ -45,7 +45,7 @@ def recoverFile():
     entries = [(os.stat(path)[ST_MTIME], path) for path in entries]
 
     if len(entries) == 0:
-        hou.ui.displayMessage('No backup file for %s has found' % filename)
+        hou.ui.displayMessage('No backup file for %s was found' % filename)
         return False
         
     bakDate, bakFile = sorted(entries, reverse=True)[0]
