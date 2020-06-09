@@ -1,0 +1,144 @@
+# Dialog script for labs::hf_combine_masks automatically generated
+
+{
+    name	labs::hf_combine_masks
+    script	labs::hf_combine_masks
+    label	"Labs HF Combine Masks"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Heightfield
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Heightfield
+
+    parm {
+        name    "bFlood"
+        label   "Flood"
+        type    toggle
+        joinnext
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "srcname1"
+        label   "Source"
+        type    string
+        default { "mask" }
+        menureplace {
+            [ "opmenu -l -a heightfield_copylayer2 srcname1" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    multiparm {
+        name    "folder0"
+        label    "Layers"
+
+        parm {
+            name    "layername_#"
+            label   "Source"
+            type    string
+            joinnext
+            default { "" }
+            menureplace {
+                [ "opmenu -l -a heightfield_copylayer1 srcname1" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "clamp_#"
+            label   "Clamp 0-1"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "blend_#"
+            label   "Blend"
+            type    float
+            default { "0.5" }
+            hidewhen "{ mode_# != blend }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "method_#"
+            label   "Pre-Process"
+            type    ordinal
+            joinnext
+            default { "blur" }
+            menu {
+                "blur"      "Blur"
+                "boxblur"   "Box Blur"
+                "expand"    "Expand"
+                "shrink"    "Shrink"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "radius_#"
+            label   "Amount"
+            type    float
+            default { "0" }
+            range   { 0! 40 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mode_#"
+            label   "Layer Mode"
+            type    ordinal
+            default { "subtract" }
+            menu {
+                "replace"   "Replace"
+                "add"       "Add"
+                "subtract"  "Subtract"
+                "diff"      "Difference"
+                "multiply"  "Multiply"
+                "max"       "Maximum"
+                "min"       "Minimum"
+                "blend"     "Blend"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder1"
+        label   "Post procces"
+
+        parm {
+            name    "clampmin"
+            label   "Clamp to Minimum"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "clampmax"
+            label   "Clamp to Maximum"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "remap"
+            label   "Remap"
+            type    ramp_flt
+            default { "2" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+        }
+    }
+
+}
