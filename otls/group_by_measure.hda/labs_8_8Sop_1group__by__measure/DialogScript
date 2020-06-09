@@ -1,0 +1,81 @@
+# Dialog script for labs::group_by_measure automatically generated
+
+{
+    name	labs::group_by_measure
+    script	labs::group_by_measure
+    label	"Labs Group by Measure"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Group"
+
+        parm {
+            name    "groupname"
+            label   "Group Name"
+            type    string
+            default { "group1" }
+            menureplace {
+                [ "opmenu -l -a group9 groupname" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mergeop"
+            label   "Initial Merge"
+            type    ordinal
+            default { "replace" }
+            menu {
+                "replace"   "Replace Existing"
+                "union"     "Union with Existing"
+                "intersect" "Intersect with Existing"
+                "subtract"  "Subtract from Existing"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mMeasureMode"
+            label   "Measure"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Eccentricity"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Settings"
+
+        parm {
+            name    "bInvertEccentricity"
+            label   "Invert"
+            type    toggle
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fSquaredness"
+            label   "Eccentricity"
+            type    float
+            default { "0" }
+            disablewhen "{ mMeasureMode != 0 }"
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
