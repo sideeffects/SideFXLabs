@@ -1,0 +1,281 @@
+= Labs Vertex Animation Textures =
+
+#type: node
+#context: out
+#internal: labs::vertex_animation_textures::2.0
+#icon: vertexanimationtextures
+#tags: gamedev 
+
+""" The Vertex Animation Textures ROP will export a mesh and textures to be used with a realtime material that can playback complex animations for cloth, rigid body destruction, fluids and particles. """
+
+Vertex Animation Textures are an alternative method for playing back complex simulations in your game engine. The advantage to these textures is that they are read from the GPU making them ideal candidates for playing back complex animation. The downside is in order for the results to be accurate, these textures need to be uncompressed which can take up signifcant memory.
+
+=== Requirements === (requirements)
+Make sure your geometry has normals and uv's (except for fluid export). If your geometry has uv and uv2 the ROP will use uv3 for vertex animation texture data. This will require you to modify your game-engine shaders accordingly.
+
+=== Unreal Quickstart ===
+:vimeo: Unreal Quickstart
+    #id: 427443116
+
+=== Unity Quickstart ===
+:vimeo: Unity Quickstart
+    #id: 427443045
+
+== Basic Export Steps == (basic_export)
+# Choose your export method and Engine and click "Initialize for Engine".
+# Populate the SOP Path with the path to the geometry you want to export.
+# If this is your first time exporting a vertex animation texture refer to the section on [installing shaders|#shader_install].
+# Set the Project path where you would like the files to be exported. For Unity, this can be a folder in your Unity project for automatic importing and material updates.
+# Click Render.
+# You can confirm the export data is correct by double clicking on the VAT ROP and inspecting the resulting geometry. The templated geometry is the original input.
+
+== Importing and setting up assets in Unity == (unity_import)
+* Make sure you have [installed the SideFX Vertex Animation Textures package first|#unity_shader_install]. This is compatible with URP.
+* If you are using the legacy renderer or LWRP use v2.0 of the VAT ROP.
+* Navigate to the folder that contains your VAT assets or import them into your project.
+=== Texture Settings ===
+* sRGB (Color Texture) - OFF
+* Alpha Source - Input Texture Alpha
+* Non-Power of 2 - None
+* Generate Mip Maps - OFF
+* Filter Mode - Point (no filter)
+* Compression Format - RGBA Half. You may need to override each platform to set this.
+=== Material Settings ===
+* The material should automatically have the correct shader assigned to it and the values set.
+* Assign the textures to the Postion Texture input as wall Rotation or Color depending on your export type.
+* If the material values are still at their default values, try saving the project and re-exporting from Houdini.
+* You can also copy and paste the values from the VAT ROP using the copy/paste icon next to each field.
+* You can also refer to the json file that was generated during export to confirm the correct values.
+
+== Importing and setting up assets in Unreal == (unreal_import)
+* Make sure you have [installed the SideFX Labs content plugin first|#unreal_shader_install]. This includes materials, material functions and utilities.
+=== Textures ===
+* Import your textures into the Content Browser.
+* Select your textures, right click on one of them and choose Scripted Actions > SideFX Set VAT Textures. 
+    * This sets the Compression Settings to Vector Displacmentmap (you could try HDR for better precision but larger files).
+    * The Filter is set to, Nearest.
+=== Mesh ===
+* Import the mesh into the Content Browser.
+FBX Import Options:
+    * Auto Generate Collision - OFF
+    * Vertex Color Import Option - Replace
+    * Remove Degenerates - OFF
+    * Convert Scene - ON
+    * Material Import Method - Do Not Create Material
+* After you have imported the mesh double click on the asset to open preview window.
+* Turn ON "Use Full Precision UVs", click Apply Changes, and Save the asset.
+=== Material ===
+* Import the json file into the Content Browser folder you want to use for your material instance.
+* In the DataTable Options window, set Choose DataTable Row Type to, VAT_Material_Attributes.
+* Create a new material instance and set the Parent to, M_VAT_(Export Type). For instance, M_VAT_Soft.
+* You will have to manually assign the textures and enable the material parameters.
+* Close the material instance (or you won't see the following updates).
+* In the content browser select the material instance and json data asset, right click and choose Scripted Actions > SideFX Set VAT Mat Instance. This will set the parameters on the material instance.
+
+== Installing Shaders == (shader_install)
+=== Unity === (unity_shader_install)
+# At the top of the ROP change the interface drop-down to "User Interface - Normal".
+# A new section is exposed at the bottom of the parameter window. Navigate to "Sample Shader Code".
+# Click on the [Icon:BUTTONS/copy] icon next to "Unity Package Path" to copy the path to the shader package.
+# In Unity, open the package manager - Window > Package Manager.
+# Click on the plus icon in the top left and choose, "Add package from disk".
+# Paste path into the address bar at the top. (On Mac you would need to navigate manually).
+# Open the package.json file to install the shaders.
+=== Unreal === (unreal_shader_install)
+# At the top of the ROP change the interface drop-down to "User Interface - Normal".
+# A new section is exposed at the bottom of the parameter window. Navigate to "Sample Shader Code".
+# Click on the [Icon:SOP/file] icon next to "Content Plugin ->" to open a window that contains the content plugin folder.
+# Copy the SideFX_Labs folder into (Your Unreal Project)/Plugins.
+
+== Troubleshooting ==
+* Animated characters might have takes associated with the animation which can cause issues with the export process. Export the mesh to an alembic file first and then use that as the input for the Soft export method.
+* Make sure your mesh has uv's before exporting or the shader will use the wrong uv channel to get the VAT data.
+* When importing a rigid mesh into Unreal make sure "Replace Vertex Colours" is turned on. The centroid of each chunk are stored in the vertex colour.
+* Exporting to file formats like png can change the colour values of the image, causing the VAT animation to look incorrect. Try exporting an exr first to confirm your setup is working, then check the colorspace of the texture and your project to make sure the pixel values aren't being modified.
+
+
+@parameters
+    User Interface:
+        Simple (Default) shows a limited UI of the parameters that would be changed the most often.
+        Normal is a fully expanded UI with more in-depth but less used controls.
+    Start/End:
+        This is the begining and end frame of the export. Please account for the one frame offset of the start frame to the end frame. By default the exporter will break the dynamic variables on creation.
+    Render With Take:
+        If you are using takes you can change the exporter options.
+    Method:
+        What primary method to export for: 
+        
+        Soft - Consistant Topology throughout the Simulation.
+        
+        Rigid - Packed Primitive style Rigid Body Simulation.
+        
+        Fluid - Changing Topology throughout the Simulation.
+        
+        Sprite - Camera facing cards, points moving through space.
+    Engine:
+        Set the scale, texture type and coordinate system specific to the game engine chosen.
+    Initialize for Engine:
+        Applies the preset option for each engine. Make sure to do this as soon as possible as the result will overwrite parameters in the UI.
+    SOP Path:
+        The path to your geometry in sops.
+    == Data For Realtime Material ==
+    NOTE:
+        Any value that needs to be copied to your game-engine material has a [Icon:BUTTONS/copy] copy button next to it.
+    Frame Range:
+        The number of calculated frames. Your last frame minus your start frame. This value will be set by a script when you click Render.
+    Speed:
+        The rate in houdini of your frames per second divided by your frame range. In your engine this may vary if your frame rate is different or varying. This value will be set by a script when you click Render.
+    Position Min/Max:
+        Copy these values to the material in your game-engine to expand normalised position values back to their original range.
+    Pivot Min/Max:
+        Visible when the Rigid method has been chosen. Pivot values are stored in the vertex colour. Most game engines will clamp these values between 0 and 1. Copy these values to the material in your game-engine to expand normalised pivot values back to their original range.
+    Scale Max/Min:
+        Visible when the Rigid method has been chosen. Remaps the max and min scale over the course of the entire time range.
+    Width/Height:
+        Visible when the Sprite method has been chosen and the Engine is set to Unity. Set width and height from houdini for your sprite scale.
+    Padded Ratio:
+        When Pad to Power of 2 is activated this is the ratio between active and padded pixels. The material will use these numbers to calculate a ratio for the uv lookup. These value will be set by a script when you click Render.
+    Normalize data range to 0-1 space:
+        If you intend to use texture compression then normalized data is required for your texture maps.
+    Pack normals into Position Alpha:
+        Stores the normal data in the alpha channel of the position map to save texture space. This method will result in less accurate normals.
+    Pack Pscale into Position Alpha:
+        Stores the pscale data into the alpha channel of the position map to save texture space.
+    Pad to Power of 2:
+        When activated all textures will be exported to the nearest power of 2 value in each axis. Power of two textures allows for texture streaming on the GPU.
+    Double Textures (Higher Precision):
+        If your engine is limited to 8bit textures, a second texture can be used for higher precision.
+    Target Texture Size:
+        This is the maximum width of your texture. The height is dictated by the number of frames of your animation and the number of vertices relative to your maximum width.
+    Target Prim Count:
+        This is the maximum number of triangles that will be used for your fluid export mesh. Ideally this number should be less than the triangle count of the input mesh.
+    Calculate Optimal Primcount:
+        This will set the target prim count value to the total number of triangles on the current frame of the input mesh.
+    == Paths ==
+    enable_project:
+        Enable asset name override.
+    Project:
+        Your parent project directory, by default this is the $JOB for those studios that use it.
+    Component Enable:
+        This allows you to override the Asset name in the file path. This is typically 'opname("..")', the parent node of this sop area. This allows you to copy and paste this render object or unique asset as many times as you need. If within a subnet this will reflect the subnet name.
+    Component:
+        By default this will refer to the name of the parent object, or subnet of this node, so you can perform a lot of copy and paste name space tricks to duplicate assets. If you need you can override the Asset name and enter any string or expression you need in there.
+    enable_geo:
+        Enable export of geometry.
+    Geometry:
+        Path on disk to save the geometry.
+    Browse Path:
+        Opens an explorer window to the listed directory
+    enable_pos:
+        Enable export of position.
+    Position:
+        Path on disk to save the position map.
+    Position2:
+        If Double Textures is enabled, the path on disk to save the second position map.
+    enable_rot:
+        Enable export of rotation.
+    Rotation:
+        Path on disk to save the rotation map.
+    enable_scale:
+        Enable export of scale.
+    Scale:
+        Allow your exported mesh to have pre-scale to the mesh, besides defaulting at origin.
+    enable_normal:
+        If disabled Normal is packed into Alpha. Enable export of normal map.
+    Normal:
+        Path on disk to save normal map, when not using the packed normals in the alpha of the position map.
+    Export Color Map:
+        Enable export of color.
+    Color:
+        Path on disk to save the color map.
+    Update Mat:
+        Enable export of material instance for engines that support it, and this will update the values in the material instances for engines that allow it.
+    Material:
+        The copy and paste material code for the engine.
+    Create Data:
+        Enable export of data for the realtime shader to a json library so you can source control it.
+    Realtime Data:
+        Path on disk to save the data for the real time shader.
+    Create Shader:
+        Enable creation of the shader for engine that allow it.
+    Shader Path:
+        Path on disk to save the shader.
+    == Settings ==
+    Initialize Simulation OPs:
+        Triggers all simulation contexts to run in the cook chain prior to export.
+    Equalize Edges:
+        For fluid exports. This will even the edges of the triangles for the best compression.
+    Reverse Normals:
+        Reverses the normals on the mesh. Helpful for one sided meshes like sprites.
+    Convert to Image Format's Colorspace:
+        This removes any sRGB lookup that are default for the formats.
+    Raster Depth:
+        This will be set when Initialize for Engine is clicked. Adjust the bitdepth for the image to be exported.
+    Black/White Points:
+        The min and max pixels values for the exported image. This does not remap the textures to fit.
+    BC 4Channel Split:
+        Renders the channels separately for different data formats.
+    Position Coord:
+        This will be set when Initialize for Engine is clicked. Re-order the components for different coordinate systems.
+    Color Coord:
+        Re-order the components for different coordinate systems. For color this maybe be helpful if you are hijacking this map for other purposes besides color.
+    Name:
+        The name of the geometry object to be exported as, as opposed to being called MESH.1
+    === Position ===
+    Translate:
+        Allow your exported mesh to have pre-transform to the mesh, besides defaulting at origin.
+    Rotate:
+        Allow your exported mesh to have pre-rotation to the mesh, besides defaulting at origin.
+    Pivot:
+        Allow your exported mesh to have pre-pivot to the mesh, besides defaulting at origin.
+    Delta (P.xyz):
+        The expected position attribute coming into the exporter.
+    Normal (N.xyz):
+        The expected normal attribute coming into the exporter.
+    Rest (rest.xyz):
+        The expected rest attribute coming into the exporter.
+    Rotation (orient.abcd):
+        The expected rotation attribute coming into the exporter.
+    scale (scale.xyz):
+        The expected scale attribute going to the engine.
+    pscale (pscale.x):
+        The expected point scale attribute coming into the exporter.
+    Pivot (pivot.xyz):
+        The expected pivot attribute coming into the exporter.
+    Color (Cd.xyz):
+        The expected color attribute coming into the exporter.
+    Alpha (Alpha.xyz):
+        The expected alpha attribute coming into the exporter.
+    Delta (P):
+        The expected position attribute going to the engine.
+    Normal (N):
+        The expected normal attribute going to the engine.
+    uv (uv.xy):
+        The expected uv attribute going to the engine.
+    Tiling Coord (uv2.xy):
+        The expected uv2 attribute going to the engine.
+    uv3 (uv3.xy):
+        The expected values going to the engine.
+    pscale (P.w):
+        The expected point scale attribute going to the engine.
+    Pivot (Cd.xyz):
+        The expected pivot attribute going to the engine.
+    Color (Cd.rgb):
+        The expected color attribute going to the engine.
+    Alpha (Cd.a):
+        The expected alpha attribute going to the engine.
+    == Sample Shader Code ==
+    Refer to the section on [installing shaders|#shader_install]. The code provided in this section is mostly for reference or older setups.
+    
+    NOTE:
+        For Unreal Engine:
+        Use the copy button to copy code that can be pasted into a material function. This will not work correctly if pasted into a material.
+    NOTE:
+        For Unity:
+        Shader files are automatically created in your project path if the Shader Path option has been enabled.
+    == Scripts ==
+    Pre-Render:
+        Run this code before any rendering.
+    Post-Render:
+        Run this code after all rendering.
+    
