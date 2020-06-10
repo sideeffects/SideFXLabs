@@ -1,0 +1,94 @@
+= Labs Pyro Preview ROP =
+
+#type: node
+#context: sop
+#internal: labs::pyro_preview
+#icon: DOP/pyrosolver
+#tags: rendering, sidefxlabs, pyro
+
+""" A mantra wrapper for previewing pyro renders. """
+
+The pyro preview ROP is a wrapper for the mantra ROP with specific settings that are optimized for rendering volumes quickly for preview purposes. You can also create a light rig that mimics an environemnt light but renders a lot quicker.
+
+@parameters
+Add Light Rig:
+    Create 6 distant lights for each axis with a master intensity controller.
+Remove Light Rig:
+    Delete all nodes in the light rig.
+Render Control:
+    Opens the render control dialog to allow adjustments of the render parameters before rendering.
+
+Valid Frame Range:
+    Controls whether this render node outputs the current frame (__Render any frame__) or the image sequence specified in the __Start/End/Inc__ parameters (__Render Frame Range__).
+
+    __Render Frame Range (strict)__ will render frames START to END when it is rendered, but will not allow frames outside this range to be rendered at all. __Render Frame Range__ will allow outside frames to be rendered. This is used in conjunction with render dependencies. It also affects the behavior of the 'Override Frame Range' in the Render Control dialog.
+
+    Two possible cases where you'd want the strict behavior:
+    
+    - A 60 frame walk cycle written out to a geo, but part of a larger ROP net to render out a larger frame range.
+
+    - A texture loop from 1-20.
+
+    Otherwise, you will usually set this to non-strict.
+
+    Render Current Frame: 
+        Renders a single frame, based on the value in the playbar or the frame that is requested by a connected output render node.
+
+    Render Frame Range:
+        Renders a sequence of frames. If an output render node is connected, this range is generally ignored in favor of frames requested by the output render node.
+    
+    Render Frame Range (Strict):
+        Renders a sequence of frames. If an output render node is connected, this range restricts its requested frames to this frame range.
+
+Start/End/Inc:
+    Specifies the range of frames to render (start frame, end frame, and increment). All values may be floating point values. The range is inclusive. 
+
+    These parameters determine the values of the local variables for the output driver.
+        `$NRENDER`:
+            The number of frames to be rendered by the output driver.
+        `$N`:
+            The current frame being rendered (starting at 1 and going to `$NRENDER`).
+    
+    For example, if the parameters are set to:
+    
+    Start ||
+        End ||
+            Inc ||
+    10.5 |
+        12 |
+            0.5 |
+
+    ...there will be 4 frames rendered (10.5, 11, 11.5, and 12), so `$NRENDER` will have a value of 4. `$N` will have the following values at each frame:
+    
+    Frame ||
+        `$N` ||
+    10.5 |
+        1
+    11 |
+        2
+    11.5 |
+        3
+    12 |
+        4
+
+Render With Take:
+    The output driver will switch to this take before rendering and then restore the current take when rendering is done.
+
+    TIP:
+        use `chs("take")` to use this value in other parameters. See the [Exp:chs] expression function for more information.
+
+Camera:
+    The path the to camera object to use to render the scene, for example `/obj/cam1`.
+* [IncludeProp:override_camerares]
+* [IncludeProp:res_fraction]
+* [IncludeProp:res_override]
+* [IncludeProp:aspect_override]
+* [IncludeProp:vm_picture]
+
+Force Objects:
+    Objects will be output regardless of the state of their display flag
+Force Lights:
+    Lights will be output regardless of the value of their dimmer channel
+Env Light Intensity:
+    Master intensity control for all lights in the light rig.
+    
