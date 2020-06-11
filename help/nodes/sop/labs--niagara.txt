@@ -1,0 +1,109 @@
+= Labs Niagara ROP =
+
+#type: node
+#context: sop
+#internal: labs::niagara::2.0
+#icon: DOP/particlefluidemitter
+#tags: sidefxlabs, vfx, niagara
+
+""" Export point caches to be used with Unreal's Niagara particle system. """
+
+The Niagara ROP exports static or animated point caches to a custom json format that can be read by the Houdini Niagara plugin for Unreal. This could be used for driving particle emitters in Niagara, or creating complex simulations in Houdini that can be run in realtime through Niagara.
+
+=== Requirements === (requirements)
+The Niagara ROP works with the latest version of the Houdini Niagara plugin for Unreal 4.25 and onwards.
+
+*To install the plugin* please refer to the [Houdini Niagara GitHub|https://github.com/sideeffects/HoudiniNiagara] page.
+
+You can find the latest information and *links to sample files* on the [Houdini Niagara Updates|https://www.sidefx.com/forum/topic/73075/#post-309029] forum thread.
+
+=== Houdini to Niagara Workflow ===
+:vimeo: Houdini Niagara Workflow
+    #id:412724042
+
+@parameters
+    == General ==
+    === ROP Settings ===
+    Frame Range / Time Mode:
+        Controls whether this render node outputs the current frame (__Render any frame__) or the image sequence specified in the __Start/End/Inc__ parameters (__Render Frame Range__).
+
+        __Render Frame Range (strict)__ will render frames START to END when it is rendered, but will not allow frames outside this range to be rendered at all. __Render Frame Range__ will allow outside frames to be rendered. This is used in conjunction with render dependencies. It also affects the behavior of the 'Override Frame Range' in the Render Control dialog.
+
+        Two possible cases where you'd want the strict behavior:
+        
+        - A 60 frame walk cycle written out to a geo, but part of a larger ROP net to render out a larger frame range.
+
+        - A texture loop from 1-20.
+
+        Otherwise, you will usually set this to non-strict.
+
+        Render Current Frame: 
+            Renders a single frame, based on the value in the playbar or the frame that is requested by a connected output render node.
+
+        Render Frame Range:
+            Renders a sequence of frames. If an output render node is connected, this range is generally ignored in favor of frames requested by the output render node.
+        
+        Render Frame Range (Strict):
+            Renders a sequence of frames. If an output render node is connected, this range restricts its requested frames to this frame range.
+
+        Single Frame With 'time' Attribute:
+            Renders a single frame, with the time attribute set to 0 be default. Ideal for use with point clouds that represent impact points from rbd simulations.
+
+    Start/End/Inc:
+        Specifies the range of frames to render (start frame, end frame, and increment). All values may be floating point values. The range is inclusive. 
+
+        These parameters determine the values of the local variables for the output driver.
+            `$NRENDER`:
+                The number of frames to be rendered by the output driver.
+            `$N`:
+                The current frame being rendered (starting at 1 and going to `$NRENDER`).
+        
+        For example, if the parameters are set to:
+        
+        Start ||
+            End ||
+                Inc ||
+        10.5 |
+            12 |
+                0.5 |
+
+        ...there will be 4 frames rendered (10.5, 11, 11.5, and 12), so `$NRENDER` will have a value of 4. `$N` will have the following values at each frame:
+        
+        Frame ||
+            `$N` ||
+        10.5 |
+            1
+        11 |
+            2
+        11.5 |
+            3
+        12 |
+            4
+    Render with Take:
+        The output driver will switch to this take before rendering and then restore the current take when rendering is done.
+
+        TIP:
+            use `chs("take")` to use this value in other parameters. See the [Exp:chs] expression function for more information.
+    Output Path:
+        The output file should be of the type, *.hbsjon*, *.hjson* or *.hcsv* (this format has been deprecated). 
+
+        *hbjson* - is a binary json file format. Ideal for faster export and import, and smaller file sizes.
+
+        *hjson* - an ascii json file format. Ideal for debugging the results.
+    === Attributes ===
+    Number of Renames:
+        Rename any point attribute to match naming conventions in Unreal.
+    Overwrite Existing Attributes:
+        If the specified destination attribute already exists, it is deleted and replaced by the source attribute.
+    Keep Attributes:
+        A space separated list of the attributes that will be written out.
+    Cast Attributes:
+        If necessary, you can cast an attribute to a type that matches the compatible types in Unreal.
+    Clamp Attributes That Are Outside Type Range:
+        When an attribute is cast to a different type the value might be outside of the range of the target type. If this option is selected, the value will be clamped to the type range. If this option is not selected and an out of range value is encountered, an exception will be raised while writing out the file. Only applicable to binary format output (.hbjson)
+    == Advanced ==
+    Export Current Frame As time == 0:
+        Overrides the time attribute to always equal 0. Disabling this will create an age attribute for the points that is relative to the current time in the playbar.
+    Export Start Frame As time == 0:
+        Off by default. If the start frame of your frame range is not 1, but rather something like 1001, turn this on to use your start frame as time == 0.
+    
