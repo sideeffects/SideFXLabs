@@ -1,0 +1,147 @@
+# Dialog script for labs::mesh_sharpen automatically generated
+
+{
+    name	labs::mesh_sharpen
+    script	labs::mesh_sharpen
+    label	"Labs Mesh Sharpen"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Sharpening"
+
+        parm {
+            name    "step"
+            label   "Step Size"
+            type    float
+            default { "0.5" }
+            range   { 0 0.5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "iterations"
+            label   "Iterations"
+            type    integer
+            default { "500" }
+            range   { 0 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pin_borders"
+            label   "Pin Borders"
+            type    toggle
+            default { "1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Smoothing"
+
+        parm {
+            name    "iterations2"
+            label   "Iterations"
+            type    integer
+            default { "0" }
+            range   { 0! 100 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "stepsize"
+            label   "Step Size"
+            type    float
+            default { "0.5" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "curvatrue"
+        label   "Advanced"
+
+        parm {
+            name    "input"
+            label   "Use OpenCL"
+            type    toggle
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "curvaturetype"
+            label   "Curvature Type"
+            type    ordinal
+            default { "1" }
+            menu {
+                "gaussian"      "Gaussian"
+                "mean"          "Mean"
+                "principal"     "Principal"
+                "curvedness"    "Curvedness"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "principaltype"
+            label   "Report"
+            type    ordinal
+            joinnext
+            default { "min" }
+            hidewhen "{ curvaturetype != principal }"
+            menu {
+                "min"   "Smaller"
+                "max"   "Larger"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "principalsign"
+            label   "Sign"
+            type    ordinal
+            nolabel
+            default { "0" }
+            hidewhen "{ curvaturetype != principal }"
+            menu {
+                "signed"    "Signed"
+                "absolute"  "Absolute"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scalenormalize"
+            label   "Make Scale Independent"
+            type    toggle
+            default { "on" }
+            hidewhen "{ curvaturetype == gaussian }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "exponet"
+            label   "Curvature Exponent"
+            type    float
+            default { "1" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
