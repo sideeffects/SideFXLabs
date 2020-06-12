@@ -148,6 +148,7 @@ class FractureExporter(object):
 
         isolate_group = None 
         isolate_group_name = hou.pwd().parent().parm("group").eval()
+
         if isolate_group_name:
             isolate_group = self.geo.findPrimGroup(isolate_group_name)
         
@@ -155,6 +156,7 @@ class FractureExporter(object):
         
             if isolate_group and not isolate_group.contains(prim):
                 continue 
+
 
             point = prim.vertices()[0].point()
             packed_name = prim.attribValue("name")
@@ -172,6 +174,7 @@ class FractureExporter(object):
             new_object.initial_packed_transform = initial_packed_transform
 
             self.export_objects.append(new_object)
+
 
     def accumulate_parent_scales(self, parent):
         if not parent.parm("sx"):
@@ -216,26 +219,14 @@ class FractureExporter(object):
             timeShift.parm('time').set(hou.frameToTime(self.start_frame))
             
             timeShift.setNextInput(objMerge)
-            timeShift.moveToGoodPosition()            
-            
-            # Unpack Node
-            unpack = geo_node.createNode('unpack', run_init_scripts=False)
-            unpack.setNextInput(timeShift)
-            unpack.moveToGoodPosition()
-
-            # Wrangle Node
-            attribwrangle = geo_node.createNode('attribwrangle', run_init_scripts=False)
-            attribwrangle.setNextInput(unpack)
-            attribwrangle.setNextInput(timeShift)
-            attribwrangle.parm('snippet').set("@P *= invert(matrix(primintrinsic(1,'packedfulltransform',0)));")
-            attribwrangle.moveToGoodPosition()
+            timeShift.moveToGoodPosition()    
 
             deleteNode = geo_node.createNode('delete', run_init_scripts=False)
             deleteNode.setExpressionLanguage(hou.exprLanguage.Hscript)
             deleteNode.parm('group').setExpression('chs("../../../../../group")')
             deleteNode.parm('negate').set(1)
 
-            deleteNode.setNextInput(attribwrangle)
+            deleteNode.setNextInput(timeShift)
             deleteNode.moveToGoodPosition()
 
             switchNode = geo_node.createNode('switch', run_init_scripts=False)
@@ -243,16 +234,46 @@ class FractureExporter(object):
             switchNode.parm('input').setExpression('strlen(chs("../../../../../group")) == 0')
 
             switchNode.setNextInput(deleteNode)
-            switchNode.setNextInput(attribwrangle)
+            switchNode.setNextInput(timeShift)
             switchNode.moveToGoodPosition()
+
+
+            
+            # Unpack Node
+            unpack = geo_node.createNode('unpack', run_init_scripts=False)
+            unpack.setNextInput(switchNode)
+            unpack.moveToGoodPosition()
+
+            # Wrangle Node
+            attribwrangle = geo_node.createNode('attribwrangle', run_init_scripts=False)
+            attribwrangle.setNextInput(unpack)
+            attribwrangle.setNextInput(switchNode)
+            attribwrangle.parm('snippet').set("@P *= invert(matrix(primintrinsic(1,'packedfulltransform',0)));")
+            attribwrangle.moveToGoodPosition()
+
+            # deleteNode = geo_node.createNode('delete', run_init_scripts=False)
+            # deleteNode.setExpressionLanguage(hou.exprLanguage.Hscript)
+            # deleteNode.parm('group').setExpression('chs("../../../../../group")')
+            # deleteNode.parm('negate').set(1)
+
+            # deleteNode.setNextInput(attribwrangle)
+            # deleteNode.moveToGoodPosition()
+
+            # switchNode = geo_node.createNode('switch', run_init_scripts=False)
+            # switchNode.setExpressionLanguage(hou.exprLanguage.Hscript)
+            # switchNode.parm('input').setExpression('strlen(chs("../../../../../group")) == 0')
+
+            # switchNode.setNextInput(deleteNode)
+            # switchNode.setNextInput(attribwrangle)
+            # switchNode.moveToGoodPosition()
 
             if export_as_transforms == 1:
                 output_node = geo_node.createNode('output')
                 output_node.setDisplayFlag(True)
                 output_node.setRenderFlag(True)
             else:
-                switchNode.setDisplayFlag(True)
-                switchNode.setRenderFlag(True)
+                attribwrangle.setDisplayFlag(True)
+                attribwrangle.setRenderFlag(True)
 
             # cache the hou node
             export_object.hou_node = geo_node
