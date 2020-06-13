@@ -16,8 +16,44 @@ The updater provides several options of installation depending on your needs / l
 2. REQUIRES INTERNET ACCESS. Download a production build from Github. A production build is released every four weeks. This type of build will not contain the cutting edge additions to the toolset, but will have had more production testing prior to release than a development build. (These builds can be found in the releases section of this repository and are marked as "Release")
 3. REQUIRES INTERNET ACCESS. Download a development build from Github. A development build gets released every 24 hours. These builds will contain bugfixes that have been implemented in the day prior. To get access to these type of builds, untick the "Production Builds Only" checkbox in the updater.
 
+## Method 2: Commandline
+Houdini now also allows you to install SideFXLabs through python in case you wish to do so. This is especially useful for deploying the toolset in large environments. The updating can be done through the `sidefxlabs` module.
 
-## Method 2: Manually Download from Github
+```python
+import sidefxlabs
+
+updater = sidefxlabs.SideFXLabsUpdater() # This is the updater object
+
+updater.production_releases # List containing the available production releases
+updater.development_releases # List containing the available development releases
+
+updater.install_latest_production_toolset() # Install the latest production build from Github.
+updater.install_latest_development_toolset() # Install the latest development build from Github.
+updater.install_embedded_toolset() # Install the embedded version of the toolset. No internet required
+
+# Tip: Check the contents of updater.production_releases or updater.development_releases
+# to see which most recent versions are available.
+updater.update_toolset_version(VERSION_NUMBER) # Install a specific version of the toolset. 
+
+updater.uninstall_toolset() # Uninstalls the toolset from Houdini. Did we do something wrong? :(
+```
+
+In addition to the above examples, you can also run a headless session of Hython using simple script arguments.
+You can for example do this in a command prompts like this:
+
+```
+set HFS=C:/Program Files/Side Effects Software/Houdini 18.0.493
+%HFS%/bin/hython2.7.exe %HFS%/houdini/python2.7libs/sidefxlabs.py ARGUMENTS
+
+The available arguments are:
+-p/--latestproduction 
+-d/--latestdevelopment 
+-e/--embedded 
+-v/--version NUM 
+-u/--uninstall
+```
+
+## Method 3: Manually Download from Github
 
 1. Download the repository using the green Clone or Download Button and unzip contents into the folder of your choosing.
 
