@@ -1,0 +1,251 @@
+"""
+State:          Labs::pick and place
+State type:     labs::pick_and_place
+Description:    Labs::pick and place
+Author:         Paul_Ambrosiussen
+Date Created:   April 26, 2020 - 18:38:01
+"""
+
+
+import hou, math
+import viewerstate.utils as su
+
+class State(object):
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer
+
+        self.multiparm = None
+        self.placed_pos = None
+        self.picked = False
+        self.hitnormal = hou.Vector3()
+        self.startvector = hou.Vector3()
+        self.rotationstep = "freehand"
+        self.scalestep = "freehand"
+        self.alignment = "surfacenormal"
+        self.copypreviousscale = False
+        self.copyscale = hou.Vector3()
+
+        # drawable for drawing a text string in the viewport
+        self.text_drawable = hou.TextDrawable(self.scene_viewer, 'text_drawable_name',
+            params = {'margins': (100.0,10.0),
+            'origin' : hou.drawableTextOrigin.UpperLeft} )
+        self.text_drawable.show(True)
+
+    def onEnter(self, kwargs):
+        node = kwargs["node"]
+        self.multiparm = node.parm("iPlacements")
+
+        self.NewMultiparmEntry(kwargs)
+        node.parm("iCurID").set(0)
+
+    def onExit(self, kwargs):
+        MultiparmEntries = self.multiparm.evalAsInt()
+        self.multiparm.set(MultiparmEntries-1)
+
+    def NewMultiparmEntry(self, kwargs):
+        node = kwargs["node"]
+        MultiparmEntries = self.multiparm.evalAsInt()
+        self.multiparm.set(MultiparmEntries+1)
+
+
+    def AddObjectAtPosition(self, kwargs, a_position, a_normal):
+        node = kwargs["node"]
+        MultiparmEntries = self.multiparm.evalAsInt()
+
+        if MultiparmEntries == 0:
+            self.NewMultiparmEntry(kwargs)
+            MultiparmEntries= 1
+
+        node.parmTuple("vPosition_%s" % (MultiparmEntries)).set(tuple(a_position))
+        node.parmTuple("vHitNormal_%s" % (MultiparmEntries)).set(tuple(a_normal))
+        AlignWithSurfacenormal = 0 if self.alignment == "up" else 1
+        node.parm("bAlignToSurface_%s" % MultiparmEntries).set(AlignWithSurfacenormal)
+
+    def SetID(self, kwargs, a_id):
+        node = kwargs["node"]
+        MultiparmEntries = self.multiparm.evalAsInt()
+        node.parm("iID_%s" % (MultiparmEntries)).set(a_id) 
+
+    def SetRotation(self, kwargs, a_rotation):
+        node = kwargs["node"]
+        MultiparmEntries = self.multiparm.evalAsInt()
+
+        node.parmTuple("vRotate_%s" % (MultiparmEntries)).set((0.0, a_rotation, 0.0))
+
+    def SetScale(self, kwargs, a_scale):
+        node = kwargs["node"]
+        MultiparmEntries = self.multiparm.evalAsInt()
+
+        node.parmTuple("vScale_%s" % (MultiparmEntries)).set((a_scale, a_scale, a_scale))
+
+    def onMouseWheelEvent(self, kwargs):
+
+        device = kwargs["ui_event"].device()
+        node = kwargs["node"]
+
+        scroll = device.mouseWheel()
+        MultiparmEntries = self.multiparm.evalAsInt()
+
+        new_value = node.parm("iCurID").evalAsInt() + int(scroll)
+        new_value = max(0, min(new_value, node.node("PAINT_OBJECTS").geometry().attribValue("NumObjects")-1))
+        
+        node.parm("iCurID").set(new_value)
+        self.SetID(kwargs, node.parm("iCurID").evalAsInt())
+
+        return True
+
+    # Allow user to change the tweaking mode
+    def onMenuAction(self, kwargs):
+        node = kwargs["node"]
+        MultiparmEntries = self.multiparm.evalAsInt()
+
+
+        self.rotationstep = kwargs["rotate_snapping"]
+        self.scalestep = kwargs["scale_snapping"]
+        self.copypreviousscale = kwargs["previousscale"]
+
+        if kwargs["menu_item"] == "previousscale":
+            if self.copypreviousscale:
+                if MultiparmEntries > 0:
+                    self.previousscale = node.parmTuple("vScale_%s" % (MultiparmEntries-1)).eval()[0]
+
+        if kwargs['menu_item'] == "alignment":
+            self.alignment = "surfacenormal" if kwargs["alignment"] == 1 else "up"
+
+    def onDraw(self, kwargs):
+        """ Called for rendering a state e.g. required for 
+        hou.AdvancedDrawable objects
+        """
+        draw_handle = kwargs["draw_handle"]
+
+        size = 1.0
+        params = {
+            'text': "HELLOOO",
+            'scale' : hou.Vector3(size,size,size) }
+        self.text_drawable.draw( draw_handle, params )
+
+    def onMouseEvent(self, kwargs):
+        ui_event = kwargs["ui_event"]
+        reason = ui_event.reason()
+        device = ui_event.device()
+        origin, direction = ui_event.ray()
+        node = kwargs["node"]
+
+        # Geometry and Intersected Position
+        ComplexCollisionGeo = node.node("OUT_COLLISIONCOMPLEX").geometry()
+
+        gi = su.GeometryIntersector(ComplexCollisionGeo, scene_viewer=self.scene_viewer)
+        gi.intersect(origin, direction)
+
+        intersected = gi.prim_num != -1
+        pos = gi.position
+        hitnormal = gi.normal
+
+        
+        # We are hovering collision geometry, or have not started placing an object yet
+        if intersected >= 0 and self.picked == False:
+            self.AddObjectAtPosition(kwargs, pos, hitnormal)
+            self.SetID(kwargs, node.parm("iCurID").evalAsInt())
+            if self.copypreviousscale:
+                self.SetScale(kwargs, self.previousscale)
+            else:
+                self.SetScale(kwargs, 1.0)
+
+            if reason == hou.uiEventReason.Start:
+                self.picked = True
+                self.placed_pos = pos
+                self.hitnormal = hitnormal
+
+        # We started placing an object
+        else:
+            if self.picked == True:
+                planepos = hou.hmath.intersectPlane(self.placed_pos, self.hitnormal, origin, direction)
+
+                if self.startvector == hou.Vector3():
+                    self.startvector = hou.Vector3(planepos - self.placed_pos).normalized()
+
+                # After picking initial placement... Setting scale and rotation
+                if reason == hou.uiEventReason.Active:
+
+                    ## SCALE
+                    Dist = self.placed_pos.distanceTo(planepos)
+                    
+                    if self.scalestep != "freehand":
+                        Steps = round(Dist / float(self.scalestep))
+                        Dist = max(Steps, 1.0) * float(self.scalestep)
+                    
+                    if self.copypreviousscale:
+                        self.SetScale(kwargs, self.previousscale)
+                    else:
+                        self.SetScale(kwargs, Dist)
+
+
+                    ## ROTATION
+                    vector1 = self.startvector.normalized()
+                    vector2 = hou.Vector3(planepos - self.placed_pos).normalized()
+
+                    dot = max(min(vector1.dot(vector2), 1.0), -1.0)
+                    angle = math.acos(dot)
+                    cross = vector1.cross(vector2)
+
+                    if self.hitnormal.normalized().dot(cross) < 0:
+                        angle = math.degrees(angle)
+                        angle = 180.0 + (180.0-angle)
+                    else:
+                        angle = math.degrees(angle)
+
+                    if self.rotationstep != "freehand":
+                        Steps = round(angle / float(self.rotationstep))
+                        angle = Steps * float(self.rotationstep)
+
+                    self.SetRotation(kwargs, angle)
+
+                
+                # Done placing
+                elif reason == hou.uiEventReason.Changed:
+                    self.NewMultiparmEntry(kwargs)
+                    self.picked = False
+                    self.startvector = hou.Vector3()
+                
+
+def createViewerStateTemplate():
+    """ Mandatory entry point to create and return the viewer state 
+        template to register. """
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Pick and Place"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+
+    # Create and bind context menu
+    menu = hou.ViewerStateMenu('tweak_menu', 'Tweak Menu')
+    menu.addToggleItem('previousscale', 'Copy Previous Scale', False)
+    menu.addToggleItem('alignment', 'Align to surfacenormal', True)
+    menu.addRadioStrip("scale_snapping", "Scale Step Size", "freehand")
+
+    #hk = su.hotkey(state_typename, 'translate', '1', 'Translate')
+    menu.addRadioStripItem("scale_snapping", "freehand", "No Snapping")#, hk)#, translate_key)
+    menu.addRadioStripItem("scale_snapping", "0.1", "0.1")#, rotate_key)
+    menu.addRadioStripItem("scale_snapping", "0.25", "0.25")#, scale_key)
+    menu.addRadioStripItem("scale_snapping", "1.0", "1.0")#, scale_key)
+    menu.addRadioStripItem("scale_snapping", "10.0", "10.0")#, scale_key)
+
+    menu.addRadioStrip("rotate_snapping", "Rotation Step Size", "freehand")
+    menu.addRadioStripItem("rotate_snapping", "freehand", "No Snapping")
+    menu.addRadioStripItem("rotate_snapping", "10", "10")
+    menu.addRadioStripItem("rotate_snapping", "30", "30")
+    menu.addRadioStripItem("rotate_snapping", "45", "45")
+    menu.addRadioStripItem("rotate_snapping", "90", "90")
+
+
+    template.bindMenu(menu)
+
+
+
+
+    return template

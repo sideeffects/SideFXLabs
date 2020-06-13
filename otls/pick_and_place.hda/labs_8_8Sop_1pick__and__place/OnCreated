@@ -1,0 +1,35 @@
+# track creation usage. For more info, including how to disable this please see
+# https://www.sidefx.com/legal/houdini-anonymous-usage-statistics/
+
+try:
+    import labutils 
+    labutils.send_on_create_analytics(kwargs["node"])
+except:
+    pass
+    
+    import hou
+
+    
+# Asset Lib tests
+Objects = None
+
+try:
+    Objects = hou.session.assetLibClipboardNodes
+except:
+    pass
+
+if Objects:
+
+    node = kwargs["node"]
+    obj_merge = node.parent().createNode("object_merge")
+
+    node.setInput(1, obj_merge)
+    obj_merge.moveToGoodPosition()
+    obj_merge.parm("pack").set(1)
+
+    obj_merge.parm("numobj").set(len(Objects))
+    
+    for i, obj in enumerate(Objects):
+        obj_merge.parm("objpath%s" % int(i+1)).set(obj.path())
+        
+
