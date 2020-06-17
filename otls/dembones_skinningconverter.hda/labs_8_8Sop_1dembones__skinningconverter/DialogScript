@@ -1,0 +1,180 @@
+# Dialog script for labs::dembones_skinningconverter automatically generated
+
+{
+    name	labs::dembones_skinningconverter
+    script	labs::dembones_skinningconverter
+    label	"Labs Dem Bones Skinning Converter"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Animated Geometry"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "execute"
+        label   "Convert and Export"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().Convert(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sExportFile"
+        label   "Export File"
+        type    file
+        default { "$HIP/out/${HIPNAME}_Converted.fbx" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder2"
+        label   "Conversion Settings"
+
+        parm {
+            name    "f"
+            label   "Frame Range"
+            type    integer
+            size    2
+            default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "iBindposeFrame"
+            label   "Bind Pose Frame"
+            type    integer
+            default { "$RFSTART" }
+            range   { 0 200 }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "folder6"
+            label   "Bones"
+
+            parm {
+                name    "nBones"
+                label   "Max Number of Bones"
+                type    integer
+                default { "30" }
+                range   { 1 200 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder5"
+            label   "Solve Iterations"
+
+            parm {
+                name    "nIters"
+                label   "Global Iterations"
+                type    integer
+                default { "30" }
+                range   { 10 50 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "nInitIters"
+                label   "Splitting Iterations"
+                type    integer
+                default { "10" }
+                range   { 5 20 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "nTransIters"
+                label   "Transform Iterations"
+                type    integer
+                default { "5" }
+                range   { 3 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder3"
+            label   "Soft Constraints"
+
+            parm {
+                name    "transAffine"
+                label   "Translations Affinity"
+                type    float
+                default { "10" }
+                range   { 0 10000 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "transAffineNorm"
+                label   "P-Norm"
+                type    float
+                default { "4" }
+                range   { 1 16 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder4"
+            label   "Weights"
+
+            parm {
+                name    "nWeightsIters"
+                label   "Weights Iterations"
+                type    integer
+                default { "3" }
+                range   { 1 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "weightsSmooth"
+                label   "Smoothness"
+                type    float
+                default { "0.0001" }
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "weightsSmoothStep"
+                label   "Step Size"
+                type    float
+                default { "1" }
+                range   { 0 1000 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "folder0"
+        label   "Temp"
+
+        parm {
+            name    "sAnimatedCache"
+            label   "Animated Cache"
+            type    file
+            default { "$TEMP/${HIPNAME}_${OS}.abc" }
+            menureplace {
+                [ "opmenu -l -a rop_alembic1 filename" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_pattern" "*.abc" }
+        }
+        parm {
+            name    "sBindPoseFBX"
+            label   "Bindpose FBX"
+            type    file
+            default { "$TEMP/${HIPNAME}_${OS}.fbx" }
+            menureplace {
+                [ "opmenu -l -a rop_alembic1 filename" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_pattern" "*.abc" }
+        }
+    }
+
+}

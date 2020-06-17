@@ -1,0 +1,81 @@
+import hou, subprocess, os, zipfile, platform
+
+
+def unzip_file(zip_file, destination_path):
+        zipf = zipfile.ZipFile(zip_file, 'r', zipfile.ZIP_DEFLATED)
+        zipf.extractall(destination_path)
+
+def Convert(kwargs):
+    node = kwargs['node']
+
+    ABCFile = node.parm("sAnimatedCache").evalAsString()
+    BindPoseFile = node.parm("sBindPoseFBX").evalAsString()
+    ExportFile = node.parm('sExportFile').evalAsString()
+
+    SIDEFXLABSDIR = hou.text.expandString('$SIDEFXLABS')
+
+    ZipPath = os.path.join(SIDEFXLABSDIR, "misc", "dem-bones", "DemBones.zip")
+
+    DemBonesExe = os.path.join(SIDEFXLABSDIR, "misc", "dem-bones", "DemBones")
+
+    # Find the right executable based on OS
+    OS = platform.system()
+    if OS == "Windows":
+        DemBonesExe += "-Windows.exe"
+    elif OS == "Linux":
+        DemBonesExe += "-Linux"
+    else:
+        DemBonesExe += "-Darwin"
+
+
+    if not os.path.exists(DemBonesExe):
+        unzip_file(ZipPath, os.path.join(SIDEFXLABSDIR, "misc", "dem-bones"))
+
+
+    if not os.path.exists(DemBonesExe):
+        raise hou.NodeError("The executable for Dem Bones cannot be found")
+
+
+    # Popup Dialog
+    with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
+
+        # Render the temp files
+        node.node("rop_alembic1").render()
+        node.node("rop_fbx1").render()
+
+        # Hide popup dialog
+        StartupInfo = None
+        if os.name == 'nt':
+            StartupInfo = subprocess.STARTUPINFO()
+            subprocess.STARTF_USESHOWWINDOW = 1
+            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+
+        # Construct Commandline Arguments
+        parms = ['nBones', 'nIters', 'nInitIters', 'nTransIters', 'transAffine', 'transAffineNorm', 'nWeightsIters', 'weightsSmooth', 'weightsSmoothStep']
+        cmd = [DemBonesExe, "--init={0}".format(BindPoseFile), "--abc={0}".format(ABCFile), "--out={0}".format(ExportFile)]
+
+        for parm in parms:
+            cmd.append('--{0}={1}'.format(parm, node.parm(parm).evalAsString()))
+
+        # Starting the process
+        Process = subprocess.Popen(cmd, startupinfo=StartupInfo)
+
+        # Process is still running
+        while Process.poll() == None:
+            try:
+                Operation.updateProgress(0.0)
+            # User interrupted
+            except hou.OperationInterrupted:
+                Process.kill()
+
+        # Cleanup
+        if os.path.exists(ABCFile):
+            os.remove(ABCFile)
+        if os.path.exists(BindPoseFile):
+            os.remove(BindPoseFile)
+
+
+
+
+    

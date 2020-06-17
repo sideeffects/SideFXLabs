@@ -1,0 +1,51 @@
+= Labs Dem Bones Skinning Converter =
+
+#type: node
+#context: sop
+#internal: labs::dembones_skinningconverter
+#icon: DemBones.png
+#tags: sidefxlabs,  export
+
+""" Dem Bones Skinning Converter is a SOP that can convert any non-changing topology deforming mesh sequence into a bone based animation. """
+
+Dem Bones - (c) Electronic Arts 2019
+
+This tool is an implementation of Smooth Skinning Decomposition with Rigid Bones, an automated algorithm to extract the Linear Blend Skinning (LBS) with bone transformations from a set of example meshes. 
+Skinning Decomposition can be used in various tasks:
+
+# Converting any animated mesh sequence, e.g. geometry cache, to LBS, which can be replayed in popular game engines.
+# Solving skinning weights from shapes and skeleton poses, e.g. converting blendshapes to LBS.
+# Solving bone transformations for a mesh animation given skinning weights.
+
+@parameters
+    Convert and Export:
+        Starts the skinning decomposition and exports the result to disk.
+    Export File:
+        The path used to save the output FBX.
+    Frame Range:
+        This is the frame range used for the skinning decomposition.
+    Bind Pose Frame:
+	This is the frame that will be used as the bind/rest pose for the output rig.
+
+    == Bones ==
+    Max Number of Bones:
+        The maximum number of bones that will get generated. Note that the actual output might be lower than the number specified here, due to more efficient solutions being found during conversion.
+    == Solve Iterations ==
+    Global Iterations:
+        Number of global iterations to be processed during conversion. Functions as a scalar for the number of optimizations that have to be calculated. Increase for more complex scenes.
+    Splitting Iterations:
+        The number of clustering update iterations to be applied during initalization. Usually doesnt need tweaking.
+    Transform Iterations:
+        Number of bone transformation update iterations per global iteration.  DemBones performs multiple bone trans update after each weights update.
+    == Soft Constraints ==
+    Translations Affinity:
+        This soft constraint forces bone translation following the centroid of the patch supported by that bone. A lot of use-cases would require value of 0 (no constraint). Upper bound value depends on numerical stability and whether optimization can converge or not.
+    P-Norm:
+        The power used to compute centroid of the patch above. Higher value will move the centroid of the bones closer to the vertices with max weights (soft-max).
+    == Weights ==
+    Weights Iterations:
+        Dem Bones performs multiple weights updates after each bone updates. These iterations are quite expensive, and usually  1-5 iterations produce good results. It is better to increase the Global Iterations than to increase this number.
+    Smoothness:
+        Controls the weights smoothness for the generated soft constraint. Usually does not need to be modified.
+    Step Size:
+        Step size for the weights smoothness soft constraint. It's the step size of the Implicit Laplacian smoothing on the weights.
