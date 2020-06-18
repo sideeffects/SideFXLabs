@@ -1,4 +1,4 @@
-import hou, subprocess, os, zipfile, platform
+import hou, subprocess, os, zipfile, platform, ntpath
 
 
 def unzip_file(zip_file, destination_path):
@@ -15,7 +15,6 @@ def Convert(kwargs):
     SIDEFXLABSDIR = hou.text.expandString('$SIDEFXLABS')
 
     ZipPath = os.path.join(SIDEFXLABSDIR, "misc", "dem-bones", "DemBones.zip")
-
     DemBonesExe = os.path.join(SIDEFXLABSDIR, "misc", "dem-bones", "DemBones")
 
     # Find the right executable based on OS
@@ -26,6 +25,10 @@ def Convert(kwargs):
         DemBonesExe += "-Linux"
     else:
         DemBonesExe += "-Darwin"
+
+    head, tail = ntpath.split(ExportFile)
+    if not os.path.exists(head):
+        os.makedirs(head)
 
 
     if not os.path.exists(DemBonesExe):
@@ -45,18 +48,20 @@ def Convert(kwargs):
 
         # Hide popup dialog
         StartupInfo = None
-        if os.name == 'nt':
+
+        if os.name == 'nt' and node.parm("bHideShell").evalAsInt() == 1:
             StartupInfo = subprocess.STARTUPINFO()
             subprocess.STARTF_USESHOWWINDOW = 1
             StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
 
         # Construct Commandline Arguments
-        parms = ['nBones', 'nIters', 'nInitIters', 'nTransIters', 'transAffine', 'transAffineNorm', 'nWeightsIters', 'weightsSmooth', 'weightsSmoothStep']
+        parms = ['nBones', 'nIters', 'nInitIters', 'nTransIters', 'transAffine', 'transAffineNorm', 'nWeightsIters', 'weightsSmooth', 'weightsSmoothStep', 'nnz']
         cmd = [DemBonesExe, "--init={0}".format(BindPoseFile), "--abc={0}".format(ABCFile), "--out={0}".format(ExportFile)]
 
         for parm in parms:
             cmd.append('--{0}={1}'.format(parm, node.parm(parm).evalAsString()))
+
 
         # Starting the process
         Process = subprocess.Popen(cmd, startupinfo=StartupInfo)
