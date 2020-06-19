@@ -40,12 +40,26 @@ def preflight_checks(node):
     export_sop = node.evalParm('soppath')
     if not export_sop:
         errors.append('Please specify the SOP to export in "soppath".')
-
+    
+    csv_outputdir = os.path.dirname(csv_path)
+    mkpath = node.evalParm('mkpath')
+    create_outputdir = False
+    if csv_outputdir and not os.path.exists(csv_outputdir):
+        if not mkpath:
+            errors.append(
+                'The output directory, {}, does not exist and "Create '
+                'Intermediate Directories" is not enabled.'.format(csv_outputdir))
+        else:
+            create_outputdir = True        
+    
     if errors:
         message = 'The following errors were encountered:\n{0}'.format(
             '\n'.join(('  - {0}'.format(m) for m in errors))
         )
         report_and_raise_error(message, hou.ValueError)
+    elif create_outputdir:
+        os.makedirs(csv_outputdir)
+        
     return True
 
     
