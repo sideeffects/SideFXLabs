@@ -23,6 +23,7 @@
     <memberTool name="labs::detail_mesh"/>
     <memberTool name="labs::sweep_geometry"/>
     <memberTool name="labs::enable_go_z"/>
+    <memberTool name="labs::ruler"/>
   </toolshelf>
 
   <tool name="labs::autouv" label="Auto UV" icon="opdef:/labs::Sop/autouv?IconSVG">
@@ -282,6 +283,55 @@ endif
 opcf $saved_path
 '''
 hou.hscript(h_preamble + h_extra_args + h_cmd)
+]]></script>
+  </tool>
+
+  <tool name="labs::ruler" label="Ruler" icon="$SIDEFXLABS/help/icons/ruler.svg">
+    <helpText><![CDATA[= Ruler =
+
+#icon: path/to/icon.svg
+#namespace: labs
+#version: 1.0
+
+
+""" Measures distances on geometry. """
+
+= Overview =
+
+Use this tool to draw out quick measurements in the viewport. Note that this tool is currently limited to only working in the Sop context.
+
+Click and drag on the currently displayed geometry to draw out a measurement on it. The measurement represents the distance between the point on the geometry initially clicked on and the point currently being hovered on. 
+
+You can draw out multiple measurements. They will persist in the viewport until a new state is entered, at which point they will be destroyed. The only states that are an exception to this are the selection state and the view state. This allows you to continue to tumble around while still putting down measurements.
+
+Press the Undo hotkey to remove a measurement (default is 'z').
+
+Press the Copy to Clipboard hotkey to copy the most recent measurement to the clipboard (default is 'q').
+
+Press the Pop Copy hotkey to copy to clipboard and remove the most recent measurement (default is 'f').
+
+The state will respect point snapping if it is currently enabled.
+
+The state will intersect against one of the principle planes (the xy, xz, and yz planes) if no geometry is underneath the cursor.
+
+Angle snapping can be enabled by holding down Ctrl while dragging. This will find the angle between the vector of the current measurement and the most reasonable axis, based on the current view, if the measurement were to be projected onto the most reasonable principle plane that contains that axis. It will then take that angle, and snap it to the closest multiple of 15, in degrees.
+]]></helpText>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[import stateutils
+
+# We want to launch a SOP state, so we need to make sure the
+# viewer is at the SOP level first
+viewer = stateutils.findSceneViewer()
+network = viewer.pwd()
+if network.childTypeCategory() != hou.sopNodeTypeCategory():
+    # The user pressed Enter without selecting an object
+    raise hou.Error("You must be in a sop network to use this tool.")
+if network.displayNode() == None:
+    raise hou.Error("You must have the display flag set on a node.")
+# Set the viewer's current state to my state
+viewer.setCurrentState("labs::ruler")
 ]]></script>
   </tool>
 </shelfDocument>
