@@ -180,6 +180,7 @@ def LoadXML(a_node):
     automation_file = a_node.parm("automation_file").evalAsString().replace("\\", "/")
 
     if not os.path.isfile(os.path.abspath("".join(automation_file))):
+        raise hou.Error("Could not find TOR file. Please make sure to specify a valid path")
         return
 
     cmd = ['"'+gaea_path+'"']
@@ -190,10 +191,13 @@ def LoadXML(a_node):
     # Extract XML parm File
     RunGaea(a_node, cmd, gaea_dir)
 
-    if not os.path.isfile(os.path.abspath("".join(automation_file.split(".")[:-1])+".xml")):
+    automation_xml = os.path.abspath(".".join(automation_file.split(".")[:-1])+".xml")
+
+    if not os.path.isfile(automation_xml):
+        raise hou.Error("Could not find XML file. Please make sure Houdini has writing privileges in the directory where the .tor file is located!")
         return
 
-    XMLTree = ET.parse(os.path.abspath("".join(automation_file.split(".")[:-1])+".xml"))
+    XMLTree = ET.parse(automation_xml)
     XMLRoot = XMLTree.getroot()
     ParmGroup = a_node.parmTemplateGroup()
     FolderGroup = a_node.parm("generated_gaeaparms")
@@ -270,4 +274,4 @@ def LoadXML(a_node):
                     raise hou.Error("%s %s %s %s cannot be processed." % (name, label, type, default))
 
     a_node.setParmTemplateGroup(ParmGroup)
-    os.remove(os.path.abspath("".join(automation_file.split(".")[:-1])+".xml"))
+    os.remove(automation_xml)
