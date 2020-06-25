@@ -16,11 +16,11 @@ hou.hotkeys.addContext(
 
 class Key():
     copy_to_clip = key_context + ".copy_to_clip"
-    undo = key_context + ".undo"
+    #undo = key_context + ".undo"
     pop_copy = key_context + ".pop_copy"
 
 hou.hotkeys.addCommand(Key.copy_to_clip, "Copy", "Copy last measurement to clip board.", ["q",])
-hou.hotkeys.addCommand(Key.undo, "Undo", "Remove last measurement.", ["z",])
+#hou.hotkeys.addCommand(Key.undo, "Undo", "Remove last measurement.", ["z",])
 hou.hotkeys.addCommand(Key.pop_copy, "PopCopy", "Copy last measurement and remove it.", ["f",])
 
 def createSphereGeometry():
@@ -195,7 +195,7 @@ class Plane:
 
 class Measurement(object):
     default_font_size = 18.0
-    default_text = "default text"
+    default_text = ""
     disk_maker = DiskMaker(10, 8, 20, (1.0, 1.0, 1.0), 3)
 
     def __init__(self, scene_viewer, color, show_text, text_scale):
@@ -427,7 +427,12 @@ class MeasurementContainer(object):
     def removeMeasurement(self):
         if self.count() < 1: return
         self.current().show(False)
-        self.measurements.pop()
+        m = self.measurements.pop()
+        hou.GeometryViewport.draw(self.viewport)
+        return m
+
+    def redoMeasurement(self, measurement):
+        self.measurements.append(measurement)
         hou.GeometryViewport.draw(self.viewport)
 
     def draw(self, handle):
@@ -453,18 +458,29 @@ class Intersection():
         self.plane = plane
 
 class Mode:
-    doing_nothing = 0 
+    idle = 0 
     pre_measurement = 1
     measuring = 2
+
+class Undo():
+    def __init__(self, measurements):
+        self.measurements = measurements
+        self.measurement = None
+
+    def undo(self):
+        if self.measurements.count() > 0:
+            self.measurement = self.measurements.removeMeasurement()
+
+    def redo(self):
+        self.measurements.redoMeasurement(self.measurement)
 
 class State(object):
     msg = """
     Click and drag on the geometry to measure it.
     Press the '{}' key to copy the last measurement to clip board.
-    Press the '{}' key to undo the most recent measurement.
     Press the '{}' key to copy to clip and remove last measurement.
     Hold down the Ctrl key to turn on angle snapping.
-    """.format(hou.hotkeys.assignments(Key.copy_to_clip)[0], hou.hotkeys.assignments(Key.undo)[0], hou.hotkeys.assignments(Key.pop_copy)[0])
+    """.format(hou.hotkeys.assignments(Key.copy_to_clip)[0], hou.hotkeys.assignments(Key.pop_copy)[0])
     
     planes = (hou.Vector3(1, 0, 0), hou.Vector3(0, 1, 0), hou.Vector3(0, 0, 1))
     plane_to_next = {Plane.X : hou.Vector3(0, 0, -1), Plane.Y : hou.Vector3(1, 0, 0), Plane.Z : hou.Vector3(1, 0, 0)}
@@ -490,7 +506,7 @@ class State(object):
         self.angle_text_drawable = hou.TextDrawable(self.scene_viewer, "angle_text")
         self.angle_text_params = {'text': "Fizz", 'translate': hou.Vector3(0.0, 0.0, 0.0),'highlight_mode':hou.drawableHighlightMode.MatteOverGlow, 'glow_width':10, 'color2':hou.Vector4(0,0,0,0.5) }
         self.arc_drawable = hou.GeometryDrawable(self.scene_viewer, hou.drawableGeometryType.Line, "arc")
-        self.mode = Mode.doing_nothing
+        self.mode = Mode.idle
                 
     def show(self, visible):
         """ Display or hide drawables.
@@ -693,6 +709,7 @@ class State(object):
         elif (reason == hou.uiEventReason.Active):
             if self.mode == Mode.pre_measurement:
                 self.mode = Mode.measuring
+                hou.undos.add(Undo(self.measurements), "ruler")
             if self.mode == Mode.measuring:
                 self.onMouseActive(ui_event)
         elif (reason == hou.uiEventReason.Changed):
@@ -700,6 +717,7 @@ class State(object):
                 self.measurements.removeMeasurement()
             self.curPlane = None
             self.setActive(False)
+            self.mode = Mode.idle
         else:
             self.updateInactive(ui_event)
 
@@ -707,9 +725,6 @@ class State(object):
         ui_event = kwargs["ui_event"]
         device = ui_event.device()
         if device.isKeyPressed():
-            if hou.hotkeys.isKeyMatch(device.keyString(), Key.undo):
-                self.measurements.removeMeasurement()
-                return True
             if hou.hotkeys.isKeyMatch(device.keyString(), Key.copy_to_clip):
                 if self.measurements.count() < 1: return
                 m = self.measurements.current().getLength()
@@ -726,7 +741,7 @@ class State(object):
     def onKeyTransitEvent(self, kwargs):
         ui_event = kwargs['ui_event']
         dev = ui_event.device()
-        if dev.isKeyDown() and dev.isCtrlKey(): 
+        if dev.isKeyDown() and dev.isCtrlKey() and self.mode != Mode.idle:
             self.angleSnapping(True)
         if dev.isKeyUp() and self.angle_snapping: 
             self.angleSnapping(False)
