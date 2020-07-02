@@ -57,10 +57,15 @@ ParmWatcher.add_watcher("__temp__python_source_editor", type_="__temp__python_so
          window menu. 
     -->
     <subMenu id="file_menu">
+	<!--<insertAtIndex>3</insertAtIndex>-->
+	
+	<subMenu id="crash_recovery">
+      <label>Crash Recovery</label>
+	  <insertAtIndex>3</insertAtIndex>
 
      <scriptItem id="open_crashfile">
         <label>Open Crashfile</label>
-        <insertAtIndex>3</insertAtIndex>
+        
         <scriptCode>
         <![CDATA[
 import restore_backup
@@ -69,8 +74,19 @@ restore_backup.recoverFile()
 ]]>
       </scriptCode>
       </scriptItem>
+	  
+	  <scriptItem id="open_crashdirectory">
+        <label>Open Crash Directory</label>
+        
+        <scriptCode>
+        <![CDATA[
+file = hou.ui.selectFile(start_directory="$TEMP/", title="Select a file to open", collapse_sequences=False, file_type=hou.fileType.Hip, pattern=None, default_value=None, multiple_select=False, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
+if file != "":
+  hou.hipFile.load(file, suppress_save_prompt=False, ignore_load_warnings=False)]]>
+      </scriptCode>
+      </scriptItem>
 
-
+	</subMenu>
     </subMenu>
 
     <subMenu id="assets_menu">
