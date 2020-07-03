@@ -70,6 +70,6 @@ def recoverFile():
     newDest = prefix + '_recovered' + ext
     os.rename(bakPath, newDest)
     
-    if hou.ui.displayMessage('Do you want to open the file?', ('Yes', 'Cancel'), close_choice=1) == 0:
-        hou.hipFile.load(newDest)
+    #if hou.ui.displayMessage('Do you want to open the file?', ('Yes', 'Cancel'), close_choice=1) == 0:
+    hou.hipFile.load(newDest)
     
