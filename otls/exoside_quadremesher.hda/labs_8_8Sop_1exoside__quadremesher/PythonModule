@@ -318,8 +318,8 @@ def exportExoMesh(filename, geo, node):
     try:
         av = geo.pointFloatAttribValues("Cd")
         if av and len(av)==3*nv:
-            #print "Has Colors : "+str(len(av))
-            ''' export as Byte
+            print "Has Colors : "+str(len(av))
+            ''' export as Byte '''
             fp.write(struct.pack('=i', 156))
             fp.write(struct.pack('=i', nv*3))
             fp.write(struct.pack('=i', nv))
@@ -332,15 +332,15 @@ def exportExoMesh(filename, geo, node):
                     fp.write(struct.pack('B', 255))
                 else:
                     fp.write(struct.pack('B', c*255))
-             '''
+             
              
              # export as Floats
-            fp.write(struct.pack('=i', 156))
-            fp.write(struct.pack('=i', nv*12))
-            fp.write(struct.pack('=i', nv))
-            fp.write(struct.pack('=i', 0))
-            for c in av:
-                fp.write(struct.pack('f', c))
+            #fp.write(struct.pack('=i', 156))
+            #fp.write(struct.pack('=i', nv*12))
+            #fp.write(struct.pack('=i', nv))
+            #fp.write(struct.pack('=i', 0))
+            #for c in av:
+            #    fp.write(struct.pack('f', c))
     except hou.Error, e:
         av = None # no Colors!
     except :
@@ -574,7 +574,7 @@ def doRemeshing(node):
         settings_file.write("CurvatureAdaptivness=%s\n" % str(_CurvatureAdaptivness))
         settings_file.write("ExactQuadCount=%d\n" % (not _AdaptQuadCount))
         settings_file.write("UseVertexColorMap=%d\n" % _UseVertexColors)
-        
+
         settings_file.write("UseMaterialIds=%d\n" % _UseMaterialGroups)      
         #settings_file.write("UsePolygonGroups=%d\n" % _UseMaterialGroups)  # NB: in obj exporter, the materials are exported as groups with 'g' tag
         #settings_file.write("UseHardEdgeFlags=%d\n" % _UseHardEdges)
