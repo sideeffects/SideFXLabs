@@ -1,0 +1,139 @@
+# Dialog script for labs::automatic_trim_texture automatically generated
+
+{
+    name	labs::automatic_trim_texture
+    script	labs::automatic_trim_texture
+    label	"Labs Automatic Trim Texture"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Trim Texture"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "destgroup"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a attribcopy1 destgroup" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].node(\"attribcopy1\").parmTuple('destgrouptype')\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sop_input" "0" }
+    }
+    parm {
+        name    "generateuv"
+        label   "Generate UVs"
+        type    toggle
+        joinnext
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "minedgeangle"
+        label   "Edge Cutting Angle"
+        type    angle
+        default { "30" }
+        disablewhen "{ generateuv == 0 }"
+        range   { 0 360 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder1"
+        label   "Fitting Properties"
+
+        parm {
+            name    "labelparm3"
+            label   "Label"
+            type    label
+            nolabel
+            size    3
+            default { "" "Width" "Height" }
+        }
+        parm {
+            name    "fittingbalance"
+            label   "Fitting Preference"
+            type    float
+            default { "0.5" }
+            range   { 0! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "area"
+            label   "Area"
+            type    float
+            default { "1" }
+            range   { 1 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "limitdensitymismatch"
+            label   "Limit Texel Density Error"
+            type    toggle
+            joinnext
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "visualizeerror"
+            label   "Visualize Error"
+            type    toggle
+            default { "0" }
+            disablewhen "{ limitdensitymismatch == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "texelmismatch"
+            label   "Max Texel Density Error"
+            type    float
+            default { "0.3" }
+            disablewhen "{ limitdensitymismatch == 0 }"
+            range   { 0 0.5 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Trim Groups"
+
+        parm {
+            name    "group"
+            label   "Tileable Trims"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "opmenu -l -a group1 basegroup" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].node(\"group1\").parmTuple('grouptype')\nkwargs['inputindex'] = 1\nkwargs['ordered'] = kwargs['node'].node(\"group1\").parm('ordered').eval()\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+            parmtag { "sidefx::maya_component_selection_type" "face" }
+        }
+        parm {
+            name    "group2"
+            label   "Reserved Trims"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "opmenu -l -a blast1 group" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].node(\"blast1\").parmTuple('grouptype')\nkwargs['inputindex'] = 1\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+            parmtag { "sidefx::maya_component_selection_type" "face" }
+        }
+    }
+
+}
