@@ -1,8 +1,18 @@
 def Initialize(kwargs):
     node = kwargs["node"]
     
-    NumPrims = len(node.node("SELECTOR").geometry().prims())
-    node.parm("iTrimStrips").set(NumPrims)
+    UseConnectivity = node.parm("useconnectivity").evalAsInt()
     
-    for x in range(NumPrims):
-        node.parm("basegroup_%s" % (x+1)).set(str(x))
+    if UseConnectivity == 1:
+        Vals = list(set(node.node("connectivity1").geometry().primIntAttribValues("ShellID")))
+        node.parm("iTrimStrips").set(len(Vals))
+        
+        for x, val in enumerate(Vals):
+            node.parm("basegroup_%s" % (x+1)).set("@ShellID=%s" % val)
+        
+    else:
+        NumPrims = len(node.node("SELECTOR").geometry().prims())
+        node.parm("iTrimStrips").set(NumPrims)
+    
+        for x in range(NumPrims):
+            node.parm("basegroup_%s" % (x+1)).set(str(x))
