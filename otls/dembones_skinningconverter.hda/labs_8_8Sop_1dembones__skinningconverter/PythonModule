@@ -56,11 +56,14 @@ def Convert(kwargs):
 
 
         # Construct Commandline Arguments
-        parms = ['nBones', 'nIters', 'nInitIters', 'nTransIters', 'transAffine', 'transAffineNorm', 'nWeightsIters', 'weightsSmooth', 'weightsSmoothStep', 'nnz']
+        parms = ['nBones', 'nIters', 'nInitIters', 'nTransIters', 'transAffine', 'transAffineNorm', 'nWeightsIters', 'weightsSmooth', 'weightsSmoothStep', 'nnz', 'patience', 'tolerance']
         cmd = [DemBonesExe, "--init={0}".format(BindPoseFile), "--abc={0}".format(ABCFile), "--out={0}".format(ExportFile)]
 
         for parm in parms:
             cmd.append('--{0}={1}'.format(parm, node.parm(parm).evalAsString()))
+
+        if node.parm("createroot").evalAsInt() == 1:
+            cmd.append("--bindUpdate=2")
 
 
         # Starting the process
