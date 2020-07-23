@@ -552,6 +552,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataGeometry;\n' +\
         '\tValueD = "{}";\n'.format(pathGeo) +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$89BE37AD\n' +\
         '{\n' +\
         '\tSelfName = "Opaque.Type";\n' +\
@@ -560,6 +561,7 @@ def build_popcornfx_renderer(node):
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = int;\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$BF666592\n' +\
         '{\n' +\
         '\tSelfName = "Diffuse.DiffuseMap";\n' +\
@@ -569,6 +571,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "Library/PopcornFXCore/Materials/DefaultTextures/White.dds";\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$080DFB07\n' +\
         '{\n' +\
         '\tSelfName = "Color";\n' +\
@@ -577,6 +580,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = float4;\n' +\
         '\tValueF = float4(1.0, 1.0, 1.0, 1.0);\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$5255127B\n' +\
         '{\n' +\
         '\tSelfName = "{}.PositionMap";\n'.format(feature) +\
@@ -586,6 +590,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "{}";\n'.format(pathPos) +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$D8736519\n' +\
         '{\n' +\
         '\tSelfName = "{}.NumFrames";\n'.format(feature) +\
@@ -595,6 +600,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = int;\n' +\
         '\tValueI = int4({}, 0, 0, 0);\n'.format(numFrames) +\
         '}\n' +\
+        \
         ('CParticleNodePinIn\t$7F785A44\n' +\
         '{\n' +\
         '\tSelfName = "{}.PackedData";\n'.format(feature) +\
@@ -604,6 +610,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = bool;\n' +\
         '\tValueB = bool4({}, false, false, false);\n'.format('true' if packNorm else 'false') +\
         '}\n' if ((method == 0) or (method == 2)) else '') +\
+        \
         'CParticleNodePinIn\t$CA882D03\n' +\
         '{\n' +\
         '\tSelfName = "Cursor";\n' +\
@@ -614,6 +621,7 @@ def build_popcornfx_renderer(node):
         '\t};\n' +\
         '\tBaseType = float;\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$E30C8889\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_NormalizedData";\n' +\
@@ -623,6 +631,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = bool;\n' +\
         '\tValueB = bool4({}, false, false, false);\n'.format('true' if normData else 'false') +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$F30C8889\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_PadToPowerOf2";\n' +\
@@ -632,6 +641,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = bool;\n' +\
         '\tValueB = bool4({}, false, false, false);\n'.format('true' if padPow2 else 'false') +\
         '}\n' +\
+        \
         'CParticleNodePinIn	$3B21F68B\n' +\
         '{\n' +\
         '\tSelfName = "MeshAtlas";\n' +\
@@ -640,6 +650,7 @@ def build_popcornfx_renderer(node):
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = bool;\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$ABEBB67D\n' +\
         '{\n' +\
         '\tSelfName = "Lit";\n' +\
@@ -649,6 +660,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = bool;\n' +\
         '\tValueB = bool4(true, false, false, false);\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$F3A0C720\n' +\
         '{\n' +\
         '\tSelfName = "Lit.NormalMap";\n' +\
@@ -658,6 +670,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "Library/PopcornFXCore/Materials/DefaultTextures/NMap_Flat.dds";\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$9F8CF278\n' +\
         '{\n' +\
         '\tSelfName = "Lit.CastShadows";\n' +\
@@ -666,6 +679,7 @@ def build_popcornfx_renderer(node):
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = bool;\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$BCE23494\n' +\
         '{\n' +\
         '\tSelfName = "Lit.Roughness";\n' +\
@@ -675,6 +689,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = float;\n' +\
         '\tValueF = float4(1.0, 0.5, 0.5, 0.5);\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$855BADAB\n' +\
         '{\n' +\
         '\tSelfName = "Lit.Metalness";\n' +\
@@ -683,6 +698,7 @@ def build_popcornfx_renderer(node):
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = float;\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$1E2B8FB1\n' +\
         '{\n' +\
         '\tSelfName = "Lit.RoughMetalMap";\n' +\
@@ -692,6 +708,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "Library/PopcornFXCore/Materials/DefaultTextures/White.dds";\n' +\
         '}\n' +\
+        \
         ('CParticleNodePinIn\t$588B6EE0\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_Rigid.RotationMap";\n' +\
@@ -701,6 +718,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "{}";\n'.format(pathRot) +\
         '}\n' if method == 1 else '') +\
+        \
         ('CParticleNodePinIn\t$588B6FE0\n' +\
         '{\n' +\
         '\tSelfName = "{}.NormalMap";\n'.format(feature) +\
@@ -710,6 +728,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "{}";\n'.format(pathNorm if outputNormals else defaultNormal) +\
         '}\n' if (method == 0 or method == 2) else '') +\
+        \
         ('CParticleNodePinIn\t$1E4B471E\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_Rigid.BoundsPivot";\n' +\
@@ -719,6 +738,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = float2;\n' +\
         '\tValueF = float4({}, {}, 0.0, 0.0);\n'.format(pivMin, pivMax) +\
         '}\n' if method == 1 else '') +\
+        \
         ('CParticleNodePinIn\t$36765749\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_Fluid.ColorMap";\n' +\
@@ -727,6 +747,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "{}";\n'.format(pathCol if enableCol else defaultWhite) +\
         '\t}' if method == 2 else '') +\
+        \
          ('CParticleNodePinIn\t$EC8D6D1B\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_NormalizedData.BoundsPosition";\n' +\
@@ -736,6 +757,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = float2;\n' +\
         '\tValueF = float4({}, {}, 0.0, 0.0);\n'.format(posMin, posMax) +\
         '}\n' if normData else '') +\
+        \
         ('CParticleNodePinIn\t$FC8D6D1B\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_PadToPowerOf2.PaddedRatio";\n' +\
@@ -745,6 +767,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = float2;\n' +\
         '\tValueF = float4({}, {}, 0.0, 0.0);\n'.format(paddedX, paddedY) +\
         '}\n' if padPow2 else '')+\
+        \
         'CParticleNodeTemplate\t$CF13AF03\n' +\
         '{\n' +\
         '\tOutputPins = {\n' +\
@@ -754,6 +777,7 @@ def build_popcornfx_renderer(node):
         '\tSubGraphFilePath = "Library/PopcornFXCore/Templates/Core.pkfx";\n' +\
         '\tSubGraphName = "self.lifeRatio";\n' +\
         '}\n' +\
+        \
         'CParticleNodePinOut\t$39E613F8\n' +\
         '{\n' +\
         '\tSelfName = "LifeRatio";\n' +\
@@ -762,6 +786,7 @@ def build_popcornfx_renderer(node):
         '\t\t"$CA882D03",\n' +\
         '\t};\n' +\
         '}\n' +\
+        \
         'CParticleNodeTemplate\t$62F4224C\n' +\
         '{\n' +\
         '\tExecStage = Spawn;\n' +\
@@ -776,6 +801,7 @@ def build_popcornfx_renderer(node):
         '\tSubGraphFilePath = "Library/PopcornFXCore/Templates/Core.pkfx";\n' +\
         '\tSubGraphName = "local position to world";\n' +\
         '\t}\n' +\
+        \
         '\tCParticleNodePinIn\t$B2167C92\n' +\
         '\t{\n' +\
         '\t\tSelfName = "Position";\n' +\
@@ -784,6 +810,7 @@ def build_popcornfx_renderer(node):
         '\t\tBaseType = float3;\n' +\
         '\t\tValueF = float4(0.0, 0.0, 0.0, 0.0);\n' +\
         '\t}\n' +\
+        \
         '\tCParticleNodePinIn	$487B49E7\n' +\
         '\t{\n' +\
         '\t\tSelfName = "ApplyScale";\n' +\
@@ -792,6 +819,7 @@ def build_popcornfx_renderer(node):
         '\t\tOwner = "$62F4224C";\n' +\
         '\t\tBaseType = bool;\n' +\
         '\t}\n' +\
+        \
         '\tCParticleNodePinOut	$3A7F3823\n' +\
         '\t{\n' +\
         '\t\tSelfName = "Position";\n' +\
@@ -802,6 +830,7 @@ def build_popcornfx_renderer(node):
         '\t\t\t"$ED658E02",\n' +\
         '\t\t};\n' +\
         '\t}\n' +\
+        \
         '\tCParticleNodeSetLife	$88F280DA\n' +\
         '\t{\n' +\
         '\t\tInputPins = {\n' +\
@@ -809,6 +838,7 @@ def build_popcornfx_renderer(node):
         '\t\t};\n' +\
         '\t\tWorkspacePosition = int2(-440, -180);\n' +\
         '\t}\n' +\
+        \
         '\tCParticleNodePinIn\t$DC41E5E5\n' +\
         '\t{\n' +\
         '\t\tSelfName = "Life";\n' +\
