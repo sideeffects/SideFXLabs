@@ -452,9 +452,13 @@ def build_popcornfx_renderer(node):
     pathRot      = str(node.evalParm('path_rot'))
     enableCol    = node.evalParm('enable_col')
     pathCol      = str(node.evalParm('path_col'))
+    enableNorm   = node.evalParm('enable_norm')
+    pathNorm     = str(node.evalParm('path_norm'))
+    
+    outputNormals = (not packNorm) and enableNorm and (method == 0 or method == 2)
 
     defaultWhite = 'Library/PopcornFXCore/Materials/DefaultTextures/White.dds'
-
+    defaultNormal = 'Library/PopcornFXCore/Materials/DefaultTextures/NMap_Flat.dds'
     if method > 2 :
         print('PopcornFX renderer : method not supported')
         return
@@ -466,6 +470,7 @@ def build_popcornfx_renderer(node):
         'PKFX\n' +\
         'File = GeneratedFromSideFXLabs\n' +\
         'Version = 2.7.0.0;\n' +\
+        \
         'CParticleNodeRendererMesh\t$D7A245F0\n'+\
         '{\n'+\
         '\tInputPins = {\n'  +\
@@ -478,7 +483,7 @@ def build_popcornfx_renderer(node):
         '\t\t"$080DFB07",\n' +\
         '\t\t"$5255127B",\n' +\
         '\t\t"$D8736519",\n' +\
-        '\t\t"$7F785A44",\n' +\
+        ('\t\t"$7F785A44",\n' if ((method == 0) or (method == 2)) else '') +\
         '\t\t"$CA882D03",\n' +\
         '\t\t"$E30C8889",\n' +\
         '\t\t"$F30C8889",\n' +\
@@ -490,6 +495,7 @@ def build_popcornfx_renderer(node):
         '\t\t"$855BADAB",\n' +\
         '\t\t"$1E2B8FB1",\n' +\
         ('\t\t"$588B6EE0",\n' if method == 1 else '') +\
+        ('\t\t"$588B6FE0",\n' if (method == 0 or method == 2) else '') +\
         ('\t\t"$1E4B471E",\n' if method == 1 else '') +\
         ('\t\t"$36765749",\n' if method == 2 else '') +\
         ('\t\t"$EC8D6D1B",\n' if normData else '') +\
@@ -507,6 +513,7 @@ def build_popcornfx_renderer(node):
         '\t\t"VertexAnimation_PadToPowerOf2",\n' +\
         '\t};\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$ED658E02\n' +\
         '{\n' +\
         '\tSelfName = "Position";\n' +\
@@ -517,6 +524,7 @@ def build_popcornfx_renderer(node):
         '\t\t"$3A7F3823",\n' +\
         '\t};\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$A9A3B3C6\n' +\
         '{\n' +\
         '\tSelfName = "Scale";\n' +\
@@ -525,6 +533,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = float3;\n' +\
         '\tValueF = float4(1.0, 1.0, 1.0, 1.0);\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$4C440259\n' +\
         '{\n' +\
         '\tSelfName = "Orientation";\n' +\
@@ -533,6 +542,7 @@ def build_popcornfx_renderer(node):
         '\tBaseType = orientation;\n' +\
         '\tValueF = float4(0.0, 0.0, 0.0, 1.0);\n' +\
         '}\n' +\
+        \
         'CParticleNodePinIn\t$92AC3294\n' +\
         '{\n' +\
         '\tSelfName = "Mesh";\n' +\
@@ -691,6 +701,15 @@ def build_popcornfx_renderer(node):
         '\tBaseType = dataImage;\n' +\
         '\tValueD = "{}";\n'.format(pathRot) +\
         '}\n' if method == 1 else '') +\
+        ('CParticleNodePinIn\t$588B6FE0\n' +\
+        '{\n' +\
+        '\tSelfName = "{}.NormalMap";\n'.format(feature) +\
+        '\tType = dataImage;\n' +\
+        '\tVisible = false;\n' +\
+        '\tOwner = "$D7A245F0";\n' +\
+        '\tBaseType = dataImage;\n' +\
+        '\tValueD = "{}";\n'.format(pathNorm if outputNormals else defaultNormal) +\
+        '}\n' if (method == 0 or method == 2) else '') +\
         ('CParticleNodePinIn\t$1E4B471E\n' +\
         '{\n' +\
         '\tSelfName = "VertexAnimation_Rigid.BoundsPivot";\n' +\

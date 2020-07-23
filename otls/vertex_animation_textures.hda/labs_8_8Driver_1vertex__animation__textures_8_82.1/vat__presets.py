@@ -239,8 +239,6 @@ def popcornfx(node,method):
     node.parm('convertcolorspace').set(0) # Disable convert color space
     node.parm('pack_pscale').deleteAllKeyframes()
     node.parm('pack_pscale').set(0) # Disable pack scale to alpha
-    node.parm('pack_norm').deleteAllKeyframes()
-    node.parm('pack_norm').set(1) # Enable pack normals
     node.parm('normalize_data').deleteAllKeyframes()
     node.parm('normalize_data').set(1) # Enable normalize data
     node.parm('enable_geo').deleteAllKeyframes()
