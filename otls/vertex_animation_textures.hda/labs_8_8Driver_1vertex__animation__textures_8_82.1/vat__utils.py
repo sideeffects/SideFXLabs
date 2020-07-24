@@ -501,6 +501,7 @@ def build_popcornfx_renderer(node):
         ('\t\t"$EC8D6D1B",\n' if normData else '') +\
         ('\t\t"$FC8D6D1B",\n' if padPow2 else '') +\
         '\t};\n' +\
+        '\t	WorkspacePosition = int2(0, 0);\n' +\
         '\tFeatureSetPath = "{}";\n'.format(featureSetPath) +\
         '\tRendererFeatures = {\n' +\
         '\t\t"GeometryMesh",\n' +\
@@ -516,7 +517,7 @@ def build_popcornfx_renderer(node):
         \
         'CParticleNodePinIn\t$ED658E02\n' +\
         '{\n' +\
-        '\tSelfName = "Position";\n' +\
+        '\tSelfName = "General.Position";\n' +\
         '\tType = float3;\n' +\
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = float3;\n' +\
@@ -527,7 +528,7 @@ def build_popcornfx_renderer(node):
         \
         'CParticleNodePinIn\t$A9A3B3C6\n' +\
         '{\n' +\
-        '\tSelfName = "Scale";\n' +\
+        '\tSelfName = "General.Scale";\n' +\
         '\tType = float3;\n' +\
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = float3;\n' +\
@@ -536,7 +537,7 @@ def build_popcornfx_renderer(node):
         \
         'CParticleNodePinIn\t$4C440259\n' +\
         '{\n' +\
-        '\tSelfName = "Orientation";\n' +\
+        '\tSelfName = "General.Orientation";\n' +\
         '\tType = orientation;\n' +\
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = orientation;\n' +\
@@ -545,7 +546,7 @@ def build_popcornfx_renderer(node):
         \
         'CParticleNodePinIn\t$92AC3294\n' +\
         '{\n' +\
-        '\tSelfName = "Mesh";\n' +\
+        '\tSelfName = "General.Mesh";\n' +\
         '\tType = dataGeometry;\n' +\
         '\tVisible = false;\n' +\
         '\tOwner = "$D7A245F0";\n' +\
@@ -574,7 +575,7 @@ def build_popcornfx_renderer(node):
         \
         'CParticleNodePinIn\t$080DFB07\n' +\
         '{\n' +\
-        '\tSelfName = "Color";\n' +\
+        '\tSelfName = "Diffuse.Color";\n' +\
         '\tType = float4;\n' +\
         '\tOwner = "$D7A245F0";\n' +\
         '\tBaseType = float4;\n' +\
@@ -613,7 +614,7 @@ def build_popcornfx_renderer(node):
         \
         'CParticleNodePinIn\t$CA882D03\n' +\
         '{\n' +\
-        '\tSelfName = "Cursor";\n' +\
+        '\tSelfName = "{}.Cursor";\n'.format(feature) +\
         '\tType = float;\n' +\
         '\tOwner = "$D7A245F0";\n' +\
         '\tConnectedPins = {\n' +\
