@@ -433,7 +433,6 @@ def build_popcornfx_renderer(node):
     method       = node.evalParm('method')
     component    = node.evalParm('_component')        
     numFrames    = str(node.evalParm('num_frames'))
-    length       = 1/node.evalParm('speed')
     posMin       = str(node.evalParm('posminmax1'))
     posMax       = str(node.evalParm('posminmax2'))
     pivMin       = str(node.evalParm('pivminmax1'))
@@ -454,6 +453,7 @@ def build_popcornfx_renderer(node):
     pathCol      = str(node.evalParm('path_col'))
     enableNorm   = node.evalParm('enable_norm')
     pathNorm     = str(node.evalParm('path_norm'))
+    length       = 1/node.evalParm('speed')
     
     outputNormals = (not packNorm) and enableNorm and (method == 0 or method == 2)
 
@@ -848,7 +848,6 @@ def build_popcornfx_renderer(node):
         '\t\tBaseType = float;\n' +\
         '\t\tValueF = float4({}, 1.0, 1.0, 1.0);\n'.format(length) +\
         '\t}\n'
-
 
     hou.ui.copyTextToClipboard(output)
     print('PopcornFX renderer copied to clipboard')
