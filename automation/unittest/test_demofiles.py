@@ -27,7 +27,8 @@ class TestStringMethods(unittest.TestCase):
                     LabsNodeInstances = [x for x in hou.node("/").allSubChildren() if x.type().nameComponents()[1] == "labs"] 
 
                     for node in LabsNodeInstances:
-                        if node.type().definition().nodeType().name() != hou.nodeType(node.type().definition().nodeTypeCategory(), node.type().definition().nodeTypeName()).namespaceOrder()[0]:
+                        nodedef = node.type().definition()
+                        if nodedef.nodeType().name() != hou.nodeType(nodedef.nodeTypeCategory(), nodedef.nodeTypeName()).namespaceOrder()[0]:
                             print "Warning... Node instance is using older definition:", node.path()
                             
                 except Exception, e:
@@ -37,3 +38,4 @@ class TestStringMethods(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+

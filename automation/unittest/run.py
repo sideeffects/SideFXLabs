@@ -20,12 +20,13 @@ my_env = os.environ.copy()
 my_env["HOUDINI_OGL_SOFTWARE"] = "1"
 my_env["HOUDINI_PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..")) + ";&" #"C:\\GameDevToolset;&"
 my_env["PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", "bin")) + ";PATH"
+my_env["SIDEFXLABS"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), ".."))
 
 print latest_houdini
 
 for filename in os.listdir(local_dir):
     #print filename
-    if "test" in filename:
+    if "test_" in filename and ".py" in filename:
         print "Running Test:", filename
         subprocess.call([latest_houdini + "/bin/hython2.7.exe", os.path.join(local_dir, filename)], env=my_env)
     
