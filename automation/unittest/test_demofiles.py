@@ -27,9 +27,10 @@ class TestStringMethods(unittest.TestCase):
                     LabsNodeInstances = [x for x in hou.node("/").allSubChildren() if x.type().nameComponents()[1] == "labs"] 
 
                     for node in LabsNodeInstances:
-                        nodedef = node.type().definition()
-                        if nodedef.nodeType().name() != hou.nodeType(nodedef.nodeTypeCategory(), nodedef.nodeTypeName()).namespaceOrder()[0]:
+                        namespaceOrder = [x for x in node.type().namespaceOrder() if "labs::" in x]
+                        if node.type().name() != namespaceOrder[0]:
                             print "Warning... Node instance is using older definition:", node.path()
+                            print "Using {0} instead of {1}".format(node.type().name(), namespaceOrder[0])
                             
                 except Exception, e:
                     print str(e)
