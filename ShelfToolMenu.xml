@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This file defines the entries in the menu that appears on a mouse
+    right-button click over a shelf tool in Houdini's shelving area.
+
+    For scriptItem elements, a 'kwargs' python dictionary is provided with the 
+    flolowing values:
+	'ownername'		:   The name of the tool that popped up the menu.
+	'ownerparentname'	:   The name of the shelf that contains the tool.
+   
+    plus the standard script menu item kwargs:
+	'toolname'  :	The menu item's hotkey id 
+			(ie. the element's id prefixed with h.shelf.menu.)
+	'altclick'  :	True if the Alt key was also pressed, False otherwise
+	'ctrlclick' :	True if the Ctrl key was also pressed, False otherwise
+	'shiftclick':	True if the Shift key was also pressed, False otherwise
+	'cmdclick'  :	True if the Option key was also pressed, False
+			otherwise. Note that this can only be true on OSX.
+
+    For the <context> block, the <ownerMask> refers to the name of the shelf,
+    and the <expression> is given kwargs similar to the script item.
+
+    For example:
+    <scriptItem id="my_action">
+      <label>My Action</label>
+      <scriptCode><![CDATA[
+arguments = '\n  '.join(['%s = %s' % (k,w) for (k,w) in kwargs.items()])
+hou.ui.displayMessage('My Action with kwargs:\n  ' + arguments)
+]]></scriptCode>
+    </scriptItem>
+
+    <scriptItem id="my_box_action">
+      <label>My Box Action</label>
+      <context>
+	<ownerMask>*box*</ownerMask>
+      </context>
+      <scriptCode>hou.ui.displayMessage('Test')</scriptCode>
+    </scriptItem>
+
+    <scriptItem id="my_another_box_action">
+      <label>My Another Box Action</label>
+      <context>
+	<expression>kwargs.get('ownername','') == 'sop_box'</expression>
+      </context>
+      <scriptCode>hou.ui.displayMessage('Test')</scriptCode>
+    </scriptItem>
+
+    <scriptItem id="my_another_box_action">
+      <label>My Contrived Example</label>
+      <context>
+        <expression>__import__('time').time() % 2</expression>
+      </context>
+      <scriptCode>hou.ui.displayMessage('Test')</scriptCode>
+    </scriptItem>
+
+<menuDocument>
+  <modifyItem id="edit_tool">
+    <labelExpression>kwargs.get('ownername','')</labelExpression>
+  </modifyItem>
+</menuDocument>
+-->
+
+<menuDocument>
+  <menu>
+
+    <scriptItem id="expreditor_edit_shelf_tool">
+      <label>Edit in external editor...</label>
+      <insertAtIndex>2</insertAtIndex>
+      <context>
+        <expression>
+          <![CDATA[
+try:
+  from HoudiniExprEditor import ParmWatcher
+  return True
+except:
+  return False]]>
+        </expression>
+      </context>
+      <scriptCode>
+        <![CDATA[
+from HoudiniExprEditor import ParmWatcher
+try:
+  reload(ParmWatcher)
+except NameError:
+  from importlib import reload
+  reload(ParmWatcher)
+tool = hou.shelves.tool(kwargs["ownername"])
+if tool:
+  ParmWatcher.add_watcher(tool, type_="__shelf_tool|" + str(tool.language()).split('.')[-1].lower())]]>
+      </scriptCode>
+    </scriptItem>
+
+    <scriptItem id="expreditor_remove_watcher_shelf_tool">
+      <label>Remove file watcher</label>
+      <context>
+        <expression>
+          <![CDATA[
+try:
+  from HoudiniExprEditor import ParmWatcher
+  tool = hou.shelves.tool(kwargs["ownername"])
+  if tool:
+    return ParmWatcher.tool_has_watcher(tool, type_="__shelf_tool|" + str(tool.language()).split('.')[-1].lower())
+except:
+  return False]]>
+        </expression>
+      </context>
+      <scriptCode>
+        <![CDATA[
+from HoudiniExprEditor import ParmWatcher
+try:
+  reload(ParmWatcher)
+except NameError:
+  from importlib import reload
+  reload(ParmWatcher)
+tool = hou.shelves.tool(kwargs["ownername"])
+if tool:
+  ParmWatcher.remove_file_watched(tool, type_="__shelf_tool|" + str(tool.language()).split('.')[-1].lower())]]>
+      </scriptCode>
+    </scriptItem>
+
+  </menu>
+</menuDocument>
