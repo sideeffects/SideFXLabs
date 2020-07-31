@@ -1,0 +1,51 @@
+= Labs 2D WaveFunctionCollapse =
+
+#type: node
+#context: sop
+#internal: labs::2d_wavefunctioncollapse
+#icon: 2d_wavefunctioncollapse
+#tags:  sidefxlabs
+
+""" The main WFC node: The solver. """
+
+Wave Function Collapse is a procedural generation algorithm which produces images by arranging a collection of tiles according to rules about which tiles may be adjacent to each other tile, 
+and relatively how frequently each tile should appear. See: [In-Depth Explanation|https://gridbugs.org/wave-function-collapse/]
+
+
+This node should be used in combination with WFC Intialize Grid and WFC Sample Paint.
+
+TIP:
+    See [this talk|https://www.youtube.com/watch?v=X8pNAKtWllc] by Paul Ambrosiussen to get a behind the scenes look at the algorithm.
+
+    Also see [this tutorial series|https://www.sidefx.com/tutorials/wfc-dungeon-generator/] to see the algorithm being used in a project.
+
+@parameters
+    == Input ==
+    Automatic Input Size Detection:
+        Allows for automatic detection of the number of rows and columns in the sample grid of the solver. (2nd input)
+    Sample Grid Size:
+        Specified the number of rows and columns of the input sample image/grid (2nd input). 
+    Pattern Search Size:
+        Controls the "cookie cutter" size of the kernel that will be used to cut your sample image in. A lower value will result in less complex possibilities and therefore more noise. A higher value will increase the local similarity of the output image to the sample. This will also increase solve time and reduce the chance of a successful solve.
+    Find Wrapping Input Patterns:
+        Enabling this will allow the pattern search step make patterns that wrap around the input sample image. It is not advised to do this if your sample image is not tileable.
+    == Output ==
+    Automatic Output Size Detection:
+        Allows for automatic detection of the number of rows and columns in the output grid of the solver. (1st input)
+    Output Grid Size:
+        Specified the number of rows and columns of the output image/grid (1st input). 
+    Allow Rotations:
+        Allow rotations will allow the patterns it found to solve the output with to rotate. That will help you get rid of repetition in your output image, but does result in a longer time to solve due to exponentially more possibilities.
+    Respect User Provided Constraints:
+        Enabling this toggle will force the solver to fill the provided constraints using the WFC Intialize Grid sop. Turning this on will significantly reduce the chance of a successful solve, but proves to be extremely useful to generate more art-directable results.
+    Produce Tileable Output:
+        Enabling this will force the solver to produce a tileable output image/grid. This is useful for tileable texture generation. It does increase solve time and reduce the chance to achieve a successful solve.
+    == WFC Settings ==
+    Seed:
+        Seed changes the seed used for a solve, and therefore produce a different output using the same constraints. Great for generating variations.
+    Use Observed Sample Pattern Frequency:
+        Observed Sample Pattern Frequency will tell the algorithm to take the frequency of patterns found in the sample pattern into account when deciding what pattern to place for each pixel. So if your sample image has more blue than red in it, the output image will also have more blue than red in it.
+    Number Of Solve Attempts:
+        This parameter controls the number of retries the solver will make in case it fails to find a successful solution. Increase this value for difficult solves.
+    Starting Point:
+        Enabling this toggle and specifying a number will force the solver to solve that specific point number in the output grid first. Sometimes useful when using user provided constraints, and you want the grid to be solved in a specific order rather than random.
