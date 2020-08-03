@@ -19,18 +19,18 @@ def ResetViewport():
         # If the old sceneview was looking through a camera, make new scene viewer look through the same camera. Otherwise match perspective
         _sceneViewCamera = _oldSceneViewer.curViewport().camera()
         if _sceneViewCamera is None:
-            _viewTransform = hou.hscript("viewtransform -p %s"%_oldViewportName)[0]
+            _viewTransform = hou.hscript("viewtransform -p {}".format(_oldViewportName))[0]
             _newTransform = _viewTransform.replace(_oldViewportName, _newViewportName)
             hou.hscript("{}".format(_newTransform))        
         else:
             _newSceneViewer.curViewport().setCamera(hou.node(_sceneViewCamera.path()))        
         
-        hou.hscript("viewcopy %s %s"%(_oldViewportName, _newViewportName))
+        hou.hscript("viewcopy {0} {1}".format(_oldViewportName, _newViewportName))
 
         # Set the new sceneview to "hide other objects", to prevent unwanted cooking 
-        hou.hscript("vieweroption -a 0 %s"%_newSceneViewerName)
+        hou.hscript("vieweroption -a 0 {}".format(_newSceneViewerName))
         # Set the left viewport toolbar to be visible
-        hou.hscript("viewerstow -l open %s"%_newSceneViewerName)
+        hou.hscript("viewerstow -l open {}".format(_newSceneViewerName))
 
 
 
