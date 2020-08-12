@@ -29,15 +29,17 @@ ParmWatcher.add_watcher(kwargs["node"], type_="python_node")]]>
     </scriptItem>
 
     
-<!--     <scriptItem id="opmenu.vhda_create">
+    <scriptItem id="opmenu.vhda_create">
             <label>Create Versioned Digital Asset...</label>
+            <insertAtIndex>45</insertAtIndex>
             <context>
                     <expression>
 import hou
 import assettools
+reload(assettools)
 
 node = kwargs["node"]
-if ((assettools.isSubnet(node) or assettools.isHDA(node)) and not assettools.isVHDA(node)):
+if assettools.isSubnet(node): # or assettools.isHDA(node)) and not assettools.isVHDA(node)):
     return 1
 else:
     return 0
@@ -55,13 +57,15 @@ assettools.createNewVHDA(node)
         </scriptItem>
         <subMenu id="opmenu.vhda_options">
             <label>Versioned Digital Asset</label>
+            <insertAtIndex>47</insertAtIndex>
             <context>
             <expression>
 import hou
 import assettools
+reload(assettools)
 
 node = kwargs["node"]
-if assettools.isVHDA(node):
+if assettools.isVHDA(node) or assettools.isHDA(node):
     return 1
 else:
     return 0
@@ -105,11 +109,12 @@ import hou
 import assettools
 
 node = kwargs["node"]
+#assettools.createNewVHDA(node)
 assettools.copyToNewVHDA(node)
 ]]>
                 </scriptCode>
             </scriptItem>
-            <scriptItem id="opmenu.vhda_make_release">
+<!--             <scriptItem id="opmenu.vhda_make_release">
                 <label>New Release...</label>
                 <context>
                 </context>
@@ -122,7 +127,7 @@ node = kwargs["node"]
 assettools.createNewRHDA(node)
 ]]>
                 </scriptCode>
-            </scriptItem>
+            </scriptItem> -->
         </subMenu>
 
 
@@ -152,7 +157,7 @@ except NameError:
 ParmWatcher.add_watcher_to_section(kwargs["node"])]]>
       </scriptCode>
     </scriptItem>
- -->
+
 
 
 

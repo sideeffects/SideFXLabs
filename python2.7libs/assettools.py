@@ -2,44 +2,37 @@
 
 import hou
 import os
+import re
 from hutil.Qt.QtCore import *
 from hutil.Qt.QtGui import *
 from hutil.Qt.QtWidgets import *
 
 
 def getDefaultVHDAPath():
-    import json
-    import sys
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'./config.json')) as json_file:
-        data = json.load(json_file)
-    return os.path.expandvars(data['VHDA_PATH'])
-
-def getDefaultRHDAPath():
-    import json
-    import sys
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'./config.json')) as json_file:
-        data = json.load(json_file)
-    return os.path.expandvars(data['RHDA_PATH'])
+    return os.path.expandvars(hou.getenv("VHDA_PATH", "$HOUDINI_USER_PREF_DIR/otls"))
 
 def isVersionedDefinition(definition):
     name_components = definition.nodeType().nameComponents()
     namespace = name_components[1]
     global_ver = name_components[3]
     
-    if '::' in namespace and '.' in global_ver:
+    #if namespace != '' and global_ver != '':
+    if "." in global_ver:
         return True
 
 def isVHDA(node):  
-    if not node.canCreateDigitalAsset():
-        if len(node.children()) > 0:            
-            definition = node.type().definition()    
-            if definition:        
-                return isVersionedDefinition(definition)   
+    if not node.canCreateDigitalAsset():            
+        definition = node.type().definition()    
+        if definition:        
+            return isVersionedDefinition(definition)
+    return False
 
 def isHDA(node):
     if not node.canCreateDigitalAsset():
-        if len(node.children()) > 0:
+        definition = node.type().definition()    
+        if definition:
             return True
+    return False
 
 def isSubnet(node):
     if node.canCreateDigitalAsset(): # This is a Subnet 
@@ -142,15 +135,13 @@ def getLatestVHDAVersion(node, minor_only=False):
                 if namespace_user == other_namespace_user and  namespace_type == other_namespace_type and name == other_name and major == other_major: # Matching namespace, name, and major
                     other_versions.append((other_major, other_minor)) 
 
+    if len(other_versions) == 0:
+        return 0, 0
+    else:
+        def major_minor(version):                 
+            return version[0], version[1]
 
-    #print "\nAvailable Versions:\n"
-    #for other_version in other_versions:
-    #    print "%d.%d" % (other_version[0],other_version[1])
-
-    def major_minor(version):                 
-        return version[0], version[1]
-
-    return max(other_versions, key=major_minor)
+        return max(other_versions, key=major_minor)
 
 def hasSpecificVHDA(node, namespace_user, namespace_type, name):
     other_versions = []
@@ -179,39 +170,50 @@ def separateVHDANameComponents(node=None, _node_type=None):
         node_type = node.type()
     
     name_components = node_type.nameComponents()
-    namespace_user = name_components[1].split("::")[0]
-    namespace_type   = name_components[1].split("::")[1]
+    _namespaces = name_components[1].split("::")
+    namespace_user = None
+    namespace_type = None
+
+    if len(_namespaces) > 0:
+        if _namespaces[0] != '':
+            namespace_user = _namespaces[0]
+    if len(_namespaces) > 1:
+        namespace_type = _namespaces[1]
+
     name = name_components[2]
+    major = 1
+    minor = 0
     
-    version_string = name_components[3]
+    _versioncomponents = name_components[3].split(".")
 
-    if version_string.startswith("v"):
-        version_string = version_string[1:]
-
-    major = int(name_components[3].split(".")[0])
-    minor = int(name_components[3].split(".")[1])
+    if len(_versioncomponents) > 0:
+        if _versioncomponents[0] != '':
+            major = int(_versioncomponents[0])
+    if len(_namespaces) > 1:
+        minor = int(_versioncomponents[1])
 
     label = node_type.description()
     label = constructHDALabel(label)
 
-    #label = re.sub("[\(\[].*?[\)\]]", "", node_type.description())             
-    #label = label.rstrip()
-
     return label, namespace_user, namespace_type, name, major, minor 
 
 def constructVHDAName(namespace_user, namespace_type,name,major,minor):
-    return "%s::%s::%s::%d.%d" % (namespace_user, namespace_type,name,major,minor)   
+    _vhdaname = ["{}::".format(x) for x in [namespace_user, namespace_type] if x != None]
+    _vhdaname += "{0}::{1}.{2}".format(name,major, minor)
+    #_vhdaname = 
+    return re.sub("[^0-9a-zA-Z\.:]+", "", "".join(_vhdaname))
+
 
 def constructVHDAFile(namespace_user, namespace_type,name,major,minor, path):
-    file_name = "%s.%s.%s_v%d.%d.hda" % (namespace_user, namespace_type,name,major,minor)    
-    return os.path.join(path,file_name)
-
-def constructRHDAFile(namespace_user, namespace_type,name,major,minor, path):
-    file_name = "%s.%s.%s_v%d.%d.hda" % (namespace_user, namespace_type,name,major,minor)    
-    return os.path.join(path,file_name)
+    _vhdafile = ["{}.".format(x) for x in [namespace_user, namespace_type] if x != None]
+    _vhdafile += "{0}_v{1}.{2}.hda".format(name, major, minor)
+    return  os.path.join(path, re.sub("[^0-9a-zA-Z\.:]+", "", "".join(_vhdafile)))
 
 def constructVHDALabel(label, namespace_type):
-    return "%s (%s)" % (label,namespace_type.capitalize()) 
+    if namespace_type:
+        return "%s (%s)" % (label,namespace_type.capitalize())
+    else:
+        return label
 
 def constructHDALabel(label): 
     import re          
@@ -227,30 +229,21 @@ def creationInfoWindow(hda_label,hda_name,file_path):
 def copyToVHDA(node, node_type, namespace_user, namespace_type, name, major, minor, label, path):
     import os    
     
-    hda_name  = constructVHDAName(namespace_user, namespace_type,name,major,minor)   
+    hda_name  = constructVHDAName(namespace_user, namespace_type,name,major,minor)
     hda_label = constructVHDALabel(label,namespace_type)
     file_path = constructVHDAFile(namespace_user, namespace_type,name,major,minor, path)
        
     button_idx = creationInfoWindow(hda_label,hda_name,file_path)
     
     if button_idx == 0:
-        node_type.definition().copyToHDAFile(file_path,hda_name,hda_label)    
+        #node_type.definition().copyToHDAFile(file_path,hda_name,hda_label)    
+        node_type.definition().save(file_path, template_node=node)
+        created_definition = hou.hda.definitionsInFile(file_path)[0]
+        created_definition.copyToHDAFile(file_path,hda_name,hda_label)
+        created_definition.destroy()
         hou.hda.installFile(file_path)
         reloadAndUpdate(node, hda_name)
-
-def copyToRHDA(node, node_type, namespace_user, namespace_type, name, major, minor, label, path):
-    import os    
-    
-    hda_name  = name
-    hda_label = label
-    file_path = constructRHDAFile(namespace_user,"release",name,major,minor, path)
-
-    button_idx = creationInfoWindow(hda_label,hda_name,file_path)
-    
-    if button_idx == 0:
-        node_type.definition().copyToHDAFile(file_path,hda_name,hda_label)    
-        hou.hda.installFile(file_path)   
-        reloadAndUpdate(node, hda_name)     
+     
 
 def createVHDA(node, namespace_user, namespace_type, name, major, minor, label, path):
     # Create new digital asset from temp node
@@ -278,34 +271,13 @@ def createVHDA(node, namespace_user, namespace_type, name, major, minor, label, 
         # Get HDA definition
         vhda_def = vhda_node.type().definition()
 
-        # --------------------------------------------
-        # Do whatever you need to do with the HDA here
-        # i.e. Creation, copying and organisation of children:
-
-        #hou.moveNodesTo(tuple(other_premade_node), hda_node)
-        #hda_node.layoutChildren()
-        # -------------------------------------------
-
         # Update and save new HDA
         vhda_options = vhda_def.options()
         vhda_options.setSaveInitialParmsAndContents(True)
         vhda_def.setOptions(vhda_options)
 
         vhda_def.save(vhda_def.libraryFilePath(), vhda_node, vhda_options)
-
-        #vhda_fdef = hou.hda.definitionsInFile(vhda_def.libraryFilePath())[0]
-        #print "Section After Saving:"
-        #if vhda_fdef.hasSection('Tools.shelf'):
-        #    sections = vhda_fdef.sections()       
-        #    ts_section = sections['Tools.shelf'].contents()   
-        #    print ts_section
-
-        #else:
-        #    print "no section after saving"
-
-
         hou.hda.installFile(file_path)
-        #reloadAndUpdate(node, hda_name)
 
 def reloadAndUpdate(node, name):
 
@@ -319,9 +291,6 @@ def increaseMajorVersion(node):
     major += 1
     minor = 0
 
-    # Get where current node is installed
-    # current location = getCurrentVHDAPath()
-
     copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, getDefaultVHDAPath())    
 
 def increaseMinorVersion(node):
@@ -329,9 +298,6 @@ def increaseMinorVersion(node):
 
     major, minor = getLatestVHDAVersion(node,True)  
     minor += 1
-
-    # Get where current node is installed
-    # current location = getCurrentVHDAPath()
 
     copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, getDefaultVHDAPath())    
 
@@ -349,7 +315,7 @@ def newVHDAWindow(name,label,path,namespace_user=hou.userName(),namespace_type='
 def copyToNewVHDA(node):
     label, namespace_user, namespace_type, name, major, minor = separateVHDANameComponents(node)
     
-    button_idx, values = newVHDAWindow(name,label,getDefaultVHDAPath())
+    button_idx, values = newVHDAWindow(name,label,getDefaultVHDAPath(), namespace_user)
     
     if button_idx == 1:
         namespace_user   = values[0]
@@ -359,7 +325,7 @@ def copyToNewVHDA(node):
         location         = values[4]
     
         major, minor = getLatestVHDAVersion(node)
-        major += 1
+        major = 1
         minor = 0
 
         copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, location)        
@@ -368,6 +334,7 @@ def createNewVHDA(node):
     
     name = "default"
     label = "Default"
+    namespace = hou.userName()
 
     if isSubnet(node):
         full_name = node.name()
@@ -378,10 +345,11 @@ def createNewVHDA(node):
         # node.type().name() would return 'noise:2.0', however we only need 'noise', so get the name component instead
         name = node.type().nameComponents()[2]
         label = node.type().description()
+        namespace = node.type().nameComponents()[1]
 
     if name != "default":
 
-        button_idx, values = newVHDAWindow(name,label,getDefaultVHDAPath())
+        button_idx, values = newVHDAWindow(name,label,getDefaultVHDAPath(),namespace_user=namespace)
 
         if button_idx == 1:
             namespace_user   = values[0]
@@ -389,30 +357,12 @@ def createNewVHDA(node):
             name             = values[2]
             label            = values[3]
             location         = values[4]
-                
+            
             major, minor = hasSpecificVHDA(node, namespace_user, namespace_type, name)
             major += 1
             minor = 0
-            
-            if isSubnet(node):
-                createVHDA(node, namespace_user, namespace_type, name, major, minor, label, location)                
-            elif isHDA(node):
-                copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, location)
 
-def createNewRHDA(node):    
-    label, namespace_user, namespace_type, name, major, minor = separateVHDANameComponents(node)
-
-    node_type_names = allPossibleRHDANodeTypeNamesInScene(name, node.type().category().name())
-    
-    default_choice = 0
-    if int(len(node_type_names)) > 1: # if there is only one element choise that
-        default_choice = int(len(node_type_names)-2) # otherwise chose the currently available largest version
-
-    selected = hou.ui.selectFromList(node_type_names, default_choices=[default_choice],clear_on_cancel=True, message='Select one of the following node types!', title='Node Type Selection')
-    
-    if len(selected):
-        name = node_type_names[selected[0]]
-        copyToRHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, getDefaultRHDAPath())
+            createVHDA(node, namespace_user, namespace_type, name, major, minor, label, location) 
 
 
 class New_VHDA_Dialog(QDialog):
@@ -429,6 +379,8 @@ class New_VHDA_Dialog(QDialog):
         self.assettype_edit = None
         self.assetlabel_edit = None
         self.assetlocation_edit = None
+        self.user_namespace_enable = None
+        self.type_enable = None
         self.build_ui()
 
     def closeEvent(self, event):
@@ -437,6 +389,11 @@ class New_VHDA_Dialog(QDialog):
     def on_OK(self):
         self.exitval = 1
         self.parmvals = [self.user_edit.text(), self.type_edit.text(), self.assettype_edit.text(), self.assetlabel_edit.text(), self.assetlocation_edit.text()]
+
+        if not self.type_enable.isChecked():
+            self.parmvals[1] = None
+        if not self.user_namespace_enable.isChecked():
+            self.parmvals[0] = None
         self.close()
 
     def on_Cancel(self):
@@ -448,42 +405,57 @@ class New_VHDA_Dialog(QDialog):
 
         if filename:
             self.assetlocation_edit.setText(filename)
-        
+    
+    def on_LineEditChange(self):
+        branch = self.type_edit.text() if self.type_enable.isChecked() else None
+        namespace = self.user_edit.text() if self.user_namespace_enable.isChecked() else None
+
+        self.namespace_preview.setText(constructVHDAName(namespace, branch, self.assettype_edit.text(),1,0))
 
     def build_ui(self):
 
       layout = QVBoxLayout()
 
-      user_label = QLabel("User")
-      user_label.setFixedSize(100, 20)
+      self.user_namespace_enable = QCheckBox()
+      self.user_namespace_enable.clicked.connect(self.on_LineEditChange)
+      self.user_namespace_enable.setChecked(True)
+      user_namespace = QLabel("Namespace")
+      user_namespace.setFixedSize(100, 20)
       self.user_edit = QLineEdit(self.defaults[0])
-      user_layout = QHBoxLayout()
-      user_layout.addWidget(user_label)
-      user_layout.addWidget(self.user_edit)
+      self.user_edit.textChanged.connect(self.on_LineEditChange)
+      user_namespace_layout = QHBoxLayout()
+      user_namespace_layout.addWidget(self.user_namespace_enable)
+      user_namespace_layout.addWidget(user_namespace)
+      user_namespace_layout.addWidget(self.user_edit)
 
-      type_label = QLabel("Type")
+      self.type_enable = QCheckBox()
+      self.type_enable.clicked.connect(self.on_LineEditChange)
+      type_label = QLabel("Branch")
       type_label.setFixedSize(100, 20)
       self.type_edit = QLineEdit(self.defaults[1])
+      self.type_edit.textChanged.connect(self.on_LineEditChange)
       type_layout = QHBoxLayout()
+      type_layout.addWidget(self.type_enable)
       type_layout.addWidget(type_label)
       type_layout.addWidget(self.type_edit)
-
+      
       assettype_label = QLabel("Asset Type")
-      assettype_label.setFixedSize(100, 20)
+      assettype_label.setFixedSize(126, 20)
       self.assettype_edit = QLineEdit(self.defaults[2])
+      self.assettype_edit.textChanged.connect(self.on_LineEditChange)
       assettype_layout = QHBoxLayout()
       assettype_layout.addWidget(assettype_label)
       assettype_layout.addWidget(self.assettype_edit)
 
       assetlabel_label = QLabel("Asset Label")
-      assetlabel_label.setFixedSize(100, 20)
+      assetlabel_label.setFixedSize(126, 20)
       self.assetlabel_edit = QLineEdit(self.defaults[3])
       assetlabel_layout = QHBoxLayout()
       assetlabel_layout.addWidget(assetlabel_label)
       assetlabel_layout.addWidget(self.assetlabel_edit)
 
       assetlocation_label = QLabel("Asset Location")
-      assetlocation_label.setFixedSize(100, 20)
+      assetlocation_label.setFixedSize(126, 20)
       self.assetlocation_edit = QLineEdit(self.defaults[4])
       assetlocation_btn = QPushButton("...")
       assetlocation_btn.clicked.connect(self.on_InputFileButtonClicked)
@@ -491,6 +463,10 @@ class New_VHDA_Dialog(QDialog):
       assetlocation_layout.addWidget(assetlocation_label)
       assetlocation_layout.addWidget(self.assetlocation_edit)
       assetlocation_layout.addWidget(assetlocation_btn)
+
+
+      self.namespace_preview = QLabel()
+      self.on_LineEditChange()
 
       OK_btn = QPushButton("OK")
       Cancel_btn = QPushButton("Cancel")
@@ -503,11 +479,13 @@ class New_VHDA_Dialog(QDialog):
       buttons_layout.addWidget(Cancel_btn)
 
 
-      layout.addLayout(user_layout)
+      layout.addLayout(user_namespace_layout)
       layout.addLayout(type_layout)
       layout.addLayout(assettype_layout)
       layout.addLayout(assetlabel_layout)
       layout.addLayout(assetlocation_layout)
+      layout.addWidget(self.namespace_preview)
       layout.addLayout(buttons_layout)
 
       self.setLayout(layout)
+      self.setFixedHeight(self.sizeHint().height()) 
