@@ -1,0 +1,86 @@
+# Dialog script for labs::progressive_resample automatically generated
+
+{
+    name	labs::progressive_resample
+    script	labs::progressive_resample
+    label	"Labs Progressive Resample"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Curve
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Resample Properties"
+
+        parm {
+            name    "ptdel"
+            label   "Resample Attribute"
+            type    string
+            default { "pscale" }
+            menureplace {
+                [ "opmenu -l -a attribdelete2 ptdel" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "resolutionscale"
+            label   "Resolution Scale"
+            type    float
+            default { "1" }
+            range   { 0.1 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder1"
+        label   "Advanced"
+
+        parm {
+            name    "maxpoints"
+            label   "Max Points per Segment"
+            type    integer
+            default { "10000" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "preprocess"
+            label   "Presample"
+            type    toggle
+            joinnext
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "length"
+            label   "Length"
+            type    float
+            default { "0.05" }
+            disablewhen "{ preprocess == 0 }"
+            range   { 0! 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "minclamp"
+            label   "Minimum Length"
+            type    float
+            invisible
+            default { "1e-05" }
+            range   { 0 0.01 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
