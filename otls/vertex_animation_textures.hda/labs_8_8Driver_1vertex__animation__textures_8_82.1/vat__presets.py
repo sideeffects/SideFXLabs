@@ -43,10 +43,12 @@ def main(node):
     elif engine == 'sop':
         sop(node,method)
     elif engine == 'winter':
-        winter(node,method)    
+        winter(node,method)
     elif engine == 'hammer':
-        hammer(node,method)    
-      
+        hammer(node,method)
+    elif engine == 'popcornfx':
+        popcornfx(node,method)
+
 # -----------------------------------------------------------------------------
 #    Name: reset(node)
 #  Raises: N/A
@@ -217,4 +219,38 @@ def alta(node,method):
 
 def altb(node,method):
     print('Alternate B settings not yet implemented.')
+
+# -----------------------------------------------------------------------------
+#    Name: popcornfx(node, method)
+#  Raises: N/A
+# Returns: None
+#    Desc: Engine setting.
+# -----------------------------------------------------------------------------
+
+def popcornfx(node,method):
+    print('Using PopcornFX settings.')
+    node.parm('coord_pos').deleteAllKeyframes()
+    node.parm('coord_pos').set(1) # X Z Y
+    node.parm('invert_pos').deleteAllKeyframes()
+    node.parm('invert_pos').set(0) # +X +Y +Z
+    node.parm('coord_rot').deleteAllKeyframes()
+    node.parm('coord_rot').set(0) # -X -Y -Z +W
+    node.parm('convertcolorspace').deleteAllKeyframes()
+    node.parm('convertcolorspace').set(0) # Disable convert color space
+    node.parm('pack_pscale').deleteAllKeyframes()
+    node.parm('pack_pscale').set(0) # Disable pack scale to alpha
+    node.parm('normalize_data').deleteAllKeyframes()
+    node.parm('normalize_data').set(1) # Enable normalize data
+    node.parm('enable_geo').deleteAllKeyframes()
+    node.parm('enable_geo').set(1) # Enable geometry export
+    node.parm('enable_pos').deleteAllKeyframes()
+    node.parm('enable_pos').set(1) # Enable position map export
+    node.parm('create_data').deleteAllKeyframes()
+    node.parm('create_data').set(0) # Disable JSON export
+    if method == 1 : # If rigid body
+        node.parm('enable_rot').deleteAllKeyframes()
+        node.parm('enable_rot').set(1) # Enable rotation map export
+    elif method == 2 : # If fluid (changing topology)
+        node.parm('enable_col').deleteAllKeyframes()
+        node.parm('enable_col').set(1) # Enable color map export
 
