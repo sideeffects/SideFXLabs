@@ -6,13 +6,13 @@ def SetKeyFrame(a_parm, a_frame, a_value):
         return key
 
 def CreateNewSubnet(a_SourceName, a_NumberBones):
-        return hou.node("/obj").createNode("subnet", "SkinningConversion_%s_%s_Bones" % (a_SourceName, a_NumberBones))
+        return hou.node("/obj").createNode("subnet", "SkinningConversion_{0}_{1}_Bones".format(a_SourceName, a_NumberBones))
 
 def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_EndFrame, a_CaptureMode, a_CaptureFrame):
         
         BoneList = []
 
-        print "Generating Skeleton..."
+        print("Generating Skeleton...")
         Geometry = hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry()
         HasNameAttr = Geometry.findPointAttrib("name")
         for point in Geometry.points():
@@ -34,7 +34,7 @@ def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_E
                 Bone.moveToGoodPosition()
                 BoneList.append(Bone)
 
-        print "Baking Skeleton..."
+        print ("Baking Skeleton...")
         with hou.InterruptableOperation("Keyframing Bones", open_interrupt_dialog=True) as Process:
                 for F in xrange(a_StartFrame, a_EndFrame+1):
                         hou.setFrame(F)
@@ -51,12 +51,12 @@ def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_E
                         Process.updateProgress(float(F) / float(a_EndFrame-a_StartFrame))
 
         hou.setFrame(a_CaptureFrame)
-        hou.hscript("bonealigncapture -c %s/bone*" % str(a_Subnet.path()))
+        hou.hscript("bonealigncapture -c {0}/bone*".format(str(a_Subnet.path())))
         hou.setFrame(a_StartFrame)
         return BoneList
 
 def MainFunction():
-        print "Starting Conversion..."
+        print ("Starting Conversion...")
         
         ThisNode = hou.pwd()
         FrameRange = ThisNode.parmTuple('i2FrameRange').eval()
@@ -149,4 +149,4 @@ def MainFunction():
         ThisNode.parm("objpath1").set(Geometry.path())
 
         ContainerObject.moveToGoodPosition()
-        print "Conversion completed! Output at %s" % ContainerObject.path()
+        print ("Conversion completed! Output at {0}".format(ContainerObject.path()))
