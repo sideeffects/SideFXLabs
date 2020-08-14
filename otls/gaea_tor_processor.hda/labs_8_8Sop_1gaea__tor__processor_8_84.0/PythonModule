@@ -50,7 +50,7 @@ def ProcessTor(a_node):
     cmd.append("--silent")
     if a_node.parm("bDeterministic").evalAsInt() == 1:
         cmd.append("--cpulimit1")
-    cmd.append("--resolution%s" % nextPowerOf2(resolution))
+    cmd.append("--resolution{0}".format(nextPowerOf2(resolution)))
     cmd.append("--houdini")
 
 
@@ -63,7 +63,6 @@ def ProcessTor(a_node):
     # Dynamically Construct Command Line Arguments from parameter values
     for parm in a_node.parmsInFolder(("Gaea Controls", )):
 
-        #print parm
         name = parm.name()
         value = parm.eval()
 
@@ -71,14 +70,14 @@ def ProcessTor(a_node):
         if parm.parmTemplate().type() == hou.parmTemplateType.Toggle:
             value = "true" if value == 1 else "false"
             #SanitizedName = "_".join(name.split("_")[1:])
-            cmd.append("%s:%s" % (name, value))
+            cmd.append("{0}:{1}".format(name, value))
 
         # Generating a name for the maps saved FROM Houdini
         elif parm in ToGaeaParms:
-            value = '"'+os.path.join(a_node.parm("sTempDir").evalAsString(), "render_%s_%s_%s.r32" % (a_node.parm("sUniqueID").evalAsString(), a_node.parm("sExtraData").evalAsString(), value)).replace("\\", "/")+'"'
+            value = '"'+os.path.join(a_node.parm("sTempDir").evalAsString(), "render_{0}_{1}_{2}.r32".format(a_node.parm("sUniqueID").evalAsString(), a_node.parm("sExtraData").evalAsString(), value)).replace("\\", "/")+'"'
             if parm.evalAsString() == "":
-                raise hou.NodeError('Missing "%s" input mapping in "To Gaea" parameter group.' % parm.description())
-            cmd.append("%s:%s" % (name, value))
+                raise hou.NodeError('Missing "{0}" input mapping in "To Gaea" parameter group.'.format(parm.description()))
+            cmd.append("{0}:{1}".format(name, value))
 
         # Generating a name for the maps read FROM Gaea
         elif parm in FromGaeaParms:
@@ -89,23 +88,23 @@ def ProcessTor(a_node):
             else:
                 Extension = "r32" if NameComponents[0] == "c1" else "png"
                 SanitizedName = "_".join(name.split("_")[1:])
-                value = '"'+os.path.join(a_node.parm("sTempDir").evalAsString(), "read_%s_%s_%s.%s" % (a_node.parm("sUniqueID").evalAsString(),a_node.parm("sExtraData").evalAsString(), value, Extension)).replace("\\", "/")+'"'
+                value = '"'+os.path.join(a_node.parm("sTempDir").evalAsString(), "read_{0}_{1}_{2}.{3}".format(a_node.parm("sUniqueID").evalAsString(),a_node.parm("sExtraData").evalAsString(), value, Extension)).replace("\\", "/")+'"'
 
             MapsToExport.append(value)
             if parm.evalAsString() == "":
-                raise hou.NodeError('Missing "%s" input mapping in "From Gaea" parameter group.' % parm.description())
+                raise hou.NodeError('Missing "{0}" input mapping in "From Gaea" parameter group.'.format(parm.description()))
             SanitizedName = "_".join(name.split("_")[1:])
-            cmd.append("%s:%s" % (SanitizedName, value))
+            cmd.append("{0}:{1}".format(SanitizedName, value))
 
         else:
-            cmd.append("%s:%s" % (name, value))
+            cmd.append("{0}:{1}".format(name, value))
 
     # Run Gaea with the provided Tor file and parameter values
     RunGaea(a_node, cmd, gaea_dir)
 
     if a_node.parm("pdg_logoutput").evalAsInt() == 1:
         for value in MapsToExport:
-            print "OUTPUT_FILE: %s; file/image" % value[1:-1]
+            print("OUTPUT_FILE: {0}; file/image".format(value[1:-1]))
 
     
     # Forcing some node cooks
@@ -209,7 +208,7 @@ def LoadXML(a_node):
 
     Groups = [x.attrib["Owner"] for x in XMLRoot if x.tag == "Parameter" and x.attrib["Type"] not in ["out", "in"]]
     for x, grp in enumerate(set(Groups)):
-        NodeGroupFolder = hou.FolderParmTemplate("generated_grp_%s" % grp, grp, folder_type=hou.folderType.Simple, ends_tab_group=True)
+        NodeGroupFolder = hou.FolderParmTemplate("generated_grp_{0}".format(grp), grp, folder_type=hou.folderType.Simple, ends_tab_group=True)
         ParmGroup.appendToFolder(ParmGroup.find("generated_gaeaparms"), NodeGroupFolder)
 
     HoudiniOutputFolder = hou.FolderParmTemplate("generated_houdinioutputfolder", "To Gaea", folder_type=hou.folderType.Simple, ends_tab_group=True)
@@ -237,20 +236,20 @@ def LoadXML(a_node):
 
                 if type == "int":
                     SpareParm = hou.IntParmTemplate(name, label, 1, default_value=(int(default),), min=int(LineEntry['Min']), max=int(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
-                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_%s" % owner), SpareParm)
+                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
                 elif type == "double":
                     SpareParm = hou.FloatParmTemplate(name, label, 1, default_value=(float(default),), min=float(LineEntry['Min']), max=float(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
-                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_%s" % owner), SpareParm)
+                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
                 elif type == "bool":
                     SpareParm = hou.ToggleParmTemplate(name, label, default_value=eval(default), script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
-                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_%s" % owner), SpareParm)
+                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
                 elif type == "choice":
                     MenuValues = tuple(LineEntry['Choices'].split(','))
                     SpareParm = hou.MenuParmTemplate(name, label, menu_items=MenuValues, default_value=int(default), menu_type=hou.menuType.Normal, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
-                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_%s" % owner), SpareParm)
+                    ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
                 elif type == "in":
                     SpareParm = hou.StringParmTemplate(name, label, 1, default_value=(default,), string_type=hou.stringParmType.Regular, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
@@ -271,7 +270,7 @@ def LoadXML(a_node):
                     ParmGroup.appendToFolder(ParmGroup.find("generated_houdiniinputfolder"), SpareParm)
 
                 else:
-                    raise hou.Error("%s %s %s %s cannot be processed." % (name, label, type, default))
+                    raise hou.Error("{0} {1} {2} {3} cannot be processed.".format(name, label, type, default))
 
     a_node.setParmTemplateGroup(ParmGroup)
     os.remove(automation_xml)
