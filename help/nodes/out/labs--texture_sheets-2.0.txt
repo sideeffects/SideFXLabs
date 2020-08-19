@@ -1,0 +1,115 @@
+= Labs Texture Sheets =
+
+#type: node
+#context: out
+#internal: labs::texture_sheets::2.0
+#icon: texture_sheet
+#tags: tech, render
+
+""" Render an image sequence and assemble it as a single sheet (subUv, flipbook) """
+
+A common workflow is to render out an image sequence and then assemble the sequence into a single sheet using the Mosaic node. 
+
+This node automates that process by combining the whole process into a single button, it also allows to render out normal maps both through the volumes or RGB lights. 
+
+[Image:/images/texture_sheets.png]
+
+@parameters
+    Render:
+        Triggers rendering the whole process
+        
+    == Base Settings ==
+    Asset Name:
+        Descriptive Name of the project, will be assembled in the filename as sequence_dir/assetname.frame.exr 
+    Sequence Directory:
+        Working directory for the individual images 
+    Render Sequence:
+        Triggers rendering only the color sequence 
+    Render N Sequence:
+        Triggers rendering only the normal images sequence 
+    Render RGB Sequence:
+        Triggers rendering only the RBG lights images sequence 
+    Export Normal:
+        Toggles rendering out the normals from the volume
+    Render RGB Lights (Normals):
+        Toggles the rendering out of the normals from RGB lights
+    Render Emission Layer:
+        Toggles rendering the emission values of the fire
+    == Maps ==
+    Channel Pack Normal, Emission, Alpha:
+        Toggles packing different maps together, this can be setup under the Channel Packing Tab
+    Map Directory:
+        Path to the final output directory, where the compiled sheets will be written out to
+    Render Color Map:
+        Triggers the assembling of the color map
+    Render Normal Map:
+        Triggers the assembling of the normal map
+    Render Packed Map:
+        Triggers the assembling of the packed map
+    == Nodes ==
+    Node To Render:
+        SOP to be included in the rendering
+    Camera:
+        Camera object to be used for rendering
+    == Settings ==
+    Start/End/Inc:
+        Allows you to set your desired export frame range.
+    Images per Line:
+        Number of Columns on the final sheet 
+    Resolution:
+        Size of the final sheet
+    No. Of Frames:
+        *READ ONLY* Display of how many frames will be assembled
+    Atlas Layout:
+        *READ ONLY* Display of how many rows vs columns on the final sheet
+    Override Camera Resolution (Based on Atlas Settings):
+        If this is turned on the camera resolution will match the settings for the final texture atlas.
+    Camera Resolution:
+        *READ ONLY* Display of the camera resolution for each frame 
+    Override Resolution:
+        *READ ONLY* Display of the actual render resolution for each frame (could be changed by turning on Override Camera Resolution) 
+    == Render Settings == 
+    These are all promoted up from the [Mantra ROP |Node:out/ifd]
+  
+    == Channel Packing == 
+    
+    Set Composite View:
+        Button to setup a COP network preview to visualize the channel packing of the final texture. 
+    Texture Preview:
+        Select which map to preview
+    Reload Sequences:
+        Refresh the sequence files 
+    Red:
+        In the packed Map, what does the red channel represent
+    Green:
+        In the packed Map, what does the green channel represent
+    Blue:
+        In the packed Map, what does the blue channel represent
+    Alpha:
+        In the packed Map, what does the alpha channel represent
+    Blend N and RGB Lights:
+        Blend between the volume normals and the light based normals 
+
+    == Advanced Settings ==             
+    === Normals ===
+    Flip Green Channel:
+        Invert the Y channel of the Normal texture
+    Calculate N from::
+        Specify which volume the Normal will be based on
+    === Sequence ===
+    Image Sequence:
+        Filepath for the color image sequence
+    N Image Sequence:
+        Filepath for the normal image sequence
+    RGB Image Sequence:
+        Filepath for the rgb normal image sequence
+    Image Sequence Internal:
+        Full path to the individual frames that are written out
+    === Maps ===
+    Color Map:
+        Filepath to the final assembled image 
+    Normal Map:
+        Filepath to the final assembled normal image 
+    Packed Map:
+        Filepath to the final assembled packed image 
+    

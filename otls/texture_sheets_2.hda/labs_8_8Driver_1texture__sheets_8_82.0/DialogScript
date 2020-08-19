@@ -53,7 +53,7 @@
         }
         parm {
             name    "sepparm"
-            label   "Separator"
+            label   "sepparm"
             type    separator
             default { "" }
         }
@@ -85,7 +85,6 @@
             type    toggle
             joinnext
             default { "1" }
-            range   { 0 1 }
         }
         parm {
             name    "render_rgb_lights"
@@ -107,13 +106,14 @@
         }
         parm {
             name    "sepparm2"
-            label   "Separator"
+            label   "sepparm2"
             type    separator
             default { "" }
         }
         groupsimple {
             name    "folder1"
             label   "Maps"
+            grouptag { "group_type" "simple" }
 
             parm {
                 name    "pack_map_toggle"
@@ -155,13 +155,13 @@
         groupsimple {
             name    "folder0"
             label   "Nodes"
+            grouptag { "group_type" "simple" }
 
             parm {
                 name    "node_to_render"
                 label   "Node To Render"
                 type    oppath
                 default { "" }
-                range   { 0 1 }
                 parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -173,7 +173,6 @@
                 type    oppath
                 invisible
                 default { "" }
-                range   { 0 1 }
                 parmtag { "opfilter" "!!SOP!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -191,7 +190,7 @@
                 label   "No. Of Inputs"
                 type    integer
                 invisible
-                default { "opninputs(\".\")" }
+                default { [ "opninputs(\".\")" hscript-expr ] }
                 range   { 0 10 }
             }
             parm {
@@ -200,7 +199,6 @@
                 type    oppath
                 invisible
                 default { "./render_volume" }
-                range   { 0 1 }
                 parmtag { "opfilter" "!!OBJ!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -212,7 +210,6 @@
                 type    oppath
                 invisible
                 default { "" }
-                range   { 0 1 }
                 parmtag { "opfilter" "!!OBJ!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -224,7 +221,6 @@
                 type    oppath
                 invisible
                 default { [ "ifs(opninputs(\".\")>0,chs(\"mantra_external\"),chs(\"mantra\"))" hscript-expr ] }
-                range   { 0 1 }
                 parmtag { "opfilter" "!!OBJ!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -236,7 +232,6 @@
                 type    oppath
                 default { "/obj/cam1" }
                 hidewhen "{ ninputs == 1 }"
-                range   { 0 1 }
                 parmtag { "opfilter" "!!OBJ/CAMERA!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -255,7 +250,6 @@
                 type    oppath
                 invisible
                 default { [ "ifs(opninputs(\".\")>0,chs(\"camera_external\"),chs(\"camera\"))" hscript-expr ] }
-                range   { 0 1 }
                 parmtag { "opfilter" "!!OBJ!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -267,7 +261,6 @@
                 type    oppath
                 invisible
                 default { "" }
-                range   { 0 1 }
                 parmtag { "opfilter" "!!OBJ!!" }
                 parmtag { "oprelative" "." }
                 parmtag { "script_callback" "" }
@@ -278,6 +271,7 @@
         groupcollapsible {
             name    "folder2"
             label   "Settings"
+            grouptag { "group_type" "collapsible" }
 
             parm {
                 name    "frames"
@@ -394,7 +388,6 @@
                 "pbrraytrace"   "Physically Based Rendering"
                 "photon"        "Photon Map Generation"
             }
-            range   { 0 1 }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "spare_category" "Rendering" }
         }
@@ -402,8 +395,7 @@
             name    "vm_dof"
             label   "Enable Depth Of Field"
             type    toggle
-            default { "off" }
-            range   { 0 1 }
+            default { [ "off" hscript-expr ] }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "spare_category" "Rendering" }
         }
@@ -411,8 +403,7 @@
             name    "allowmotionblur"
             label   "Allow Motion Blur"
             type    toggle
-            default { "off" }
-            range   { 0 1 }
+            default { [ "off" hscript-expr ] }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "spare_category" "Rendering" }
         }
@@ -450,9 +441,8 @@
             name    "vm_traceblur"
             label   "Raytrace Motion Blur"
             type    toggle
-            default { "off" }
+            default { [ "off" hscript-expr ] }
             hidewhen "{ allowmotionblur == 0 } { vm_renderengine != micropoly vm_renderengine != pbrmicropoly }"
-            range   { 0 1 }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "spare_category" "Rendering" }
         }
@@ -474,8 +464,7 @@
                 name    "vm_dorayvariance"
                 label   "Ray Variance Antialiasing"
                 type    toggle
-                default { "on" }
-                range   { 0 1 }
+                default { [ "on" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Sampling" }
             }
@@ -489,7 +478,6 @@
                     "linear"    "Linear"
                     "gamma"     "Gamma 2.2"
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Sampling" }
             }
@@ -556,8 +544,7 @@
                 name    "vm_adaptivesamplingenable"
                 label   "Adaptive Sampling"
                 type    toggle
-                default { "off" }
-                range   { 0 1 }
+                default { [ "off" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Sampling" }
             }
@@ -593,9 +580,8 @@
                 name    "vm_transparent"
                 label   "Stochastic Transparency"
                 type    toggle
-                default { "on" }
+                default { [ "on" hscript-expr ] }
                 disablewhen "{ vm_renderengine == micropoly } { vm_renderengine == pbrmicropoly } { vm_renderengine == photon }"
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Sampling" }
             }
@@ -613,8 +599,7 @@
                 name    "vm_samplelock"
                 label   "Sample Lock"
                 type    toggle
-                default { "off" }
-                range   { 0 1 }
+                default { [ "off" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Sampling" }
             }
@@ -631,9 +616,8 @@
                 name    "vm_imageblur"
                 label   "Allow Image Motion Blur"
                 type    toggle
-                default { "on" }
+                default { [ "on" hscript-expr ] }
                 disablewhen "{ allowmotionblur == 0 }"
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Sampling" }
             }
@@ -715,7 +699,6 @@
                     "none"      "Use Black Background"
                     "direct"    "Use Direct Lighting as Background Color"
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Limits" }
             }
@@ -747,8 +730,7 @@
                 name    "vm_biasnormal"
                 label   "Bias Along Normal"
                 type    toggle
-                default { "off" }
-                range   { 0 1 }
+                default { [ "off" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Shading" }
             }
@@ -761,7 +743,6 @@
                     "diffuse"   "Specular, Diffuse Paths"
                     "all"       "All Paths"
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Shading" }
             }
@@ -770,7 +751,6 @@
                 label   "Refract Components"
                 type    string
                 default { "refract" }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Shading" }
             }
@@ -779,7 +759,6 @@
                 label   "Diffuse Components"
                 type    string
                 default { "diffuse" }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Shading" }
             }
@@ -788,7 +767,6 @@
                 label   "Volume Components"
                 type    string
                 default { "volume" }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Shading" }
             }
@@ -873,7 +851,6 @@
                     "kdtree"    "KD-Tree"
                     "bboxtree"  "Bounding Volume Hierarchy"
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Render" }
             }
@@ -891,8 +868,7 @@
                 name    "vm_hidden"
                 label   "Enable Hiding"
                 type    toggle
-                default { "on" }
-                range   { 0 1 }
+                default { [ "on" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Render" }
             }
@@ -900,8 +876,7 @@
                 name    "vm_otlfullpath"
                 label   "Output OTLs with full paths"
                 type    toggle
-                default { "off" }
-                range   { 0 1 }
+                default { [ "off" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Render" }
             }
@@ -909,8 +884,7 @@
                 name    "vm_embedvex"
                 label   "Force VEX Shader Embedding"
                 type    toggle
-                default { "off" }
-                range   { 0 1 }
+                default { [ "off" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Render" }
             }
@@ -922,7 +896,6 @@
                 menutoggle {
                     [ "opmenu -l render_particles declare_stylesheets" ]
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Render" }
             }
@@ -934,7 +907,6 @@
                 menutoggle {
                     [ "opmenu -l render_particles apply_stylesheets" ]
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "filechooser_pattern" "*.json" }
                 parmtag { "spare_category" "Render" }
@@ -949,7 +921,6 @@
                     "on"    "Save All Material SHOPs"
                     "all"   "Save All SHOPS"
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Render" }
             }
@@ -988,7 +959,6 @@
                     "raster"    "Raster Space Measuring"
                     "uniform"   "Uniform Measuring"
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Dicing" }
             }
@@ -1029,7 +999,6 @@
                     "on"    "Capture render output for graphical apps"
                     "force" "Capture render output for all apps"
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Statistics" }
             }
@@ -1060,8 +1029,7 @@
                 name    "vm_alfprogress"
                 label   "Alfred Style Progress"
                 type    toggle
-                default { "off" }
-                range   { 0 1 }
+                default { [ "off" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Statistics" }
             }
@@ -1073,7 +1041,6 @@
                 menureplace {
                     [ "opmenu -l render_particles vm_tilecallback" ]
                 }
-                range   { 0 1 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "filechooser_mode" "read" }
                 parmtag { "spare_category" "Statistics" }
@@ -1096,8 +1063,7 @@
                 name    "vm_logtimestamps"
                 label   "Log Timestamp"
                 type    toggle
-                default { "on" }
-                range   { 0 1 }
+                default { [ "on" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Statistics" }
             }
@@ -1307,6 +1273,7 @@
         groupsimple {
             name    "normalfolder"
             label   "Normals"
+            grouptag { "group_type" "simple" }
 
             parm {
                 name    "flipgreen"
@@ -1327,6 +1294,7 @@
         groupsimple {
             name    "sequencefolder"
             label   "Sequence"
+            grouptag { "group_type" "simple" }
 
             parm {
                 name    "image_sequence_label"
@@ -1341,7 +1309,6 @@
                 type    image
                 default { "`strcat(chs(\"sequencedir\"),chs(\"assetname\"))`.$F4.exr" }
                 disablewhen "{ ninputs == 1 }"
-                range   { 0 1 }
             }
             parm {
                 name    "N_sequence"
@@ -1349,7 +1316,6 @@
                 type    image
                 default { "`strcat(chs(\"sequencedir\"),chs(\"assetname\"))`_N.$F4.exr" }
                 disablewhen "{ export_normal == 0 }"
-                range   { 0 1 }
             }
             parm {
                 name    "rgb_sequence"
@@ -1357,7 +1323,6 @@
                 type    image
                 default { "`strcat(chs(\"sequencedir\"),chs(\"assetname\"))`_rgb.$F4.exr" }
                 disablewhen "{ render_rgb_lights == 0 }"
-                range   { 0 1 }
             }
         }
 
@@ -1366,14 +1331,13 @@
             label   "Image Sequence Internal"
             type    image
             default { [ "ifs(opninputs(\".\")>0,chs(\"image_sequence_external\"),chs(\"image_sequence\"))" hscript-expr ] }
-            range   { 0 1 }
         }
         parm {
             name    "image_sequence_external"
             label   "Image Sequence External"
             type    image
+            invisible
             default { "" }
-            range   { 0 1 }
         }
         parm {
             name    "cam_res_save"
@@ -1393,7 +1357,6 @@
                 label   "Color Map"
                 type    image
                 default { "`strcat(chs(\"mapdir\"),chs(\"assetname\"))`_color.exr" }
-                range   { 0 1 }
             }
             parm {
                 name    "normal_map"
@@ -1401,7 +1364,6 @@
                 type    image
                 default { "`strcat(chs(\"mapdir\"),chs(\"assetname\"))`_normal.exr" }
                 disablewhen "{ export_normal == 0 } { pack_map_toggle == 1 }"
-                range   { 0 1 }
             }
             parm {
                 name    "packed_map"
@@ -1409,7 +1371,6 @@
                 type    image
                 default { "`strcat(chs(\"mapdir\"),chs(\"assetname\"))`_packed.exr" }
                 disablewhen "{ pack_map_toggle == 0 } { export_normal == 0 } { render_fire == 0 }"
-                range   { 0 1 }
             }
         }
 
