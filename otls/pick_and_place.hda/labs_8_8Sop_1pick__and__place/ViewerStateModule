@@ -16,7 +16,7 @@ class State(object):
         self.scene_viewer = scene_viewer
 
         self.multiparm = None
-        self.placed_pos = None
+        self.placed_pos = hou.Vector3()
         self.picked = False
         self.hitnormal = hou.Vector3()
         self.startvector = hou.Vector3()
@@ -25,12 +25,10 @@ class State(object):
         self.alignment = "surfacenormal"
         self.copypreviousscale = False
         self.copyscale = hou.Vector3()
+        
+        self.planepos = hou.Vector3()
+        self.tweakInstance = -1
 
-        # drawable for drawing a text string in the viewport
-        self.text_drawable = hou.TextDrawable(self.scene_viewer, 'text_drawable_name',
-            params = {'margins': (100.0,10.0),
-            'origin' : hou.drawableTextOrigin.UpperLeft} )
-        self.text_drawable.show(True)
 
     def onEnter(self, kwargs):
         node = kwargs["node"]
@@ -40,44 +38,95 @@ class State(object):
         node.parm("iCurID").set(0)
 
     def onExit(self, kwargs):
-        MultiparmEntries = self.multiparm.evalAsInt()
-        self.multiparm.set(MultiparmEntries-1)
+        MPInstance = self.multiparm.evalAsInt()
+        self.multiparm.set(MPInstance-1)
 
     def NewMultiparmEntry(self, kwargs):
         node = kwargs["node"]
-        MultiparmEntries = self.multiparm.evalAsInt()
-        self.multiparm.set(MultiparmEntries+1)
+        MPInstance = self.multiparm.evalAsInt()
+        self.multiparm.set(MPInstance+1)
 
-
-    def AddObjectAtPosition(self, kwargs, a_position, a_normal):
+    # Used to create a new object at position if no custom index is specified. Otherwise it will update it
+    def SetPosition(self, kwargs, a_position, a_normal, a_index=-1):
         node = kwargs["node"]
-        MultiparmEntries = self.multiparm.evalAsInt()
+        MPInstance = self.multiparm.evalAsInt()
 
-        if MultiparmEntries == 0:
+        if MPInstance == 0:
             self.NewMultiparmEntry(kwargs)
-            MultiparmEntries= 1
+            MPInstance= 1
 
-        node.parmTuple("vPosition_%s" % (MultiparmEntries)).set(tuple(a_position))
-        node.parmTuple("vHitNormal_%s" % (MultiparmEntries)).set(tuple(a_normal))
+        if a_index != -1:
+            MPInstance = a_index
+
         AlignWithSurfacenormal = 0 if self.alignment == "up" else 1
-        node.parm("bAlignToSurface_%s" % MultiparmEntries).set(AlignWithSurfacenormal)
 
-    def SetID(self, kwargs, a_id):
+        node.parmTuple("vPosition_%s" % (MPInstance)).set(tuple(a_position))
+        node.parmTuple("vHitNormal_%s" % (MPInstance)).set(tuple(a_normal))
+        node.parm("bAlignToSurface_%s" % MPInstance).set(AlignWithSurfacenormal)
+
+    # Used to set the ID of the last object, or the custom index if provided
+    def SetID(self, kwargs, a_id, a_index=-1):
         node = kwargs["node"]
-        MultiparmEntries = self.multiparm.evalAsInt()
-        node.parm("iID_%s" % (MultiparmEntries)).set(a_id) 
+        MPInstance = self.multiparm.evalAsInt()
 
-    def SetRotation(self, kwargs, a_rotation):
+        if a_index != -1:
+            MPInstance = a_index
+
+        node.parm("iID_{}".format(MPInstance)).set(a_id) 
+
+    # Used to set the Rotation of the last object, or the custom index if provided
+    def SetRotation(self, kwargs, a_rotation=None, a_index=-1):
         node = kwargs["node"]
-        MultiparmEntries = self.multiparm.evalAsInt()
+        MPInstance = self.multiparm.evalAsInt()
 
-        node.parmTuple("vRotate_%s" % (MultiparmEntries)).set((0.0, a_rotation, 0.0))
+        if a_index != -1:
+            MPInstance = a_index
 
-    def SetScale(self, kwargs, a_scale):
+        _rotation = 0.0
+
+        if a_rotation:
+            _rotation = a_rotation
+        else:
+            vector1 = self.startvector.normalized()
+            vector2 = hou.Vector3(self.planepos - self.placed_pos).normalized()
+
+            dot = max(min(vector1.dot(vector2), 1.0), -1.0)
+            _rotation = math.acos(dot)
+            cross = vector1.cross(vector2)
+
+            if self.hitnormal.normalized().dot(cross) < 0:
+                _rotation = math.degrees(_rotation)
+                _rotation = 180.0 + (180.0-_rotation)
+            else:
+                _rotation = math.degrees(_rotation)
+
+            if self.rotationstep != "freehand":
+                Steps = round(_rotation / float(self.rotationstep))
+                _rotation = Steps * float(self.rotationstep)
+
+        node.parmTuple("vRotate_{}".format(MPInstance)).set((0.0, _rotation, 0.0))
+
+    # Used to set the Scale of the last object, or the custom index if provided
+    def SetScale(self, kwargs, a_scale=None, a_index=-1):
         node = kwargs["node"]
-        MultiparmEntries = self.multiparm.evalAsInt()
+        MPInstance = self.multiparm.evalAsInt()
 
-        node.parmTuple("vScale_%s" % (MultiparmEntries)).set((a_scale, a_scale, a_scale))
+        if a_index != -1:
+            MPInstance = a_index
+
+        _scale = self.placed_pos.distanceTo(self.planepos)
+
+        if a_scale != None:
+            _scale = a_scale
+        else:
+            if self.copypreviousscale:
+                _scale = self.previousscale
+            else:
+                if self.scalestep != "freehand":
+                    Steps = round(_scale / float(self.scalestep))
+                    _scale = max(Steps, 1.0) * float(self.scalestep)
+
+        node.parmTuple("vScale_{}".format(MPInstance)).set((_scale, _scale, _scale))
 
     def onMouseWheelEvent(self, kwargs):
 
@@ -85,7 +134,7 @@ class State(object):
         node = kwargs["node"]
 
         scroll = device.mouseWheel()
-        MultiparmEntries = self.multiparm.evalAsInt()
+        MPInstance = self.multiparm.evalAsInt()
 
         new_value = node.parm("iCurID").evalAsInt() + int(scroll)
         new_value = max(0, min(new_value, node.node("PAINT_OBJECTS").geometry().attribValue("NumObjects")-1))
@@ -98,7 +147,7 @@ class State(object):
     # Allow user to change the tweaking mode
     def onMenuAction(self, kwargs):
         node = kwargs["node"]
-        MultiparmEntries = self.multiparm.evalAsInt()
+        MPInstance = self.multiparm.evalAsInt()
 
 
         self.rotationstep = kwargs["rotate_snapping"]
@@ -107,23 +156,12 @@ class State(object):
 
         if kwargs["menu_item"] == "previousscale":
             if self.copypreviousscale:
-                if MultiparmEntries > 0:
-                    self.previousscale = node.parmTuple("vScale_%s" % (MultiparmEntries-1)).eval()[0]
+                if MPInstance > 0:
+                    self.previousscale = node.parmTuple("vScale_%s" % (MPInstance-1)).eval()[0]
 
         if kwargs['menu_item'] == "alignment":
             self.alignment = "surfacenormal" if kwargs["alignment"] == 1 else "up"
 
-    def onDraw(self, kwargs):
-        """ Called for rendering a state e.g. required for 
-        hou.AdvancedDrawable objects
-        """
-        draw_handle = kwargs["draw_handle"]
-
-        size = 1.0
-        params = {
-            'text': "HELLOOO",
-            'scale' : hou.Vector3(size,size,size) }
-        self.text_drawable.draw( draw_handle, params )
 
     def onMouseEvent(self, kwargs):
         ui_event = kwargs["ui_event"]
@@ -143,71 +181,73 @@ class State(object):
         hitnormal = gi.normal
 
         
-        # We are hovering collision geometry, or have not started placing an object yet
-        if intersected >= 0 and self.picked == False:
-            self.AddObjectAtPosition(kwargs, pos, hitnormal)
-            self.SetID(kwargs, node.parm("iCurID").evalAsInt())
-            if self.copypreviousscale:
-                self.SetScale(kwargs, self.previousscale)
+        if not device.isCtrlKey(): # Simply Placing
+            # We are hovering collision geometry, or have not started placing an object yet
+            if intersected >= 0 and self.picked == False:
+                self.SetPosition(kwargs, pos, hitnormal)
+                self.SetID(kwargs, node.parm("iCurID").evalAsInt())
+                if self.copypreviousscale:
+                    self.SetScale(kwargs)
+                else:
+                    self.SetScale(kwargs, 1.0)
+
+                if reason == hou.uiEventReason.Start:
+                    self.picked = True
+                    self.placed_pos = pos
+                    self.hitnormal = hitnormal
+
+            # We started placing an object
             else:
-                self.SetScale(kwargs, 1.0)
+                if self.picked == True:
+                    
+                    self.planepos = hou.hmath.intersectPlane(self.placed_pos, self.hitnormal, origin, direction)
 
-            if reason == hou.uiEventReason.Start:
-                self.picked = True
-                self.placed_pos = pos
-                self.hitnormal = hitnormal
+                    if self.startvector == hou.Vector3():
+                        self.startvector = hou.Vector3(self.planepos - self.placed_pos).normalized()
 
-        # We started placing an object
+                    # After picking initial placement... Setting scale and rotation
+                    if reason == hou.uiEventReason.Active:
+
+                        self.SetScale(kwargs)
+                        self.SetRotation(kwargs)
+
+                    # Done placing
+                    elif reason == hou.uiEventReason.Changed:
+                        self.NewMultiparmEntry(kwargs)
+                        self.picked = False
+                        self.startvector = hou.Vector3()
         else:
-            if self.picked == True:
-                planepos = hou.hmath.intersectPlane(self.placed_pos, self.hitnormal, origin, direction)
+            # Hide the "new object", since we're tweaking existing objects
+            self.SetScale(kwargs, a_scale=0.0)
 
-                if self.startvector == hou.Vector3():
-                    self.startvector = hou.Vector3(planepos - self.placed_pos).normalized()
+            if intersected >= 0:
 
-                # After picking initial placement... Setting scale and rotation
-                if reason == hou.uiEventReason.Active:
+                # Started placing object
+                if reason == hou.uiEventReason.Start:
+                    self.tweakInstance = ComplexCollisionGeo.iterPrims()[gi.prim_num].intAttribValue("__MultiParmID")
 
-                    ## SCALE
-                    Dist = self.placed_pos.distanceTo(planepos)
-                    
-                    if self.scalestep != "freehand":
-                        Steps = round(Dist / float(self.scalestep))
-                        Dist = max(Steps, 1.0) * float(self.scalestep)
-                    
-                    if self.copypreviousscale:
-                        self.SetScale(kwargs, self.previousscale)
+                    if self.tweakInstance == -1:
+                        return
+                    node.parm("iCurID").set(node.parm("iID_{}".format(self.tweakInstance)).evalAsInt())
+                    if self.startvector == hou.Vector3():
+                        self.startvector = hou.Vector3(self.planepos - self.placed_pos).normalized()
+
+                # Busy moving the object
+                elif reason == hou.uiEventReason.Active:
+
+                    if self.tweakInstance == -1:
+                        return
+
+                    if not device.isShiftKey():
+                        _uvw = hou.Vector3()
+                        _hit = ComplexCollisionGeo.intersect(origin, direction, self.placed_pos, self.hitnormal, _uvw, pattern="!@__MultiParmID={0}".format(self.tweakInstance), tolerance=0.03)
+                        self.SetPosition(kwargs, self.placed_pos, self.hitnormal, self.tweakInstance)
+                        self.SetID(kwargs, node.parm("iCurID").evalAsInt(), self.tweakInstance)
                     else:
-                        self.SetScale(kwargs, Dist)
-
-
-                    ## ROTATION
-                    vector1 = self.startvector.normalized()
-                    vector2 = hou.Vector3(planepos - self.placed_pos).normalized()
-
-                    dot = max(min(vector1.dot(vector2), 1.0), -1.0)
-                    angle = math.acos(dot)
-                    cross = vector1.cross(vector2)
-
-                    if self.hitnormal.normalized().dot(cross) < 0:
-                        angle = math.degrees(angle)
-                        angle = 180.0 + (180.0-angle)
-                    else:
-                        angle = math.degrees(angle)
-
-                    if self.rotationstep != "freehand":
-                        Steps = round(angle / float(self.rotationstep))
-                        angle = Steps * float(self.rotationstep)
-
-                    self.SetRotation(kwargs, angle)
-
-                
-                # Done placing
-                elif reason == hou.uiEventReason.Changed:
-                    self.NewMultiparmEntry(kwargs)
-                    self.picked = False
-                    self.startvector = hou.Vector3()
-                
+                        self.planepos = hou.hmath.intersectPlane(self.placed_pos, self.hitnormal, origin, direction)
+                        self.SetScale(kwargs, a_index=self.tweakInstance)
+                        self.SetRotation(kwargs, a_index=self.tweakInstance)
+                        
 
 def createViewerStateTemplate():
     """ Mandatory entry point to create and return the viewer state 

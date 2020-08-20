@@ -7,14 +7,20 @@ try:
 except:
     pass
     
-    import hou
+import hou
 
-    
 # Asset Lib tests
 Objects = None
 
 try:
-    Objects = hou.session.assetLibClipboardNodes
+    Objects = []
+    for obj in hou.session.assetLibClipboardNodes:
+        if obj.children()[0].type().category() == hou.objNodeTypeCategory():
+                for child in obj.children():
+                        if child.isDisplayFlagSet():
+                                Objects.append(child)
+        else:
+            Objects.append(obj)  
 except:
     pass
 
@@ -30,6 +36,5 @@ if Objects:
     obj_merge.parm("numobj").set(len(Objects))
     
     for i, obj in enumerate(Objects):
-        obj_merge.parm("objpath%s" % int(i+1)).set(obj.path())
+        obj_merge.parm("objpath{}".format(int(i+1))).set(obj.path())
         
-
