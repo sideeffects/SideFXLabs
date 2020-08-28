@@ -1,5 +1,5 @@
 
- Copyright (c) 2017
+ Copyright (c) 2020
 	Side Effects Software Inc.  All rights reserved.
 
  Redistribution and use of in source and binary forms, with or without
