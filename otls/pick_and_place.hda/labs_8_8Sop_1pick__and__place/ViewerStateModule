@@ -38,9 +38,28 @@ class State(object):
         self.NewMultiparmEntry(kwargs)
         node.parm("iCurID").set(0)
 
+        self.SetPrompt(kwargs)
+
     def onExit(self, kwargs):
         MPInstance = self.multiparm.evalAsInt()
         self.multiparm.set(MPInstance-1)
+
+    def onResume(self, kwargs):
+        self.SetPrompt(kwargs)
+
+    def SetPrompt(self, kwargs):
+
+        prompt = (
+            "Use mousewheel to switch between the objects provided in the second input of the node.\n"
+
+            "Holding CNTRL and dragging objects allows you to tweak the placement of previously placed objects.\n"
+
+            "RMB provides even more useful settings for placement."
+        )
+
+        self.scene_viewer.setPromptMessage(prompt)
+
+
 
     def NewMultiparmEntry(self, kwargs):
         node = kwargs["node"]
