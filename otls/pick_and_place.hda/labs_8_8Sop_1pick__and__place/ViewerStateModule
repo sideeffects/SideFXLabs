@@ -23,6 +23,7 @@ class State(object):
         self.rotationstep = "freehand"
         self.scalestep = "freehand"
         self.alignment = "surfacenormal"
+        self.collisionmode = "complex"
         self.copypreviousscale = False
         self.copyscale = hou.Vector3()
         
@@ -159,9 +160,8 @@ class State(object):
                 if MPInstance > 0:
                     self.previousscale = node.parmTuple("vScale_%s" % (MPInstance-1)).eval()[0]
 
-        if kwargs['menu_item'] == "alignment":
-            self.alignment = "surfacenormal" if kwargs["alignment"] == 1 else "up"
-
+        self.alignment = "surfacenormal" if kwargs["alignment"] == 1 else "up"
+        self.collisionmode = "complex" if kwargs['collisionmode'] == True else "simple"
 
     def onMouseEvent(self, kwargs):
         ui_event = kwargs["ui_event"]
@@ -171,7 +171,12 @@ class State(object):
         node = kwargs["node"]
 
         # Geometry and Intersected Position
-        ComplexCollisionGeo = node.node("OUT_COLLISIONCOMPLEX").geometry()
+        ComplexCollisionGeo = None
+
+        if self.collisionmode == "complex":
+            ComplexCollisionGeo = node.node("OUT_COLLISIONCOMPLEX").geometry()
+        else:
+            ComplexCollisionGeo = node.node("OUT_COLLIDERSIMPLE").geometry()
 
         gi = su.GeometryIntersector(ComplexCollisionGeo, scene_viewer=self.scene_viewer)
         gi.intersect(origin, direction)
@@ -224,6 +229,10 @@ class State(object):
 
                 # Started placing object
                 if reason == hou.uiEventReason.Start:
+                    ComplexCollisionGeo = node.node("OUT_COLLISIONCOMPLEX").geometry()
+                    gi = su.GeometryIntersector(ComplexCollisionGeo, scene_viewer=self.scene_viewer)
+                    gi.intersect(origin, direction)
+                    
                     self.tweakInstance = ComplexCollisionGeo.iterPrims()[gi.prim_num].intAttribValue("__MultiParmID")
 
                     if self.tweakInstance == -1:
@@ -264,6 +273,7 @@ def createViewerStateTemplate():
 
     # Create and bind context menu
     menu = hou.ViewerStateMenu('tweak_menu', 'Tweak Menu')
+    menu.addToggleItem('collisionmode', 'Place on Others', True)
     menu.addToggleItem('previousscale', 'Copy Previous Scale', False)
     menu.addToggleItem('alignment', 'Align to surfacenormal', True)
     menu.addRadioStrip("scale_snapping", "Scale Step Size", "freehand")
