@@ -217,7 +217,7 @@ class State(object):
                 else:
                     self.SetScale(kwargs, 1.0)
 
-                if reason == hou.uiEventReason.Start:
+                if reason == hou.uiEventReason.Start and device.isLeftButton():
                     self.picked = True
                     self.placed_pos = pos
                     self.hitnormal = hitnormal
@@ -232,7 +232,7 @@ class State(object):
                         self.startvector = hou.Vector3(self.planepos - self.placed_pos).normalized()
 
                     # After picking initial placement... Setting scale and rotation
-                    if reason == hou.uiEventReason.Active:
+                    if reason == hou.uiEventReason.Active and device.isLeftButton():
 
                         self.SetScale(kwargs)
                         self.SetRotation(kwargs)
@@ -248,8 +248,14 @@ class State(object):
 
             if intersected >= 0:
 
+                if reason == hou.uiEventReason.Start and ui_event.device().isMiddleButton():
+                    _index = ComplexCollisionGeo.iterPrims()[gi.prim_num].intAttribValue("__MultiParmID")-1
+                    if _index >= 0 and _index < self.multiparm.evalAsInt():
+                        self.multiparm.removeMultiParmInstance(_index)
+
+
                 # Started placing object
-                if reason == hou.uiEventReason.Start:
+                if reason == hou.uiEventReason.Start and device.isLeftButton():
                     ComplexCollisionGeo = node.node("OUT_COLLISIONCOMPLEX").geometry()
                     gi = su.GeometryIntersector(ComplexCollisionGeo, scene_viewer=self.scene_viewer)
                     gi.intersect(origin, direction)
@@ -263,7 +269,7 @@ class State(object):
                         self.startvector = hou.Vector3(self.planepos - self.placed_pos).normalized()
 
                 # Busy moving the object
-                elif reason == hou.uiEventReason.Active:
+                elif reason == hou.uiEventReason.Active and device.isLeftButton():
 
                     if self.tweakInstance == -1:
                         return
