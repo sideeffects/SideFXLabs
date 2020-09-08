@@ -171,8 +171,8 @@ def separateVHDANameComponents(node=None, _node_type=None):
     
     name_components = node_type.nameComponents()
     _namespaces = name_components[1].split("::")
-    namespace_user = None
-    namespace_type = None
+    namespace_user = ""
+    namespace_type = ""
 
     if len(_namespaces) > 0:
         if _namespaces[0] != '':
@@ -198,16 +198,16 @@ def separateVHDANameComponents(node=None, _node_type=None):
     return label, namespace_user, namespace_type, name, major, minor 
 
 def constructVHDAName(namespace_user, namespace_type,name,major,minor):
-    _vhdaname = ["{}::".format(x) for x in [namespace_user, namespace_type] if x != None]
+    _vhdaname = ["{}::".format(x) for x in [namespace_user, namespace_type] if x != ""]
     _vhdaname += "{0}::{1}.{2}".format(name,major, minor)
     #_vhdaname = 
-    return re.sub("[^0-9a-zA-Z\.:]+", "", "".join(_vhdaname))
+    return re.sub("[^0-9a-zA-Z\.:_]+", "", "".join(_vhdaname))
 
 
 def constructVHDAFile(namespace_user, namespace_type,name,major,minor, path):
-    _vhdafile = ["{}.".format(x) for x in [namespace_user, namespace_type] if x != None]
+    _vhdafile = ["{}.".format(x) for x in [namespace_user, namespace_type] if x != ""]
     _vhdafile += "{0}_v{1}.{2}.hda".format(name, major, minor)
-    return  os.path.join(path, re.sub("[^0-9a-zA-Z\.:]+", "", "".join(_vhdafile)))
+    return  os.path.join(path, re.sub("[^0-9a-zA-Z\.:_]+", "", "".join(_vhdafile)))
 
 def constructVHDALabel(label, namespace_type):
     if namespace_type:
@@ -288,7 +288,8 @@ def increaseMajorVersion(node):
     label, namespace_user, namespace_type, name, major, minor = separateVHDANameComponents(node)
 
     major, minor = getLatestVHDAVersion(node)
-    major += 1
+    major = 2 if major == 0 else major + 1
+    # major += 1
     minor = 0
 
     copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, getDefaultVHDAPath())    
@@ -296,12 +297,13 @@ def increaseMajorVersion(node):
 def increaseMinorVersion(node):
     label, namespace_user, namespace_type, name, major, minor = separateVHDANameComponents(node)
 
-    major, minor = getLatestVHDAVersion(node,True)  
+    major, minor = getLatestVHDAVersion(node,True) 
+    major = 1 if major == 0 else major
     minor += 1
 
     copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, getDefaultVHDAPath())    
 
-def newVHDAWindow(name,label,path,namespace_user=hou.userName(),namespace_type='dev'):
+def newVHDAWindow(name,label,path,namespace_user=hou.userName(),namespace_type=''):
 
     defaults = [ namespace_user, namespace_type, name, label, path ]
     dialog = New_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
@@ -334,12 +336,12 @@ def createNewVHDA(node):
     
     name = "default"
     label = "Default"
-    namespace = hou.userName()
+    namespace = ""
 
     if isSubnet(node):
         full_name = node.name()
         name = ''.join(i for i in full_name if not i.isdigit()) 
-        label = name.replace("_"," ")
+        #label = name.replace("_"," ")
         label = label.title()
     elif isHDA(node):
         # node.type().name() would return 'noise:2.0', however we only need 'noise', so get the name component instead
@@ -374,8 +376,8 @@ class New_VHDA_Dialog(QDialog):
         self.defaults = defaults
         self.exitval = None
         self.parmvals = defaults
-        self.user_edit = None
-        self.type_edit = None
+        self.user_edit = ""
+        self.type_edit = ""
         self.assettype_edit = None
         self.assetlabel_edit = None
         self.assetlocation_edit = None
@@ -391,9 +393,9 @@ class New_VHDA_Dialog(QDialog):
         self.parmvals = [self.user_edit.text(), self.type_edit.text(), self.assettype_edit.text(), self.assetlabel_edit.text(), self.assetlocation_edit.text()]
 
         if not self.type_enable.isChecked():
-            self.parmvals[1] = None
+            self.parmvals[1] = ""
         if not self.user_namespace_enable.isChecked():
-            self.parmvals[0] = None
+            self.parmvals[0] = ""
         self.close()
 
     def on_Cancel(self):
@@ -407,8 +409,12 @@ class New_VHDA_Dialog(QDialog):
             self.assetlocation_edit.setText(filename)
     
     def on_LineEditChange(self):
-        branch = self.type_edit.text() if self.type_enable.isChecked() else None
-        namespace = self.user_edit.text() if self.user_namespace_enable.isChecked() else None
+        branch = self.type_edit.text() if self.type_enable.isChecked() else ""
+        namespace = self.user_edit.text() if self.user_namespace_enable.isChecked() else ""
+
+        # Disable when checkbox unticked
+        self.user_edit.setDisabled(not self.user_namespace_enable.isChecked())
+        self.type_edit.setDisabled(not self.type_enable.isChecked())
 
         self.namespace_preview.setText(constructVHDAName(namespace, branch, self.assettype_edit.text(),1,0))
 
@@ -418,10 +424,12 @@ class New_VHDA_Dialog(QDialog):
 
       self.user_namespace_enable = QCheckBox()
       self.user_namespace_enable.clicked.connect(self.on_LineEditChange)
-      self.user_namespace_enable.setChecked(True)
+      self.user_namespace_enable.setChecked(self.defaults[0] != "")
+
+
       user_namespace = QLabel("Namespace")
       user_namespace.setFixedSize(100, 20)
-      self.user_edit = QLineEdit(self.defaults[0])
+      self.user_edit = QLineEdit(self.defaults[0] if self.defaults[0] != "" else hou.userName())
       self.user_edit.textChanged.connect(self.on_LineEditChange)
       user_namespace_layout = QHBoxLayout()
       user_namespace_layout.addWidget(self.user_namespace_enable)
@@ -430,9 +438,12 @@ class New_VHDA_Dialog(QDialog):
 
       self.type_enable = QCheckBox()
       self.type_enable.clicked.connect(self.on_LineEditChange)
+      self.type_enable.setChecked(self.defaults[1] != "")
+
       type_label = QLabel("Branch")
       type_label.setFixedSize(100, 20)
-      self.type_edit = QLineEdit(self.defaults[1])
+      self.type_edit = QLineEdit(self.defaults[1] if self.defaults[1] != "" else "dev")
+
       self.type_edit.textChanged.connect(self.on_LineEditChange)
       type_layout = QHBoxLayout()
       type_layout.addWidget(self.type_enable)
