@@ -124,42 +124,56 @@ def getLatestVHDAVersion(node, minor_only=False):
     label, namespace_user, namespace_type, name, major, minor = separateVHDANameComponents(node)
 
     other_versions = []
-    for definition in allInstalledDefinitionsInScene(node.type().category().name()):        
+    for definition in allInstalledDefinitionsInScene(node.type().category().name()):    
         if isVersionedDefinition(definition):            
             other_label, other_namespace_user, other_namespace_type, other_name, other_major, other_minor = separateVHDANameComponents(_node_type=definition.nodeType())
             
             if not minor_only:
-                if namespace_user == other_namespace_user and  namespace_type == other_namespace_type and name == other_name: # Matching namespace and name
+                if namespace_user == other_namespace_user and  namespace_type == other_namespace_type and name == other_name and other_minor == minor: # Matching namespace and name
                     other_versions.append((other_major, other_minor))   
             else:
                 if namespace_user == other_namespace_user and  namespace_type == other_namespace_type and name == other_name and major == other_major: # Matching namespace, name, and major
                     other_versions.append((other_major, other_minor)) 
 
     if len(other_versions) == 0:
-        return 0, 0
+        return 1, 0
     else:
         def major_minor(version):                 
             return version[0], version[1]
 
         return max(other_versions, key=major_minor)
 
-def hasSpecificVHDA(node, namespace_user, namespace_type, name):
+def hasSpecificVHDA(node, namespace_user, namespace_type, name, major, minor):
     other_versions = []
     #rint other_versions
-    for definition in allInstalledDefinitionsInScene(node.type().category().name()):        
+    for definition in allInstalledDefinitionsInScene(node.type().category().name()): 
+
         if isVersionedDefinition(definition):
             other_label, other_namespace_user, other_namespace_type, other_name, other_major, other_minor = separateVHDANameComponents(_node_type=definition.nodeType())
-            if namespace_user == other_namespace_user and  namespace_type == other_namespace_type and name == other_name:
+            if namespace_user == other_namespace_user and  namespace_type == other_namespace_type and name == other_name:# and other_major == major and other_minor == minor:
                 other_versions.append((other_major, other_minor))
 
-    #print other_versions
     if len(other_versions) == 0:
-        return 0, 0
+        return major, minor
     else:    
         def major_minor(version):                 
             return version[0], version[1]
 
-        return max(other_versions, key=major_minor)
+        newversion = max(other_versions, key=major_minor)
+        return newversion[0] + 1, newversion[1]
+
+def splitVersionComponents(versionstring):
+    _versioncomponents = versionstring.split(".")
+    _major = 1
+    _minor = 0
+
+    if len(_versioncomponents) > 0:
+        if _versioncomponents[0] != '':
+            _major = int(_versioncomponents[0])
+    if len(_versioncomponents) > 1 and _versioncomponents[1] != "":
+        _minor = int(_versioncomponents[1])
+
+    return _major, _minor
 
 def separateVHDANameComponents(node=None, _node_type=None):
     node_type = None
@@ -184,13 +198,7 @@ def separateVHDANameComponents(node=None, _node_type=None):
     major = 1
     minor = 0
     
-    _versioncomponents = name_components[3].split(".")
-
-    if len(_versioncomponents) > 0:
-        if _versioncomponents[0] != '':
-            major = int(_versioncomponents[0])
-    if len(_namespaces) > 1:
-        minor = int(_versioncomponents[1])
+    major, minor = splitVersionComponents(name_components[3])
 
     label = node_type.description()
     label = constructHDALabel(label)
@@ -289,7 +297,6 @@ def increaseMajorVersion(node):
 
     major, minor = getLatestVHDAVersion(node)
     major = 2 if major == 0 else major + 1
-    # major += 1
     minor = 0
 
     copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, getDefaultVHDAPath())    
@@ -303,9 +310,9 @@ def increaseMinorVersion(node):
 
     copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, getDefaultVHDAPath())    
 
-def newVHDAWindow(name,label,path,namespace_user=hou.userName(),namespace_type=''):
+def newVHDAWindow(name,label,path,namespace_user,namespace_type, major, minor):
 
-    defaults = [ namespace_user, namespace_type, name, label, path ]
+    defaults = [ namespace_user, namespace_type, name, label, path, major, minor]
     dialog = New_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
     dialog.exec_()
 
@@ -317,7 +324,7 @@ def newVHDAWindow(name,label,path,namespace_user=hou.userName(),namespace_type='
 def copyToNewVHDA(node):
     label, namespace_user, namespace_type, name, major, minor = separateVHDANameComponents(node)
     
-    button_idx, values = newVHDAWindow(name,label,getDefaultVHDAPath(), namespace_user)
+    button_idx, values = newVHDAWindow(name,label,getDefaultVHDAPath(), namespace_user, namespace_type, major, minor)
     
     if button_idx == 1:
         namespace_user   = values[0]
@@ -325,46 +332,27 @@ def copyToNewVHDA(node):
         name             = values[2]
         label            = values[3]
         location         = values[4]
-    
-        major, minor = getLatestVHDAVersion(node)
-        major = 1
-        minor = 0
+        major            = values[5]
+        minor            = values[6]
 
+        major, minor = hasSpecificVHDA(node, namespace_user, namespace_type, name, major, minor)
         copyToVHDA(node, node.type(), namespace_user, namespace_type, name, major, minor, label, location)        
 
-def createNewVHDA(node):    
+def createNewVHDAFromSubnet(node):    
     
-    name = "default"
-    label = "Default"
-    namespace = ""
+    button_idx, values = newVHDAWindow("default", "Default", getDefaultVHDAPath(), namespace_user="", namespace_type="", major="1", minor="0")
 
-    if isSubnet(node):
-        full_name = node.name()
-        name = ''.join(i for i in full_name if not i.isdigit()) 
-        #label = name.replace("_"," ")
-        label = label.title()
-    elif isHDA(node):
-        # node.type().name() would return 'noise:2.0', however we only need 'noise', so get the name component instead
-        name = node.type().nameComponents()[2]
-        label = node.type().description()
-        namespace = node.type().nameComponents()[1]
-
-    if name != "default":
-
-        button_idx, values = newVHDAWindow(name,label,getDefaultVHDAPath(),namespace_user=namespace)
-
-        if button_idx == 1:
-            namespace_user   = values[0]
-            namespace_type   = values[1]
-            name             = values[2]
-            label            = values[3]
-            location         = values[4]
-            
-            major, minor = hasSpecificVHDA(node, namespace_user, namespace_type, name)
-            major += 1
-            minor = 0
-
-            createVHDA(node, namespace_user, namespace_type, name, major, minor, label, location) 
+    if button_idx == 1:
+        namespace_user   = values[0]
+        namespace_type   = values[1]
+        name             = values[2]
+        label            = values[3]
+        location         = values[4]
+        major            = values[5]
+        minor            = values[6]
+        
+        major, minor = hasSpecificVHDA(node, namespace_user, namespace_type, name, major, minor)
+        createVHDA(node, namespace_user, namespace_type, name, major, minor, label, location) 
 
 
 class New_VHDA_Dialog(QDialog):
@@ -380,6 +368,7 @@ class New_VHDA_Dialog(QDialog):
         self.type_edit = ""
         self.assettype_edit = None
         self.assetlabel_edit = None
+        self.assetversion_edit = None
         self.assetlocation_edit = None
         self.user_namespace_enable = None
         self.type_enable = None
@@ -390,7 +379,8 @@ class New_VHDA_Dialog(QDialog):
 
     def on_OK(self):
         self.exitval = 1
-        self.parmvals = [self.user_edit.text(), self.type_edit.text(), self.assettype_edit.text(), self.assetlabel_edit.text(), self.assetlocation_edit.text()]
+        major, minor = splitVersionComponents(self.assetversion_edit.text())
+        self.parmvals = [self.user_edit.text(), self.type_edit.text(), self.assettype_edit.text(), self.assetlabel_edit.text(), self.assetlocation_edit.text(), major, minor]
 
         if not self.type_enable.isChecked():
             self.parmvals[1] = ""
@@ -416,7 +406,9 @@ class New_VHDA_Dialog(QDialog):
         self.user_edit.setDisabled(not self.user_namespace_enable.isChecked())
         self.type_edit.setDisabled(not self.type_enable.isChecked())
 
-        self.namespace_preview.setText(constructVHDAName(namespace, branch, self.assettype_edit.text(),1,0))
+        major, minor = splitVersionComponents(self.assetversion_edit.text())
+
+        self.namespace_preview.setText(constructVHDAName(namespace, branch, self.assettype_edit.text(),major,minor))
 
     def build_ui(self):
 
@@ -450,22 +442,40 @@ class New_VHDA_Dialog(QDialog):
       type_layout.addWidget(type_label)
       type_layout.addWidget(self.type_edit)
       
-      assettype_label = QLabel("Asset Type")
+      assettype_label = QLabel("Type and Version")
       assettype_label.setFixedSize(126, 20)
       self.assettype_edit = QLineEdit(self.defaults[2])
       self.assettype_edit.textChanged.connect(self.on_LineEditChange)
+
+      _major = self.defaults[5] if self.defaults[5] != None else 1
+      _minor = self.defaults[6] if self.defaults[6] != None else 0
+
+      versionstring = "{0}.{1}".format(_major, _minor)
+      self.assetversion_edit = QLineEdit(versionstring)
+      self.assetversion_edit.textChanged.connect(self.on_LineEditChange)
+
+      self.assetversion_edit.setFixedWidth(30)
       assettype_layout = QHBoxLayout()
       assettype_layout.addWidget(assettype_label)
       assettype_layout.addWidget(self.assettype_edit)
+      assettype_layout.addWidget(self.assetversion_edit)
 
-      assetlabel_label = QLabel("Asset Label")
+
+
+      assetlabel_label = QLabel("Label")
       assetlabel_label.setFixedSize(126, 20)
       self.assetlabel_edit = QLineEdit(self.defaults[3])
       assetlabel_layout = QHBoxLayout()
       assetlabel_layout.addWidget(assetlabel_label)
       assetlabel_layout.addWidget(self.assetlabel_edit)
 
-      assetlocation_label = QLabel("Asset Location")
+
+      verticalSpacer = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+      
+
+
+
+      assetlocation_label = QLabel("Location")
       assetlocation_label.setFixedSize(126, 20)
       self.assetlocation_edit = QLineEdit(self.defaults[4])
       assetlocation_btn = QPushButton("...")
@@ -493,7 +503,13 @@ class New_VHDA_Dialog(QDialog):
       layout.addLayout(user_namespace_layout)
       layout.addLayout(type_layout)
       layout.addLayout(assettype_layout)
+      # layout.addLayout(version_layout)
       layout.addLayout(assetlabel_layout)
+      #layout.addWidget(self.namespace_preview)
+
+      #layout.addItem(verticalSpacer)
+
+
       layout.addLayout(assetlocation_layout)
       layout.addWidget(self.namespace_preview)
       layout.addLayout(buttons_layout)
