@@ -1,0 +1,34 @@
+/*
+ *  This file is used to specify the formats read by the IMG library.  It
+ *  should live somewhere in the Houdini search path (in the dso_fb)
+ *  sub-directory.
+ *
+ *  First, we want to make sure we include the standard distribution formats.
+ *  Therefore, we include the index from the standard distribution.
+ *  Environment variables are NOT currently expanded in the parsing of this
+ *  file, so you may have to change the following line.
+ *
+ *  If we declared our format first, it would take precedence over any other
+ *  formats in the FBio file (though extension matching still takes
+ *  precedence).
+ */
+
+#include "$HFS/houdini/FBformats"
+
+#if defined(WIN32)
+    #define DSO_FILE(filename)	filename.dll
+#elif defined(MBSD)
+    #define DSO_FILE(filename)	filename.dylib
+#else
+    #define DSO_FILE(filename)	filename.so
+#endif
+
+/*
+ *  Add our new format.  The path given is where to find the .so file (in the
+ *  Houdini search path).  If you use hcustom without the -i option (see
+ *  README.html), you could uncomment the following line.  However, it is
+ *  better to put the IMG library extensions in a separate location so that the
+ *  standard Houdini dso loader doesn't have to deal with them.
+ */
+
+DSO_FILE(IMG_DDS)	// Sample image format (.smp extension).
