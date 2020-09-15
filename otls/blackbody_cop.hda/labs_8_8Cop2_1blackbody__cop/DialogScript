@@ -1,0 +1,141 @@
+# Dialog script for labs::blackbody_cop automatically generated
+
+{
+    name	labs::blackbody_cop
+    script	labs::blackbody_cop
+    label	"Labs Blackbody"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "size"
+        label   "Override Size"
+        type    integer
+        size    2
+        default { "1024" "4" }
+        range   { 1! 1000 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder2"
+        label   "Global Look Controls"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "pyro_shader"
+            label   "Pyro Shader Method"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "tonemap"
+            label   "tonemap"
+            type    toggle
+            default { "1" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+        parm {
+            name    "gamma"
+            label   "Gamma"
+            type    float
+            default { "0.454545" }
+            range   { 0! 4 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Temperature Controls"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "temperature_0"
+            label   "temperature low"
+            type    float
+            default { "0" }
+            range   { 0 10000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+        parm {
+            name    "temperature_1"
+            label   "temperature high"
+            type    float
+            default { "6000" }
+            range   { 0 10000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Intensity Controls"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "adaptation"
+            label   "adaptation"
+            type    float
+            default { "0.18" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+        parm {
+            name    "burn"
+            label   "burn"
+            type    float
+            default { "0" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+        parm {
+            name    "ramp_intensity"
+            label   "Ramp Intensity"
+            type    float
+            default { "10" }
+            range   { 0 30 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mask_intensity"
+            label   "Mask Intensity"
+            type    float
+            default { "2" }
+            disablewhen "{ n_inputs == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "n_inputs"
+        label   "number of inputs"
+        type    integer
+        invisible
+        default { [ "opninputs(\".\")" hscript-expr ] }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+}
