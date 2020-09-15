@@ -1,0 +1,43 @@
+# track creation usage. For more info, including how to disable this please see
+# https://www.sidefx.com/legal/houdini-anonymous-usage-statistics/
+
+try:
+    import labutils 
+    labutils.send_on_create_analytics(kwargs["node"])
+except:
+    pass
+    
+import os 
+
+def saveSectionToFile(section, file_name, mode="w"):
+    '''Given a section, save it to a file.'''
+    try:
+        section_file = open(file_name, mode)    
+        section_file.write(section.contents())
+        section_file.close()
+        return True
+    except Exception as e:
+        if type(e) == exceptions.IOError:
+            hou.ui.displayMessage("Error: Please delete the GoZ_Houdini.dll while Houdini is closed")
+        print (e)
+        return False 
+        
+def save_html_locally():
+    ascii_file_map = {
+        "mapbox_map.html":os.environ["HOUDINI_USER_PREF_DIR"] + "/mapbox/mapbox_map.html"
+    }
+
+    definition = kwargs['node'].type().definition()
+    sections = definition.sections() 
+    errors = False 
+
+    for ascii_file in ascii_file_map:
+        file_path = ascii_file_map[ascii_file]
+        dirname = os.path.dirname(file_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        success = saveSectionToFile(sections[ascii_file], file_path)
+        if not success: 
+            errors = True 
+            
+save_html_locally()
