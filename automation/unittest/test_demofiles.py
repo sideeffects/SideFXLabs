@@ -3,7 +3,7 @@ import os
 import hou
 
 import unittest
-local_dir = os.path.dirname(__file__)
+local_dir = os.path.dirname(os.path.abspath(__file__))
 
 class TestStringMethods(unittest.TestCase):
 
