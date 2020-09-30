@@ -31,7 +31,7 @@ local_dir = os.path.dirname(os.path.abspath(__file__))
 my_env = os.environ.copy()
 my_env["HOUDINI_OGL_SOFTWARE"] = "1"
 my_env["HOUDINI_PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..")) + ";&"
-my_env["PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", "bin")) + ";PATH"
+my_env["PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", "bin")) + my_env["PATH"]
 my_env["SIDEFXLABS"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), ".."))
 
 print latest_houdini, os.path.isfile(latest_houdini)
