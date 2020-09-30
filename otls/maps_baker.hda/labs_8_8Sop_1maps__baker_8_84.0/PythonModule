@@ -2,4 +2,11 @@ import hou
 
 def Render(a_node):
     hou.node(a_node.path()+"/foreach_end1/").cook(force=True)
+    
+    if a_node.parm("exportlow").evalAsInt() == 1:
+        a_node.node("low_export").render()
+        
+    if a_node.parm("exporthigh").evalAsInt() == 1:
+        a_node.node("high_export").render()
+        
     hou.hscript("glcache -c;")

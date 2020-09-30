@@ -660,6 +660,48 @@
             }
         }
 
+        parm {
+            name    "exportlow"
+            label   "Export Low"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sopoutputlow"
+            label   "Low Export"
+            type    file
+            default { "$HIP/render/${HIPNAME}_low.fbx" }
+            disablewhen "{ exportlow == 0 }"
+            menureplace {
+                [ "opmenu -l -a rop_fbx1 sopoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "exporthigh"
+            label   "Export High"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sopoutputhigh"
+            label   "High Export"
+            type    file
+            default { "$HIP/render/${HIPNAME}_high.fbx" }
+            disablewhen "{ exporthigh == 0 }"
+            menureplace {
+                [ "opmenu -l -a high_export sopoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
     }
 
     groupsimple {
@@ -714,6 +756,13 @@
                 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "labelparm"
+                label   "This will render a"
+                type    label
+                nolabel
+                default { "This will try to render a `ch('i2Resolution1')*ch(\"samplesscalar\")`x`ch('i2Resolution2')*ch(\"samplesscalar\")` texture before downsampling" }
             }
         }
 
