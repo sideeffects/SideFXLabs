@@ -20,6 +20,7 @@ def get_latest_houdini_version():
                 return os.path.join(sidefx_path, possible_dir, "bin", "hython2.7.exe")
 
     elif machineos == "Linux":
+        print os.listdir("/opt/")
         sidefx_path = "/opt/hfs{0}/".format(HOUDINI_VERSION)
 
         return os.path.join(sidefx_path, "bin", "hython2.7")
