@@ -20,14 +20,13 @@ def get_latest_houdini_version():
                 return os.path.join(sidefx_path, possible_dir, "bin", "hython2.7.exe")
 
     elif machineos == "Linux":
-        print os.listdir("/opt/")
         sidefx_path = "/opt/hfs{0}/".format(HOUDINI_VERSION)
 
         return os.path.join(sidefx_path, "bin", "hython2.7")
 
 
 latest_houdini = get_latest_houdini_version()
-local_dir = os.path.dirname(__file__)
+local_dir = os.path.dirname(os.path.abspath(__file__))
 
 my_env = os.environ.copy()
 my_env["HOUDINI_OGL_SOFTWARE"] = "1"
@@ -37,8 +36,11 @@ my_env["SIDEFXLABS"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), 
 
 print latest_houdini, os.path.isfile(latest_houdini)
 
-for filename in os.listdir(local_dir):
-    if "test_" in filename and ".py" in filename:
-        print "Running Test:", filename
-        subprocess.call([latest_houdini, os.path.join(local_dir, filename)], env=my_env)
-    
+if os.path.isfile(latest_houdini):       
+    for filename in os.listdir(local_dir):
+        if "test_" in filename and ".py" in filename:
+            print "Running Test:", filename
+            subprocess.call([latest_houdini, os.path.join(local_dir, filename)], env=my_env)
+else:
+    print "ERROR, No matching Houdini install found"
+        
