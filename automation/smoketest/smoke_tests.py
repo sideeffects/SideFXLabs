@@ -156,10 +156,10 @@ if __name__ == '__main__':
              "labs::instant_meshes::2.0", "labs::instant_meshes",
              "labs::substance_material"]
 
-    current_folder = os.path.dirname(__file__)
-    repo_dir = os.getenv("WORKSPACE", "D:\\work\\SideFX\\GameDevelopmentToolset")
+    current_folder = os.path.dirname(os.path.abspath(__file__))
+    repo_dir = os.getenv("WORKSPACE", "C:\\Github\\SideFXLabs")
     if MAJOR_MINOR != "17.5":
-        repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
+        repo_dir = os.getenv("WORKSPACE", "C:\\Github\\SideFXLabs")
     if len(sys.argv) > 1:
         repo_dir = sys.argv[1] + "/SideFXLabs"
 
