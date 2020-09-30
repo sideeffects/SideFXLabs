@@ -9,8 +9,6 @@ def get_latest_houdini_version():
     logging.info("Determining latest Houdini Version...")
     machineos = platform.system()
 
-    print machineos
-
     if machineos == "Windows":
         sidefx_path = os.path.join(os.getenv("ProgramW6432"), "Side Effects Software")
         version_list = os.listdir(sidefx_path)
@@ -35,8 +33,11 @@ my_env["HOUDINI_OGL_SOFTWARE"] = "1"
 my_env["HOUDINI_PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..")) + ";&"
 my_env["PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", "bin")) + my_env["PATH"]
 my_env["SIDEFXLABS"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), ".."))
+my_env["HOUDINI_DSO_ERROR"] = "1"
 
 print latest_houdini, os.path.isfile(latest_houdini)
 
-
-subprocess.call([latest_houdini, os.path.join(local_dir,"smoke_tests.py")], env=my_env)
+if os.path.isfile(latest_houdini): 
+	subprocess.call([latest_houdini, os.path.join(local_dir,"smoke_tests.py")], env=my_env)
+else:
+    print "ERROR, No matching Houdini install found"
