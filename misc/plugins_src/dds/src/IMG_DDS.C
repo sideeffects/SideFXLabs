@@ -292,7 +292,15 @@ IMG_DDS::closeFile()
         }
         else
         {
-            DirectX::Convert(img, dxgi_format, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT, scratch_image);
+	    if (img.format == dxgi_format)
+	    {
+		scratch_image.InitializeFromImage(img);
+	    }
+	    else 
+	    {
+		DirectX::Convert(img, dxgi_format, DirectX::TEX_FILTER_DEFAULT, DirectX::TEX_THRESHOLD_DEFAULT, scratch_image);
+	    }
+
         }
 
         // trying to save directly to disk here will fail, because we have a lock on the system file,
