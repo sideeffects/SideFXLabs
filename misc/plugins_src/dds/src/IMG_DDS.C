@@ -58,14 +58,14 @@ wchar_t * UT_StringToWChar(const char *in_string)
 // helper function to get a format type from a string
 DXGI_FORMAT DxFormatFromString(const char *format)
 {
-    DXGI_FORMAT dxi_format = DXGI_FORMAT_BC1_UNORM;
+    DXGI_FORMAT dxi_format = DXGI_FORMAT_UNKNOWN;
 
     if (!strcmp(format, "DXGI_FORMAT_BC1_UNORM"))
 	dxi_format = DXGI_FORMAT_BC1_UNORM;
     else if (!strcmp(format, "DXGI_FORMAT_BC2_UNORM"))
-	dxi_format = DXGI_FORMAT_BC1_UNORM;
+	dxi_format = DXGI_FORMAT_BC2_UNORM;
     else if (!strcmp(format, "DXGI_FORMAT_BC3_UNORM"))
-	dxi_format = DXGI_FORMAT_BC1_UNORM;
+	dxi_format = DXGI_FORMAT_BC3_UNORM;
     else if (!strcmp(format, "DXGI_FORMAT_BC4_UNORM"))
 	dxi_format = DXGI_FORMAT_BC4_UNORM;
     else if (!strcmp(format, "DXGI_FORMAT_BC5_UNORM"))
@@ -82,6 +82,8 @@ DXGI_FORMAT DxFormatFromString(const char *format)
 
 // menu for the Save As Compression Options
 static IMG_FileTag	theCompressionMenu[] = {
+	IMG_FileTag("DEFAULT", "DEFAULT"),
+	IMG_FileTag("DXGI_FORMAT_BC1_UNORM", "BC1/DXT1"),
 	IMG_FileTag("DXGI_FORMAT_BC1_UNORM", "BC1/DXT1"),
 	IMG_FileTag("DXGI_FORMAT_BC2_UNORM", "BC2/DXT3"),
 	IMG_FileTag("DXGI_FORMAT_BC3_UNORM", "BC3/DXT5"),
@@ -98,7 +100,7 @@ static IMG_FileTag	theCompressionMenu[] = {
 // Save As Options
 static IMG_FileOption	theOptions[] = {
     IMG_FileOption(IMG_OPTION_STRING, "format", "DDS (Labs)",
-					"DXGI_FORMAT_BC3_UNORM", theCompressionMenu),
+					"DEFAULT", theCompressionMenu),
     IMG_FileOption(),
 };
 
@@ -210,7 +212,7 @@ IMG_DDS::IMG_DDS()
     m_default_write_format = DXGI_FORMAT_BC1_UNORM;
 
     // this can be overriden from the environment variable
-    const char *env_val = HoudiniGetenv("HOU_DDS_DEFAULT_FORMAT");
+    const char *env_val = HoudiniGetenv("HOUDINI_DDS_DEFAULT_FORMAT");
     if (env_val)
     {
 	    m_default_write_format = DxFormatFromString(env_val);
@@ -283,8 +285,13 @@ IMG_DDS::closeFile()
         const char *    format;
         if (format = getOption("format"))
         {
-            dxgi_format = DxFormatFromString(format);
+	    dxgi_format = DxFormatFromString(format);
         }
+	
+	if (dxgi_format == DXGI_FORMAT_UNKNOWN)
+	{
+	    dxgi_format = m_default_write_format;
+	}
 
         if (DirectX::IsCompressed(dxgi_format))
         {
