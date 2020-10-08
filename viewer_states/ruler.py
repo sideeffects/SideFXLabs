@@ -10,6 +10,8 @@ import hou
 import viewerstate.utils as su
 import math as m
 
+from stateutils import ancestorObject
+
 key_context = "h.pane.gview.state.sop.labs::ruler"
 hou.hotkeys.addContext(
         key_context, "Ruler State Operation", "These keys apply to the Ruler state operation.")
@@ -18,6 +20,8 @@ class Key():
     copy_to_clip = key_context + ".copy_to_clip"
     #undo = key_context + ".undo"
     pop_copy = key_context + ".pop_copy"
+
+g_WorldXform = hou.Matrix4
 
 hou.hotkeys.addCommand(Key.copy_to_clip, "Copy", "Copy last measurement to clip board.", ["q",])
 #hou.hotkeys.addCommand(Key.undo, "Undo", "Remove last measurement.", ["z",])
@@ -320,13 +324,15 @@ class Measurement(object):
             translate = hou.hmath.buildTranslate(self.head_pos)
         rotate = hou.hmath.buildRotateZToAxis(initToCurDir)
         scale = getCameraCancellingScale(translate, model_to_camera, camera_to_ndc, self.spot_size)
-        transform = rotate * scale * translate
+        transform = g_WorldXform.inverted()
+        transform = transform * rotate * scale * translate
         hou.GeometryDrawable.setTransform(drawable, transform)
 
     def setDiskTransform(self, disk, pos, model_to_camera, camera_to_ndc):
         translate = hou.hmath.buildTranslate(pos)
         scale = getCameraCancellingScale(translate, model_to_camera, camera_to_ndc, self.spot_size)
-        transform = scale * translate
+        transform = g_WorldXform.inverted()
+        transform = transform * scale * translate
         hou.GeometryDrawable.setTransform(disk, transform)
 
     def setLineTransform(self, drawable):
@@ -334,7 +340,10 @@ class Measurement(object):
         rotate = hou.hmath.buildRotateZToAxis(initToCurDir)
         translate = hou.hmath.buildTranslate(self.tail_pos)
         scale = hou.hmath.buildScale(self.measurement, self.measurement, self.measurement)
-        transform = rotate * scale * translate
+        #worldRot = hou.Matrix4(g_WorldXform.extractRotationMatrix3())
+        #initToCurDir = initToCurDir * worldRot.inverted()
+        transform = g_WorldXform.inverted()
+        transform = transform * rotate * scale * translate
         hou.GeometryDrawable.setTransform(drawable, transform)
 
     def setTailPos(self, pos):
@@ -357,7 +366,7 @@ class Measurement(object):
             return
 
     def updateHeadPos(self, pos):
-        self.head_pos = pos 
+        self.head_pos = pos
         self.measurement = (pos - self.tail_pos).length()
 
     def updateText(self, screen_pos):
@@ -452,8 +461,15 @@ class MeasurementContainer(object):
         return self.measurements[index]
 
 class Intersection():
-    def __init__(self, pos, plane):
-        self.pos = pos
+    def __init__(self, pos, plane, snapped = False):
+        #if plane == None:
+        #    if not snapped:
+        #        self.pos = pos * g_WorldXform
+        #    else:
+        #        self.pos = pos * g_WorldXform
+        #else:
+        #    self.pos = pos * g_WorldXform
+        self.pos = pos * g_WorldXform
         self.has_plane = (plane != None)
         self.plane = plane
 
@@ -507,6 +523,16 @@ class State(object):
         self.angle_text_params = {'text': "Fizz", 'translate': hou.Vector3(0.0, 0.0, 0.0),'highlight_mode':hou.drawableHighlightMode.MatteOverGlow, 'glow_width':10, 'color2':hou.Vector4(0,0,0,0.5) }
         self.arc_drawable = hou.GeometryDrawable(self.scene_viewer, hou.drawableGeometryType.Line, "arc")
         self.mode = Mode.idle
+
+    def setWorldXform(self, node):
+        global g_WorldXform
+        parent = ancestorObject(node)
+        if parent:
+            g_WorldXform = parent.worldTransform()
+            g_WorldXform = hou.GeometryViewport.modelToGeometryTransform(self.geometry_viewport).inverted()
+            print(g_WorldXform)
+        else:
+            g_WorldXform.setToIdentity()
                 
     def show(self, visible):
         """ Display or hide drawables.
@@ -526,6 +552,8 @@ class State(object):
         if (self.curPlane == None):
             return
         plane_vec = State.planes[self.curPlane]
+        rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
+        #plane_vec = plane_vec * rot
         arc_geo = createArcGeometry(self.cur_angle, 1)
         hou.GeometryDrawable.setGeometry(self.arc_drawable, arc_geo)
 
@@ -534,7 +562,7 @@ class State(object):
 
         translate = hou.hmath.buildTranslate(self.measurements.current().getTailPos())
         rotate = hou.hmath.buildRotateZToAxis(plane_vec)
-        transform = rotate * translate
+        transform = g_WorldXform.inverted() * rotate * translate
 
         self.arc_drawable.setTransform(transform)
         self.arc_drawable.setParams({'line_width':3, 'color1':color, 'style':(5, 20), 'fade_factor':0.5, 'scale':hou.Vector3(scale, scale, scale)})
@@ -549,18 +577,22 @@ class State(object):
         self.arc_drawable.draw(handle)
         self.angle_text_drawable.draw(handle, self.angle_text_params)
 
-
     def getMousePos(self, ui_event):
         device = hou.UIEvent.device(ui_event)
         return device.mouseX(), device.mouseY()
 
-    def findBestPlane(self, ray):
+    def findBestPlane(self, origin, ray):
+        rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
+        ray = ray * rot
         ray = (abs(ray[0]), abs(ray[1]), abs(ray[2]))
         index = ray.index(max(ray))
         return index
 
     def intersectWithPlane(self, origin, ray):
-        return Intersection(hou.hmath.intersectPlane(hou.Vector3(0, 0, 0), State.planes[self.curPlane], origin, ray), self.curPlane)
+        rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
+        plane = State.planes[self.curPlane] * rot.inverted()
+        planePoint = hou.Vector3(0, 0, 0) * g_WorldXform.inverted()
+        return Intersection(hou.hmath.intersectPlane(planePoint, plane, origin, ray), self.curPlane)
 
     def getIntersectionRegular(self, ui_event):
         snapping_dict = hou.ViewerEvent.snappingRay(ui_event)
@@ -568,7 +600,7 @@ class State(object):
         ray = snapping_dict["direction"]
         if self.geo_intersector.intersect(origin, ray):
             if self.geo_intersector.snapped:
-                return Intersection(self.geo_intersector.snapped_position, None)
+                return Intersection(self.geo_intersector.snapped_position, None, True)
             else:
                 return Intersection(self.geo_intersector.position, None)
         else:
@@ -581,7 +613,9 @@ class State(object):
         measurement_vec = init_pos - self.measurements.current().getTailPos()
         measurement_vec[self.curPlane] = 0 #project onto plane
         plane_normal = State.planes[self.curPlane]
+        rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
         plane_vec = State.plane_to_next[self.curPlane]
+        plane_vec = plane_vec
         angle = hou.Vector3.angleTo(measurement_vec, plane_vec)
         assert angle >= 0
         below_15 = (int(angle) / 15) * 15
@@ -623,13 +657,15 @@ class State(object):
                 plane = Plane.X
         else:
             ray = snapping_dict["direction"]
-            plane = self.findBestPlane(ray)
+            origin = snapping_dict["origin_point"]
+            plane = self.findBestPlane(origin, ray)
         if (self.active):
             self.measurements.current().setPlane(plane)
         self.curPlane = plane
 
     def setPointTransform(self, pos):
         translate = hou.hmath.buildTranslate(pos)
+        translate = g_WorldXform.inverted() * translate
         hou.GeometryDrawable.setTransform(self.point_drawable, translate)
 
     def angleSnapping(self, yes):
@@ -660,6 +696,7 @@ class State(object):
         """
         self.scene_viewer.setPromptMessage( State.msg )
         self.current_node = hou.SceneViewer.pwd(self.scene_viewer).displayNode()
+        self.setWorldXform(self.current_node)
         self.geometry = hou.SopNode.geometry(self.current_node)
         self.geo_intersector = su.GeometryIntersector(self.geometry, self.scene_viewer)
         self.setActive(False)
