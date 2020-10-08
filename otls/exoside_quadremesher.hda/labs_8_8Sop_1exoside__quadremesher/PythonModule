@@ -8,7 +8,7 @@ import numpy as np
 
 verboseDebug = False
 
-if verboseDebug: print "Init Module..."
+if verboseDebug: print ("Init Module...")
 
 def unixifyPath(path):
     path = path.replace('\\', '/')
@@ -53,10 +53,10 @@ def installOneFileSection(node, filename, targetFolder, printErrorIfFailed=False
             SectionFile.close()
         else:
             return False
-            print "ERROR! missing Section :"+filename
+            print ("ERROR! missing Section :"+filename)
     except:
         print "ERRORRR"
-        if printErrorIfFailed: print "Exception raised while extracting section : "+filename
+        if printErrorIfFailed: print ("Exception raised while extracting section : "+filename)
         return False
     return True
         
@@ -88,7 +88,7 @@ def InstallQuadRemesherEngineIfNeeded(qrnode, ForceInstall=False, DownloadOnly=F
             shutil.rmtree(getQREngineFolder())
     else:
         if os.path.exists(enginePath):
-            if verboseDebug: print "-----Engine already installed !!!"
+            if verboseDebug: print( "-----Engine already installed !!!")
             return 0
     
     # test if the engine is inside sections:
@@ -108,7 +108,7 @@ def InstallQuadRemesherEngine_Download():
         os.makedirs(engineFolder)
         
     # download first  (NB: python version ????? )
-    print "Info: Downloading QuadRemesher Engine..."
+    print ("Info: Downloading QuadRemesher Engine...")
     try:
         isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
         zip_file_name = os.path.join(engineFolder, "install_engine.zip")
@@ -124,11 +124,11 @@ def InstallQuadRemesherEngine_Download():
             import urllib.request
             urllib.request.urlretrieve(download_url, zip_file_name)
         if not os.path.exists(zip_file_name):
-            print "ERROR : Failed to download Quad Remesher Engine. You should install it manually!"
+            print ("ERROR : Failed to download Quad Remesher Engine. You should install it manually!")
             return -2
     except Exception:
         import traceback
-        print "ERROR: Failed to download Quad Remesher Engine."
+        print ("ERROR: Failed to download Quad Remesher Engine.")
         return -2
         
     # then unzip
@@ -145,7 +145,7 @@ def InstallQuadRemesherEngine_Download():
     #delete zip
     os.remove(zip_file_name)
 
-    print "-------- QuadRemesher Engine installed succesfully! -------"
+    print ("-------- QuadRemesher Engine installed succesfully! -------")
     return 1
             
 
@@ -192,7 +192,7 @@ def InstallEngineFromSections(node):
             print("--- fix file mode failed ---")
             print(str(traceback.format_exc()) + "\n")
 
-        print "--------- QuadRemesher Engine Installed (from hda) !-------------"
+        print ("--------- QuadRemesher Engine Installed (from hda) !-------------")
 
         
     else: # Win
@@ -215,7 +215,7 @@ def InstallEngineFromSections(node):
         #delete zip
         os.remove(zip_file_name)
         
-        print "--------- QuadRemesher Engine Installed (from hda) !-------------"
+        print ("--------- QuadRemesher Engine Installed (from hda) !-------------")
         
     return 1
 
@@ -296,7 +296,7 @@ def exportExoMesh(filename, geo, node):
     except hou.Error, e:
         av = None # no Normals!
     except Exception, e:
-        print "Warning: exception while exporting Normals..."+str(e)
+        print ("Warning: exception while exporting Normals..."+str(e))
             
     # write UVs (direct by corner, UVW actually!):
     try:
@@ -312,13 +312,13 @@ def exportExoMesh(filename, geo, node):
     except hou.Error, e:
         av = None # no UVs!
     except Exception, e:
-        print "Warning: exception while exporting UVs..."+str(e)
+        print ("Warning: exception while exporting UVs..."+str(e))
             
     # write PointColors (direct by point):
     try:
         av = geo.pointFloatAttribValues("Cd")
         if av and len(av)==3*nv:
-            print "Has Colors : "+str(len(av))
+            print ("Has Colors : "+str(len(av)))
             ''' export as Byte '''
             fp.write(struct.pack('=i', 156))
             fp.write(struct.pack('=i', nv*3))
@@ -344,7 +344,7 @@ def exportExoMesh(filename, geo, node):
     except hou.Error, e:
         av = None # no Colors!
     except :
-        print "Warning: exception while exporting colors..."
+        print ("Warning: exception while exporting colors...")
         
     # write DensityFactor by point: (values in [0, 1]   0 means 4 times Bigger Quads    1 means 4 times Smaller Quads
     ''' right now DensityAttribName is invisible... not finished...
@@ -404,7 +404,7 @@ def exportExoMesh(filename, geo, node):
         #import traceback
         #print("MatIds : "+str(traceback.format_exc()))
         av = None
-        print "Warning: exception while exporting MaterialIds..."
+        print ("Warning: exception while exporting MaterialIds...")
             
     # Face Groups: (sent as polygongroups)
     try:
@@ -425,7 +425,7 @@ def exportExoMesh(filename, geo, node):
                 for g in mygroups:
                     fp.write(struct.pack('=i', g))
     except :
-        print "warning: exception raised while retrieving primitive groups"
+        print ("warning: exception raised while retrieving primitive groups")
         av = None
     
     # Specified PrimitiveAttribute (sent as polygroups)
@@ -475,7 +475,7 @@ def exportExoMesh(filename, geo, node):
                                 fp.write(struct.pack('=i', 0))
                                 fp.write(struct.pack('=i', 0))
     except :
-        print "warning: exception raised while retrieving edge groups"
+        print ("warning: exception raised while retrieving edge groups")
                     
             
     
@@ -532,7 +532,7 @@ def doRemeshing(node):
         XRTempFolder = tempfile.gettempdir() # gettempdir() => c:\users\max\appdata\local\temp\houdini_temp
         XRTempFolder = unixifyPath(XRTempFolder)
     XRTempFolder = os.path.join(XRTempFolder, "QuadRemesher")
-    if verboseDebug: print "TempFolder = "+ XRTempFolder
+    if verboseDebug: print ("TempFolder = "+ XRTempFolder)
     if not os.path.exists(XRTempFolder):
         os.makedirs(XRTempFolder)
     
@@ -563,7 +563,7 @@ def doRemeshing(node):
         
         
         # ----- export remesh settings -----
-        if verboseDebug: print "Start write settings... in:" + settingsFilename
+        if verboseDebug: print ("Start write settings... in:" + settingsFilename)
         settings_file = open(settingsFilename, "w")
         settings_file.write('HostApp=Houdini\n')
         settings_file.write('FileIn="%s"\n' % exportFilename)
@@ -597,7 +597,7 @@ def doRemeshing(node):
         
         
         settings_file.close()
-        if verboseDebug: print "write settings done!"
+        if verboseDebug: print( "write settings done!")
         
         # ----- export mesh to retopo -----
         if (exportFilename.endswith('.exomesh')):
@@ -607,7 +607,7 @@ def doRemeshing(node):
             geo.saveToFile(exportFilename)
             endTime = time.time()
             #print "export time = "+str(endTime-startTime)+" s ("+exportFilename+")"
-        if verboseDebug: print "export done!"
+        if verboseDebug: print ("export done!")
         
         
         # ----- run the remeshing engine -----
@@ -691,11 +691,11 @@ def doRemeshing(node):
     # end of with InteruptableOpration
     
     if Aborted:
-        print "Aborted : kill process"
+        print ("Aborted : kill process")
         remeshProc.kill()
         return
     
-    if verboseDebug: print "ProgressValueFloat = "+str(ProgressValueFloat)
+    if verboseDebug: print ("ProgressValueFloat = "+str(ProgressValueFloat))
     
     if ProgressValueFloat < 0:   # RemeshingFailed!
         if verboseDebug: print("ProgressValueFloat<0 : ProgressTest = '" + str(ProgressText) + "'\n")
@@ -804,7 +804,7 @@ def buttonSetPaintingColor(kwargs):
     '''
 
     if paintNode == None:
-        print "Needs to have a Attribute Paint SOP as immediate input of the QuadRemesher SOP. Create it!"
+        print ("Needs to have a Attribute Paint SOP as immediate input of the QuadRemesher SOP. Create it!")
         return
     
     #inputNodeParms = inputNode.parms()
