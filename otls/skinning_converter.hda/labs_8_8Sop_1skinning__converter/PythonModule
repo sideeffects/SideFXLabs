@@ -12,7 +12,7 @@ def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_E
         
         BoneList = []
 
-        print "Generating Skeleton..."
+        print ("Generating Skeleton...")
         for point in hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry().points():
                 CaptureRadius = point.attribValue("BoneRadius")
                 Bone = a_Subnet.createNode("bone")
@@ -28,7 +28,7 @@ def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_E
                 Bone.moveToGoodPosition()
                 BoneList.append(Bone)
 
-        print "Baking Skeleton..."
+        print ("Baking Skeleton...")
         with hou.InterruptableOperation("Keyframing Bones", open_interrupt_dialog=True) as Process:
                 for F in xrange(a_StartFrame, a_EndFrame+1):
                         hou.setFrame(F)
@@ -50,7 +50,7 @@ def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_E
         return BoneList
 
 def MainFunction():
-        print "Starting Conversion..."
+        print ("Starting Conversion...")
         
         ThisNode = hou.pwd()
         FrameRange = ThisNode.parmTuple('i2FrameRange').eval()
@@ -143,4 +143,4 @@ def MainFunction():
         ThisNode.parm("objpath1").set(Geometry.path())
 
         ContainerObject.moveToGoodPosition()
-        print "Conversion completed! Output at %s" % ContainerObject.path()
+        print ("Conversion completed! Output at {0}".format(ContainerObject.path()))
