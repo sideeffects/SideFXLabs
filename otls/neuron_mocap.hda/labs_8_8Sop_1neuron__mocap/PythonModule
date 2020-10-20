@@ -1,0 +1,73 @@
+import hou
+import socket
+import threading
+import time
+import requests
+
+class UDPServer:
+    def __init__(self, ip, port, callback):
+        self.ip = ip
+        self.port = port
+        self.server_thread = None
+        self.buffer_size = 409600
+        self.callback = callback
+
+        self.__abort = False
+
+    def connect(self):
+        self.server_thread = threading.Thread(target=self.run)
+        self.server_thread.start()
+
+    def disconnect(self):
+        self.__abort = True
+
+    def run(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.ip, self.port))
+        while True:
+            start = time.time()
+            if self.__abort:
+                break
+            data = s.recv(self.buffer_size)
+         
+            self.on_data(data)
+            time.sleep(max(1. / 100 - (time.time() - start), 0))
+
+    def on_data(self, data):
+        self.callback(data)
+        
+
+def on_data(node, data):
+    hou.session.neuron_data = data
+    if len(data) == 0:
+        disconnect_server(node)
+        node.parm("closedconnection").set(1)
+    node.node("evaluate_data").cook(force=True)
+    
+
+def start_server(node):
+    if not hasattr(hou.session, "port_servers"):
+        hou.session.port_servers = {}
+
+    ip = node.parm("neuron_ip").eval()
+    port = int(node.parm("neuron_port").eval())
+    server = UDPServer(ip, port, lambda x: on_data(node, x))
+    server.connect()
+    
+    hou.session.port_servers["neuron"] = server
+    
+    node.setComment("Connected to %s:%s" % (ip, str(port)))
+    node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+    
+    node.parm("connected").set(1)
+    node.parm("closedconnection").set(0)
+    
+def disconnect_server(node):
+    if hasattr(hou.session, "port_servers") and "neuron" in hou.session.port_servers:
+        hou.session.port_servers["neuron"].disconnect()
+        hou.session.port_servers.pop("neuron")
+
+    node.setGenericFlag(hou.nodeFlag.DisplayComment, False)
+    node.setComment("")
+    node.parm("connected").set(0)
+        
