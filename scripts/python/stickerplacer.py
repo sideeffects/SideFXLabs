@@ -14,6 +14,10 @@ class StickerPlacer(QDialog):
         self.build_ui()
         self.populate_widget_icons()
 
+    def show_help(self):
+        hou.ui.curDesktop().displayHelpPath("/nodes/other/labs--sticker_picker") 
+        
+
     def get_source_dirs(self):
         sticker_dirs = []
         for sourcedir in sticker_source_dirs:
@@ -76,10 +80,21 @@ class StickerPlacer(QDialog):
         self.iconset.addItems(self.get_source_dirs())
         self.iconset.currentIndexChanged.connect(self.populate_widget_icons)
 
-        dialog_box = QVBoxLayout(self)
+        dialog_box = QVBoxLayout()
         dialog_box.addWidget(self.iconset)
         dialog_box.addWidget(self.listwidget)
 
+        help_box = QHBoxLayout()
+
+        controls_label = QLabel("Press Control + i to edit placed stickers!")
+        help_button = QPushButton("More Information")
+        help_button.clicked.connect(self.show_help)
+
+        help_box.addWidget(controls_label)
+        help_box.addWidget(help_button)
+        dialog_box.addLayout(help_box)
+
+        self.setLayout(dialog_box)
         self.setFixedWidth(534)
 
 
