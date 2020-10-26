@@ -1,0 +1,132 @@
+# Dialog script for labs::neuron_mocap automatically generated
+
+{
+    name	labs::neuron_mocap
+    script	labs::neuron_mocap
+    label	"Labs Neuron Mocap"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "connected"
+        label   "connected"
+        type    integer
+        invisible
+        nolabel
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "closedconnection"
+        label   "ClosedConnection"
+        type    integer
+        invisible
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "connect_server"
+        label   "Connect"
+        type    button
+        default { "0" }
+        hidewhen "{ connected == 1 }"
+        parmtag { "script_callback" "hou.pwd().hm().start_server(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "disconnect_server"
+        label   "Disconnect"
+        type    button
+        default { "0" }
+        hidewhen "{ connected == 0 }"
+        parmtag { "script_callback" "hou.pwd().hm().disconnect_server(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Connection Settings"
+
+        parm {
+            name    "charactername"
+            label   "Character"
+            type    string
+            invisible
+            default { "" }
+            menureplace {
+                [ "import hou" ]
+                [ "" ]
+                [ "node = hou.pwd().node(\"charnames\")" ]
+                [ "node.cook(force=True)" ]
+                [ "AllModuleChar = node.geometry().stringListAttribValue(\"__charnames\")" ]
+                [ "ModulePairs = [[x, x] for x in AllModuleChar]" ]
+                [ "" ]
+                [ "return sum(ModulePairs, [])" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "neuron_ip"
+            label   "IP"
+            type    string
+            joinnext
+            default { "127.0.0.1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "neuron_port"
+            label   "Port"
+            type    string
+            joinnext
+            default { "7003" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "neuron_data_format"
+            label   "Data Format"
+            type    ordinal
+            invisible
+            default { "2" }
+            menu {
+                "0" "Binary V1"
+                "1" "JSON V1"
+                "2" "JSON V2"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "neuron_actor_index"
+            label   "Actor Index"
+            type    integer
+            invisible
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Visualization"
+
+        parm {
+            name    "color"
+            label   "Color"
+            type    color
+            size    3
+            default { "1" "1" "1" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
