@@ -87,14 +87,23 @@ def ConvertAndExportTexture(node, material, textures, ropOutput, fileImport, rop
                         if TexturePath.startswith("opdef:/"):
                                 
                                 HDADef = TexturePath[7:].split('?')[0].split('/')[-1]
+                                if HDADef.find('::') is not -1:
+                                        HDADef = HDADef.split('::')[1]
                                 HDATextureFile = TexturePath[7:].split('?')[-1]
                                 HDAInstance = None
+                                found = None
                                 TempFile = TextureExportDir+'/'+HDATextureFile
 
                                 for node in hou.node('/').allSubChildren():
-                                        if node.type().name() == HDADef:
-                                                HDAInstance = node
+                                        for comp in node.type().nameComponents():
+                                                if comp == HDADef:
+                                                        HDAInstance = node
+                                                        found = True
+                                                        break
+                                        
+                                        if found == True:
                                                 break
+                                                
                                 if HDAInstance.type().definition().hasSection(HDATextureFile):
                                         SectionFile = file(TempFile, "wb")
                                         SectionFile.write(HDAInstance.type().definition().sections().get(HDATextureFile).contents())
@@ -130,7 +139,7 @@ def ConvertAndExportTexture(node, material, textures, ropOutput, fileImport, rop
                                         # import os, os.path
                                         # for file in os.listdir('.'):
                                         #     base, ext = os.path.splitext(file)
-                                        #     new = base + “.rat”
+                                        #     new = base + â€œ.ratâ€
                                         with open(os.devnull, 'wb') as devnull:
                                             subprocess.call("icp %s %s" % (TexturePath, FilePath), shell=True)
                                         #os.system("icp %s %s" % (TexturePath, FilePath)) 
