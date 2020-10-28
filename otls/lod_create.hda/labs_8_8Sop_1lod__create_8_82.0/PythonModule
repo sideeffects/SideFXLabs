@@ -170,12 +170,15 @@ def ExtractLOD0Textures(a_Node):
         for MaterialData in Materials:
             for MaterialPath in MaterialData[1]:
                 MaterialNode = hou.node(MaterialPath)
-                if MaterialNode.type().name() in ['principledshader::2.0']:
-                    TextureDict = GetTexturesInMat(MaterialNode)
-                    if TextureDict != None:
-                        Texturesets.append([MaterialData[0], MaterialPath, TextureDict])
+                if MaterialNode != None:
+                        if MaterialNode.type().name() in ['principledshader::2.0']:
+                            TextureDict = GetTexturesInMat(MaterialNode)
+                            if TextureDict != None:
+                                Texturesets.append([MaterialData[0], MaterialPath, TextureDict])
+                        else:
+                            print('Texture extraction is not supported for the type of material used by {0}'.format(MaterialNode.path()))
                 else:
-                    print('Texture extraction is not supported for the type of material used by {0}'.format(MaterialNode.path()))
+                    print('Texture extraction is not supported for the type of material used by {0}'.format(MaterialNode))
 
         # Add Entry in JSON file for each materialtextureset, and export textures to tempdir
         for i, textureset in enumerate(Texturesets):
