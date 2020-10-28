@@ -2,6 +2,12 @@ MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename=".OPfallbacks"
+Content-Type: application/external-reference
+
+.OPfallbacks
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename=".OPdummydefs"
 Content-Type: application/external-reference
 
@@ -17,7 +23,7 @@ Sop
 Content-Disposition: attachment; filename="hdaroot.init"
 Content-Type: text/plain
 
-type = gamedev::sop_osm_import
+type = labs::osm_import
 matchesdef = 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -26,12 +32,11 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 1.06805 0.372682
-connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+position -3.23693 0.291176
+connectornextid 0
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
-0 "output1"
 }
 inputsNamed3
 {
@@ -41,9 +46,9 @@ inputs
 }
 stat
 {
-  create 1574181344
-  modify 1574201750
-  author MAINGEAR@DESKTOP-P98C1VA
+  create -1
+  modify -1
+  author prisms@threadripper1
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -58,7 +63,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"0.2"
+		"value":"___EXTERNAL___"
 	}
 }
 
@@ -90,8 +95,8 @@ inputs
 }
 stat
 {
-  create 1500592402
-  modify 1574201674
+  create -1
+  modify -1
   author Luiz@Luiz-PC
   access 0777
 }
@@ -109,7 +114,11 @@ version 0.8
 python	[ 0	locks=0 ]	(	"import re
 from math import sin, cos, sqrt, atan2, radians
 import xml.etree.cElementTree as ET
-import StringIO
+
+try:
+    from StringIO import StringIO #Python 2
+except ImportError:
+    from io import StringIO #Python 3
 
 try:
     from PySide2.QtGui import QColor
@@ -321,17 +330,15 @@ class OSMParser(object):
             poly.setAttribValue(\"hou_way\", 1)
             for tag in way.tags:
 
-            
-                try:
-                    clean_value = way.tags[tag].encode(\"utf-8\")
-                    #clean_value = re.sub('[^a-zA-Z0-9\\n.,;]', '', way.tags[tag])
-                    
+                clean_value = way.tags[tag]
+
+                try:                  
                     if tag == \"name\":
                         poly.setAttribValue(\"hou_name\", clean_value)
                     else:
                         poly.setAttribValue(tag, clean_value)
                 except:
-                    print \"Could not set tag: %s with value: %s\"%(tag,clean_value)
+                    pass
 
             for point in points:
                 poly.addVertex(point)
@@ -353,11 +360,15 @@ class OSMParser(object):
                         poly = polys[member]
                         poly.setIsClosed(1)
                         for tag in relation.tags:
-                            clean_value = relation.tags[tag].encode(\"utf-8\")
-                            if tag == \"name\":
-                                poly.setAttribValue(\"hou_name\", clean_value)
-                            else:
-                                poly.setAttribValue(tag, clean_value)
+                            clean_value = relation.tags[tag]
+
+                            try:
+                                if tag == \"name\":
+                                    poly.setAttribValue(\"hou_name\", clean_value)
+                                else:
+                                    poly.setAttribValue(tag, clean_value)
+                            except:
+                                pass
                                 
                 
 
@@ -428,16 +439,15 @@ class OSMParser(object):
 # Make a File Object
 def make_file_object(filename):
     if filename.startswith(\"opdef:\") or filename.startswith(\"oplib:\"):
-        return StringIO.StringIO(hou.readFile(filename))
+        return StringIO(hou.readFile(filename))
     else:
-        return file(filename, \"r\")
+        return open(filename, \"r\")
 
 osm_file = hou.node(\"..\").parm(\"osm_file\").eval()
 osm_file_object = make_file_object(osm_file) 
 parser = OSMParser(osm_file_object)
 parser.parse()
-parser.build()
-"	)
+parser.build()"	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -447,7 +457,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.360"
+		"value":"___EXTERNAL___"
 	}
 }
 
@@ -466,7 +476,7 @@ sopflags sopflags =
 comment ""
 position -2.68731 8.93206
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -481,8 +491,8 @@ inputs
 }
 stat
 {
-  create 1508267018
-  modify 1574201708
+  create -1
+  modify -1
   author Luiz@Luiz-PC
   access 0777
 }
@@ -510,7 +520,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.360"
+		"value":"___EXTERNAL___"
 	}
 }
 
@@ -554,8 +564,8 @@ inputs
 }
 stat
 {
-  create 1508261598
-  modify 1511365337
+  create -1
+  modify -1
   author Luiz@Luiz-PC
   access 0777
 }
@@ -579,6 +589,7 @@ docompute	[ 0	locks=0 ]	(	"on"	)
 type	[ 0	locks=0 ]	(	"typepoint"	)
 cuspangle	[ 0	locks=0 ]	(	60	)
 method	[ 0	locks=0 ]	(	1	)
+origifzero	[ 0	locks=0 ]	(	"off"	)
 modify	[ 0	locks=0 ]	(	0	)
 normalize	[ 0	locks=0 ]	(	"off"	)
 reverse	[ 0	locks=0 ]	(	"off"	)
@@ -591,7 +602,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.360"
+		"value":"___EXTERNAL___"
 	}
 }
 
@@ -625,8 +636,8 @@ inputs
 }
 stat
 {
-  create 1508261689
-  modify 1511365337
+  create -1
+  modify -1
   author Luiz@Luiz-PC
   access 0777
 }
@@ -654,7 +665,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.360"
+		"value":"___EXTERNAL___"
 	}
 }
 
@@ -689,8 +700,8 @@ inputs
 }
 stat
 {
-  create 1508261692
-  modify 1511365337
+  create -1
+  modify -1
   author Luiz@Luiz-PC
   access 0777
 }
@@ -752,8 +763,8 @@ inputs
 }
 stat
 {
-  create 1508261705
-  modify 1511365337
+  create -1
+  modify -1
   author Luiz@Luiz-PC
   access 0777
 }
@@ -777,6 +788,7 @@ docompute	[ 0	locks=0 ]	(	"on"	)
 type	[ 0	locks=0 ]	(	"typevertex"	)
 cuspangle	[ 0	locks=0 ]	(	60	)
 method	[ 0	locks=0 ]	(	1	)
+origifzero	[ 0	locks=0 ]	(	"off"	)
 modify	[ 0	locks=0 ]	(	0	)
 normalize	[ 0	locks=0 ]	(	"off"	)
 reverse	[ 0	locks=0 ]	(	"off"	)
@@ -789,7 +801,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.360"
+		"value":"___EXTERNAL___"
 	}
 }
 
@@ -825,8 +837,8 @@ inputs
 }
 stat
 {
-  create 1508261709
-  modify 1511365337
+  create -1
+  modify -1
   author Luiz@Luiz-PC
   access 0777
 }
@@ -850,7 +862,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.360"
+		"value":"___EXTERNAL___"
 	}
 }
 
@@ -886,7 +898,7 @@ sopflags sopflags =
 comment ""
 position -2.68731 6.99354
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
@@ -900,8 +912,8 @@ inputs
 }
 stat
 {
-  create 1522783210
-  modify 1574201704
+  create -1
+  modify -1
   author MAINGEAR@DESKTOP-P98C1VA
   access 0777
 }
@@ -926,7 +938,7 @@ Content-Type: text/plain
 {
 	"___Version___":{
 		"type":"string",
-		"value":"17.5.360"
+		"value":"___EXTERNAL___"
 	}
 }
 
