@@ -1,6 +1,7 @@
 import io
 import struct
 import ctypes
+import os
 
 def renderFile():
     node = hou.pwd()
@@ -29,6 +30,9 @@ def renderFGA():
     fgaText =  "%d,%d,%d,\n" % (resolution[0],resolution[2],resolution[1])
     fgaText += "%f,%f,%f,\n" % (minvec[0], minvec[2], minvec[1])
     fgaText += "%f,%f,%f,\n" % (maxvec[0], maxvec[2], maxvec[1])
+
+    if not os.path.isdir(os.path.dirname(fgaFile)):
+        os.mkdir(os.path.dirname(fgaFile)) 
 
     file = open(fgaFile, "w")
     with hou.InterruptableOperation("Saving FGA", long_operation_name ="Saving vector field", open_interrupt_dialog = True) as operation:
@@ -80,6 +84,9 @@ def renderFGB():
     header = struct.pack('3i6f', resolution[0], resolution[2], resolution[1],
                          min_vec[0], min_vec[2], min_vec[1],
                          max_vec[0], max_vec[2], max_vec[1])
+
+    if not os.path.isdir(os.path.dirname(fgaFile)):
+        os.mkdir(os.path.dirname(fgaFile)) 
 
     out_stream = io.open(fgaFile,'wb')
     out_stream.write(header)
