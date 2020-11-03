@@ -32,22 +32,17 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -6.51531 -4.95324
-connectornextid 3
+position -2.20752 -0.0519608
+connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
-0 "output1"
 }
 inputsNamed3
 {
-1 	soften_normals2 1 1 "input1"
-2 	color1 1 1 "input2"
 }
 inputs
 {
-0 	soften_normals2 0 1
-1 	color1 0 1
 }
 stat
 {
@@ -5292,11 +5287,12 @@ float offsetY = incrementY * 0.5;
 
 vector WorldN = $vec;
 vector MyN = uvsample($LOW, \"N\", \"uv\", set(($IX+1)*incrementX - offsetX, ($IY+1)*incrementY - offsetY, 0));
+vector lowpos = uvsample($LOW, \"P\", \"uv\", set(($IX+1)*incrementX - offsetX, ($IY+1)*incrementY - offsetY, 0));
 
-$DISP = distance($pos, $uvpos) * $Alpha;
+$DISP = distance($pos, lowpos) * $Alpha;
 $DISP = ($Alpha == 0.0) ? 0 : $DISP;
 
-if (dot(normalize($uvpos-$pos), MyN) >= 0) {
+if (dot(normalize(lowpos-$pos), MyN) >= 0) {
     $DISP *= -1;
 }
 if ($prim == -1) {
@@ -7296,7 +7292,7 @@ prehold	[ 0	locks=0 ]	(	0	)
 postextend	[ 0	locks=0 ]	(	"black"	)
 posthold	[ 0	locks=0 ]	(	0	)
 stdswitcher5	[ 0	locks=0 ]	(	0	0	0	0	)
-UVFill	[ 8	locks=0 ]	(	[ UVFill	1 ] 	)
+UVFill	[ 8	locks=0 ]	(	[ UVFill	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -8497,7 +8493,7 @@ prehold	[ 0	locks=0 ]	(	0	)
 postextend	[ 0	locks=0 ]	(	"black"	)
 posthold	[ 0	locks=0 ]	(	0	)
 stdswitcher5	[ 0	locks=0 ]	(	2	2	2	2	)
-LOW	[ 0	locks=0 ]	(	op:../../OUT_ORIGINAL	)
+LOW	[ 0	locks=0 ]	(	op:../../OUT_LOW_TARGET	)
 FlipY	[ 0	locks=0 ]	(	[ FlipY	1 ] 	)
 FlipX	[ 0	locks=0 ]	(	[ FlipX	0 ] 	)
 }
@@ -14872,7 +14868,7 @@ postextend	[ 0	locks=0 ]	(	"black"	)
 posthold	[ 0	locks=0 ]	(	0	)
 stdswitcher5	[ 0	locks=0 ]	(	2	2	2	2	)
 HIGH	[ 0	locks=0 ]	(	op:../../OUT_HIGH	)
-maxdist	[ 0	locks=0 ]	(	[ maxdist	15 ] 	)
+maxdist	[ 0	locks=0 ]	(	[ maxdist	0.10000000000000001 ] 	)
 numrays	[ 0	locks=0 ]	(	[ numrays	50 ] 	)
 conewidth	[ 0	locks=0 ]	(	[ conewidth	90 ] 	)
 bias	[ 0	locks=0 ]	(	[ bias	0.5 ] 	)
@@ -16859,7 +16855,7 @@ postextend	[ 0	locks=0 ]	(	"black"	)
 posthold	[ 0	locks=0 ]	(	0	)
 stdswitcher5	[ 0	locks=0 ]	(	2	2	2	2	)
 HIGH	[ 0	locks=0 ]	(	op:../../OUT_HIGH	)
-maxdist	[ 0	locks=0 ]	(	[ maxdist	30 ] 	)
+maxdist	[ 0	locks=0 ]	(	[ maxdist	1 ] 	)
 numrays	[ 0	locks=0 ]	(	[ numrays	50 ] 	)
 conewidth	[ 0	locks=0 ]	(	[ conewidth	90 ] 	)
 mindist	[ 0	locks=0 ]	(	[ mindist	0 ] 	)
@@ -27785,11 +27781,11 @@ roundedEdge_radius_1	[ 0	locks=0 ]	(	0	)
 roundedEdge_mode_1	[ 0	locks=0 ]	(	0	)
 roughnessfolder_1	[ 0	locks=0 ]	(	0	)
 rough_texture_1	[ 0	locks=0 ]	(	"`ifs(ch(\"../bRoughness\"),strreplace(chs(\"../sOutputFile\"), \"$(CHANNEL)\", chs(\"../sRoughness\")),\"\")`"	)
-rough_1	[ 8	locks=0 ]	(	[ rough_1	1 ] 	)
+rough_1	[ 8	locks=0 ]	(	[ rough_1	0.5 ] 	)
 ior_1	[ 0	locks=0 ]	(	1.1000000000000001	)
 metallicfolder_1	[ 0	locks=0 ]	(	0	)
 metallic_texture_1	[ 0	locks=0 ]	(	"`ifs(ch(\"../bMetallic\"),strreplace(chs(\"../sOutputFile\"), \"$(CHANNEL)\", chs(\"../sMetallic\")),\"\")`"	)
-metallic_1	[ 8	locks=0 ]	(	[ metallic_1	1 ] 	)
+metallic_1	[ 8	locks=0 ]	(	[ metallic_1	0 ] 	)
 folder0_1_3	[ 0	locks=0 ]	(	0	)
 basecolorfolder_1_2	[ 0	locks=0 ]	(	0	)
 pbr_basecolor_1	[ 0	locks=0 ]	(	1	1	1	)
@@ -33336,7 +33332,7 @@ coppath	[ 0	locks=0 ]	(	../../cops_baking/extrapolateboundaries2	)
 tres	[ 0	locks=0 ]	(	"natural"	)
 res	[ 0	locks=0 ]	(	1024	1024	)
 resmenu	[ 0	locks=0 ]	(	0	)
-copoutput	[ 0	locks=0	autoscope=1	autosel=4294967295 ]	(	[ copoutput	C:/Github/SideFXLabs/hip/render/debug/maps_baker_demoscene_metallic.png ] 	)
+copoutput	[ 0	locks=0	autoscope=1	autosel=4294967295 ]	(	[ copoutput	"" ] 	)
 mkpath	[ 0	locks=0 ]	(	"on"	)
 color	[ 0	locks=0 ]	(	C	)
 alpha	[ 0	locks=0 ]	(	""	)
@@ -39894,7 +39890,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -40053,7 +40049,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -43556,7 +43552,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-method	[ 0	locks=0 ]	(	"piece"	)
+method	[ 0	locks=0 ]	(	"input"	)
 blockpath	[ 0	locks=0 ]	(	../foreach_end1	)
 resetcookpass	[ 0	locks=0 ]	(	0	)
 createmetablock	[ 0	locks=0 ]	(	0	)
