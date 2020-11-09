@@ -1,0 +1,206 @@
+import hou
+import socket
+import threading
+import time
+import requests
+import lz4.frame
+import json
+
+class UDPServer:
+    def __init__(self, ip, port, callback):
+        self.ip = ip
+        self.port = port
+        self.server_thread = None
+        self.buffer_size = 409600
+        self.callback = callback
+
+        self.__abort = False
+        
+    def connect(self):
+        
+        self.server_thread = threading.Thread(target=self.run)
+        self.server_thread.start()
+
+    def disconnect(self):
+        self.__abort = True
+
+    def run(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.bind((self.ip, self.port))
+        while True:
+            start = time.time()
+            if self.__abort:
+                break
+            data, addr = s.recvfrom(self.buffer_size)
+            self.on_data(data)
+
+    def on_data(self, data):
+        self.callback(data)
+        
+        
+class APIServer:
+    def __init__(self, api_ip, api_port, api_key):
+        self.api_ip = api_ip
+        self.api_port = api_port
+        self.api_key = api_key
+        self.api_url_prefix = "http://{0}:{1}/v1/{2}".format(api_ip, api_port, api_key)
+ 
+    def send_handshake(self):
+        return requests.get(self.api_url_prefix).json()
+   
+    def send_restart(self, smartsuit_name):
+        return str(
+            requests.post(
+                "{0}/{1}".format(self.api_url_prefix, "restart"),
+                json = {
+                    'smartsuit_name': smartsuit_name
+                }
+            ).json()
+        )
+       
+    def send_calibrate(self, smartsuit_name, countdown_delay):
+        return str(
+            requests.post(
+                "{0}/{1}".format(self.api_url_prefix, "calibrate"),
+                json = {
+                    'smartsuit_name': smartsuit_name,
+                    'countdown_delay': countdown_delay
+                }
+            ).json()
+        )
+   
+    def send_start_recording(self, recording_filename):
+        return str(
+            requests.post(
+                "{0}/{1}".format(self.api_url_prefix, "recording/start"),
+                json = {
+                    'filename': recording_filename
+                }
+            ).json()
+        )  
+       
+       
+    def send_stop_recording(self):
+        return str(
+            requests.post(
+                "{0}/{1}".format(self.api_url_prefix, "recording/stop"),
+                json = {}
+            ).json()
+        )  
+       
+    def send_broadcast(self, smartsuit_name):
+        return str(
+            requests.post(
+                "{0}/{1}".format(self.api_url_prefix, "broadcast"),
+                json = {
+                    'smartsuit_name': smartsuit_name
+                }
+            ).json()
+        )  
+       
+    def send_unicast(self, smartsuit_name):
+        return str(
+            requests.post(
+                "{0}/{1}".format(self.api_url_prefix, "unicast"),
+                json = {
+                    'smartsuit_name': smartsuit_name
+                }
+            ).json()
+        )  
+
+
+def on_data(node, data):
+    
+    hou.session.rokoko_data = lz4.frame.decompress(data)
+    
+    if node.parm("connected").eval() == 0:
+        node.node("build_skeleton").cook(force=True)
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+        node.parm("connected").set(1)
+    
+    node.node("evaluate_data").cook(force=True)
+    
+
+def start_server(node):
+    if not hasattr(hou.session, "port_servers"):
+        hou.session.port_servers = {}
+
+    ip = node.parm("rokoko_ip").eval()
+    port = int(node.parm("rokoko_port").eval())
+    
+    api_ip = node.parm("api_ip").eval()
+    api_port = node.parm("api_port").eval()
+    api_key = node.parm("api_key").eval()
+
+    server = UDPServer(ip, port, lambda x: on_data(node, x))
+    server.connect()
+    hou.session.port_servers["rokoko"] = server
+    node.setComment("Connected to %s:%s" % (ip, str(port))) 
+    
+    # spawn API server 
+    api_server = APIServer(api_ip, api_port, api_key)
+    api_handshake = api_server.send_handshake()
+    if api_handshake["response_code"] != "INVALID_REQUEST":
+        node.setComment(str(api_handshake))    
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+        hou.session.port_servers["rokoko_api"] = api_server
+
+    
+def disconnect_server(node):
+    if hasattr(hou.session, "port_servers") and "rokoko" in hou.session.port_servers:
+        hou.session.port_servers["rokoko"].disconnect()
+        hou.session.port_servers.pop("rokoko")
+
+    node.setGenericFlag(hou.nodeFlag.DisplayComment, False)
+    node.setComment("")
+    node.parm("connected").set(0)
+        
+def restart(node):
+    if "rokoko_api" in hou.session.port_servers:
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+       
+        smartsuit_name = node.parm("smartsuit_name").eval()
+       
+        print(hou.session.port_servers["rokoko_api"].send_restart(smartsuit_name))
+       
+def calibrate(node):
+    if "rokoko_api" in hou.session.port_servers:
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+       
+        smartsuit_name = node.parm("smartsuit_name").eval()
+        countdown_delay = node.parm("countdown_delay").eval()
+       
+        print(hou.session.port_servers["rokoko_api"].send_calibrate(smartsuit_name, countdown_delay))
+ 
+       
+def start_recording(node):
+    if "rokoko_api" in hou.session.port_servers:
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+       
+        recording_filename = node.parm("recording_filename").eval()
+       
+        print(hou.session.port_servers["rokoko_api"].send_start_recording(recording_filename))
+
+        
+def stop_recording(node):
+    if "rokoko_api" in hou.session.port_servers:
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+        print(hou.session.port_servers["rokoko_api"].send_stop_recording())
+
+        
+def broadcast(node):
+    if "rokoko_api" in hou.session.port_servers:
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+       
+        smartsuit_name = node.parm("smartsuit_name").eval()
+       
+        print(hou.session.port_servers["rokoko_api"].send_broadcast(smartsuit_name))
+
+        
+def unicast(node):
+    if "rokoko_api" in hou.session.port_servers:
+        node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+       
+        smartsuit_name = node.parm("smartsuit_name").eval()
+       
+        print(hou.session.port_servers["rokoko_api"].send_unicast(smartsuit_name))
