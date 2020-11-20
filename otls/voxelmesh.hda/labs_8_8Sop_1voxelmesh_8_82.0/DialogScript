@@ -1,0 +1,111 @@
+# Dialog script for labs::voxelmesh automatically generated
+
+{
+    name	labs::voxelmesh
+    script	gamedev::sop_voxelmesh
+    label	"Labs Voxel Mesh"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Polygon Geometry"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a group2 basegroup" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].node(\"group2\").parmTuple('grouptype')\nkwargs['inputindex'] = 0\nkwargs['ordered'] = kwargs['node'].node(\"group2\").parm('ordered').eval()\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "resolution"
+        label   "Resolution"
+        type    integer
+        default { "200" }
+        menureplace {
+            "100"   "Low - 100"
+            "200"   "Medium - 200"
+            "2000"  "High - 2000"
+        }
+        range   { 100 3000 }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "VDB Smoothing"
+
+        parm {
+            name    "dilateerode"
+            label   "Dilate/Erode"
+            type    float
+            default { "0" }
+            range   { -0.2 0.2 }
+        }
+        parm {
+            name    "smoothingiterations"
+            label   "Smoothing Iterations"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Meshing"
+
+        parm {
+            name    "adaptivity"
+            label   "Adaptivity"
+            type    float
+            default { "0" }
+            range   { 0 1 }
+        }
+        parm {
+            name    "transferattributes"
+            label   "Transfer Surface Attributes"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "houdini_utils::doc" "When a reference surface is provided, this option transfers all attributes\n(primitive, vertex and point) from the reference surface to the output geometry.\n\nNOTE:\n    Primitive attribute values can't meaningfully be transferred to a\n    polygon soup, because the entire polygon soup is a single primitive.\n\nNOTE:\n    Computed vertex normals for primitives in the surface group\n    will be overridden.\n" }
+        }
+        parm {
+            name    "sharpenfeatures"
+            label   "Sharpen Features"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "edgetolerance"
+            label   "Edge Tolerance"
+            type    float
+            default { "0.5" }
+            disablewhen "{ sharpenfeatures == 0 }"
+            range   { 0 1 }
+        }
+        parm {
+            name    "project"
+            label   "Project to Original"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "postsmooth"
+            label   "Post Smooth Iterations"
+            type    integer
+            default { "0" }
+            disablewhen "{ project == 0 }"
+            range   { 0 10 }
+        }
+    }
+
+}

@@ -1,0 +1,48 @@
+= Labs Voxel Mesh =
+
+#type: node
+#context: sop
+#internal: labs::voxelmesh
+#icon: voxel_mesh_alt
+#tags: sidefxlabs,  model, gamedev, voxel, photogrammetry
+
+""" Convert a Polygon Mesh into a Volume and back into Polygons """
+
+A very common node chain is [VDB From Polygons|Node:sop/vdbfrompolygons], followed immediately by a  [Convert VDB|Node:sop/convertvdb]
+
+This converts your mesh into a Volume and then back to a Mesh. Doing so has the following benefits: It can close small holes in the mesh, give you new even topology and remove interior geometry. 
+
+VoxelMesh is often used to sanitize photogrammetry data, as it will often fix small imperfections on the mesh. 
+
+
+NOTE: 
+    UVs are generally destroyed while going through the VDB roundtrip. If you would like to transfer UVs from the original mesh back onto the Voxelized, take a look at the [UV Transfer Node|Node:sop/labs--uv_transfer]
+
+
+@parameters
+    Resolution:
+        This sets the number of voxels to be generated on the longest axis of the mesh. Note that this is scale independent.
+    == VDB Smoothing ==
+    Dilate/Erode:
+        This allows you to expand (dilate) or contract (erode) the geometry along the surface normal of the VDB volume.
+    Smoothing Iterations:
+        The number of smoothing operations to be applied to the VDB before meshing. This can help remove high frequency details.
+    == Meshing ==
+    Adaptivity:
+        Controls how even the topology of the resulting mesh is. High Adaptivity values mean concentration around areas of high curvature, low curvature means even distribution of polygons
+        [Image:/images/voxelmesh_adaptivity.png]
+    Transfer Surface Attributes:
+        This will attempt to transfer any attributes found on the input geometry onto the VDB remeshed geometry.
+    Sharpen Features:
+        Geometry tends to soften when being voxelized, because some features might sit in between voxels. This strengthens the features and is helpful on hard surfaces.
+        [Image:/images/voxelmesh_sharpenfeatures.png]
+    Edge Tolerance:
+        Tolerance for what edges to consider for the Sharpen Features toggle.
+    Project to Original:
+        Optionally Ray the resulting mesh back onto the original 
+    Post Smooth Iterations:
+        The Projection step can generate some undesirably overlapping polygons, this step can relax some of those polygons
+    
+     
+
+    
