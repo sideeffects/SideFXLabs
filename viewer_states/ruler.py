@@ -532,7 +532,7 @@ class State(object):
         if parent:
             g_WorldXform = parent.worldTransform()
             g_WorldXform = hou.GeometryViewport.modelToGeometryTransform(self.geometry_viewport).inverted()
-            print(g_WorldXform)
+            #print(g_WorldXform)
         else:
             g_WorldXform.setToIdentity()
                 
