@@ -32,17 +32,19 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -8.10911 -3.86299
-connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+position -0.782353 -1.82353
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
 inputsNamed3
 {
+0 	heightfield_noise1 1 1 "input1"
 }
 inputs
 {
+0 	heightfield_noise1 0 1
 }
 stat
 {
@@ -55,6 +57,135 @@ color UT_Color RGB 0.8 0.8 0.8
 delscript ""
 exprlanguage hscript
 end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.spareparmdef"
+Content-Type: text/plain
+
+    parm {
+        name    "automation_file"
+        baseparm
+        label   "Gaea Automation File"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "bResetNode"
+        baseparm
+        label   "Reset Parameters"
+        export  none
+    }
+    parm {
+        name    "execute"
+        baseparm
+        label   "Cook"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "bAutoCook"
+        baseparm
+        label   "Auto Cook"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "bPresetMode"
+        baseparm
+        label   "Use Preset"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "sPresetFile"
+        baseparm
+        label   "Preset"
+        nolabel
+        export  none
+    }
+    parm {
+        name    "sepparm"
+        baseparm
+        label   "Separator"
+        export  none
+    }
+    groupsimple {
+        name    "mesh_settings_2"
+        label   "Settings"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "sExtraData"
+            baseparm
+            label   "Extra Data"
+            export  none
+        }
+        parm {
+            name    "sPresetDir"
+            baseparm
+            label   "Presets Directory"
+            export  none
+        }
+        parm {
+            name    "sTempDir"
+            baseparm
+            label   "Cache Dir"
+            export  none
+        }
+        parm {
+            name    "sUniqueID"
+            baseparm
+            label   "Unique Hash"
+            invisible
+            export  none
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+            grouptag { "group_type" "collapsible" }
+
+            parm {
+                name    "bCustomExport"
+                baseparm
+                label   "Custom"
+                joinnext
+                export  none
+            }
+            parm {
+                name    "sFilePath"
+                baseparm
+                label   "Export Path"
+                export  none
+            }
+            parm {
+                name    "hide_gaea_dialog"
+                baseparm
+                label   "Hide Gaea Dialog"
+                export  none
+            }
+            parm {
+                name    "bDeterministic"
+                baseparm
+                label   "Deterministic"
+                export  none
+            }
+            parm {
+                name    "bBleedingEdge"
+                baseparm
+                label   "Use Bleeding Edge Gaea"
+                export  none
+            }
+        }
+
+        parm {
+            name    "pdg_logoutput"
+            baseparm
+            label   "Log Output for PDG"
+            invisible
+            export  none
+        }
+    }
+
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.userdata"
@@ -95,7 +226,7 @@ Content-Disposition: attachment; filename="hdaroot.inp"
 Content-Type: text/plain
 
 1
-0 -1.568489983894825 12.392391586541338 2 0 __NO_OWNER_NETWORK_BOX__ "RGB 0.14499999582767487 0.66699999570846558 0.55699998140335083"
+0 -1.568489988824129 13.448310032866001 2 0 __NO_OWNER_NETWORK_BOX__ "RGB 0.14499999582767487 0.66699999570846558 0.55699998140335083"
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/attribwrangle1.init"
@@ -110,7 +241,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.57149 11.2859
+position -1.57149 12.3418
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -152,7 +283,13 @@ vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"i@__resolutionx = int(volumeres(0, 'height').x);
 i@__resolutiony = int(volumeres(0, 'height').y);
 
-i@__gridspacing = int(volumevoxeldiameter(0, 0) / sqrt(3));"	)
+i@__gridspacing = int(volumevoxeldiameter(0, 0) / sqrt(3));
+
+if ((i@__resolutionx>0 && ((i@__resolutionx & (i@__resolutionx-1)) == 0)) && (i@__resolutiony>0 && ((i@__resolutiony & (i@__resolutiony-1)) == 0))) {
+    i@pow2 = 0;
+} else {
+    i@pow2 = 1;
+}"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -372,11 +509,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	heightfield_resample1 1 1 "input1"
+0 	switchif2 2 1 "input1"
 }
 inputs
 {
-0 	heightfield_resample1 0 1
+0 	switchif2 0 1
 }
 stat
 {
@@ -413,7 +550,7 @@ Content-Type: text/plain
 {
 version 0.8
 folder1	[ 0	locks=0 ]	(	0	)
-scale	[ 8	locks=0 ]	(	[ scale	0.0009990234155869116 ] 	)
+scale	[ 8	locks=0 ]	(	[ scale	0.001 ] 	)
 gridscale	[ 0	locks=0 ]	(	1	)
 heightscale	[ 0	locks=0 ]	(	1	)
 heightoffset	[ 0	locks=0 ]	(	0	)
@@ -504,7 +641,7 @@ version 0.8
 folder1	[ 0	locks=0 ]	(	0	)
 scale	[ 0	locks=0 ]	(	1	)
 gridscale	[ 0	locks=0 ]	(	1	)
-heightscale	[ 8	locks=0 ]	(	[ heightscale	1000.9775390625 ] 	)
+heightscale	[ 8	locks=0 ]	(	[ heightscale	1000 ] 	)
 heightoffset	[ 0	locks=0 ]	(	0	)
 folder0	[ 0	locks=0 ]	(	0	)
 orient	[ 0	locks=0 ]	(	"zx"	)
@@ -1497,7 +1634,7 @@ sopflags sopflags =
 comment ""
 position -8.24372 4.23896
 connectornextid 2
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -1548,7 +1685,7 @@ folder1	[ 0	locks=0 ]	(	0	)
 scale	[ 0	locks=0 ]	(	1	)
 gridscale	[ 0	locks=0 ]	(	1	)
 heightscale	[ 0	locks=0 ]	(	1	)
-heightoffset	[ 8	locks=0 ]	(	[ heightoffset	-0.16017842292785645 ] 	)
+heightoffset	[ 8	locks=0 ]	(	[ heightoffset	0.062906548380851746 ] 	)
 folder0	[ 0	locks=0 ]	(	0	)
 orient	[ 0	locks=0 ]	(	"zx"	)
 tx	[ 0	locks=0 ]	(	0	)
@@ -1639,7 +1776,7 @@ folder1	[ 0	locks=0 ]	(	0	)
 scale	[ 0	locks=0 ]	(	1	)
 gridscale	[ 0	locks=0 ]	(	1	)
 heightscale	[ 0	locks=0 ]	(	1	)
-heightoffset	[ 0	locks=0 ]	(	[ heightoffset	160.33500671386719 ] 	)
+heightoffset	[ 0	locks=0 ]	(	[ heightoffset	-62.961265563964844 ] 	)
 folder0	[ 0	locks=0 ]	(	0	)
 orient	[ 0	locks=0 ]	(	"zx"	)
 tx	[ 0	locks=0 ]	(	0	)
@@ -1831,7 +1968,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -2.20718 8.15281
+position -1.56849 8.20121
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -2111,7 +2248,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 0	locks=0 ]	(	[ input	1 ] 	)
+input	[ 0	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -2504,7 +2641,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.56849 10.248
+position -1.56849 11.3039
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -2593,7 +2730,7 @@ version 0.8
 numerror	[ 0	locks=0 ]	(	1	)
 errormsg1	[ 0	locks=0 ]	(	"Gaea currently only supports square terrains! Please ensure the resolution of your heightfield is 1:1 ratio to prevent undesirable results."	)
 severity1	[ 0	locks=0 ]	(	"error"	)
-enable1	[ 8	locks=0 ]	(	[ enable1	0 ] 	)
+enable1	[ 0	locks=0 ]	(	[ enable1	0 ] 	)
 spare_input0	[ 0	locks=0 ]	(	../attribwrangle1	)
 }
 
@@ -2621,7 +2758,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.57194 9.24799
+position -1.57194 9.30391
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -2630,11 +2767,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	error1 1 1 "input1"
+0 	error2 1 1 "input1"
 }
 inputs
 {
-0 	error1 0 1
+0 	error2 0 1
 }
 stat
 {
@@ -2663,7 +2800,7 @@ vtxdel	[ 0	locks=0 ]	(	""	)
 doprimdel	[ 0	locks=0 ]	(	"on"	)
 primdel	[ 0	locks=0 ]	(	""	)
 dodtldel	[ 0	locks=0 ]	(	"on"	)
-dtldel	[ 0	locks=0 ]	(	"__resolutionx __resolutiony __gridspacing"	)
+dtldel	[ 0	locks=0 ]	(	"__resolutionx __resolutiony __gridspacing pow2"	)
 updatevar	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -3561,7 +3698,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.815061 6.45104
+position 1.9771 6.79026
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -3600,7 +3737,7 @@ Content-Type: text/plain
       flags = 0
       segment { options = {	 autoslope  ai ao }
 
-	 length = 0 value = 256 256 accel = 0.33333333333333331 0.33333333333333331 expr = "def nextPowerOf2(n): 
+	 length = 0 value = 564 564 accel = 0.33333333333333331 0.33333333333333331 expr = "def nextPowerOf2(n): 
     p = 1
     if (n and not(n & (n - 1))): 
         return n 
@@ -3623,9 +3760,9 @@ fixedresample	[ 0	locks=0 ]	(	"on"	)
 resscale	[ 0	locks=0 ]	(	1	)
 divisionmode	[ 0	locks=0 ]	(	"maxaxis"	)
 gridspacing	[ 0	locks=0 ]	(	4	)
-gridsamples	[ 0	locks=0	autoscope=1	autosel=4294967295 ]	(	[ gridsamples	1024 ] 	)
-filter	[ 0	locks=0 ]	(	point	)
-filterscale	[ 0	locks=0 ]	(	1.5	)
+gridsamples	[ 0	locks=0	autoscope=1	autosel=4294967295 ]	(	[ gridsamples	512 ] 	)
+filter	[ 0	locks=0 ]	(	box	)
+filterscale	[ 0	locks=0 ]	(	1	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -3652,7 +3789,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 2.80634 -16.3334
+position 3.91222 -16.2158
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -3705,9 +3842,9 @@ fixedresample	[ 0	locks=0 ]	(	"on"	)
 resscale	[ 0	locks=0 ]	(	1	)
 divisionmode	[ 0	locks=0 ]	(	"maxaxis"	)
 gridspacing	[ 0	locks=0 ]	(	4	)
-gridsamples	[ 0	locks=0	autoscope=1	autosel=4294967295 ]	(	[ gridsamples	1024 ] 	)
-filter	[ 0	locks=0 ]	(	point	)
-filterscale	[ 0	locks=0 ]	(	1.5	)
+gridsamples	[ 0	locks=0	autoscope=1	autosel=4294967295 ]	(	[ gridsamples	500 ] 	)
+filter	[ 0	locks=0 ]	(	box	)
+filterscale	[ 0	locks=0 ]	(	1	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -3928,7 +4065,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 2.80634 -19.0933
+position 2.80634 -19.898
 connectornextid 3
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -3937,12 +4074,12 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	heightfield_resample2 1 1 "input1"
+0 	switchif3 2 1 "input1"
 1 	python1 1 1 "input2"
 }
 inputs
 {
-0 	heightfield_resample2 0 1
+0 	switchif3 0 1
 1 	python1 0 1
 }
 stat
@@ -4133,7 +4270,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 4.13805 -18.0933
+position 3.91222 -19.0191
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -4199,7 +4336,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 4.13805 -17.1675
+position 3.91222 -18.0933
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -4208,11 +4345,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	heightfield_resample2 1 1 "input1"
+0 	switchif3 2 1 "input1"
 }
 inputs
 {
-0 	heightfield_resample2 0 1
+0 	switchif3 0 1
 }
 stat
 {
@@ -4654,6 +4791,564 @@ Content-Type: text/plain
 1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif2.init"
+Content-Type: text/plain
+
+type = switchif
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif2.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 0.475114 5.97782
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	in 1 1 "input1"
+1 	heightfield_resample1 1 1 "input2"
+}
+inputs
+{
+0 	in 0 1
+1 	heightfield_resample1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@threadripper1
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif2.spareparmdef"
+Content-Type: text/plain
+
+    parm {
+        name    "mergecondition"
+        baseparm
+        label   "Use Second Input If"
+        export  none
+    }
+    parm {
+        name    "testinput"
+        baseparm
+        label   "Test Input"
+        export  none
+    }
+    multiparm {
+        name    "tests"
+        label    "Number of Tests"
+        baseparm
+        default 1
+
+        parm {
+            name    "enable#"
+            baseparm
+            label   "enable#"
+            nolabel
+            export  none
+        }
+        parm {
+            name    "type#"
+            baseparm
+            label   "Test Type"
+            export  none
+        }
+        parm {
+            name    "expr#"
+            baseparm
+            label   "Enable"
+            export  none
+        }
+        parm {
+            name    "attribtype#"
+            baseparm
+            label   "Enable When"
+            export  none
+        }
+        parm {
+            name    "attribowner#"
+            baseparm
+            label   "Class"
+            export  none
+        }
+        parm {
+            name    "attributes#"
+            baseparm
+            label   "Attributes"
+            export  none
+        }
+        parm {
+            name    "attribvaltype#"
+            baseparm
+            label   "Of Type"
+            export  none
+        }
+        parm {
+            name    "attribfloatcomp#"
+            baseparm
+            label   "Is"
+            export  none
+        }
+        parm {
+            name    "attribstringcomp#"
+            baseparm
+            label   "Is"
+            export  none
+        }
+        parm {
+            name    "attribval#"
+            baseparm
+            label   "Value"
+            export  none
+        }
+        parm {
+            name    "attribsval#"
+            baseparm
+            label   "Value"
+            export  none
+        }
+        parm {
+            name    "counttype#"
+            baseparm
+            label   "Enable When"
+            export  none
+        }
+        parm {
+            name    "countgroup#"
+            baseparm
+            label   "In Group"
+            export  none
+        }
+        parm {
+            name    "countcomp#"
+            baseparm
+            label   "Is"
+            export  none
+        }
+        parm {
+            name    "countval#"
+            baseparm
+            label   "Value"
+            export  none
+        }
+    }
+
+    parm {
+        name    "spare_input0"
+        label   "Spare Input 0"
+        type    oppath
+        default { "" }
+        help    "Refer to this in expressions as -1, such as: npoints(-1)"
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif2.chn"
+Content-Type: text/plain
+
+{
+    channel expr1 {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = "detail(-1, \"pow2\", 0)" }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif2.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+mergecondition	[ 0	locks=0 ]	(	"any"	)
+testinput	[ 0	locks=0 ]	(	"first"	)
+tests	[ 0	locks=0 ]	(	1	)
+enable1	[ 0	locks=0 ]	(	"on"	)
+type1	[ 0	locks=0 ]	(	"expr"	)
+expr1	[ 0	locks=0 ]	(	[ expr1	0 ] 	)
+attribtype1	[ 0	locks=0 ]	(	"all"	)
+attribowner1	[ 0	locks=0 ]	(	"point"	)
+attributes1	[ 0	locks=0 ]	(	""	)
+attribvaltype1	[ 0	locks=0 ]	(	"flt"	)
+attribfloatcomp1	[ 0	locks=0 ]	(	"equal"	)
+attribstringcomp1	[ 0	locks=0 ]	(	"equal"	)
+attribval1	[ 0	locks=0 ]	(	0	)
+attribsval1	[ 0	locks=0 ]	(	""	)
+counttype1	[ 0	locks=0 ]	(	"points"	)
+countgroup1	[ 0	locks=0 ]	(	""	)
+countcomp1	[ 0	locks=0 ]	(	"equal"	)
+countval1	[ 0	locks=0 ]	(	0	)
+spare_input0	[ 0	locks=0 ]	(	../attribwrangle1	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif2.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif3.init"
+Content-Type: text/plain
+
+type = switchif
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif3.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 2.80634 -17.2938
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	heightfield_xform8 1 1 "input1"
+1 	heightfield_resample2 1 1 "input2"
+}
+inputs
+{
+0 	heightfield_xform8 0 1
+1 	heightfield_resample2 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@threadripper1
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif3.spareparmdef"
+Content-Type: text/plain
+
+    parm {
+        name    "mergecondition"
+        baseparm
+        label   "Use Second Input If"
+        export  none
+    }
+    parm {
+        name    "testinput"
+        baseparm
+        label   "Test Input"
+        export  none
+    }
+    multiparm {
+        name    "tests"
+        label    "Number of Tests"
+        baseparm
+        default 1
+
+        parm {
+            name    "enable#"
+            baseparm
+            label   "enable#"
+            nolabel
+            export  none
+        }
+        parm {
+            name    "type#"
+            baseparm
+            label   "Test Type"
+            export  none
+        }
+        parm {
+            name    "expr#"
+            baseparm
+            label   "Enable"
+            export  none
+        }
+        parm {
+            name    "attribtype#"
+            baseparm
+            label   "Enable When"
+            export  none
+        }
+        parm {
+            name    "attribowner#"
+            baseparm
+            label   "Class"
+            export  none
+        }
+        parm {
+            name    "attributes#"
+            baseparm
+            label   "Attributes"
+            export  none
+        }
+        parm {
+            name    "attribvaltype#"
+            baseparm
+            label   "Of Type"
+            export  none
+        }
+        parm {
+            name    "attribfloatcomp#"
+            baseparm
+            label   "Is"
+            export  none
+        }
+        parm {
+            name    "attribstringcomp#"
+            baseparm
+            label   "Is"
+            export  none
+        }
+        parm {
+            name    "attribval#"
+            baseparm
+            label   "Value"
+            export  none
+        }
+        parm {
+            name    "attribsval#"
+            baseparm
+            label   "Value"
+            export  none
+        }
+        parm {
+            name    "counttype#"
+            baseparm
+            label   "Enable When"
+            export  none
+        }
+        parm {
+            name    "countgroup#"
+            baseparm
+            label   "In Group"
+            export  none
+        }
+        parm {
+            name    "countcomp#"
+            baseparm
+            label   "Is"
+            export  none
+        }
+        parm {
+            name    "countval#"
+            baseparm
+            label   "Value"
+            export  none
+        }
+    }
+
+    parm {
+        name    "spare_input0"
+        label   "Spare Input 0"
+        type    oppath
+        default { "" }
+        help    "Refer to this in expressions as -1, such as: npoints(-1)"
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif3.chn"
+Content-Type: text/plain
+
+{
+    channel expr1 {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = "detail(-1, \"pow2\", 0)" }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif3.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+mergecondition	[ 0	locks=0 ]	(	"any"	)
+testinput	[ 0	locks=0 ]	(	"first"	)
+tests	[ 0	locks=0 ]	(	1	)
+enable1	[ 0	locks=0 ]	(	"on"	)
+type1	[ 0	locks=0 ]	(	"expr"	)
+expr1	[ 0	locks=0 ]	(	[ expr1	0 ] 	)
+attribtype1	[ 0	locks=0 ]	(	"all"	)
+attribowner1	[ 0	locks=0 ]	(	"point"	)
+attributes1	[ 0	locks=0 ]	(	""	)
+attribvaltype1	[ 0	locks=0 ]	(	"flt"	)
+attribfloatcomp1	[ 0	locks=0 ]	(	"equal"	)
+attribstringcomp1	[ 0	locks=0 ]	(	"equal"	)
+attribval1	[ 0	locks=0 ]	(	0	)
+attribsval1	[ 0	locks=0 ]	(	""	)
+counttype1	[ 0	locks=0 ]	(	"points"	)
+countgroup1	[ 0	locks=0 ]	(	""	)
+countcomp1	[ 0	locks=0 ]	(	"equal"	)
+countval1	[ 0	locks=0 ]	(	0	)
+spare_input0	[ 0	locks=0 ]	(	../attribwrangle1	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switchif3.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error2.init"
+Content-Type: text/plain
+
+type = error
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error2.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -1.56849 10.3039
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	error1 1 1 "input1"
+}
+inputs
+{
+0 	error1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error2.spareparmdef"
+Content-Type: text/plain
+
+    multiparm {
+        name    "numerror"
+        label    "Number of Errors"
+        baseparm
+        default 1
+
+        parm {
+            name    "errormsg#"
+            baseparm
+            label   "Error Message"
+            export  none
+        }
+        parm {
+            name    "severity#"
+            baseparm
+            label   "Severity"
+            export  none
+        }
+        parm {
+            name    "enable#"
+            baseparm
+            label   "Report This Error"
+            export  none
+        }
+    }
+
+    parm {
+        name    "spare_input0"
+        label   "Spare Input 0"
+        type    oppath
+        default { "" }
+        help    "Refer to this in expressions as -1, such as: npoint(-1)"
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error2.chn"
+Content-Type: text/plain
+
+{
+    channel enable1 {
+      lefttype = extend
+      righttype = extend
+      default = 512
+      flags = 0
+      segment { options = {	 untie  iv ov is os ia oa }
+
+	 length = 0 expr = "detail(-1, \"pow2\", 0)" }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error2.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+numerror	[ 0	locks=0 ]	(	1	)
+errormsg1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"Gaea only supports power of two resolution terrains! Please change your HF resolution to be a power of 2 number of voxels in in both axis! (ex 512x512, 1024x1024 etc) This tool will still work, but might produce some artefacts in the output."	)
+severity1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"warn"	)
+enable1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	[ enable1	0 ] 	)
+spare_input0	[ 0	locks=0 ]	(	../attribwrangle1	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error2.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/__dot1.networkdotinit"
 Content-Type: text/plain
 
@@ -4663,7 +5358,7 @@ Content-Type: text/plain
 	"posy":-0.637217428545642006,
 	"pinned":false,
 	"color":"FROMOUTPUT",
-	"input":"heightfield_resample1 0 1"
+	"input":"switchif2 0 1"
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -4683,7 +5378,7 @@ Content-Type: text/plain
 Content-Disposition: attachment; filename="hdaroot.order"
 Content-Type: text/plain
 
-43
+46
 in
 output0
 extract_inputmaps
@@ -4727,6 +5422,9 @@ heightfield_xform7
 heightfield_xform8
 attribwrangle6
 attribwrangle7
+switchif2
+switchif3
+error2
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.net"
