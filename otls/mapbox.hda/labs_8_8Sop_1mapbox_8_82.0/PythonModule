@@ -1,10 +1,18 @@
 from PySide2 import QtWebEngineWidgets, QtWidgets
-import urllib2
 import os 
 from math import sin, cos, sqrt, atan2, radians, pow, pi
 import time 
 import platform
 import ssl
+import sys
+
+if sys.version_info.major >= 3:
+    from urllib.error import HTTPError
+    from urllib.request import urlopen
+else:
+    from urllib2 import urlopen, HTTPError
+    
+
 # approximate radius of earth in km
 R = 6371.0
 
@@ -143,11 +151,11 @@ def refresh(node, force=True):
 
 def download_file(url, filepath): 
     try:
-        data = urllib2.urlopen(url, context=ssl._create_unverified_context())
+        data = urlopen(url, context=ssl._create_unverified_context())
         with open(filepath, 'wb') as output:
             output.write(data.read())
             output.close()
-    except urllib2.HTTPError, err:
+    except HTTPError as err:
         should_retry = hou.session.mapbox_node.parm("retry_on_download_fail").eval()
         if err.code == 429 and should_retry: #too many attempts
             print("TOO MANY REQUESTS, RETRYING", err.code, err.reason)

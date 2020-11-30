@@ -3,7 +3,7 @@
     into a CSV file using python
 """
 
-import hou, csv, os 
+import hou, csv, os, sys
 
 def export(node):
 
@@ -38,12 +38,14 @@ def export(node):
         ExportAttributes = [node.parm("sAttribute%s" % str(x+1)).evalAsString() for x in range(node.parm("mAttributes").evalAsInt())]
     else:
         ExportAttributes = [x.name() for x in geo.pointAttribs()]
+
+    extra_kwargs = { "newline" : "" } if sys.version_info.major >= 3 else {}
     
     # open the file for writing 
-    with open(csv_path, 'wb') as csvfile:
+    with open(csv_path, 'w', **extra_kwargs) as csvfile:
     
         # construct the csv writer object 
-        writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL, lineterminator='\n')
         if export_header == 1:
 
             # write the first line, which is the header

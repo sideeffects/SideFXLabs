@@ -157,6 +157,34 @@
             default { "-1" }
             range   { 0 10 }
         }
+        groupcollapsible {
+            name    "folder13"
+            label   "Frames"
+
+            parm {
+                name    "framemode"
+                label   "Frames"
+                type    ordinal
+                joinnext
+                default { "0" }
+                menu {
+                    "0" "Current Frame"
+                    "1" "Frame Range"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "framerange"
+                label   "Range"
+                type    intvector2
+                size    2
+                default { "$RFSTART" "$RFEND" }
+                disablewhen "{ framemode == 0 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
     }
 
     groupsimple {
@@ -727,6 +755,34 @@
         label   "Advanced"
 
         groupsimple {
+            name    "folder12"
+            label   "Padding"
+
+            parm {
+                name    "blendmethod"
+                label   "Blend Method"
+                type    ordinal
+                default { "diffusefill" }
+                menu {
+                    "fillaverage"   "Fill Average"
+                    "floodfill"     "Flood Fill"
+                    "diffusefill"   "Diffuse Fill"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "edgepadding"
+                label   "Edge Padding"
+                type    integer
+                default { "4" }
+                range   { 0 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
             name    "folder10"
             label   "Sampling"
 
@@ -781,6 +837,32 @@
                 label   "Tangent Normal Flip Y"
                 type    toggle
                 default { "0" }
+            }
+        }
+
+        groupsimple {
+            name    "folder14"
+            label   "Rounded Edge Normals"
+
+            parm {
+                name    "roundededgesamples"
+                label   "Samples"
+                type    integer
+                default { "10" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "roundededgecuspangle"
+                label   "Cusp Angle"
+                type    float
+                default { "0" }
+                range   { 0! 90 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
             }
         }
 

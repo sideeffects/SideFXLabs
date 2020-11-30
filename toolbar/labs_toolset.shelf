@@ -160,29 +160,29 @@ if not isinstance(pane, hou.NetworkEditor):
        sys.exit(0)
 else: # We're creating this tool from the TAB menu inside a network editor
     pane_node = pane.pwd()
-    if kwargs.has_key("outputnodename") and kwargs.has_key("inputindex"):
+    if "outputnodename" in kwargs and "inputindex" in kwargs:
         outputitem = pane_node.item(kwargs["outputnodename"])
         inputindex = kwargs["inputindex"]
         h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
         h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
         num_args = 6
-    if kwargs.has_key("inputnodename") and kwargs.has_key("outputindex"):
+    if "inputnodename" in kwargs and "outputindex" in kwargs:
         inputitem = pane_node.item(kwargs["inputnodename"])
         outputindex = kwargs["outputindex"]
         h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
         h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
         num_args = 9 
-    if kwargs.has_key("autoplace"):
+    if "autoplace" in kwargs:
         autoplace = kwargs["autoplace"]
     else:
         autoplace = False
     # If shift-clicked we want to auto append to the current
     # node
-    if kwargs.has_key("shiftclick") and kwargs["shiftclick"]:
+    if "shiftclick" in kwargs and kwargs["shiftclick"]:
         if inputitem is None:
             inputitem = pane.currentNode()
             outputindex = 0
-    if kwargs.has_key("nodepositionx") and             kwargs.has_key("nodepositiony"):
+    if "nodepositionx" in kwargs and             "nodepositiony" in kwargs:
         try:
             pos = [ float( kwargs["nodepositionx"] ),
                     float( kwargs["nodepositiony"] )]
@@ -201,7 +201,7 @@ else: # We're creating this tool from the TAB menu inside a network editor
                                       outputitem, inputindex)
 
     if pos is not None:
-        if kwargs.has_key("node_bbox"):
+        if "node_bbox" in kwargs:
             size = kwargs["node_bbox"]
             pos[0] -= size[0] / 2
             pos[1] -= size[1] / 2
@@ -215,7 +215,7 @@ h_extra_args += 'set argc = "' + str(num_args) + '"\n'
 pane_node = pane.pwd()
 child_type = pane_node.childTypeCategory().nodeTypes()
 
-if not child_type.has_key('comb'):
+if 'comb' not in child_type:
    hou.ui.displayMessage(
            'Cannot create node: incompatible pane network type')
    sys.exit(0)
@@ -247,13 +247,13 @@ endif
 set saved_path = `execute("oppwf")`
 opcf $arg1
 
-# Node $_obj_geo1_flowmap_brush (Sop/comb)
-set _obj_geo1_flowmap_brush = `run("opadd -e -n -v comb flowmap_brush")`
-oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_geo1_flowmap_brush
-opparm -V 16.5.611 $_obj_geo1_flowmap_brush switcher ( 0 0 0 0 ) ovrnml ( on ) nmlname ( v ) opacity ( 0.5 )
-opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_flowmap_brush
-opexprlanguage -s hscript $_obj_geo1_flowmap_brush
-opset -p on $_obj_geo1_flowmap_brush
+# Node $_obj_geo1_comb1 (Sop/comb)
+set _obj_geo1_comb1 = `run("opadd -e -n -v comb comb1")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_geo1_comb1
+opparm -V 18.5.393 $_obj_geo1_comb1 switcher ( 1 1 1 1 ) ovrnml ( on ) nmlname ( v ) opacity ( 0.5 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_comb1
+opexprlanguage -s hscript $_obj_geo1_comb1
+opset -p on $_obj_geo1_comb1
 
 opcf $arg1
 
@@ -263,11 +263,11 @@ if ($argc >= 9 && "$arg9" != "") then
 endif
 
 if ($argc >= 5 && "$arg4" != "") then
-    set output = $_obj_geo1_flowmap_brush
+    set output = $_obj_geo1_comb1
     opwire -n $output -$arg5 $arg4
 endif
 if ($argc >= 6 && "$arg6" != "") then
-    set input = $_obj_geo1_flowmap_brush
+    set input = $_obj_geo1_comb1
     if ($arg8) then
         opwire -n -i $arg6 -0 $input
     else
@@ -277,6 +277,7 @@ endif
 opcf $saved_path
 '''
 hou.hscript(h_preamble + h_extra_args + h_cmd)
+
 ]]></script>
   </tool>
 

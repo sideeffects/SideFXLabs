@@ -1,0 +1,368 @@
+# Dialog script for labs::skinning_converter::3.0 automatically generated
+
+{
+    name	labs::skinning_converter::3.0
+    script	gamedev::sop_skinning_converter
+    label	"Labs Skinning Converter"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Deforming Mesh Sequence"
+    inputlabel	2	"Additional Bone Positions"
+    inputlabel	3	"Additional Animation"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "sStaticGroup"
+        label   "Static Primitives"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l split1 group" ]
+        }
+    }
+    parm {
+        name    "bUseMeshConnectivity"
+        label   "Use Name Attribute for Weighting"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "viserror"
+        label   "Visualize Error"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "folder1_2"
+        label   "Error Visualisation"
+
+        parm {
+            name    "lErrorMethod"
+            label   "Error Method"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Accumulated"
+                "1" "Maximum"
+            }
+        }
+        parm {
+            name    "fAccErr"
+            label   "Accumulate E Tolerance"
+            type    float
+            default { "1" }
+            disablewhen "{ lErrorMethod == 1 }"
+            range   { 0! 10 }
+        }
+        parm {
+            name    "fMaxErr"
+            label   "Max E Tolerance"
+            type    float
+            default { "0.1" }
+            disablewhen "{ lErrorMethod == 0 }"
+            range   { 0! 1 }
+        }
+        parm {
+            name    "fBias"
+            label   "Bias"
+            type    float
+            default { "0.75" }
+            range   { 0.1! 0.9! }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Conversion Settings"
+
+        parm {
+            name    "i2FrameRange"
+            label   "Frame Range"
+            type    intvector2
+            size    2
+            default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] }
+            range   { -1 1 }
+        }
+        parm {
+            name    "lCaptureMethod"
+            label   "Capturing Method"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "0" "Biharmonic Capture"
+                "1" "Proximity Capture"
+            }
+        }
+        parm {
+            name    "iCaptureFrame"
+            label   "Capture Frame"
+            type    integer
+            default { [ "ch(i2FrameRangex)" hscript-expr ] }
+            range   { 1! 240 }
+        }
+        parm {
+            name    "iBoneInfluences"
+            label   "Max Bone Influences"
+            type    integer
+            default { "4" }
+            disablewhen "{ lCaptureMethod == 0 }"
+            range   { 1 30 }
+        }
+        parm {
+            name    "sepparm4"
+            label   "sepparm4"
+            type    separator
+            default { "" }
+        }
+        groupsimple {
+            name    "folder2"
+            label   "Bone Placement Control"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "boneplacementmode"
+                label   "Mode"
+                type    ordinal
+                joinnext
+                default { "0" }
+                menu {
+                    "0" "Uniform Placement"
+                    "1" "Adaptive Placement"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "lMethod"
+                label   "Method"
+                type    ordinal
+                default { "0" }
+                disablewhen "{ boneplacementmode == 0 }"
+                menu {
+                    "1" "Area Deformation Based"
+                    "0" "Curvature Based"
+                    "2" "Velocity Based"
+                }
+            }
+            parm {
+                name    "scale"
+                label   "Guide Scale"
+                type    float
+                default { "0.1" }
+                range   { 0 0.5 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "folder4"
+                label   "Primary Bones"
+
+                parm {
+                    name    "iUnifBones"
+                    label   "Number of Bones"
+                    type    integer
+                    default { "100" }
+                    range   { 1 1000 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "fUnifSeed"
+                    label   "Seed"
+                    type    float
+                    default { "42" }
+                    range   { 0 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "fUnifInfl"
+                    label   "Influence Radius"
+                    type    float
+                    invisible
+                    default { "0.1" }
+                    range   { 0! 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+            }
+
+            groupsimple {
+                name    "folder5"
+                label   "Secondary Bones"
+                disablewhen "{ boneplacementmode == 0 }"
+
+                parm {
+                    name    "fSecondaryBones"
+                    label   "Number of Bones Scalar"
+                    type    float
+                    default { "0" }
+                    range   { 0! 1! }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "fSecondarySeed"
+                    label   "Seed"
+                    type    float
+                    default { "3.1415" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "fSecondaryInfl"
+                    label   "Influence Radius"
+                    type    float
+                    invisible
+                    default { "0.1" }
+                    range   { 0! 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+            }
+
+            groupsimple {
+                name    "folder3"
+                label   "Input Bones"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "bUseInputBones"
+                    label   "Use Input Bones"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "fInputInfl"
+                    label   "Influence Radius"
+                    type    float
+                    invisible
+                    default { "0.1" }
+                    range   { 0! 1 }
+                }
+            }
+
+            groupsimple {
+                name    "folder0"
+                label   "Drawn Bones"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "fDrawnInfl"
+                    label   "Influence Radius"
+                    type    float
+                    invisible
+                    default { "0.1" }
+                    range   { 0! 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "stroke_projtype"
+                    label   "Projection"
+                    type    ordinal
+                    invisible
+                    default { "geometry" }
+                    menu {
+                        "xy"        "XY Plane"
+                        "yz"        "YZ Plane"
+                        "zx"        "ZX Plane"
+                        "screen"    "Screen Plane"
+                        "geometry"  "Geometry"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                multiswitcher {
+                    name    "stroke_numstrokes"
+                    label    "Number of Strokes"
+                    default 0
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "multistartoffset" "1" }
+
+                    parm {
+                        name    "stroke#_enable"
+                        label   "Enable Stroke"
+                        type    toggle
+                        default { "1" }
+                    }
+                    parm {
+                        name    "stroke#_radius"
+                        label   "Radius"
+                        type    float
+                        invisible
+                        default { "0.1" }
+                        range   { 0! 1 }
+                    }
+                    parm {
+                        name    "stroke#_tool"
+                        label   "Tool"
+                        type    integer
+                        invisible
+                        default { "0" }
+                        range   { 0 10 }
+                    }
+                    parm {
+                        name    "stroke#_color"
+                        label   "Color"
+                        type    color
+                        invisible
+                        size    3
+                        default { "1" "1" "1" }
+                        range   { 0 1 }
+                    }
+                    parm {
+                        name    "stroke#_opacity"
+                        label   "Opacity"
+                        type    float
+                        invisible
+                        default { "1" }
+                        range   { 0 10 }
+                    }
+                    parm {
+                        name    "stroke#_projtype"
+                        label   "Projection"
+                        type    integer
+                        invisible
+                        default { "0" }
+                        range   { 0 10 }
+                    }
+                    parm {
+                        name    "stroke#_projcenter"
+                        label   "Projection Center"
+                        type    vector
+                        invisible
+                        size    3
+                        default { "0" "0" "0" }
+                        range   { -1 1 }
+                    }
+                    parm {
+                        name    "stroke#_projdir"
+                        label   "Projection Direction"
+                        type    vector
+                        invisible
+                        size    3
+                        default { "0" "0" "0" }
+                        range   { -1 1 }
+                    }
+                    parm {
+                        name    "stroke#_data"
+                        label   "Raw Data"
+                        type    string
+                        invisible
+                        default { "0" }
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+    parm {
+        name    "parm7"
+        label   "I'm a Toggle that doesnt do anything YET"
+        type    toggle
+        invisible
+        default { "0" }
+    }
+}
