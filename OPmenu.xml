@@ -29,9 +29,9 @@ ParmWatcher.add_watcher(kwargs["node"], type_="python_node")]]>
     </scriptItem>
 
     
-    <scriptItem id="opmenu.vhda_create">
-            <label>Create Versioned Digital Asset...</label>
-            <insertAtIndex>47</insertAtIndex>
+    <subMenu id="opmenu.vhda_options_create">
+            <label>Versioned Digital Asset...</label>
+            <insertAtIndex>48</insertAtIndex>
             <context>
                     <expression>
 import hou
@@ -43,8 +43,12 @@ if assettools.isSubnet(node):
 else:
     return 0
             </expression>
+            </context>
+            <scriptItem id="opmenu.vhda_create">
+                <label>Create New...</label>
+                <context>
                 </context>
-            <scriptCode>
+                <scriptCode>
 <![CDATA[
 import hou
 import assettools
@@ -52,11 +56,27 @@ import assettools
 node = kwargs["node"]
 assettools.createNewVHDAFromSubnet(node)
 ]]>
-            </scriptCode>
-        </scriptItem>
+                 </scriptCode>
+            </scriptItem>  
+            <separatorItem/>      
+            <scriptItem id="opmenu.vhda_prefcreate">
+                <label>Preferences...</label>
+                <context>
+                </context>
+                <scriptCode>
+<![CDATA[
+import hou
+import assettools
+
+node = kwargs["node"]
+assettools.setPreferences()
+]]>
+                </scriptCode>
+            </scriptItem>
+    </subMenu>    
         <subMenu id="opmenu.vhda_options">
             <label>Versioned Digital Asset</label>
-            <insertAtIndex>47</insertAtIndex>
+            <insertAtIndex>48</insertAtIndex>
             <context>
             <expression>
 import hou
@@ -69,6 +89,21 @@ else:
     return 0
             </expression>
             </context>  
+            <scriptItem id="opmenu.vhda_save_as">
+                <label>Save As...</label>
+                <context>
+                </context>
+                <scriptCode>
+<![CDATA[
+import hou
+import assettools
+
+node = kwargs["node"]
+assettools.copyToNewVHDA(node)
+]]>
+                </scriptCode>
+            </scriptItem>  
+            <separatorItem/>
             <scriptItem id="opmenu.vhda_bump_major">
                 <label>Increase Major Version</label>
                 <context>
@@ -96,9 +131,10 @@ node = kwargs["node"]
 assettools.increaseMinorVersion(node)
 ]]>
                 </scriptCode>
-            </scriptItem>
-            <scriptItem id="opmenu.vhda_copy_to_new">
-                <label>Save As...</label>
+            </scriptItem>  
+            <separatorItem/>      
+            <scriptItem id="opmenu.vhda_delete_versions">
+                <label>Delete Versions...</label>
                 <context>
                 </context>
                 <scriptCode>
@@ -107,12 +143,13 @@ import hou
 import assettools
 
 node = kwargs["node"]
-assettools.copyToNewVHDA(node)
+assettools.deleteVersions(node)
 ]]>
                 </scriptCode>
             </scriptItem>
-<!--             <scriptItem id="opmenu.vhda_make_release">
-                <label>New Release...</label>
+            <separatorItem/>      
+            <scriptItem id="opmenu.vhda_pref">
+                <label>Preferences...</label>
                 <context>
                 </context>
                 <scriptCode>
@@ -121,13 +158,11 @@ import hou
 import assettools
 
 node = kwargs["node"]
-assettools.createNewRHDA(node)
+assettools.setPreferences()
 ]]>
                 </scriptCode>
-            </scriptItem> -->
+            </scriptItem>
         </subMenu>
-
-
     <scriptItem id="expreditor_edit_extra_sections">
       <label>Edit Extra Sections Source Code</label>
       <context>
