@@ -2115,7 +2115,11 @@ class BumpVersion_VHDA_Dialog(QDialog):
         else:
             self.setWindowTitle("Increase Minor Version")
             
-        self.setWindowIcon(hou.qt.createIcon(defaults[3].icon()))  
+        try:
+            self.setWindowIcon(hou.qt.createIcon(defaults[3].icon()))
+        except hou.OperationFailed:
+            self.setWindowIcon(hou.qt.createIcon("MISC_generic"))
+
         self.defaults = defaults
         self.parmvals = []
         self.exitval = None
