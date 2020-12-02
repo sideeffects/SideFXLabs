@@ -1,22 +1,24 @@
 import xml.etree.ElementTree as ET
-import subprocess, os, sys
-
-try:
-    import _winreg as winreg
-except:
-    import winreg as winreg
+import subprocess, os, sys, platform
 
 
 def GetGaeaRegistryInstall(a_node):
-    try:
-        if a_node.parm("bBleedingEdge").evalAsInt() == 1:
-            hKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\\QuadSpinner\\Gaea Bleeding Edge\\1.0")
-        else:
-            hKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\\QuadSpinner\\Gaea\\1.0")
+    if platform.system() == "Windows":
 
-        return os.path.normpath(winreg.QueryValueEx(hKey, None)[0]).replace("\\", "/"), winreg.QueryValueEx(hKey, "Version")[0][2:5]
-    except:
-        raise hou.Error("Cannot Find Gaea installed.")
+        try:
+            import _winreg as winreg
+        except:
+            import winreg as winreg
+
+        try:
+            if a_node.parm("bBleedingEdge").evalAsInt() == 1:
+                hKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\\QuadSpinner\\Gaea Bleeding Edge\\1.0")
+            else:
+                hKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\\QuadSpinner\\Gaea\\1.0")
+
+            return os.path.normpath(winreg.QueryValueEx(hKey, None)[0]).replace("\\", "/"), winreg.QueryValueEx(hKey, "Version")[0][2:5]
+        except:
+            raise hou.Error("Cannot Find Gaea installed.")
 
 def ValidateGaeaInstalled(a_dir):
     if os.path.isdir(a_dir):
