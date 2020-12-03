@@ -640,8 +640,10 @@ def constructVHDATypeName(namespace_user, namespace_branch, name, major, minor):
     """
 
     vhda_name = ["{}::".format(x) for x in [namespace_user, namespace_branch] if x != ""]
-    vhda_name += name    
-    vhda_name += "::{0}.{1}".format(major, minor)
+    vhda_name += name
+    
+    if major > 0:
+        vhda_name += "::{0}.{1}".format(major, minor)
     return re.sub("[^0-9a-zA-Z\.:_]+", "", "".join(vhda_name))
 
 def constructVHDALabel(label, namespace_branch=None):
@@ -676,8 +678,12 @@ def constructVHDAFileName(namespace_user, namespace_branch,name,major,minor):
         
     """
     vhda_name = ["{}.".format(x) for x in [namespace_user, namespace_branch] if x != ""]
-    vhda_name += name    
-    vhda_name += ".{0}.{1}.{2}".format(major, minor, getAssetfileExtenstion())
+    vhda_name += name
+
+    if major > 0:
+        vhda_name += ".{0}.{1}.{2}".format(major, minor, getAssetfileExtenstion())
+    else:
+        vhda_name += ".{0}".format(getAssetfileExtenstion())
     return re.sub("[^0-9a-zA-Z\.:_]+", "", "".join(vhda_name))
 
 def copyToNewVHDA(node):   
@@ -1747,16 +1753,6 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         
         major = self.majorversion_edit.value()
         minor = self.minorversion_edit.value()
-
-        assetlabel = self.assetlabel_edit.text() 
-        self.assetlabel_edit.setText(assetlabel.title())
-
-        # Updat Asset Type based on Asset Label
-        #assettype = assetlabel
-        #assettype = assettype.lower()       
-        #assettype = assettype.replace(" ", "_")
-        #self.assettype_edit.setText(assettype)
-
         assettype = self.assettype_edit.text()
 
         self.setAssetNamePreview(user, branch, assettype, major, minor)        
@@ -1959,7 +1955,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.majorversion_edit.setValue(self.defaults[5] if self.defaults[5] != None else 1)
         self.minorversion_edit.setValue(self.defaults[6] if self.defaults[6] != None else 0)
 
-        self.majorversion_edit.setRange(1,100)
+        self.majorversion_edit.setRange(0,100)
         self.minorversion_edit.setRange(0,100)
        
         self.majorversion_edit.valueChanged.connect(self.on_MajorVersionChange)
