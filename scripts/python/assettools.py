@@ -270,6 +270,32 @@ def setToolSubmenu(hda_def, new_submenu='Digital Assets', old_submenu='Digital A
         :param old_submenu: This entry will be replaced by new_submenu.  
     """   
 
+    context_dict = {
+        'Shop': 'SHOP',
+        'Cop2': 'COP2',        
+        'Object': 'OBJ',
+        'Chop': 'CHOP',
+        'Sop': 'SOP',
+        'Vop': 'VOP',
+        'VopNet': 'VOPNET',
+        'Driver': 'ROP',
+        'TOP': 'TOP',
+        'Lop': 'LOP',
+        'Dop': 'DOP'}
+
+    utils_dict = {
+        'Shop': 'shoptoolutils',
+        'Cop2': 'cop2toolutils',        
+        'Object': 'objecttoolutils',
+        'Chop': 'choptoolutils',
+        'Sop': 'soptoolutils',
+        'Vop': 'voptoolutils',
+        'VopNet': 'vopnettoolutils',
+        'Driver': 'roptoolutils',
+        'TOP': 'toptoolutils',
+        'Lop': 'loptoolutils',
+        'Dop': 'doptoolutils'}
+
     if hda_def.hasSection('Tools.shelf'): 
         old_submenu = getToolSubmenu(hda_def)[0]
     else:
@@ -292,6 +318,11 @@ soptoolutils.genericTool(kwargs, \'$HDA_NAME\')]]></script>
 </tool>
 </shelfDocument>
         """
+
+        context = context_dict[hda_def.nodeType().category().name()] 
+        util = utils_dict[hda_def.nodeType().category().name()] 
+        content = content.replace('<contextNetType>SOP</contextNetType>', '<contextNetType>{}</contextNetType>'.format(context))   
+        content = content.replace('soptoolutils', util)             
         hda_def.addSection('Tools.shelf', content)
         old_submenu = 'Digital Assets'
        
@@ -1562,8 +1593,8 @@ and set 'Asset Bar' menu to 'Display Menu of All Definitions'.""")
         # Reset Defaults  
              
         buttons_layout.setAlignment(Qt.AlignRight)
-        self.Reset_btn = QPushButton("Reset Defaults")
-        self.Reset_btn.setFixedWidth(110)
+        self.Reset_btn = QPushButton("Restore Factory Defaults")
+        self.Reset_btn.setFixedWidth(180)
         horizontalSpacer = QSpacerItem(200, 0, QSizePolicy.Maximum, QSizePolicy.Expanding)
         self.OK_btn = QPushButton("Apply")
         self.OK_btn.setFixedWidth(100)
