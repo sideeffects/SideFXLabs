@@ -1,0 +1,1542 @@
+# Dialog script for labs::av_photogrammetry::4.0 automatically generated
+
+{
+    name	labs::av_photogrammetry::4.0
+    script	gamedev::sop_av_photogrammetry::3.0
+    label	"Labs AV Photogrammetry"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Textured Geometry"
+    outputlabel	2	Pointcloud
+    outputlabel	3	Cameras
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback" "kwargs['node'].hm().ManualCook(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual Mode"
+        type    toggle
+        joinnext
+        default { "on" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "off" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    group {
+        name    "folder3"
+        label   "Initialize"
+
+        parm {
+            name    "proj"
+            label   "Project Name"
+            type    string
+            default { "$HIPNAME" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "cache_dir"
+            label   "Cache Directory"
+            type    directory
+            default { "$HIP/AV_Cache/" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "alice_dir"
+            label   "Alice Vision Directory"
+            type    directory
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "dof"
+            label   "Default Field of View"
+            type    float
+            default { "45" }
+            help    "Empirical value for the field of view in degrees."
+            range   { 0 180 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "mColorMode"
+            label   "Color Mode"
+            type    string
+            default { "0" }
+            menu {
+                "0" "Textures"
+                "1" "Vertex Color"
+            }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "add_img"
+            label   "Add Images"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "kwargs['node'].hm().add_images(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        multiscroll {
+            name    "src_img"
+            label    "Images"
+            default 0
+            parmtag { "autoscope" "0000000000000000" }
+
+            parm {
+                name    "filename__#"
+                label   "File"
+                type    image
+                default { "" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder3_1"
+        label   "Settings"
+
+        groupcollapsible {
+            name    "folder8"
+            label   "Analyze Images"
+
+            group {
+                name    "folder1"
+                label   "Feature Extraction"
+
+                parm {
+                    name    "dsc_type"
+                    label   "Describer Types"
+                    type    string
+                    default { "sift" }
+                    help    "Describer types used to describe an image."
+                    menutoggle {
+                        "sift"          "sift"
+                        "sift_float"    "sift_float"
+                        "sift_upright"  "sift_upright"
+                        "akaze"         "akaze"
+                        "akaze_liop"    "akaze_liop"
+                        "akaze_midb"    "akaze_midb"
+                        "cctag3"        "cctag3"
+                        "cctag4"        "cctag4"
+                        "sift_ocv"      "sift_ocv"
+                        "akaze_ocv"     "akaze_ocv"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "dsc_pre"
+                    label   "Describer Preset"
+                    type    string
+                    default { "normal" }
+                    help    "Control the ImageDescriber configuration. Ultra can take a long time."
+                    menu {
+                        "low"       "low"
+                        "medium"    "medium"
+                        "normal"    "normal"
+                        "high"      "high"
+                        "ultra"     "ultra"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder2"
+                    label   "Advanced"
+
+                    parm {
+                        name    "cpu"
+                        label   "Force CPU Extraction"
+                        type    toggle
+                        default { "on" }
+                        help    "Use only CPU feature extraction."
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxThreads"
+                        label   "Max CPU Threads"
+                        type    integer
+                        default { "0" }
+                        help    "Use only CPU feature extraction."
+                        range   { 0! 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+            group {
+                name    "folder1_1"
+                label   "Image Matching"
+
+                groupcollapsible {
+                    name    "folder5"
+                    label   "Advanced"
+
+                    parm {
+                        name    "minNImg"
+                        label   "Min Number of Images"
+                        type    integer
+                        default { "200" }
+                        help    "Minimum number of images to use the vocabulary tree. If there are fewer features than this threshold, all matching combinations will be computed."
+                        range   { 0 500 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "max_desc"
+                        label   "Max Descriptors"
+                        type    integer
+                        default { "500" }
+                        help    "Limit the number of descriptors loaded per image. Zero means no limit."
+                        range   { 0 10000 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "nMatch"
+                        label   "Number of Matches"
+                        type    integer
+                        default { "50" }
+                        help    "The number of matches to retrieve for each image. A value of 0 will retrieve all matches."
+                        range   { 0 1000 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "nbNeighbors"
+                        label   "Number of Nighbors"
+                        type    integer
+                        default { "50" }
+                        help    "The number of matches to retrieve for each image. A value of 0 will retrieve all matches."
+                        range   { 0 1000 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+            group {
+                name    "folder1_2"
+                label   "Feature Matching"
+                tabbreak
+
+                parm {
+                    name    "dsc_type2"
+                    label   "Describer Types"
+                    type    string
+                    default { "sift" }
+                    help    "Describer types used to describe an image."
+                    menutoggle {
+                        "sift"          "sift"
+                        "sift_float"    "sift_float"
+                        "sift_upright"  "sift_upright"
+                        "akaze"         "akaze"
+                        "akaze_liop"    "akaze_liop"
+                        "akaze_midb"    "akaze_midb"
+                        "cctag3"        "cctag3"
+                        "cctag4"        "cctag4"
+                        "sift_ocv"      "sift_ocv"
+                        "akaze_ocv"     "akaze_ocv"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "guide"
+                    label   "Guided Matching"
+                    type    toggle
+                    default { "off" }
+                    help    "The found model to improvise the pairwise correspondences."
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder7"
+                    label   "Advanced"
+
+                    parm {
+                        name    "photo"
+                        label   "Photometric Matching Method"
+                        type    string
+                        default { "ANN_L2" }
+                        help    "For scalar based regions descriptor: \\n*BRUTE_FORCE_L2: L2 BruteForce Matching \\n*ANN_L2: L2 approximate nearest neighbor matching \\n*CASCADE_HASHING_L2: L2 Cascade Hasing matching \\n*FAST_CASCADE_HASHING_L2: L2 Cascade Hasing with precomputed hashed regions (faster than CASCADE_HASHING_L2 but uses more memory) \\nFor binary based descriptor: \\n*BRUTE_FORCE_HAMMING: BruteForce Hamming matching"
+                        menu {
+                            "BRUTE_FORCE_L2"            "BRUTE_FORCE_L2"
+                            "ANN_L2"                    "ANN_L2"
+                            "CASCADE_HASHING_L2"        "CASCADE_HASHING_L2"
+                            "FAST_CASCADE_HASHING_L2"   "FAST_CASCADE_HASHING_L2"
+                            "BRUTE_FORCE_HAMMING"       "BRUTE_FORCE_HAMMING"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "geoEst"
+                        label   "Geometric Estimator"
+                        type    string
+                        default { "acransac" }
+                        help    "Geometric estimator: (acransac: A-Contrario Ransac, loransac: LO-Ransac (only available for \"fundamental_matrix\" model))"
+                        menu {
+                            "acransac"  "acransac"
+                            "loransac"  "loransac"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "geoFilter"
+                        label   "Geometric Filter type"
+                        type    string
+                        default { "fundamental_matrix" }
+                        help    "Geometric validation method to filter features matches: \\n*fundamental_matrix \\n*essential_matrix \\n*homography_matrix \\n*homography_growing \\n*no_filtering"
+                        menu {
+                            "fundamental_matrix"    "fundamental_matrix"
+                            "essential_matrix"      "essential_matrix"
+                            "homography_matrix"     "homography_matrix"
+                            "homography_growing"    "homography_growing"
+                            "no_filtering"          "no_filtering"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "dist"
+                        label   "Distance Ratio"
+                        type    float
+                        default { "0.8" }
+                        help    "Distance ratio to discard non meaningful matches."
+                        range   { 0 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxIter"
+                        label   "Max Iteration"
+                        type    integer
+                        default { "2048" }
+                        help    "Maximum number of iterations allowed in ransac step."
+                        range   { 1 20000 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "geometricError"
+                        label   "Geometric Validation Error"
+                        type    integer
+                        default { [ "off" hscript-expr ] }
+                        range   { 0 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "knownPosesGeometricErrorMax"
+                        label   "Known Poses Geometric Error Max"
+                        type    integer
+                        default { "4" }
+                        help    "Maximum number of iterations allowed in ransac step."
+                        range   { 1 20000 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxMatch"
+                        label   "Max Matches"
+                        type    integer
+                        default { "0" }
+                        help    "Maximum number of matches to keep."
+                        range   { 0 10000 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "savePut"
+                        label   "Save Putative Matches"
+                        type    toggle
+                        default { "off" }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "matchFilePerImage"
+                        label   "Match File Per Image"
+                        type    toggle
+                        default { "off" }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "useGridSort"
+                        label   "Use Grid Sort"
+                        type    toggle
+                        default { "on" }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "expDebug"
+                        label   "Export Debug Files"
+                        type    toggle
+                        default { "off" }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder9"
+            label   "SfM"
+
+            group {
+                name    "folder10"
+                label   "Structure from Motion"
+
+                parm {
+                    name    "dsc_type3"
+                    label   "Describer Types"
+                    type    string
+                    default { "sift" }
+                    help    "Describer types used to describe an image."
+                    menutoggle {
+                        "sift"          "sift"
+                        "sift_float"    "sift_float"
+                        "sift_upright"  "sift_upright"
+                        "akaze"         "akaze"
+                        "akaze_liop"    "akaze_liop"
+                        "akaze_midb"    "akaze_midb"
+                        "cctag3"        "cctag3"
+                        "cctag4"        "cctag4"
+                        "sift_ocv"      "sift_ocv"
+                        "akaze_ocv"     "akaze_ocv"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "lock"
+                    label   "Lock Scene Previously Reconstructed"
+                    type    toggle
+                    default { "off" }
+                    help    "This option is useful for SfM augmentation. Lock previous reconstructed poses and intrinsics."
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "local"
+                    label   "Local Bundle Adjustment"
+                    type    toggle
+                    default { "on" }
+                    help    "Reduces the reconstruction time, especially for large datasets (500+ images), by avoiding computation of the Bundle Adjustment on areas that are not changing."
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "maxN"
+                    label   "Max Num of Matches"
+                    type    integer
+                    default { "0" }
+                    help    "Maximum number of matches per image pair (and per feature type). This can be useful to have a quick reconstruction overview. A value of 0 is no limit."
+                    range   { 0 50000 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "minNumberOfMatches"
+                    label   "Min Num of Matches"
+                    type    integer
+                    default { "0" }
+                    help    "Maximum number of matches per image pair (and per feature type). This can be useful to have a quick reconstruction overview. A value of 0 is no limit."
+                    range   { 0! 50000 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "minInput"
+                    label   "Min Input Track Length"
+                    type    integer
+                    default { "2" }
+                    help    "Minimum track length in input of SfM."
+                    range   { 2 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "lockAllIntrinsics"
+                    label   "Force Lock of All Intrinsic Camera Parameters"
+                    type    toggle
+                    default { "off" }
+                    help    "Force to keep constant all the intrinsics parameters of the cameras (focal length, \\n'                         'principal point, distortion if any) during the reconstruction.\\n'                         'This may be helpful if the input cameras are already fully calibrated"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "filterTrackForks"
+                    label   "Filter Track Forks"
+                    type    toggle
+                    default { "off" }
+                    help    "This option is useful for SfM augmentation. Lock previous reconstructed poses and intrinsics."
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder11"
+                    label   "Advanced"
+
+                    parm {
+                        name    "locl_es"
+                        label   "Localizer Estimator"
+                        type    string
+                        default { "acransac" }
+                        help    "Estimator type used to localize cameras (acransac, ransac, lsmeds, loransac, maxconsensus)."
+                        menu {
+                            "acransac"      "acransac"
+                            "ransac"        "ransac"
+                            "lsmeds"        "lsmeds"
+                            "loransac"      "loransac"
+                            "maxconsensus"  "maxconsensus"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "localizerEstimatorMaxIterations"
+                        label   "Localizer Max Ransac Iterations"
+                        type    integer
+                        default { "4096" }
+                        help    "Maximum number of iterations allowed in ransac step."
+                        range   { 1! 20000! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "localizerEstimatorError"
+                        label   "Localizer Estimator Error"
+                        type    float
+                        default { "0" }
+                        help    "Maximum error (in pixels) allowed for camera localization (resectioning).\\n'                         'If set to 0, it will select a threshold according to the localizer estimator used\\n'                         '(if ACRansac, it will analyze the input data to select the optimal value)."
+                        range   { 0! 100! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "ba"
+                        label   "LocalBA Graph Distance"
+                        type    integer
+                        default { "1" }
+                        help    "Graph-distance limit to define the active region in the Local Bundle Adjustment strategy."
+                        range   { 1 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "minTri"
+                        label   "Min Observation for Triangulation"
+                        type    integer
+                        default { "2" }
+                        help    "Minimum number of observations to triangulate a point. Setting to 3 (or more) drastically reduces the noise in the point cloud, but the number of final poses is reduced."
+                        range   { 2 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "minAngle"
+                        label   "Min Angle for Triangulation"
+                        type    float
+                        default { "3" }
+                        range   { 0.1 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "minLandmark"
+                        label   "Min Angle for Landmark"
+                        type    float
+                        default { "2" }
+                        range   { 0.1 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxReprEr"
+                        label   "Max Reprojection Error"
+                        type    float
+                        default { "4" }
+                        range   { 0.1 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxAngInit"
+                        label   "Max Angle Initial Pair"
+                        type    float
+                        default { "40" }
+                        range   { 0.1 60 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "minAngInit"
+                        label   "Min Angle Initial Pair"
+                        type    float
+                        default { "5" }
+                        range   { 0.1 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "useInputMatches"
+                        label   "Use Only Inputfolder Matches"
+                        type    toggle
+                        default { "on" }
+                        help    " Use only matches from the input                                          matchesFolder parameter.                                         Matches folders previously added to the                                         SfMData file will be ignored."
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "useRigConstraint"
+                        label   "Use Rig Constraint"
+                        type    toggle
+                        default { "on" }
+                        help    "Enable/Disable rig constraint"
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "fileExt"
+                        label   "Inter File Extension"
+                        type    string
+                        default { ".abc" }
+                        menu {
+                            ".abc"  ".abc"
+                            ".ply"  ".ply"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+            group {
+                name    "folder10_1"
+                label   "Prepare Dense Scene"
+                tabbreak
+
+                groupcollapsible {
+                    name    "folder13"
+                    label   "Advanced"
+
+                    parm {
+                        name    "outputFileType"
+                        label   "Output File Type"
+                        type    string
+                        default { "exr" }
+                        help    "Output file type for the undistorted images."
+                        menu {
+                            "jpg"   "jpg"
+                            "png"   "png"
+                            "tif"   "tif"
+                            "exr"   "exr"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "saveMetadata"
+                        label   "Save Metadata"
+                        type    toggle
+                        default { "on" }
+                        help    "Save projections and intrinsics information in images metadata (only for .exr images)."
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "saveMatricesTxtFiles"
+                        label   "Save Matrices Text Files"
+                        type    toggle
+                        default { "off" }
+                        help    "Save projections and intrinsics information in text files."
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "evCorrection"
+                        label   "Correct images exposure"
+                        type    toggle
+                        default { "off" }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder14"
+            label   "Depth Map"
+
+            group {
+                name    "folder15"
+                label   "Depth Map"
+
+                parm {
+                    name    "down"
+                    label   "Downscale"
+                    type    integer
+                    default { "2" }
+                    help    "Image downscale factor."
+                    menu {
+                        "1"     "1"
+                        "2"     "2"
+                        "4"     "4"
+                        "8"     "8"
+                        "16"    "16"
+                    }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder16"
+                    label   "Advanced"
+
+                    parm {
+                        name    "minViewAngle"
+                        label   "Min View Angle"
+                        type    float
+                        default { "2" }
+                        help    "Minimum angle between two views"
+                        range   { 0! 10! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxViewAngle"
+                        label   "Max View Angle"
+                        type    float
+                        default { "70" }
+                        help    "Maximum angle between two views"
+                        range   { 10! 120! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sNumCam"
+                        label   "SGM: Num Neighbor Cameras"
+                        type    integer
+                        default { "10" }
+                        help    "Semi Global Matching: number of neighbor cameras"
+                        range   { 1 100 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sWSH"
+                        label   "SGM: WSH"
+                        type    integer
+                        default { "4" }
+                        help    "Semi Global Matching: Half-size of the patch used to compute similarity."
+                        range   { 1 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sGamC"
+                        label   "SGM: GammaC"
+                        type    float
+                        default { "5.5" }
+                        help    "Semi Global Matching: GammaC threshold."
+                        range   { 0 30 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "export_disable" "1" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sGamP"
+                        label   "SGM: GammaP"
+                        type    float
+                        default { "5.5" }
+                        help    "Semi Global Matching: GammaP threshold."
+                        range   { 0 30 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rNumCam"
+                        label   "Refine: Num Neighbor Cameras"
+                        type    integer
+                        default { "3" }
+                        help    "Refine: Number of neighbor cameras"
+                        range   { 1 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rNumSamp"
+                        label   "Refine: Num of Samples"
+                        type    integer
+                        default { "150" }
+                        range   { 1 500 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rNumDepth"
+                        label   "Refine: Num of Depths"
+                        type    integer
+                        default { "30" }
+                        range   { 1 100 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rNumIter"
+                        label   "Refine: Num of Iterations"
+                        type    integer
+                        default { "100" }
+                        range   { 1 500 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rWSH"
+                        label   "Refine: WSH"
+                        type    integer
+                        default { "3" }
+                        help    "Refine: Half-size of the patch used to compute similarity."
+                        range   { 1 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rSigma"
+                        label   "Refine: Sigma"
+                        type    float
+                        default { "15" }
+                        help    "Refine: Sigma threshold"
+                        range   { 0 30 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rGamC"
+                        label   "Refine: GammaC"
+                        type    float
+                        default { "15.5" }
+                        help    "Refine: GammaC threshold"
+                        range   { 0 30 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rGamP"
+                        label   "Refine: GammaP"
+                        type    float
+                        default { "8" }
+                        help    "Refine: GammaP threshold"
+                        range   { 0 30 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rTcRc"
+                        label   "Refine: Tc or Rc Pixel Size"
+                        type    toggle
+                        default { "off" }
+                        help    "Refine: use minimum pixel size of neighbor cameras (Tc) or current camera pixel size (Rc)"
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "exportIntermediateResults"
+                        label   "Export Intermediate Results"
+                        type    toggle
+                        default { "off" }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "nbGPUs"
+                        label   "Number of GPUs"
+                        type    integer
+                        default { "0" }
+                        help    "Number of GPUs to use (0 means use all available GPUs)."
+                        range   { 0! 5! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+            group {
+                name    "folder15_1"
+                label   "Depth Map Filter"
+                tabbreak
+
+                parm {
+                    name    "minCon"
+                    label   "Min Consistent Cameras"
+                    type    integer
+                    default { "3" }
+                    help    "Minimum number of consistent cameras to consider the pixel."
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "minConBad"
+                    label   "Min Consistent Cameras Bad Similarity"
+                    type    integer
+                    default { "4" }
+                    help    "Minimum number of consistent cameras for pixels with weak similarity value."
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder18"
+                    label   "Advanced"
+
+                    parm {
+                        name    "minViewAngle2"
+                        label   "Min View Angle"
+                        type    float
+                        default { "2" }
+                        help    "Minimum angle between two views"
+                        range   { 0! 10! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxViewAngle2"
+                        label   "Max View Angle"
+                        type    float
+                        default { "70" }
+                        help    "Maximum angle between two views"
+                        range   { 10! 120! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "numCam"
+                        label   "Number of Nearest Cameras"
+                        type    integer
+                        default { "10" }
+                        help    "Nearest cameras used for filtering."
+                        range   { 0 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "filter"
+                        label   "Filtering Size in Pixels"
+                        type    integer
+                        default { "0" }
+                        range   { 0 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "filterBad"
+                        label   "Filtering Size in Pixels Bad Similarity"
+                        type    integer
+                        default { "0" }
+                        range   { 0 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "computeNormalMaps"
+                        label   "Compute Normal Maps"
+                        type    toggle
+                        default { "off" }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder19"
+            label   "Meshing"
+
+            group {
+                name    "folder20"
+                label   "Meshing"
+
+                parm {
+                    name    "estimateSpaceMinObservationAngle"
+                    label   "Min Observations Angle For SfM Space Estimation"
+                    type    integer
+                    default { "10" }
+                    help    "Minimum angle between two observations for SfM space estimation"
+                    range   { 0! 120! }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "maxInpt"
+                    label   "Max Input Points"
+                    type    integer
+                    default { "5e+07" }
+                    help    "Max input points loaded from depth map images."
+                    range   { 500000 5e+08 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "maxPts"
+                    label   "Max Points"
+                    type    integer
+                    default { "5e+06" }
+                    help    "Max points at the end of the depth maps fusion."
+                    range   { 100000 1e+07 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "colorizeOutput"
+                    label   "Vertex Colors"
+                    type    toggle
+                    default { "on" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder21"
+                    label   "Advanced"
+
+                    parm {
+                        name    "estimateSpaceFromSfM"
+                        label   "Estimate Space From SfM"
+                        type    toggle
+                        default { "on" }
+                        help    "Estimate the 3d space from the SfM"
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "estimateSpaceMinObservations"
+                        label   "Min Observations For SfM Space Estimation"
+                        type    integer
+                        default { "3" }
+                        help    "Minimum number of observations for SfM space estimation."
+                        range   { 0! 100! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "maxPtsVox"
+                        label   "Max Points per Voxel"
+                        type    integer
+                        default { "1e+06" }
+                        range   { 500000 3e+07 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "minStep"
+                        label   "Min Step"
+                        type    integer
+                        default { "2" }
+                        help    "This step is used for loading depth values from depth maps, computed from maxInputPts. Min step defines the minimal value for the step. Saves time on small data sets by not spending much time loading all depth values."
+                        range   { 1 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "part"
+                        label   "Partitioning"
+                        type    string
+                        default { "singleBlock" }
+                        menu {
+                            "singleBlock"   "singleBlock"
+                            "auto"          "auto"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rePart"
+                        label   "Repartition"
+                        type    string
+                        default { "multiResolution" }
+                        menu {
+                            "multiResolution"   "multiResolution"
+                            "regularGrid"       "regularGrid"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "angle"
+                        label   "Angle Factor"
+                        type    integer
+                        default { "15" }
+                        range   { 0 200 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sim"
+                        label   "Sim Factor"
+                        type    integer
+                        default { "15" }
+                        range   { 0 200 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "pixInit"
+                        label   "pixSizeMarginInitCoef"
+                        type    float
+                        default { "2" }
+                        range   { 0 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "pixFinal"
+                        label   "pixSizeMarginFinalCoef"
+                        type    float
+                        default { "4" }
+                        range   { 0 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "vote"
+                        label   "voteMarginFactor"
+                        type    float
+                        default { "4" }
+                        range   { 0.1 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "contrib"
+                        label   "contributeMarginFactor"
+                        type    float
+                        default { "2" }
+                        range   { 0.1 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "simGaussInit"
+                        label   "simGaussianSizeInit"
+                        type    float
+                        default { "10" }
+                        range   { 0 50 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "simGaussSize"
+                        label   "simGaussianSize"
+                        type    float
+                        default { "10" }
+                        range   { 0 50 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "minThresh"
+                        label   "minAngleThreshold"
+                        type    float
+                        default { "1" }
+                        range   { 0 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "rFuse"
+                        label   "Refine Fuse"
+                        type    toggle
+                        default { "on" }
+                        help    "Refine depth map fusion with the new pixels size, defined by angle and similarity scores."
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "addLandmarksToTheDensePointCloud"
+                        label   "Add Landmarks To The Dense Point Cloud"
+                        type    toggle
+                        default { "off" }
+                        help    "Add SfM Landmarks to the dense point cloud"
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "seed"
+                        label   "Seed"
+                        type    integer
+                        default { "1" }
+                        help    "This step is used for loading depth values from depth maps, computed from maxInputPts. Min step defines the minimal value for the step. Saves time on small data sets by not spending much time loading all depth values."
+                        range   { 1 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "forceTEdgeDelta"
+                        label   "Min Step"
+                        type    float
+                        default { "0.1" }
+                        help    "This step is used for loading depth values from depth maps, computed from maxInputPts. Min step defines the minimal value for the step. Saves time on small data sets by not spending much time loading all depth values."
+                        range   { 0.01! 0.2 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "universePercentile"
+                        label   "Universe Percentile"
+                        type    float
+                        default { "0.999" }
+                        help    "This step is used for loading depth values from depth maps, computed from maxInputPts. Min step defines the minimal value for the step. Saves time on small data sets by not spending much time loading all depth values."
+                        range   { 0.01! 0.2 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+            group {
+                name    "folder20_1"
+                label   "Mesh Filtering"
+                tabbreak
+
+                parm {
+                    name    "filterTri"
+                    label   "Filter Large Triangles Factor"
+                    type    float
+                    default { "60" }
+                    help    "Removes all large triangles. A large triangle has one edge bigger than N times the average edge length. A value of 0 disables this."
+                    range   { 1 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "keepLrg"
+                    label   "Keep Only the Largest Mesh"
+                    type    toggle
+                    default { "on" }
+                    help    "Keep only the largest connected triangles group."
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "numIter"
+                    label   "Smoothing Iterations"
+                    type    integer
+                    default { "5" }
+                    range   { 0 50 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder23"
+                    label   "Advanced"
+
+                    parm {
+                        name    "lambda"
+                        label   "Lambda"
+                        type    float
+                        default { "1" }
+                        range   { 0 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder24"
+            label   "Texturing"
+
+            parm {
+                name    "side"
+                label   "Texture Side"
+                type    integer
+                default { "8192" }
+                help    "Output texture size."
+                menu {
+                    "1024"  "1024"
+                    "2048"  "2048"
+                    "4096"  "4096"
+                    "8192"  "8192"
+                    "16384" "16384"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "down2"
+                label   "Texture Downscale"
+                type    integer
+                default { "1" }
+                help    "Texture downscale factor."
+                menu {
+                    "1" "1"
+                    "2" "2"
+                    "4" "4"
+                    "8" "8"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "file"
+                label   "Texture File Type"
+                type    string
+                default { "png" }
+                menu {
+                    "jpg"   "jpg"
+                    "png"   "png"
+                    "tiff"  "tiff"
+                    "exr"   "exr"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "unwrap"
+                label   "Unwrap Method"
+                type    string
+                default { "Basic" }
+                help    "Method to unwrap input mesh if it does not have UV coordinates. \\n*Basic (> 600k faces): fast and simple. Can generate multiple atlases. \\n*LSCM (<= 600k faces): optimize space. Generates one atlas. \\n*ABF (<=300k faces): optimize space and stretch. Generates one atlas."
+                menu {
+                    "Basic" "Basic"
+                    "LSCM"  "LSCM"
+                    "ABF"   "ABF"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "holes"
+                label   "Fill Holes"
+                type    toggle
+                default { "on" }
+                help    "Fill texture holes with plausible values."
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "flipN"
+                label   "Flip Normals"
+                type    toggle
+                default { "off" }
+                help    "Option to flip face normals. "
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "useUDIM"
+                label   "Use UDIM UVs"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupcollapsible {
+                name    "folder26"
+                label   "Advanced"
+
+                parm {
+                    name    "pad"
+                    label   "Padding"
+                    type    integer
+                    default { "15" }
+                    help    "Texture edge padding size in pixels."
+                    range   { 0 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "score"
+                    label   "Best Score Threshold"
+                    type    float
+                    default { "0" }
+                    help    "Value of 0 disables filtering. Based on threshold to relative best score"
+                    range   { 0 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "angle2"
+                    label   "Angle Hard Threshold"
+                    type    float
+                    default { "90" }
+                    help    "Value of 0 disables filtering."
+                    range   { 0 180 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "force"
+                    label   "Force Visible By All Vertices"
+                    type    toggle
+                    default { "off" }
+                    help    "Triangle visibility is based on the union of vertices visibility."
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "visRemap"
+                    label   "Visibility Remapping Method"
+                    type    string
+                    default { "PullPush" }
+                    help    "Method to remap visibilities from the reconstruction to the input mesh."
+                    menu {
+                        "Pull"      "Pull"
+                        "Push"      "Push"
+                        "PullPush"  "PullPush"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "bCustomImages"
+                    label   "Use Custom Images for Texturing"
+                    type    toggle
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "customTextureImages"
+                    label   "Custom Texturing Images"
+                    type    directory
+                    default { "" }
+                    disablewhen "{ bCustomImages == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "correctEV"
+                    label   "Correct Exposure"
+                    type    toggle
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "useScore"
+                    label   "Use Score"
+                    type    toggle
+                    default { "on" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "processColorspace"
+                    label   "Process Colorspace"
+                    type    string
+                    default { "sRGB" }
+                    menu {
+                        "sRGB"  "sRGB"
+                        "LAB"   "LAB"
+                        "XYZ"   "XYZ"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "multiBandDownscale"
+                    label   "Multi Band Downscale"
+                    type    integer
+                    default { "4" }
+                    range   { 0! 8 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            parm {
+                name    "maxImg"
+                label   "maxImg"
+                type    float
+                default { "3" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0"
+        label   "Reloading"
+
+        parm {
+            name    "reload"
+            label   "Dense Pointcloud"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "reload2"
+            label   "Scan Geometry"
+            type    button
+            default { "0" }
+            disablewhen "{ mColorMode == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "reload3"
+            label   "Textured Geometry"
+            type    button
+            default { "0" }
+            disablewhen "{ mColorMode == 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
