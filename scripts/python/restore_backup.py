@@ -4,7 +4,7 @@
 ## Modified & Added to toolset by: Paul Ambrosiussen
 
 import hou
-import glob, os, re
+import glob, os, re, shutil
 from stat import ST_MTIME
 from datetime import datetime
 
@@ -68,7 +68,7 @@ def recoverFile():
     
     prefix, ext = os.path.splitext(destPath)
     newDest = prefix + '_recovered' + ext
-    os.rename(bakPath, newDest)
+    shutil.move(bakPath, newDest)
     
     #if hou.ui.displayMessage('Do you want to open the file?', ('Yes', 'Cancel'), close_choice=1) == 0:
     hou.hipFile.load(newDest)
