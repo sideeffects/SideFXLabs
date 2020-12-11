@@ -1,0 +1,359 @@
+= Labs Tree Branch Generator =
+
+#type: node
+#context: sop
+#internal: labs::tree_branch_generator::1.0
+#icon: tree_branch_generator
+#tags: sidefxlabs, model
+
+""" Generates tree branches """
+
+The Tree Branch Generator generates tree branches on a trunk created with the Tree Trunk Generator
+or on other branches created with the Tree Branch Generator or Tree Branch Placer.
+
+@parameters
+    == Global ==
+    Tag:
+        Creates an attribute and group for the branches geometry/curve under this name (node name by default)
+    Branch on Group:
+        Generate branches on a specific curve group. If blank, branches are generated on curves of the previous branch level
+    Delete Previous Levels:
+        Delete geometry and curves from all previous branch levels
+    Override Branch Level:
+        Manually set branch level of generated branches
+    Branch Level:
+        Manually set branch level of generated branches
+    Randomize:
+        Random seed value
+    == General ==
+    Mode:
+        Method of generating branches
+        * Place - copies lines onto branch points
+        * Grow - uses space colonization to grow lines from branch points
+    === Placement ===
+    Placement Mode:
+        Methods of placing branches
+        * Scatter - randomly scatter branches on their parent
+        * Edge length - place branches on their parent by parent length
+    Randomize Node Amount:
+        Randomize branch amount per parent within a range
+    Branch nodes:
+        Number of branches per parent
+    Min Branch Nodes:
+        Available if randomize branch amount is enabled. Minimum number of random branches per parent
+    Max Branch Nodes:
+        Available if randomize branch amount is enabled. Maximum number of random branches per parent
+    Length Scale:
+        Length between branch points on edge length branch mode
+    Use Distribution Ramp:
+        Available if using edge length branch mode. Distribute points with a ramp based on attributes
+    Distribute By:
+        Available if using edge length branch mode. Select attribute by which to distribute points if using distribution ramp
+        * Length of parent
+        * Radius of parent
+        * Height of parent
+    Distribution Ramp:
+        Available if using edge length branch mode. Adjust branch point density based on selected attribute
+    Up Vector:
+        The vector by which to orient the created branches
+        * None - no specific orientation
+        * Parent - orient by tangentu of parent
+        * Custom - orient by custom vector
+    Custom Up:
+        Available if using custom up vector. Orient branches by this vector
+    Branching Pattern:
+        Rotation around parent at which to create new branch points
+        * 137.5 degrees
+        * 90 degrees
+        * 180 degrees
+        Type of branching from branch points
+        * Alternate - one branch per branch point
+        * Opposite - two branches per branch point (mirrored)
+        * Radial - set amount of branches per branch point in radial pattern
+    Angle Variation:
+        Random angle variation of branch pattern angle
+    Randomize Branches Per Node:
+        Available if using radial branch pattern. Randomize number of radial branches per node
+    Branches per node:
+        Available if using radial branch pattern. Number of radial branches per node
+    Min Branches Per Node:
+        Available if using radial branch pattern and random branches per node. Minimum number of radial branches per node
+    Max Branches Per Node:
+        Available if using radial branch pattern and random branches per node. Maximum number of radial branches per node
+    Branching Angle:
+        Angle perpendicular to parent at which the branch is placed
+    Angle Variation:
+        Random angle variation of branching angle
+    Roll:
+        Rotate all branches around parent
+    Randomize Roll:
+        Random roll amount per parent
+    Use Angle Ramp:
+        Allows use of an angle ramp to adjust branching angle over length of parent
+    Angle Ramp:
+        Adjust branching angle over length of parent
+    ==== Remap Angle Ramp ====
+    Min:
+        Remap angle ramp minimum (default 0) to new minimum
+    Max:
+        Remap angle ramp maximum (default 1) to new maximum
+    Length:
+        Length of branch
+    Length Variation:
+        Random variation of branch length
+    Length Ramp:
+        Controls placement and length of branches along parent
+    Inherit Parent Length:
+        Length of parent influences length of generated branch
+    Inherited Length Profile:
+        Adjust influence of parent length on generated branches along parent
+    === Growth ===
+    Growth Bounds Object:
+        Input an object in which to scatter points that act as attraction points for the growth simulation
+    Volume Resolution:
+        Voxel Resolution of input object fog volume
+    Points Density:
+        Density of attraction points in volume
+    Iterations:
+        Growth simulation iterations
+    Branch Start:
+        Number of iterations before branching
+    Search Radius:
+        Distance from branch points to search for attraction points
+    Node Radius:
+        Distance to grow branch per iteration
+    Kill Radius:
+        Distance around branch points that attraction points are removed
+    Normal Strength:
+        Amount of influence the initial branch point direction has on overall growth direction
+    Noise Strength:
+        Amount of influence curl noise has on overall growth direction
+    Gravity Strength:
+        Amount of influence gravity direction has on overall growth direction
+    Gravity Direction:
+        Direction of gravity force
+    Force Strength:
+        Amount of influence external force direction has on overall growth direction
+    Force Direction:
+        Direction of external force
+    Near Branch Tolerance:
+        Threshold of branches in close proximity to remove
+    Angle Tolerance:
+        Threshold of branches similar to previous angle to remove
+    Small Branch Tolerance:
+        Threshold of branches to remove based on length
+    Max Simultaneous Branches:
+        Maximum branches that can branch from a single branch point
+    Smooth Amount:
+        Amount to smooth grown branches
+    Smooth Detail:
+        Amount of detail to keep from smoothed branches
+    === Radius ===
+    Falloff Ramp:
+        Falloff of radius along generated branch
+    Radius Adjust:
+        Adjust radius inherited from parent
+    Override Inherited Radius:
+        Set radius explicitly instead of inheriting along parent
+    Radius:
+        Available if overriding inherited radius. Set branch radius
+    Radius Ramp:
+        Available if overriding inherited radius. Adjust branch radius along parent
+    === Prune ===
+    Random Threshold:
+        Randomly delete branches
+    Manual Prune:
+        Manually select branches to remove
+    ==== By Initial Angle ====
+    Upward Facing Angle:
+        Angle from upwards Y axis to start removing branch points (based on initial branch angle)
+    Downward Facing Angle:
+        Angle from downwards Y axis to start removing branch points (based on initial branch angle)
+    Directional Angle:
+        Angle from specified axis to start removing branch points (based on initial branch angle)
+    Direction:
+        Axis for directional angle
+    ==== By End Angle ====
+    Upward Facing Angle:
+        Angle from upwards Y axis to start removing branch points (based on final branch direction)
+    Downward Facing Angle:
+        Angle from downwards Y axis to start removing branch points (based on final branch direction)
+    Directional Angle:
+        Angle from specified axis to start removing branch points (based on final branch direction)
+    Direction:
+        Axis for directional angle
+    === Advanced ===
+    Detangle:
+        Detangle branches to minimize collisions
+    Grid Behavior:
+        Options for how branches intersecting with the grid plane will be handled
+        * Constrain - snap branches along grid
+        * Clip - delete branch sections beneath grid
+        * None - do nothing when branches intersect with grid
+    Ray Points to Surface:
+        Snap branch points to the edge of their parent rather than the center
+    == Tropism ==
+    Override Tropism:
+        Override tropism parameters from control node
+    === Bend Along Parent ===
+    Bends the branch along the axis of its parent branch
+    Enable:
+        Enable bend along parent
+    Strength:
+        Amount to bend the branch along its parent
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    === Gravitropism ===
+    Bends the branch along the axis of the specified direction to simulate gravity
+    Enable:
+        Enable gravitropism
+    Direction:
+        Direction of gravity
+    Strength:
+        Amount to bend the branch by gravity
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    === Phototropism ===
+    Bends the branch along the axis of the specified direction to simulate growth towards light
+    Enable:
+        Enable phototropism
+    Direction:
+        Direction of light
+    Strength:
+        Amount to bend the branch towards light
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    === Thigmotropism ===
+    Bends and moves the branch to avoid and/or wrap around the input object
+    Enable:
+        Enable thigmotropism
+    Object:
+        Input object for the branch to react to
+    Strength:
+        Amount to bend the branch around the input object
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    == Noise ==
+    === Line Noise ===
+    Override Line Noise:
+        Override line noise parameters from control node
+    Enable:
+        Enable line noise
+    Intensity Ramp:
+        Adjusts noise amplitude along the length of the branch
+    ==== Primary ====
+    """ Curl Noise """
+    Noise Type:
+        Type of curl noise
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Step Size:
+        Noise resolution
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    ==== Secondary ====
+    """ Anti-Aliased Noise """
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    === Mesh Noise ===
+    """ Turbulent Noise """
+    Override Mesh Noise:
+        Override mesh noise parameters from control node
+    Enable:
+        Enable mesh noise
+    Type:
+        Type of turbulent noise
+    Frequency:
+        Amount of noise repetitions
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    Intensity:
+        Noise amplitude
+    Multiply Intensity by Radius:
+        Multiplies the noise amplitude by the branch radius
+    Intensity Ramp:
+        Adjusts noise amplitude along the length of the branch
+    == Meshing ==
+    Override Meshing:
+        Override meshing parameters from control node
+    Custom Branch Profile:
+        Input a profile or flat geometry to sweep along branch instead of the default tube. Please center and orient to the XY plane
+    === Intersections ===
+    Intersection Behavior:
+        Options for how branch intersections are handled
+        * None - branch is stuck in parent with no intersection handling
+        * Boolean + Normal Blending - parent is subtracted from branch creating a flush intersection and the normals around the intersection are blended creating a seamless transition
+        * Normal Blending - the normals around the intersection are blended creating a seamless transition
+    Smooth Amount:
+        Available when using Boolean + Normal Blending. Amount to smooth the intersection geometry
+    Blend Falloff:
+        Available when using Normal Blending. Falloff of the normal blend
+    === UV Blending ===
+    Creates a second UV set that inherits the UVs from the parent and adds vertex color around branch intersections to use to blend the UV sets
+    Watch [this tutorial|https://www.youtube.com/watch?v=4max8Tdj15k] by Simon Verstraete for more information about this workflow
+    Enable UV Blending:
+        Enable UV Blending
+    Blend Distance:
+        Distance along branch to stretch vertex color
+    Blend Falloff:
+        Amount to blur vertex color
+    === End Caps ===
+    End Cap Type:
+        Type of end cap geometry
+    Cap Divisions:
+        Amount of divisions around end cap
+    Triangular Poles:
+        If enabled, connects all points at end cap pole
+    End Cap Scale:
+        Amount of end cap bulge: 0 = flat, 1 = half sphere
+    End Cap Roundness:
+        Amount of round or linear falloff to end cap bulge
+    == Resolution ==
+    Override Resolution:
+        Override resolution parameters from control node
+    Resolution:
+        Density of horizontal cross sections on geometry
+    Refinement Amount:
+        Threshold to reduce amount of resolution on straight geometry
+    Divisions:
+        Density of vertical cross sections on geometry
+    == Displacement ==
+    Override Displacement:
+        Override displacement parameters from control node
+    Enable Displacement:
+        Enable displacement
+    Displacement Texture:
+        Displacement map
+    Displacement Intensity:
+        Displacement amplitude
+    Subdivision Amount:
+        Amount to subdivide geometry before displacement
+    Reduce Resolution:
+        Enable poly reduction after displacement
+    Polygon Count:
+        Polygon target for poly reduction
+    Tolerance:
+        Poly reduction tolerance to further reduce poly count
+    == Visualization ==
+    Override visualization:
+        Override visualization parameters from control node
+    Enable Visualization Color:
+        Enable color visualization
+    Color:
+        Set visualization color

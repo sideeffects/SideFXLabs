@@ -1,0 +1,1385 @@
+# Dialog script for labs::tree_trunk_generator::1.0 automatically generated
+
+{
+    name	labs::tree_trunk_generator::1.0
+    script	labs::tree_trunk_generator::1.0
+    label	"Labs Tree Trunk Generator"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Drawn Curve Input (Optional)"
+    inputlabel	2	"Tree Controller Input (Recommended)"
+    outputlabel	1	"Mesh Output"
+    outputlabel	2	"Curve Output"
+
+    parm {
+        name    "check_input"
+        label   "Check Input"
+        type    integer
+        invisible
+        default { "strcmp(opinputpath(\".\", 0),\"\")" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "tag"
+        label   "Tag"
+        type    string
+        default { "$OS" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm4"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "seed"
+        label   "Randomize"
+        type    integer
+        default { "0" }
+        disablewhen "{ cull_length_rand_toggle == 0 line_noise_rand == 0 mesh_noise_rand == 0 }"
+        range   { 0 100 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "mat_override"
+        label   "Global Material Override"
+        type    toggle
+        invisible
+        default { "0" }
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm5"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    group {
+        name    "folder1"
+        label   "General"
+
+        parm {
+            name    "toggle_center"
+            label   "Snap To Center"
+            type    toggle
+            default { "1" }
+            disablewhen "{ check_input == 0 }"
+            hidewhen "{ check_input == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "cull_length_rand_toggle"
+            label   "Randomize Length"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "trunk_length"
+            label   "Length"
+            type    float
+            default { "10" }
+            disablewhen "{ check_input == 1 } { cull_length_rand_toggle == 1 }"
+            hidewhen "{ check_input == 1 } { cull_length_rand_toggle == 1 }"
+            range   { 0.01! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "length_main_rand_min"
+            label   "Min Length"
+            type    float
+            joinnext
+            default { "5" }
+            disablewhen "{ check_input == 1 } { cull_length_rand_toggle == 0 }"
+            hidewhen "{ check_input == 1 } { cull_length_rand_toggle == 0 }"
+            range   { 0.01! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "length_main_rand_max"
+            label   "Max Length"
+            type    float
+            default { "10" }
+            disablewhen "{ check_input == 1 } { cull_length_rand_toggle == 0 }"
+            hidewhen "{ check_input == 1 } { cull_length_rand_toggle == 0 }"
+            range   { 0.01! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cull_length"
+            label   "Cull Length"
+            type    float
+            invisible
+            default { "1" }
+            disablewhen "{ check_input == 0 } { cull_length_rand_toggle == 1 }"
+            hidewhen "{ check_input == 0 } { cull_length_rand_toggle == 1 }"
+            range   { 0.01! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "length_rand_min"
+            label   "Min Length Variation"
+            type    float
+            invisible
+            joinnext
+            default { "0" }
+            disablewhen "{ check_input == 0 } { cull_length_rand_toggle == 0 }"
+            hidewhen "{ check_input == 0 } { cull_length_rand_toggle == 0 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "length_rand_max"
+            label   "Max Length Variation"
+            type    float
+            invisible
+            default { "1" }
+            disablewhen "{ check_input == 0 } { cull_length_rand_toggle == 0 }"
+            hidewhen "{ check_input == 0 } { cull_length_rand_toggle == 0 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "rad"
+            label   "Radius"
+            type    float
+            default { "0.5" }
+            range   { 0.01! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "rad_ramp"
+            label   "Radius Ramp"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( bezier ) 2pos ( 0.17391304671764374 ) 2value ( 0.58333331346511841 ) 2interp ( bezier ) 3pos ( 0.53016453981399536 ) 3value ( 0.4166666567325592 ) 3interp ( bezier ) 4pos ( 1 ) 4value ( 0.2708333432674408 ) 4interp ( bezier )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+        }
+    }
+
+    group {
+        name    "folder1_1"
+        label   "Tropism"
+
+        groupsimple {
+            name    "bendfolder"
+            label   "Bend"
+
+            parm {
+                name    "enablebend"
+                label   "Enable"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bend"
+                label   "Bend"
+                type    angle
+                joinnext
+                default { "0" }
+                disablewhen "{ enablebend == 0 }"
+                range   { -90 90 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "upangle"
+                label   "Up Vector Angle"
+                type    float
+                default { "0" }
+                disablewhen "{ enablebend == 0 }"
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bend_start"
+                label   "Offset Start"
+                type    float
+                default { "0" }
+                disablewhen "{ enablebend == 0 }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "capture_length"
+                label   "Capture Length"
+                type    float
+                default { "1" }
+                disablewhen "{ enablebend == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bend_profile"
+                label   "Bend Profile"
+                type    ramp_flt
+                default { "2" }
+                disablewhen "{ enablebend == 0 }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+                parmtag { "rampshowcontrolsdefault" "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "upvectorcontrol"
+                label   "Up Vector Control"
+                type    ordinal
+                invisible
+                default { "zaxis" }
+                menu {
+                    "xaxis"     "X Axis"
+                    "yaxis"     "Y Axis"
+                    "zaxis"     "Z Axis"
+                    "custom"    "Custom"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "dir"
+                label   "Capture Direction"
+                type    vector
+                invisible
+                size    3
+                default { "ch(\"bend/dirx\")" "ch(\"bend/diry\")" "ch(\"bend/dirz\")" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+        parm {
+            name    "sepparm8"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "tropism_override"
+            label   "Override Tropism"
+            type    toggle
+            default { "0" }
+            hidewhen "{ hasinput(1) == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm12"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ hasinput(1) == 0 }"
+        }
+        groupsimple {
+            name    "folder10"
+            label   "Thigmotropism"
+            disablewhentab "{ tropism_override == 0 }"
+
+            parm {
+                name    "enable_thigmo"
+                label   "Enable"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "objpath1"
+                label   "Object 1"
+                type    oppath
+                default { "" }
+                disablewhen "{ enable_thigmo == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "opfilter" "!!SOP!!" }
+                parmtag { "oprelative" "." }
+            }
+            parm {
+                name    "thigmo_strength"
+                label   "Strength"
+                type    float
+                default { "1" }
+                disablewhen "{ enable_thigmo == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "thigmo_ramp"
+                label   "Falloff"
+                type    ramp_flt
+                default { "2" }
+                disablewhen "{ enable_thigmo == 0 }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+                parmtag { "rampshowcontrolsdefault" "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder1_2"
+        label   "Trunk Shape"
+
+        parm {
+            name    "roots_toggle"
+            label   "Enable Roots"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "root_offset"
+            label   "Shape Offset"
+            type    float
+            default { "1" }
+            disablewhen "{ roots_toggle == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "roots_res_toggle"
+            label   "Separate Resolution"
+            type    toggle
+            joinnext
+            default { "0" }
+            disablewhen "{ roots_toggle == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "roots_res"
+            label   "Resolution"
+            type    float
+            nolabel
+            default { "0.05" }
+            disablewhen "{ roots_res_toggle == 0 }"
+            range   { 0.01 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "root_offset_ramp"
+            label   "Shape Ramp"
+            type    ramp_flt
+            default { "14" }
+            disablewhen "{ roots_toggle == 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( catmull-rom ) 2pos ( 0.11064717918634415 ) 2value ( 0.76666665077209473 ) 2interp ( catmull-rom ) 3pos ( 0.17745302617549896 ) 3value ( 0 ) 3interp ( catmull-rom ) 4pos ( 0.23173277080059052 ) 4value ( 0.5 ) 4interp ( catmull-rom ) 5pos ( 0.29436326026916504 ) 5value ( 0 ) 5interp ( catmull-rom ) 6pos ( 0.39248433709144592 ) 6value ( 0.43333333730697632 ) 6interp ( catmull-rom ) 7pos ( 0.46555322408676147 ) 7value ( 0 ) 7interp ( catmull-rom ) 8pos ( 0.59498953819274902 ) 8value ( 0.066666670143604279 ) 8interp ( catmull-rom ) 9pos ( 0.65344464778900146 ) 9value ( 0.63333332538604736 ) 9interp ( catmull-rom ) 10pos ( 0.71189981698989868 ) 10value ( 0 ) 10interp ( catmull-rom ) 11pos ( 0.82463467121124268 ) 11value ( 0.033333335071802139 ) 11interp ( catmull-rom ) 12pos ( 0.84968686103820801 ) 12value ( 0.30000001192092896 ) 12interp ( catmull-rom ) 13pos ( 0.88308978080749512 ) 13value ( 0 ) 13interp ( catmull-rom ) 14pos ( 1 ) 14value ( 0 ) 14interp ( catmull-rom )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "root_strength_ramp"
+            label   "Position Ramp"
+            type    ramp_flt
+            default { "2" }
+            disablewhen "{ roots_toggle == 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( linear ) 2pos ( 0.36116909980773926 ) 2value ( 0 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm6"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "roll"
+            label   "Roll"
+            type    float
+            default { "0" }
+            disablewhen "{ roots_toggle == 0 }"
+            range   { -180 180 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fulltwists"
+            label   "Full Twists"
+            type    integer
+            default { "0" }
+            disablewhen "{ roots_toggle == 0 }"
+            range   { -10 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "incroll"
+            label   "Partial Twist"
+            type    float
+            default { "180" }
+            disablewhen "{ roots_toggle == 0 }"
+            range   { -180 180 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "twist_ramp"
+            label   "Twist Ramp"
+            type    ramp_flt
+            default { "2" }
+            disablewhen "{ roots_toggle == 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_3"
+        label   "Noise"
+
+        group {
+            name    "folder2"
+            label   "Line Noise"
+
+            parm {
+                name    "line_noise_override"
+                label   "Override Line Noise"
+                type    toggle
+                default { "0" }
+                hidewhen "{ hasinput(1) == 0 }"
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm9"
+                label   "Separator"
+                type    separator
+                default { "" }
+                hidewhen "{ hasinput(1) == 0 }"
+            }
+            parm {
+                name    "enable_line_noise"
+                label   "Enable"
+                type    toggle
+                default { "0" }
+                disablewhen "{ line_noise_override == 0 hasinput(1) == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "folder4"
+                label   "Primary"
+                disablewhentab "{ line_noise_override == 0 hasinput(1) == 1 }"
+
+                parm {
+                    name    "type"
+                    label   "Noise Type"
+                    type    string
+                    default { "pnoise" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    menu {
+                        "pnoise"        "Perlin Noise"
+                        "onoise"        "Original Perlin Noise"
+                        "snoise"        "Sparse Convolution Noise"
+                        "anoise"        "Alligator Noise"
+                        "xnoise"        "Simplex Noise"
+                        "exact_pnoise"  "Analytic Perlin Noise"
+                        "exact_xnoise"  "Analytic Simplex Noise"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cvex" }
+                }
+                parm {
+                    name    "line_noise_amount"
+                    label   "Intensity"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { -1 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "line_noise_size"
+                    label   "Frequency"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { 0.01! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "line_noise_rough"
+                    label   "Roughness"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { 0 0.5 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cvex" }
+                }
+                parm {
+                    name    "h"
+                    label   "Step Size"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { 0.001! 1 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cvex" }
+                }
+                parm {
+                    name    "line_noise_rand"
+                    label   "Randomize Offset"
+                    type    toggle
+                    default { "0" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "line_noise_offset"
+                    label   "Offset"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ enable_line_noise == 0 } { line_noise_rand == 1 }"
+                    hidewhen "{ line_noise_rand == 1 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "folder8"
+                label   "Secondary"
+                disablewhentab "{ line_noise_override == 0 hasinput(1) == 1 }"
+
+                parm {
+                    name    "line_noise_amount2"
+                    label   "Intensity"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { -1 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "line_noise_size2"
+                    label   "Frequency"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { 0.01! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "line_noise_rough2"
+                    label   "Roughness"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { 0 0.5 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "cvex" }
+                }
+                parm {
+                    name    "line_noise_rand2"
+                    label   "Randomize Offset"
+                    type    toggle
+                    default { "0" }
+                    disablewhen "{ enable_line_noise == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "line_noise_offset2"
+                    label   "Offset"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ enable_line_noise == 0 } { line_noise_rand2 == 1 }"
+                    hidewhen "{ line_noise_rand2 == 1 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            parm {
+                name    "line_noise_intensity_ramp"
+                label   "Intensity Ramp"
+                type    ramp_flt
+                default { "2" }
+                disablewhen "{ enable_line_noise == 0 } { line_noise_override == 0 hasinput(1) == 1 }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+                parmtag { "rampshowcontrolsdefault" "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        group {
+            name    "folder2_1"
+            label   "Mesh Noise"
+
+            parm {
+                name    "mesh_noise_override"
+                label   "Override Mesh Noise"
+                type    toggle
+                default { "0" }
+                hidewhen "{ hasinput(1) == 0 }"
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm13"
+                label   "Separator"
+                type    separator
+                default { "" }
+                hidewhen "{ hasinput(1) == 0 }"
+            }
+            parm {
+                name    "enable_mesh_noise"
+                label   "Enable"
+                type    toggle
+                default { "1" }
+                disablewhen "{ mesh_noise_override == 0 hasinput(1) == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mesh_noise_type"
+                label   "Type"
+                type    string
+                default { "anoise" }
+                disablewhen "{ enable_mesh_noise == 0 } { mesh_noise_override == 0 hasinput(1) == 1 }"
+                menu {
+                    "pnoise"        "Perlin Noise"
+                    "onoise"        "Original Perlin Noise"
+                    "snoise"        "Sparse Convolution Noise"
+                    "anoise"        "Alligator Noise"
+                    "xnoise"        "Simplex Noise"
+                    "correctnoise"  "Zero Centered Perlin Noise"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "mesh_noise_size"
+                label   "Frequency"
+                type    vector
+                size    3
+                default { "10" "1" "10" }
+                disablewhen "{ enable_mesh_noise == 0 } { mesh_noise_override == 0 hasinput(1) == 1 }"
+                range   { 0.01! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mesh_noise_rand"
+                label   "Randomize Offset"
+                type    toggle
+                default { "0" }
+                disablewhen "{ enable_mesh_noise == 0 } { mesh_noise_override == 0 hasinput(1) == 1 }"
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mesh_noise_offset"
+                label   "Offset"
+                type    float
+                default { "0" }
+                disablewhen "{ enable_mesh_noise == 0 } { mesh_noise_rand == 1 } { mesh_noise_override == 0 hasinput(1) == 1 }"
+                hidewhen "{ mesh_noise_rand == 1 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "mesh_noise_amount"
+                label   "Intensity"
+                type    float
+                default { "0.25" }
+                disablewhen "{ enable_mesh_noise == 0 } { mesh_noise_override == 0 hasinput(1) == 1 }"
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+            parm {
+                name    "mesh_noise_rad"
+                label   "Multiply Intensity by Radius"
+                type    toggle
+                default { "0" }
+                disablewhen "{ enable_mesh_noise == 0 } { mesh_noise_override == 0 hasinput(1) == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mesh_noise_intensity_ramp"
+                label   "Intensity Ramp"
+                type    ramp_flt
+                default { "2" }
+                disablewhen "{ enable_mesh_noise == 0 } { mesh_noise_override == 0 hasinput(1) == 1 }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "rampbasis_var" "Noise_Intensity_the_basis_strings" }
+                parmtag { "rampbasisdefault" "linear" }
+                parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+                parmtag { "rampkeys_var" "Noise_Intensity_the_key_positions" }
+                parmtag { "rampshowcontrolsdefault" "0" }
+                parmtag { "rampvalues_var" "Noise_Intensity_the_key_values" }
+                parmtag { "shaderparmcontexts" "cvex" }
+            }
+        }
+
+        parm {
+            name    "line_noise_type"
+            label   "Type"
+            type    string
+            invisible
+            default { "flow" }
+            disablewhen "{ enable_line_noise == 0 }"
+            menu {
+                "sine"      "Sinusoid"
+                "perlin"    "Perlin"
+                "pperlin"   "Periodic Perlin"
+                "simplex"   "Simplex (Improved Perlin)"
+                "sparse"    "Sparse Convolution"
+                "flow"      "Flow"
+                "pflow"     "Periodic Flow"
+                "worleyFA"  "Worley (cellular) F1"
+                "worleyFB"  "Worley (cellular) F2-F1"
+                "mworleyFA" "Manhattan Worley (cellular) F1"
+                "mworleyFB" "Manhattan Worley (cellular) F2-F1"
+                "cworleyFA" "Chebyshev Worley (cellular) F1"
+                "cworleyFB" "Chebyshev Worley (cellular) F2-F1"
+                "alligator" "Alligator"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+    }
+
+    group {
+        name    "folder1_4"
+        label   "Meshing"
+
+        parm {
+            name    "meshing_override"
+            label   "Override Meshing"
+            type    toggle
+            default { "0" }
+            hidewhen "{ hasinput(1) == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm10"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ hasinput(1) == 0 }"
+        }
+        groupsimple {
+            name    "endcaps_folder"
+            label   "End Caps"
+            disablewhentab "{ meshing_override == 0 hasinput(1) == 1 }"
+
+            parm {
+                name    "endcaptype"
+                label   "End Cap Type"
+                type    ordinal
+                default { "grid" }
+                menu {
+                    "none"          "None"
+                    "single"        "Single Polygon"
+                    "grid"          "Grid"
+                    "sidesingle"    "Side Single Polygon"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "capdivs"
+                label   "Cap Divisions"
+                type    integer
+                joinnext
+                default { "3" }
+                disablewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                hidewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "triangularpoles"
+                label   "Triangular Poles"
+                type    toggle
+                default { "on" }
+                disablewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                hidewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "capscale"
+                label   "End Cap Scale"
+                type    float
+                default { "0.25" }
+                disablewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                hidewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "caproundness"
+                label   "End Cap Roundness"
+                type    float
+                default { "1" }
+                disablewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                hidewhen "{ endcaptype == none } { endcaptype == single } { endcaptype == sidesingle }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm7"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "branch_profile"
+            label   "Custom Branch Profile"
+            type    oppath
+            default { "" }
+            help    "Please center and orient to the XY plane"
+            disablewhen "{ meshing_override == 0 hasinput(1) == 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!SOP!!" }
+            parmtag { "oprelative" "." }
+        }
+    }
+
+    group {
+        name    "folder1_5"
+        label   "Resolution"
+
+        parm {
+            name    "res_override"
+            label   "Override Resolution"
+            type    toggle
+            default { "0" }
+            hidewhen "{ hasinput(1) == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm11"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ hasinput(1) == 0 }"
+        }
+        parm {
+            name    "res"
+            label   "Resolution"
+            type    float
+            default { "0.1" }
+            disablewhen "{ res_override == 0 hasinput(1) == 1 }"
+            range   { 0.01! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "res_refine"
+            label   "Refinement Amount"
+            type    float
+            default { "0" }
+            disablewhen "{ res_override == 0 hasinput(1) == 1 }"
+            hidewhen "{ line_noise_amount == 0 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "divs"
+            label   "Divisions"
+            type    float
+            default { "0.2" }
+            disablewhen "{ res_override == 0 hasinput(1) == 1 }"
+            range   { 0.01! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_6"
+        label   "Material"
+        invisibletab
+        disablewhentab "{ mat_override == 0 hasinput(1) == 1 }"
+        hidewhentab "{ mat_override == 0 hasinput(1) == 1 }"
+
+        groupsimple {
+            name    "basecolorfolder___2"
+            label   "Albedo"
+
+            parm {
+                name    "pbr_basecolor_1"
+                label   "Base Color"
+                type    color
+                size    3
+                default { "1" "1" "1" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_basecolor_useTexture_1"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_basecolor_texture_1"
+                label   "Albedo Texture"
+                type    image
+                default { "" }
+                hidewhen "{ pbr_basecolor_useTexture_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "roughnessfolder___2"
+            label   "Roughness"
+
+            parm {
+                name    "pbr_IOR_1"
+                label   "IOR"
+                type    float
+                default { "1.5" }
+                range   { 0 3 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_rough_1"
+                label   "Roughness"
+                type    float
+                default { "0.3" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_horizon_fade_1"
+                label   "Horizon Smoothing"
+                type    float
+                default { "1" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_invert_rough_1"
+                label   "Invert Roughness"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_rough_useTexture_1"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_rough_texture_1"
+                label   "Roughness Texture"
+                type    image
+                default { "" }
+                hidewhen "{ pbr_rough_useTexture_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_rough_monoChannel_1"
+                label   "Channel"
+                type    integer
+                default { "0" }
+                hidewhen "{ pbr_rough_useTexture_1 == 0 }"
+                menu {
+                    "0" "Luminance"
+                    "1" "Red"
+                    "2" "Green"
+                    "3" "Blue"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "ogl_occlusionmap_comp" "1" }
+            }
+        }
+
+        groupsimple {
+            name    "metallicfolder___2"
+            label   "Metallic"
+
+            parm {
+                name    "pbr_metallic_1"
+                label   "Metallic"
+                type    float
+                default { "0" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_metallic_useTexture_1"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_metallic_texture_1"
+                label   "Metallic Texture"
+                type    image
+                default { "" }
+                hidewhen "{ pbr_metallic_useTexture_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_metallic_monoChannel_1"
+                label   "Channel"
+                type    integer
+                default { "0" }
+                hidewhen "{ pbr_metallic_useTexture_1 == 0 }"
+                menu {
+                    "0" "Luminance"
+                    "1" "Red"
+                    "2" "Green"
+                    "3" "Blue"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "ogl_occlusionmap_comp" "1" }
+            }
+        }
+
+        groupsimple {
+            name    "shading_16__"
+            label   "Normal"
+
+            parm {
+                name    "pbr_baseBumpAndNormal_enable_1"
+                label   "Enable"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_baseNormal_texture_1"
+                label   "Normal Texture"
+                type    image
+                default { "" }
+                hidewhen "{ pbr_baseBumpAndNormal_enable_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_baseNormal_scale_1"
+                label   "Effect Scale"
+                type    float
+                default { "1" }
+                hidewhen "{ pbr_baseBumpAndNormal_enable_1 == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_baseNormal_flipX_1"
+                label   "Flip X"
+                type    toggle
+                default { "off" }
+                hidewhen "{ pbr_baseBumpAndNormal_enable_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_baseNormal_flipY_1"
+                label   "Flip Y"
+                type    toggle
+                default { "off" }
+                hidewhen "{ pbr_baseBumpAndNormal_enable_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_use_mikkt_1"
+                label   "Use Model's Tangent"
+                type    toggle
+                default { "off" }
+                hidewhen "{ pbr_baseBumpAndNormal_enable_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder14__"
+            label   "Occlusion"
+
+            parm {
+                name    "pbr_occlusion_1"
+                label   "Occlusion"
+                type    float
+                default { "0" }
+                help    "Controls the intensity of the AO map"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_occlusion_useTexture_1"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pbr_occlusion_texture_1"
+                label   "Texture"
+                type    image
+                default { "" }
+                help    "Ambient Occlusion Map"
+                hidewhen "{ pbr_occlusion_useTexture_1 == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "ogl_occlusionmap" "1" }
+            }
+            parm {
+                name    "pbr_occlusion_monoChannel_1"
+                label   "Channel"
+                type    integer
+                default { "0" }
+                hidewhen "{ pbr_occlusion_useTexture_1 == 0 }"
+                menu {
+                    "0" "Luminance"
+                    "1" "Red"
+                    "2" "Green"
+                    "3" "Blue"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "ogl_occlusionmap_comp" "1" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder1_7"
+        label   "Displacement"
+
+        parm {
+            name    "disp_override"
+            label   "Override Displacement"
+            type    toggle
+            default { "0" }
+            hidewhen "{ hasinput(1) == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm14"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ hasinput(1) == 0 }"
+        }
+        parm {
+            name    "enable_disp"
+            label   "Enable Displacement"
+            type    toggle
+            default { "0" }
+            disablewhen "{ disp_override == 0 hasinput(1) == 1 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "disp_texture"
+            label   "Displacement Texture"
+            type    image
+            default { "" }
+            disablewhen "{ enable_disp == 0 } { disp_override == 0 hasinput(1) == 1 }"
+            hidewhen "{ enable_disp == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "read" }
+        }
+        parm {
+            name    "disp_intensity"
+            label   "Displacement Intensity"
+            type    float
+            default { "0.1" }
+            disablewhen "{ enable_disp == 0 } { disp_override == 0 hasinput(1) == 1 }"
+            hidewhen "{ enable_disp == 0 }"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "subdiv_amount"
+            label   "Subdivision Amount"
+            type    integer
+            default { "1" }
+            disablewhen "{ enable_disp == 0 } { disp_override == 0 hasinput(1) == 1 }"
+            hidewhen "{ enable_disp == 0 }"
+            range   { 0! 6 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "disp_reduce_toggle"
+            label   "Reduce Resolution"
+            type    toggle
+            default { "0" }
+            disablewhen "{ enable_disp == 0 } { disp_override == 0 hasinput(1) == 1 }"
+            hidewhen "{ enable_disp == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "res_count"
+            label   "Polygon Count"
+            type    integer
+            default { "1000" }
+            disablewhen "{ enable_disp == 0 } { disp_reduce_toggle == 0 } { disp_override == 0 hasinput(1) == 1 }"
+            hidewhen "{ enable_disp == 0 } { disp_reduce_toggle == 0 }"
+            range   { 1! 10000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "res_tolerance"
+            label   "Tolerance"
+            type    float
+            default { "1e-05" }
+            disablewhen "{ enable_disp == 0 } { disp_reduce_toggle == 0 } { disp_override == 0 hasinput(1) == 1 }"
+            hidewhen "{ enable_disp == 0 } { disp_reduce_toggle == 0 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_8"
+        label   "Visualization"
+
+        parm {
+            name    "vis_override"
+            label   "Override Visualization"
+            type    toggle
+            default { "0" }
+            hidewhen "{ hasinput(1) == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm15"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ hasinput(1) == 0 }"
+        }
+        parm {
+            name    "vis_toggle"
+            label   "Enable Visualization Color"
+            type    toggle
+            default { "0" }
+            disablewhen "{ vis_override == 0 hasinput(1) == 1 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "color"
+            label   "Color"
+            type    color
+            size    3
+            default { "1" "1" "1" }
+            disablewhen "{ vis_toggle == 0 } { vis_override == 0 hasinput(1) == 1 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}

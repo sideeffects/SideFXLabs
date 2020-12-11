@@ -1,0 +1,257 @@
+= Labs Tree Controller =
+
+#type: node
+#context: sop
+#internal: labs::tree_controller::1.0
+#icon: tree_controller
+#tags: sidefxlabs, model
+
+""" Controls other tree nodes """
+
+The Tree Controller sets parameters for all other tree nodes (Tree Trunk Generator, Tree Branch Generator, Tree Branch Placer) down the chain, and can be overridden per node.
+
+@parameters
+    == Global ==
+    Randomize:
+        Random seed value
+    == Tropism ==
+    === Bend Along Parent ===
+    Bends the branch along the axis of its parent branch
+    Enable:
+        Enable bend along parent
+    Strength:
+        Amount to bend the branch along its parent
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    Multiply Intensity by Branch Level:
+        Multiplies the bend strength by the branch level in the tree hierarchy
+    === Gravitropism ===
+    Bends the branch along the axis of the specified direction to simulate gravity
+    Enable:
+        Enable gravitropism
+    Direction:
+        Direction of gravity
+    Strength:
+        Amount to bend the branch by gravity
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    Multiply Intensity by Branch Level:
+        Multiplies the gravity strength by the branch level in the tree hierarchy
+    === Phototropism ===
+    Bends the branch along the axis of the specified direction to simulate growth towards light
+    Enable:
+        Enable phototropism
+    Direction:
+        Direction of light
+    Strength:
+        Amount to bend the branch towards light
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    Multiply Intensity by Branch Level:
+        Multiplies the bend towards light strength by the branch level in the tree hierarchy
+    === Thigmotropism ===
+    Bends and moves the branch to avoid and/or wrap around the input object
+    Enable:
+        Enable thigmotropism
+    Object:
+        Input object for the branch to react to
+    Strength:
+        Amount to bend the branch around the input object
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    == Noise ==
+    === Line Noise ===
+    Enable:
+        Enable line noise
+    Intensity Ramp:
+        Adjusts noise amplitude along the length of the branch
+    ==== Primary ====
+    """ Curl Noise """
+    Noise Type:
+        Type of curl noise
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Step Size:
+        Noise resolution
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    ==== Secondary ====
+    """ Anti-Aliased Noise """
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    === Mesh Noise ===
+    """ Turbulent Noise """
+    Enable:
+        Enable mesh noise
+    Type:
+        Type of turbulent noise
+    Frequency:
+        Amount of noise repetitions
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    Intensity:
+        Noise amplitude
+    Reduce Intensity Per Branch Level:
+        Divides the noise amplitude by the branch level in the tree hierarchy
+    Multiply Intensity by Radius:
+        Multiplies the noise amplitude by the branch radius
+    Intensity Ramp:
+        Adjusts noise amplitude along the length of the branch
+    == Prune ==
+    === By Initial Angle ===
+    Upward Facing Angle:
+        Angle from upwards Y axis to start removing branch points (based on initial branch angle)
+    Downward Facing Angle:
+        Angle from downwards Y axis to start removing branch points (based on initial branch angle)
+    Directional Angle:
+        Angle from specified axis to start removing branch points (based on initial branch angle)
+    Direction:
+        Axis for directional angle
+    === By End Angle ===
+    Upward Facing Angle:
+        Angle from upwards Y axis to start removing branch points (based on final branch direction)
+    Downward Facing Angle:
+        Angle from downwards Y axis to start removing branch points (based on final branch direction)
+    Directional Angle:
+        Angle from specified axis to start removing branch points (based on final branch direction)
+    Direction:
+        Axis for directional angle
+    == Meshing ==
+    Custom Branch Profile:
+        Input a profile or flat geometry to sweep along branch instead of the default tube. Please center and orient to the XY plane
+    === Intersections ===
+    Intersection Behavior:
+        Options for how branch intersections are handled
+        * None - branch is stuck in parent with no intersection handling
+        * Boolean + Normal Blending - parent is subtracted from branch creating a flush intersection and the normals around the intersection are blended creating a seamless transition
+        * Normal Blending - the normals around the intersection are blended creating a seamless transition
+    Smooth Amount:
+        Available when using Boolean + Normal Blending. Amount to smooth the intersection geometry
+    Blend Falloff:
+        Available when using Normal Blending. Falloff of the normal blend
+    === UV Blending ===
+    Creates a second UV set that inherits the UVs from the parent and adds vertex color around branch intersections to use to blend the UV sets
+    Watch [this tutorial|https://www.youtube.com/watch?v=4max8Tdj15k] by Simon Verstraete for more information about this workflow
+    Enable UV Blending:
+        Enable UV Blending
+    Blend Distance:
+        Distance along branch to stretch vertex color
+    Blend Falloff:
+        Amount to blur vertex color
+    === End Caps ===
+    End Cap Type:
+        Type of end cap geometry
+    Cap Divisions:
+        Amount of divisions around end cap
+    Triangular Poles:
+        If enabled, connects all points at end cap pole
+    End Cap Scale:
+        Amount of end cap bulge: 0 = flat, 1 = half sphere
+    End Cap Roundness:
+        Amount of round or linear falloff to end cap bulge
+    Reduce Cap Resolution Per Branch Level:
+        Reduces amount of end cap divisions per branch level in the tree hierarchy
+    == Resolution ==
+    Resolution:
+        Density of horizontal cross sections on geometry
+    Refinement Amount:
+        Threshold to reduce amount of resolution on straight geometry
+    Divisions:
+        Density of vertical cross sections on geometry
+    Reduce Divisions Per Branch Level:
+        Reduces amount of divisions per branch level in the tree hierarchy
+    == Material ==
+    === Albedo ===
+    Base Color:
+        Albedo of material
+    Use Texture:
+        Enable base color map
+    Texture:
+        Base color map
+    === Roughness ===
+    IOR:
+        Index of Refraction
+    Roughness:
+        Amount of light reflected by material
+    Horizon Smoothing:
+        Fade the lighting at steep glancing angles in order to reduce light bleeding (Not reflected in Mantra)
+    Invert Roughness:
+        Inverts the roughness so it behaves like Gloss (Not reflected in Mantra Shader)
+    Use Texture:
+        Enable roughness map
+    Texture:
+        Roughness map
+    Channel:
+        Map channel for roughness
+    === Metallic ===
+    Metallic:
+        Amount of metalness
+    Use Texture:
+        Enable metallic map
+    Texture:
+        Metallic map
+    Channel:
+        Map channel for metallic
+    === Normal ===
+    Enable:
+        Enable normal map
+    Texture Path:
+        Normal map
+    Effect Scale:
+        Normal map intensity
+    Flip X:
+        Flip normal map in X axis
+    Flip Y:
+        Flip normal map in Y axis
+    Use Model's Tangent :
+        Use the Model's TangentU Attribute
+    === Occlusion ===
+    Occlusion:
+        Controls the intensity of the AO map
+    Use Texture:
+        Enable AO map
+    Texture:
+        AO map
+    Channel:
+        Map channel for AO
+    == Displacement ==
+    Enable Displacement:
+        Enable displacement
+    Displacement Texture:
+        Displacement map
+    Displacement Intensity:
+        Displacement amplitude
+    Subdivision Amount:
+        Amount to subdivide geometry before displacement
+    Reduce Resolution:
+        Enable poly reduction after displacement
+    Polygon Count:
+        Polygon target for poly reduction
+    Tolerance:
+        Poly reduction tolerance to further reduce poly count
+    == LOD ==
+    Offset:
+        Reduces resolution and scale of branches and increases size of leaves based on branch level in tree hierarchy
+    Start at Level:
+        Branch level at which to start reduction. Any levels below this number will not be affected by LOD offset slider
+    == Visualization ==
+    Color:
+        Enable color Visualization on branches. Color is different per branch level in tree hierarchy
+    Curves only:
+        Only output curves from nodes instead of curves and geometry (for faster editing)

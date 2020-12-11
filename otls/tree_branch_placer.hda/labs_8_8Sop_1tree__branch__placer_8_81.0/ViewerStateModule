@@ -1,0 +1,291 @@
+"""
+State:          Labs::tree branch placer::1.0
+State type:     labs::tree_branch_placer::1.0
+Description:    Labs::tree branch placer::1.0
+Author:         Ryan Gold
+Date Created:   September 16, 2020 - 19:19:07
+"""
+
+
+import hou
+import viewerstate.utils as su
+
+class State(object):
+    MSG = (
+        "LMB click to add branches and hold to move.\n"
+        "Shift-LMB drag to move placed branches.\n"
+        "Ctrl-LMB click to delete placed branches.\n"
+        "MMB click to select branch.\n"
+        "Scroll wheel to adjust branch length.\n"
+        "Shift-Scroll Wheel to rotate branch up and down.\n"
+        "Ctrl-Scroll Wheel to rotate around."
+    )
+
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer
+        self._geometry = None
+
+        self.pressed = False
+        self.index = -1
+        self.node = None
+        self.mode = ""
+        self.norm_prev = hou.Vector3()
+        
+        self.translatehandle = hou.Handle(self.scene_viewer, "branch_handle")
+
+    def pointCount(self):
+        """ This is how you get the number of instances
+            in a multiparm.
+        """
+        try:
+            multiparm = self.node.parm("branch_multiparm")
+            return multiparm.evalAsInt()
+        except:
+            return 0
+    
+    def clamp(self, num, min_value, max_value):
+        return max(min(num, max_value), min_value)
+            
+    def start(self):
+        if not self.pressed:
+            self.scene_viewer.beginStateUndo("Add branch")
+            self.index = self.pointCount()
+            multiparm = self.node.parm("branch_multiparm")
+            multiparm.insertMultiParmInstance(self.index)
+
+        self.pressed = True
+
+    def finish(self):
+        if self.pressed:
+            self.scene_viewer.endStateUndo()
+        self.pressed = False
+
+    def onHandleToState(self, kwargs):
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]
+
+        if handle == self.translatehandle.name():
+            handlepos = hou.Vector3(parms['tx'], parms['ty'], parms['tz'])
+            self.node.parmTuple("t%d" % self.index).set(handlepos)
+
+    def onStateToHandle(self, kwargs):
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]
+
+        if handle == self.translatehandle.name():
+            if self.index >= 0:
+                handlepos = self.node.evalParmTuple("t%d" % self.index)
+                parms["tx"] = handlepos[0]
+                parms["ty"] = handlepos[1]
+                parms["tz"] = handlepos[2]
+        self.log(parms)
+        
+        
+    def onEnter(self, kwargs):
+        self.node = kwargs["node"]
+
+        if not self.node:
+            raise
+
+        self.scene_viewer.setPromptMessage( State.MSG )
+
+        # Get input curve geo
+        #inputs = self.node.inputs()
+        #if inputs and inputs[1]:
+            #self._geometry = inputs[1].geometry()
+        self._geometry = self.node.node("GEO").geometry()
+            
+        self.translatehandle.show(False)
+        
+        # Generate guide geo
+        guide_geo = self.node.node("CURVE_OUTPUT").geometry()
+        
+        self._guide = hou.SimpleDrawable(
+            self.scene_viewer, guide_geo,
+            self.state_name + "_guide"
+        )
+        self._guide.enable(True)
+        self._guide.show(True)
+        
+    def onInterrupt(self,kwargs):
+        self._guide.show(False)
+        self.finish()
+
+    def onResume(self, kwargs):
+        self._guide.show(True)
+        self.scene_viewer.setPromptMessage( State.MSG )
+        
+    def onMouseWheelEvent(self, kwargs):
+        # Get the UI device object
+        device = kwargs["ui_event"].device()
+        
+        if self.index >= 0 and self.mode != "":
+            scroll = device.mouseWheel()
+            if self.mode == "placed":
+                if device.isShiftKey():
+                    scroll *= 5
+                    scroll += self.node.evalParm("rotate_up_down{}".format(self.index))
+                    scroll = self.clamp(scroll, -90, 90)
+                    self.node.parm("rotate_up_down{}".format(self.index)).set(scroll)
+                    
+                elif device.isCtrlKey():
+                    scroll *= 10
+                    scroll += self.node.evalParm("rotate_around{}".format(self.index))
+                    scroll = self.clamp(scroll, -360, 360)
+                    self.node.parm("rotate_around{}".format(self.index)).set(scroll)
+                    
+                else:
+                    scroll *= 0.1
+                    scroll += self.node.evalParm("length{}".format(self.index))
+                    self.node.parm("length{}".format(self.index)).set(scroll)
+            elif self.mode == "drawn":
+                #index_drawn = self.node.parm("drawn_branches").eval()
+
+                scroll *= 5
+                scroll += self.node.evalParm("angle_drawn{}".format(self.index+1))
+                scroll = self.clamp(scroll, -360, 360)
+                self.node.parm("angle_drawn{}".format(self.index+1)).set(scroll)
+
+    def onMouseEvent(self, kwargs):
+        """ Find the position of the point to add by
+            intersecting the construction plane.
+        """
+        ui_event = kwargs["ui_event"]
+        reason = ui_event.reason()
+        device = ui_event.device()
+        origin, direction = ui_event.ray()
+        newGeo = self.node.node("tag_grp1").geometry()
+        newcurve = self.node.node("attribwrangle11").geometry()
+                
+        if device.isMiddleButton():
+            if reason == hou.uiEventReason.Start or reason == hou.uiEventReason.Picked:
+                if newGeo:
+                    hit, position, norm, uvw = su.sopGeometryIntersection(newGeo, origin, direction)
+                    self.index = newGeo.iterPrims()[hit].intAttribValue("multiparm_id")
+                    self.index = self.index - 1
+                    self.mode = newGeo.iterPrims()[hit].stringAttribValue("mode")
+
+                if hit==-1:
+                    self.index = -1
+                    self.mode = ""
+                
+        # Create/move point if LMB is down
+        if device.isShiftKey() and device.isCtrlKey():
+            pass
+
+        elif device.isShiftKey():
+            if reason == hou.uiEventReason.Start:
+                if newGeo:
+                    hit, position, norm, uvw = su.sopGeometryIntersection(newGeo, origin, direction)
+                    self.index = newGeo.iterPrims()[hit].intAttribValue("multiparm_id")
+                    self.index = self.index - 1
+                    self.mode = newGeo.iterPrims()[hit].stringAttribValue("mode")
+
+                if hit==-1:
+                    position = su.cplaneIntersection(self.scene_viewer, origin, direction)
+                    self.index = -1
+                    self.mode = ""
+            if self.mode == 'placed':  
+                if reason == hou.uiEventReason.Active and self.index!=-1:
+                    if not self.pressed:
+                        self.scene_viewer.beginStateUndo("Move branch")
+    
+                    self.pressed = True
+    
+                    position = su.cplaneIntersection(self.scene_viewer, origin, direction)
+                    
+                    self.node.parmTuple("pt{}".format(self.index)).set(position)
+                    
+                    if newGeo:
+                        hit, position, norm, uvw = su.sopGeometryIntersection(self._geometry, origin, direction)
+                        self.node.parmTuple("normal{}".format(self.index)).set(norm)
+                        if hit!=-1:
+                            self.norm_prev = norm
+                        else:
+                            self.node.parmTuple("normal{}".format(self.index)).set(self.norm_prev)
+    
+                else:
+                    self.finish()
+            
+            elif self.mode == 'drawn':
+                if reason == hou.uiEventReason.Active and self.index!=-1:
+                    if not self.pressed:
+                        self.scene_viewer.beginStateUndo("Move branch")
+    
+                    self.pressed = True
+    
+                    position = su.cplaneIntersection(self.scene_viewer, origin, direction)
+                    
+                    index_drawn = self.node.parm("drawn_branches").eval()
+    
+                    self.node.parmTuple("t_drawn{}".format(index_drawn)).set(position)
+    
+                else:
+                    self.finish()
+
+        elif device.isCtrlKey():
+            if reason == hou.uiEventReason.Start or reason == hou.uiEventReason.Picked:
+                if newGeo:
+                    hit, position, norm, uvw = su.sopGeometryIntersection(newGeo, origin, direction)
+                    self.mode = newGeo.iterPrims()[hit].stringAttribValue("mode")
+
+                    if hit==-1:
+                        position = su.cplaneIntersection(self.scene_viewer, origin, direction)
+                        self.index = -1
+                        self.mode = ""
+                    elif self.mode == 'placed':
+                        self.index = newGeo.iterPrims()[hit].intAttribValue("multiparm_id")
+                        self.index = self.index - 1
+
+                        index_parm = self.node.parm("branch_multiparm")
+
+                        index_parm.removeMultiParmInstance(self.index)
+
+        else:
+            if self._geometry:
+                hit, position, norm, uvw = su.sopGeometryIntersection(self._geometry, origin, direction)
+                
+            if hit==-1:
+                position = su.cplaneIntersection(self.scene_viewer, origin, direction)
+
+            if device.isLeftButton():
+                self.start()
+                # set the point position
+                self.node.parmTuple("pt%d" % self.index).set(position)
+                
+                if newcurve and self._geometry:
+                    hit, position, norm, uvw = su.sopGeometryIntersection(newcurve, origin, direction)
+                    length = newcurve.iterPrims()[hit].floatAttribValue("length")
+                    self.node.parm("length{}".format(self.index)).set(length)
+                
+                    hit, position, norm, uvw = su.sopGeometryIntersection(self._geometry, origin, direction)
+                    self.node.parmTuple("normal{}".format(self.index)).set(norm)
+                                        
+                    if hit!=-1:
+                        self.norm_prev = norm
+                    else:
+                        self.node.parmTuple("normal{}".format(self.index)).set(self.norm_prev)
+                self.mode = "placed"    
+                                        
+            else:
+                self.finish()
+
+        return True
+
+
+def createViewerStateTemplate():
+    """ Mandatory entry point to create and return the viewer state
+        template to register. """
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Tree Branch Placer"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+    template.bindHandle("translate", "branch_handle", cache_previous_parms=True, handle_parms=["tx", "ty","tz"])
+    
+    return template

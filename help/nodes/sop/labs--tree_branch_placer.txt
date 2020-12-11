@@ -1,0 +1,272 @@
+= Labs Tree Branch Placer =
+
+#type: node
+#context: sop
+#internal: labs::tree_branch_placer::1.0
+#icon: tree_branch_placer
+#tags: sidefxlabs, model
+
+""" Manually place tree branches """
+
+The Tree Branch Placer allows the user to manually place tree branches on a trunk created with the Tree Trunk Generator
+or on other branches created with the Tree Branch Generator or Tree Branch Placer.
+
+This node is best used through it's viewstate by hitting enter while the cursor is over the viewport. Then:
+LMB click to add branches and hold to move.
+Shift-LMB drag to move placed branches.
+Ctrl-LMB click to delete placed branches.
+MMB click to select branch.
+Scroll wheel to adjust branch length.
+Shift-Scroll Wheel to rotate branch up and down.
+Ctrl-Scroll Wheel to rotate around.
+(Make sure to set the construction perpendicular to your tree - generally X or Z for proper branch movement)
+
+@parameters
+    == Global ==
+    Tag:
+        Creates an attribute and group for the branches geometry/curve under this name (node name by default)
+    Branch on Group:
+        Generate branches on a specific curve group. If blank, branches are generated on curves of the previous branch level
+    Delete Previous Levels:
+        Delete geometry and curves from all previous branch levels
+    Override Branch Level:
+        Manually set branch level of generated branches
+    Branch Level:
+        Manually set branch level of generated branches
+    Randomize:
+        Random seed value
+    == General ==
+    === Placed Branches ===
+    Roll:
+        Angle to rotate all branches together around parent
+    Branches:
+        Manually add new branches
+    ==== Position|Length ====
+    Position:
+        Position of branch along parent
+    Length:
+        Length of branch
+    ==== Rotation ====
+    Rotate Around:
+        Angle around parent at which to create new branch
+    Rotate Up Down:
+        Angle perpendicular to parent at which the branch is placed
+    ==== Radius ====
+    Radius Falloff Ramp:
+        Falloff of radius along generated branch
+    Radius Adjust:
+        Adjust radius inherited from parent
+    Override Inherited Radius:
+        Set radius explicitly instead of inheriting along parent
+    Radius:
+        Available if overriding inherited radius. Set branch radius
+    ==== Bend ====
+    Bend:
+        Angle to bend placed branch
+    Up Vector Angle:
+        Axis along which to bend placed branch
+    Offset Start:
+        Offset bend start from placed branch base
+    Capture Length:
+        Offset bend from placed branch end
+    Bend Profile:
+        Adjusts the bend amount along the length of the placed branch
+    Min:
+        Remap bend profile minimum (default 0) to new minimum
+    Max:
+        Remap bend profile maximum (default 1) to new maximum
+    ==== Make Knot ====
+    Enable:
+        Create an indent on the end cap of the placed branch
+    Offset:
+        Depth of indent
+    Shape Ramp:
+        Shape of indent
+    === Drawn Branches ===
+    Angle:
+        Angle to rotate drawn branches around parent
+    Roll:
+        Angle to rotate all drawn branches together around parent
+    Radius Falloff Ramp:
+        Falloff of radius along generated branch
+    Radius Adjust:
+        Adjust radius inherited from parent
+    Override Inherited Radius:
+        Set radius explicitly instead of inheriting along parent
+    Radius:
+        Available if overriding inherited radius. Set branch radius
+    === Advanced ===
+    Detangle:
+        Detangle branches to minimize collisions
+    Grid Behavior:
+        Options for how branches intersecting with the grid plane will be handled
+        * Constrain - snap branches along grid
+        * Clip - delete branch sections beneath grid
+        * None - do nothing when branches intersect with grid
+    Ray Points to Surface:
+        Snap branch points to the edge of their parent rather than the center
+    == Tropism ==
+    Override Tropism:
+        Override tropism parameters from control node
+    === Bend Along Parent ===
+    Bends the branch along the axis of its parent branch
+    Enable:
+        Enable bend along parent
+    Strength:
+        Amount to bend the branch along its parent
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    === Gravitropism ===
+    Bends the branch along the axis of the specified direction to simulate gravity
+    Enable:
+        Enable gravitropism
+    Direction:
+        Direction of gravity
+    Strength:
+        Amount to bend the branch by gravity
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    === Phototropism ===
+    Bends the branch along the axis of the specified direction to simulate growth towards light
+    Enable:
+        Enable phototropism
+    Direction:
+        Direction of light
+    Strength:
+        Amount to bend the branch towards light
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    === Thigmotropism ===
+    Bends and moves the branch to avoid and/or wrap around the input object
+    Enable:
+        Enable thigmotropism
+    Object:
+        Input object for the branch to react to
+    Strength:
+        Amount to bend the branch around the input object
+    Falloff:
+        Adjusts the bend amount along the length of the branch
+    == Noise ==
+    === Line Noise ===
+    Override Line Noise:
+        Override line noise parameters from control node
+    Enable:
+        Enable line noise
+    Intensity Ramp:
+        Adjusts noise amplitude along the length of the branch
+    ==== Primary ====
+    """ Curl Noise """
+    Noise Type:
+        Type of curl noise
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Step Size:
+        Noise resolution
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    ==== Secondary ====
+    """ Anti-Aliased Noise """
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    === Mesh Noise ===
+    """ Turbulent Noise """
+    Override Mesh Noise:
+        Override mesh noise parameters from control node
+    Enable:
+        Enable mesh noise
+    Type:
+        Type of turbulent noise
+    Frequency:
+        Amount of noise repetitions
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    Intensity:
+        Noise amplitude
+    Multiply Intensity by Radius:
+        Multiplies the noise amplitude by the branch radius
+    Intensity Ramp:
+        Adjusts noise amplitude along the length of the branch
+    == Meshing ==
+    Override Meshing:
+        Override meshing parameters from control node
+    Custom Branch Profile:
+        Input a profile or flat geometry to sweep along branch instead of the default tube. Please center and orient to the XY plane
+    === Intersections ===
+    Intersection Behavior:
+        Options for how branch intersections are handled
+        * None - branch is stuck in parent with no intersection handling
+        * Boolean + Normal Blending - parent is subtracted from branch creating a flush intersection and the normals around the intersection are blended creating a seamless transition
+        * Normal Blending - the normals around the intersection are blended creating a seamless transition
+    Smooth Amount:
+        Available when using Boolean + Normal Blending. Amount to smooth the intersection geometry
+    Blend Falloff:
+        Available when using Normal Blending. Falloff of the normal blend
+    === UV Blending ===
+    Creates a second UV set that inherits the UVs from the parent and adds vertex color around branch intersections to use to blend the UV sets
+    Watch [this tutorial|https://www.youtube.com/watch?v=4max8Tdj15k] by Simon Verstraete for more information about this workflow
+    Enable UV Blending:
+        Enable UV Blending
+    Blend Distance:
+        Distance along branch to stretch vertex color
+    Blend Falloff:
+        Amount to blur vertex color
+    === End Caps ===
+    End Cap Type:
+        Type of end cap geometry
+    Cap Divisions:
+        Amount of divisions around end cap
+    Triangular Poles:
+        If enabled, connects all points at end cap pole
+    End Cap Scale:
+        Amount of end cap bulge: 0 = flat, 1 = half sphere
+    End Cap Roundness:
+        Amount of round or linear falloff to end cap bulge
+    == Resolution ==
+    Override Resolution:
+        Override resolution parameters from control node
+    Resolution:
+        Density of horizontal cross sections on geometry
+    Refinement Amount:
+        Threshold to reduce amount of resolution on straight geometry
+    Divisions:
+        Density of vertical cross sections on geometry
+    == Displacement ==
+    Override Displacement:
+        Override displacement parameters from control node
+    Enable Displacement:
+        Enable displacement
+    Displacement Texture:
+        Displacement map
+    Displacement Intensity:
+        Displacement amplitude
+    Subdivision Amount:
+        Amount to subdivide geometry before displacement
+    Reduce Resolution:
+        Enable poly reduction after displacement
+    Polygon Count:
+        Polygon target for poly reduction
+    Tolerance:
+        Poly reduction tolerance to further reduce poly count
+    == Visualization ==
+    Override visualization:
+        Override visualization parameters from control node
+    Enable Visualization Color:
+        Enable color visualization
+    Color:
+        Set visualization color

@@ -1,0 +1,204 @@
+= Labs Tree Leaf Generator =
+
+#type: node
+#context: sop
+#internal: labs::tree_leaf_generator::1.0
+#icon: tree_leaf_generator
+#tags: sidefxlabs, model
+
+""" Generates leaves on branches """
+
+The Tree Leaf Generator generates leaves on branches created with the Tree Branch Generator or Tree Branch Placer.
+
+@parameters
+    == Global ==
+    Tag:
+        Creates an attribute and group for the leaf geometry/curve under this name (node name by default)
+    Branch on Group:
+        Generate leaves on a specific curve group. If blank, branches are generated on curves of the previous branch level
+    Delete Previous Levels:
+        Delete geometry and curves from all previous branch levels
+    Randomize:
+        Random seed value
+    Pack and Instance:
+        Pack and instance leaves (does not allow editing of tropism or noise but is faster)
+    Treat as Atlas:
+        Enable this if using the Quixel Atlas Splitter (or a similar method) to create multiple leaf cards from an atlas.
+        This will generate new cards with the same UVs and dimensions and randomly scatter each variation
+    Use Variant:
+        Use if inputting multiple leaf types to be scattered separately. Each variation must have a variation integer attribute starting at 0
+    == General ==
+    === Placement ===
+    Leaf Node Distance:
+        Distance between leaf points
+    Use Distribution Ramp:
+        Distribute points with a ramp based on attributes
+    Distribute By:
+        Select attribute by which to distribute points if using distribution ramp
+        * Length of parent
+        * Radius of parent
+        * Height of parent
+    Distribution Ramp:
+        Adjust leaf point density based on selected attribute
+    Up Vector:
+        The vector by which to orient the created leaves
+        * None - no specific orientation
+        * Parent - orient by tangentu of parent
+        * Custom - orient by custom vector
+    Custom Up:
+        Available if using custom up vector. Orient leaves by this vector
+    Branching Pattern:
+        Rotation around parent at which to create new branch points
+        * 137.5 degrees
+        * 90 degrees
+        * 180 degrees
+        Type of branching from leaf points
+        * Alternate - one leaf per branch point
+        * Opposite - two leaves per branch point (mirrored)
+    Uniform Scale:
+        Uniform leaf scale
+    Uniform Scale Variation:
+        Random uniform leaf scale variation amount
+    Size Ramp:
+        Controls placement and size of leaves along parent
+    Inherit Branch Radius:
+        Take into account parent branch radius to calculate leaf size
+    Inherited Radius Profile:
+        Adjust influence of parent branch radius on leaf size along parent length of parent branch
+    === Prune ===
+    Random Threshold:
+        Randomly delete leaves
+    Prune by Light Availability:
+        Remove leaves and branches based on how much light they are receiving from a light source
+    Light Source:
+        Input an object or light to use as a light source
+    Light Direction:
+        If no input object is specified this vector can be used to set a custom light direction
+    Visualize:
+        Visualize amount of light hitting leaves
+    Method:
+        Method of calculating amount of light hitting a leaf
+        * Average
+        * Maximum
+    Threshold:
+        Threshold of light amount before removing leaves and branches
+    Bias:
+        Light direction bias
+    === Advanced ===
+    Accurate Leaf Placement:
+        Snap leaf points to edges of parent branch
+    Offset From Branch:
+        Amount to offset leaves from parent branch
+    Grid Behavior:
+        Options for how leaves intersecting with the grid plane will be handled
+        * Constrain - snap leaves along grid
+        * Clip - delete leaves beneath grid
+        * None - do nothing when leaves intersect with grid
+    Normal Method:
+        Method to calculate normals on leaf geometry
+        * Default - regular normals consistent with face direction
+        * Spherical - normals inherited from a sphere around the scattered leaves
+        * Origin - normals pointing away from world origin
+    == Orientation ==
+    Roll:
+        Amount to rotate all leaves around axis
+    Use Roll Ramp:
+        Use ramp to adjust leaf roll along parent branch
+    Roll Profile:
+        Adjusts leaf roll along parent branch
+    Yaw:
+        Amount to rotate leaf
+    Randomize Yaw:
+        Random amount to rotate leaf
+    Use Yaw Ramp:
+        Use ramp to adjust leaf yaw along parent branch
+    Yaw Profile:
+        Adjusts leaf yaw along parent branch
+    Pitch Angle:
+        Amount to rotate leaf
+    Randomize Pitch:
+        Random amount to rotate leaf
+    Use Pitch Ramp:
+        Use ramp to adjust leaf pitch along parent branch
+    Pitch Profile:
+        Adjusts leaf pitch along parent branch
+    Twist:
+        Amount to rotate leaf
+    Randomize Twist:
+        Random amount to rotate leaf
+    Use Twist Ramp:
+        Use ramp to adjust leaf twist along parent branch
+    Twist Profile:
+        Adjusts leaf twist along parent branch
+    == Tropism ==
+    === Bend Along Parent ===
+    Bends the leaf along the axis of its parent branch
+    Enable:
+        Enable bend along parent
+    Strength:
+        Amount to bend the leaf along its parent
+    Falloff:
+        Adjusts the bend amount along the length of the leaf
+    === Gravitropism ===
+    Bends the leaf along the axis of the specified direction to simulate gravity
+    Enable:
+        Enable gravitropism
+    Direction:
+        Direction of gravity
+    Strength:
+        Amount to bend the leaf by gravity
+    Falloff:
+        Adjusts the bend amount along the length of the leaf
+    === Phototropism ===
+    Bends the leaf along the axis of the specified direction to simulate growth towards light
+    Enable:
+        Enable phototropism
+    Direction:
+        Direction of light
+    Strength:
+        Amount to bend the leaf towards light
+    Falloff:
+        Adjusts the bend amount along the length of the leaf
+    == Noise ==
+    Enable:
+        Enable line noise
+    Intensity Ramp:
+        Adjusts noise amplitude along the length of the branch
+    ==== Primary ====
+    """ Curl Noise """
+    Noise Type:
+        Type of curl noise
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Step Size:
+        Noise resolution
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    ==== Secondary ====
+    """ Anti-Aliased Noise """
+    Intensity:
+        Noise amplitude
+    Frequency:
+        Amount of noise repetitions
+    Roughness:
+        Amount of jitter in noise
+    Randomize Offset:
+        Randomly generate an offset number based on random seed
+    Offset:
+        Amount to move noise through space
+    == Resolution ==
+    Rows:
+        Number of edge rows on leaf cards
+    Columns:
+        Number of edge columns on leaf cards
+    == Visualization ==
+    Enable Visualization Color:
+        Enable color visualization
+    Color:
+        Set visualization color
