@@ -2,6 +2,12 @@ MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename=".OPfallbacks"
+Content-Type: application/external-reference
+
+.OPfallbacks
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename=".OPdummydefs"
 Content-Type: application/external-reference
 
@@ -17,7 +23,7 @@ Top
 Content-Disposition: attachment; filename="hdaroot.init"
 Content-Type: text/plain
 
-type = labs::filter_by_value
+type = labs::filter_by_value::1.1
 matchesdef = 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -25,7 +31,7 @@ Content-Disposition: attachment; filename="hdaroot.def"
 Content-Type: text/plain
 
 comment ""
-position -3.1164 -0.19717
+position -4.74343 -1.06538
 connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display on render off highlight off unload off savedata off compress off colordefault on exposed on
 outputsNamed3
@@ -43,7 +49,7 @@ stat
 {
   create -1
   modify -1
-  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
+  author michaelb@boswell
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -112,8 +118,9 @@ end
 Content-Disposition: attachment; filename="hdaroot/pythonprocessor1.multiparm"
 Content-Type: text/plain
 
-2
+3
 iValueEnabled_# ../iValueEnabled_#
+iOperation_# ../iOperation_#
 sValue_# ../sValue_#
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -127,6 +134,17 @@ Content-Type: text/plain
         default { "" }
         parmtag { "script_callback_language" "python" }
     }
+    parm {
+        name    "iCombineMode"
+        label   "Combine Mode"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Union"
+            "1" "Intersection"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
     multiparm {
         name    "iValueMultiParm"
         label    "Values"
@@ -138,6 +156,20 @@ Content-Type: text/plain
             nolabel
             joinnext
             default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "iOperation_#"
+            label   "Operation"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "0" "Equal To"
+                "1" "Not Equal To"
+                "2" "Greater Than"
+                "3" "Less Than"
+            }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -176,7 +208,7 @@ Content-Type: text/plain
         parm {
             name    "pdg_workitemgeneration"
             baseparm
-            label   "Work Item Generation"
+            label   "Generate When"
             export  none
         }
         parm {
@@ -210,13 +242,13 @@ Content-Type: text/plain
             parm {
                 name    "useregeneratestatic"
                 baseparm
-                label   "Use Custom Regenerate Static Implementation"
+                label   "Use Custom Regenerate Implementation"
                 export  none
             }
             parm {
                 name    "regeneratestatic"
                 baseparm
-                label   "onRegenerateStatic Callback"
+                label   "onRegenerate Callback"
                 export  none
             }
         }
@@ -291,18 +323,19 @@ Content-Type: text/plain
         }
     }
 
+    parm {
+        name    "addjobparms"
+        baseparm
+        label   "Add Job Parms"
+        nolabel
+        export  none
+    }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/pythonprocessor1.chn"
 Content-Type: text/plain
 
 {
-    channel pdg_workitemgeneration {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../pdg_workitemgeneration\") }
-    }
     channel sAttrName {
       lefttype = extend
       righttype = extend
@@ -310,11 +343,24 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = chs(\"../sAttrName\") }
     }
+    channel iCombineMode {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../iCombineMode\") }
+    }
     channel iValueMultiParm {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../iValueMultiParm\") }
+    }
+    channel pdg_workitemgeneration {
+      lefttype = extend
+      righttype = extend
+      default = 2
+      flags = 0
+      segment { length = 0 value = 2 2 expr = chs(\"../pdg_workitemgeneration\") }
     }
     channel iValueEnabled_1 {
       lefttype = extend
@@ -323,54 +369,18 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 value = 1 1 expr = ch(\"../iValueEnabled_1\") }
     }
+    channel iOperation_1 {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../iOperation_1\") }
+    }
     channel sValue_1 {
       lefttype = extend
       righttype = extend
       defaultString = \"\"
       flags = 0
       segment { length = 0 expr = chs(\"../sValue_1\") }
-    }
-    channel iValueEnabled_2 {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = ch(\"../iValueEnabled_2\") }
-    }
-    channel sValue_2 {
-      lefttype = extend
-      righttype = extend
-      defaultString = \"\"
-      flags = 0
-      segment { length = 0 expr = chs(\"../sValue_2\") }
-    }
-    channel iValueEnabled_3 {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = ch(\"../iValueEnabled_3\") }
-    }
-    channel sValue_3 {
-      lefttype = extend
-      righttype = extend
-      defaultString = \"\"
-      flags = 0
-      segment { length = 0 expr = chs(\"../sValue_3\") }
-    }
-    channel iValueEnabled_4 {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = ch(\"../iValueEnabled_4\") }
-    }
-    channel sValue_4 {
-      lefttype = extend
-      righttype = extend
-      defaultString = \"\"
-      flags = 0
-      segment { length = 0 expr = chs(\"../sValue_4\") }
     }
   }
 
@@ -388,32 +398,58 @@ pdg_workitemgeneration	[ 0	locks=0 ]	(	[ pdg_workitemgeneration	2 ] 	)
 pdg_command	[ 0	locks=0 ]	(	""	)
 sepparm	[ 0	locks=0 ]	(	)
 callbacks	[ 0	locks=0 ]	(	0	0	0	0	)
-generate	[ 0	locks=0 ]	(	"# Custom onGenerate callback logic. Called when the node should generate new
-# work items from upstream static or dynamic work items.
+generate	[ 0	locks=0 ]	(	"import operator
 
-# The following global variables are available:
-# 
-# self             -   A reference to the current pdg.Node instance
-# item_holder      -   A pdg.WorkItemHolder for constructing and adding work items
-# upstream_items   -   The list of work items in the node above, or empty list if there are no inputs
-# generation_type  -   The type of generation, e.g. pdg.generationType.Static, Dynamic, or Regenerate
+#modes
+UNION        = 0
+INTERSECTION = 1
+
+#ops
+EQUAL_TO     = 0
+NOT_EQUAL_TO = 1
+GREATER_THAN = 2
+LESS_THAN    = 3
+
+ops = {
+    EQUAL_TO     : operator.eq,
+    NOT_EQUAL_TO : operator.ne,
+    GREATER_THAN : operator.gt,
+    LESS_THAN    : operator.lt
+}
 
 AttributeName = self[\"sAttrName\"].evaluateString()
 
 if AttributeName == \"\":
-    self.cookError(\"Please specify an attribute to filter on\")
+    self.cookError(\"Please specify an attribute to filter on/\")
 else:
     AttributeValues = []
 
-
-    for x in range(self[\"iValueMultiParm\"].evaluateInt()):
-        if self[\"iValueEnabled_%s\" % str(x+1)].evaluateInt() == 1:
-            AttributeValues.append(self[\"sValue_%s\" % str(x+1)].evaluateString())
-
-    for upstream_item in upstream_items:
-        if upstream_item.attrib(AttributeName).asString() in AttributeValues:
-            item_holder.addWorkItem(cloneResultData=True, preserveType=True, parent=upstream_item)
-"	)
+    for x in range(1, self[\"iValueMultiParm\"].evaluateInt() + 1):
+        if self[\"iValueEnabled_%s\" % str(x)].evaluateInt() == 1:
+            Operation = self[\"iOperation_%s\" % str(x)].evaluateInt()
+            Value     = self[\"sValue_%s\" % str(x)].evaluateString()
+            AttributeValues.append((Value, ops[Operation]))
+    
+    Sets = []
+    for Entry in AttributeValues:
+        Set = set()
+        for upstream_item in upstream_items:
+            item_value = upstream_item.attrib(AttributeName).asString()
+            if Entry[1](item_value, Entry[0]):
+                Set.add(upstream_item)
+        Sets.append(Set)
+        
+    CombineMode    = self[\"iCombineMode\"].evaluateInt()
+    filtered_items = []
+    
+    if CombineMode == UNION:
+        filtered_items = set.union(*Sets)
+    else:
+        filtered_items = set.intersection(*Sets)
+        
+    for item in filtered_items:
+        item_holder.addWorkItem(cloneResultData=True, preserveType=True, parent=item)
+    "	)
 useregeneratestatic	[ 0	locks=0 ]	(	"off"	)
 regeneratestatic	[ 0	locks=0 ]	(	"# Custom onRegenerateStatic callback logic. Called when a cook is done on a node
 # that already has static items instead of calling onGenerate.
@@ -442,21 +478,18 @@ cooktask	[ 0	locks=0 ]	(	"# Custom onCookTask callback logic. This callback is c
 # work_item         -   The work item being cooked by this callback"	)
 pdgnodedeps	[ 0	locks=0 ]	(	1	)
 topscheduler	[ 0	locks=0 ]	(	""	)
+addjobparms	[ 0	locks=0 ]	(	0	)
 pdg_workitempriority	[ 0	locks=0 ]	(	"0"	)
 pdg_workitempriorityexpr	[ 0	locks=0 ]	(	0	)
 pdgnodedep1	[ 0	locks=0 ]	(	""	)
-sAttrName	[ 0	locks=0 ]	(	[ sAttrName	Seed ] 	)
-iValueMultiParm	[ 0	locks=0 ]	(	[ iValueMultiParm	4 ] 	)
+sAttrName	[ 8	locks=0 ]	(	[ sAttrName	fpp ] 	)
+iCombineMode	[ 0	locks=0 ]	(	[ iCombineMode	0 ] 	)
+iValueMultiParm	[ 0	locks=0 ]	(	[ iValueMultiParm	1 ] 	)
 processor4	[ 0	locks=0 ]	(	0	0	0	)
 callbacks5	[ 0	locks=0 ]	(	0	0	0	0	)
 iValueEnabled_1	[ 0	locks=0 ]	(	[ iValueEnabled_1	1 ] 	)
-sValue_1	[ 0	locks=0 ]	(	[ sValue_1	45 ] 	)
-iValueEnabled_2	[ 0	locks=0 ]	(	[ iValueEnabled_2	1 ] 	)
-sValue_2	[ 0	locks=0 ]	(	[ sValue_2	21 ] 	)
-iValueEnabled_3	[ 0	locks=0 ]	(	[ iValueEnabled_3	0 ] 	)
-sValue_3	[ 0	locks=0 ]	(	[ sValue_3	95 ] 	)
-iValueEnabled_4	[ 0	locks=0 ]	(	[ iValueEnabled_4	0 ] 	)
-sValue_4	[ 0	locks=0 ]	(	[ sValue_4	46 ] 	)
+iOperation_1	[ 0	locks=0 ]	(	[ iOperation_1	3 ] 	)
+sValue_1	[ 0	locks=0 ]	(	[ sValue_1	0.5 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -469,85 +502,6 @@ Content-Type: text/plain
 		"value":""
 	}
 }
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/output1.init"
-Content-Type: text/plain
-
-type = output
-matchesdef = 0
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/output1.def"
-Content-Type: text/plain
-
-comment ""
-position -1.11759e-08 3.49197
-connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress off colordefault on exposed on
-outputsNamed3
-{
-}
-inputsNamed3
-{
-0 	pythonprocessor1 1 1 "input1"
-}
-inputs
-{
-0 	pythonprocessor1 0 1
-}
-stat
-{
-  create -1
-  modify -1
-  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
-  access 0777
-}
-color UT_Color RGB 0.8 0.8 0.8 
-delscript ""
-exprlanguage hscript
-end
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/output1.chn"
-Content-Type: text/plain
-
-{
-    channel outputidx {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = max(opdigits(\".\")-1,0) }
-    }
-  }
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/output1.parm"
-Content-Type: text/plain
-
-{
-version 0.8
-outputidx	[ 0	locks=0 ]	(	[ outputidx	0 ] 	)
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/output1.userdata"
-Content-Type: text/plain
-
-{
-	"___Version___":{
-		"type":"string",
-		"value":"___EXTERNAL___"
-	}
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot.order"
-Content-Type: text/plain
-
-2
-pythonprocessor1
-output1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.net"
