@@ -8,7 +8,7 @@ import numpy as np
 
 verboseDebug = False
 
-if verboseDebug: print "Init Module..."
+if verboseDebug: print("Init Module...")
 
 def unixifyPath(path):
     path = path.replace('\\', '/')
@@ -17,8 +17,13 @@ def unixifyPath(path):
 # NB: same code must be in the Scripts (for buttons)
 def getQREngineFolder():
     isMacOS = (platform.system()=="Darwin") or (platform.system()=="macosx")
+    isLinux = (platform.system()=="Linux")
     if (isMacOS):
         engineFolder = "/Users/Shared/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.1"
+        return engineFolder
+    elif (isLinux):
+        engineFolder = "~/.local/share/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.1"
+        engineFolder = os.path.expanduser(engineFolder)
         return engineFolder
     else:
         #appData = os.getenv('APPDATA')  windows ... UserName/../Roaming... 
@@ -27,12 +32,17 @@ def getQREngineFolder():
         return engineFolder
 
 def getQREnginePath():
+    global verboseDebug
     engineFolder = getQREngineFolder()
     isMacOS = (platform.system()=="Darwin") or (platform.system()=="macosx")
+    isLinux = (platform.system()=="Linux")
     if isMacOS:
+        enginePath = os.path.join(engineFolder, 'xremesh')
+    elif isLinux:
         enginePath = os.path.join(engineFolder, 'xremesh')
     else:
         enginePath = os.path.join(engineFolder, 'xremesh.exe')
+    if verboseDebug: print("  enginePath=%s" % enginePath)
     return enginePath
  
     
@@ -45,7 +55,7 @@ def installOneFileSection(node, filename, targetFolder, printErrorIfFailed=False
         #    if the physical section file is deleted, Houdini will automatically create an empty file, and section.size() returns -1
         if node.type().definition().hasSection(filename):
             section = node.type().definition().sections().get(filename)
-            #print "copy section: "+section.name()+"   "+str(section.size())+" bytes"
+            #print("copy section: "+section.name()+"   "+str(section.size())+" bytes")
             if section.size()<=0:
                 return False
             SectionFile = file(os.path.join(targetFolder, filename), "wb")
@@ -53,10 +63,10 @@ def installOneFileSection(node, filename, targetFolder, printErrorIfFailed=False
             SectionFile.close()
         else:
             return False
-            print "ERROR! missing Section :"+filename
+            print("ERROR! missing Section :"+filename)
     except:
-        print "ERRORRR"
-        if printErrorIfFailed: print "Exception raised while extracting section : "+filename
+        print("ERRORRR")
+        if printErrorIfFailed: print("Exception raised while extracting section : "+filename)
         return False
     return True
         
@@ -80,15 +90,17 @@ def fixExecutableMode(path):
 # NB: node must be the QuadRemesher SOP, not the python node inside
 def InstallQuadRemesherEngineIfNeeded(qrnode, ForceInstall=False, DownloadOnly=False):
     global verboseDebug
+    if verboseDebug: print("InstallQuadRemesherEngineIfNeeded ForceInstall=%d  DownloadOnly=%d" % (ForceInstall,DownloadOnly))
     
     enginePath = getQREnginePath()
     if ForceInstall:
         if os.path.exists(getQREngineFolder()):
+            if verboseDebug: print("Forceinstall engine -> remove existing engine")
             import shutil
             shutil.rmtree(getQREngineFolder())
     else:
         if os.path.exists(enginePath):
-            if verboseDebug: print "-----Engine already installed !!!"
+            if verboseDebug: print("-----Engine already installed !!!")
             return (0, "-----Engine already installed !!!")
     
     # test if the engine is inside sections:
@@ -103,6 +115,8 @@ def InstallQuadRemesherEngineIfNeeded(qrnode, ForceInstall=False, DownloadOnly=F
 
     
 def InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder):
+    global verboseDebug
+    if verboseDebug: print("InstallQuadRemesherEngine_FromZip.....")
     # unzip
     try:
         from zipfile import ZipFile
@@ -120,6 +134,7 @@ def InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder):
         
     # python unzip is losing file modes...
     isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
+    isLinux = (platform.system()=="Linux")
     if isMacOSX:
         try:
             fixExecutableMode(os.path.join(engineFolder, 'xremesh'))
@@ -129,9 +144,20 @@ def InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder):
             msg = "--- fix file mode failed ---" + str(traceback.format_exc()) + "\n"
             print(msg)
             return (-2, msg)
+    if isLinux:
+        try:
+            fixExecutableMode(os.path.join(engineFolder, 'xremesh'))
+            fixExecutableMode(os.path.join(engineFolder, 'xrLicenseManager'))
+        except :
+            import traceback
+            msg = "--- fix file mode failed ---" + str(traceback.format_exc()) + "\n"
+            print(msg)
+            return (-2, msg)
             
 
 def InstallQuadRemesherEngine_Download():
+    global verboseDebug
+    if verboseDebug: print("InstallQuadRemesherEngine_Download.....")
     engineFolder = getQREngineFolder()
     enginePath = getQREnginePath()
     if not os.path.exists(engineFolder):
@@ -139,13 +165,16 @@ def InstallQuadRemesherEngine_Download():
         
     # download first  (NB: python version ????? )
     with hou.InterruptableOperation("Downloading QuadRemesher Engine...", open_interrupt_dialog=True) as IntOp:    
-        print "Info: Downloading QuadRemesher Engine..."
+        print("Info: Downloading QuadRemesher Engine...")
         try:
             isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
+            isLinux = (platform.system()=="Linux")
             zip_file_name = os.path.join(engineFolder, "install_engine.zip")
             if isMacOSX:
                 # NB: https fails on macOS here
                 download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.1_macOS.zip"
+            elif isLinux:
+                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.1_linux.zip"
             else:
                 download_url = "https://exoside.com/quadremesherdata/quad_remesher_engine_1.1_win.zip"
             if sys.version_info[0] <= 2:
@@ -167,16 +196,18 @@ def InstallQuadRemesherEngine_Download():
         InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder)
     # end of IntOp
     
-    print "-------- QuadRemesher Engine installed succesfully! -------"
+    print("-------- QuadRemesher Engine installed succesfully! -------")
     return (1, "-------- QuadRemesher Engine installed succesfully! -------")
             
 
     
 def InstallEngineFromSections(node):
+    global verboseDebug
+    if verboseDebug: print("InstallEngineFromSections.....")
     enginePath = getQREnginePath()
 
     #for s in node.type().definition().sections():
-    #    print "sections : dict["+s+"] = "+str(node.type().definition().sections()[s])
+    #    print("sections : dict["+s+"] = "+str(node.type().definition().sections()[s]))
         
     engineFolder = getQREngineFolder()
     if not os.path.exists(engineFolder):
@@ -184,10 +215,18 @@ def InstallEngineFromSections(node):
     imagesFolder = createFolder(os.path.join(engineFolder, 'resources/images'))
 
     isMacOS = (platform.system()=="Darwin") or (platform.system()=="macosx")
+    isLinux = (platform.system()=="Linux")
     if isMacOS:
         # extract the zip from the sections
         sectionOk = installOneFileSection(node, "QuadRemesherEngine_macOS.zip", engineFolder)
         zip_file_name = os.path.join(engineFolder, "QuadRemesherEngine_macOS.zip")
+        if sectionOk == False:
+            return (-1, "section not found")
+
+    elif isLinux:
+        # extract the zip from the sections
+        sectionOk = installOneFileSection(node, "QuadRemesherEngine_Linux.zip", engineFolder)
+        zip_file_name = os.path.join(engineFolder, "QuadRemesherEngine_Linux.zip")
         if sectionOk == False:
             return (-1, "section not found")
 
@@ -281,60 +320,60 @@ def exportExoMesh(filename, geo, node, exportPointColors=True, exportMatGroups=T
                 fp.write(struct.pack('=i', 0))
                 for n in av:
                     fp.write(struct.pack('f', n))
-        except hou.Error, e:
+        except (hou.Error, e):
             av = None # no Normals!
-        except Exception, e:
-            print "Warning: exception while exporting Normals..."+str(e)
+        except (Exception, e):
+            print("Warning: exception while exporting Normals..."+str(e))
             
     # write UVs (direct by corner, UVW actually!):
     if exportUVs:
         try:
             av = geo.vertexFloatAttribValues("uv")
             if av and len(av)==3*nc:
-                #print "Has UVs : "+str(len(av))
+                #print("Has UVs : "+str(len(av)))
                 fp.write(struct.pack('=i', 151))
                 fp.write(struct.pack('=i', nc*12))
                 fp.write(struct.pack('=i', nc))
                 fp.write(struct.pack('=i', 0))
                 for u in av:
                     fp.write(struct.pack('f', u))
-        except hou.Error, e:
+        except (hou.Error, e):
             av = None # no UVs!
-        except Exception, e:
-            print "Warning: exception while exporting UVs..."+str(e)
+        except (Exception, e):
+            print("Warning: exception while exporting UVs..."+str(e))
             
     # write PointColors (direct by point):
     if exportPointColors:
         try:
             av = geo.pointFloatAttribValues("Cd")
             if av and len(av)==3*nv:
-                #print "Has Colors : "+str(len(av))
-                ''' export as Byte '''
+                #print("Has Colors : "+str(len(av)))
+                ''' export as Byte
                 fp.write(struct.pack('=i', 156))
                 fp.write(struct.pack('=i', nv*3))
                 fp.write(struct.pack('=i', nv))
                 fp.write(struct.pack('=i', 0))
                 for c in av:
-                    # NB: need the test c in [0,1] to avoid throughing an exception
+                    # NB: need the test c in [0,1] to avoid throwing an exception
                     if c<0:
                         fp.write(struct.pack('B', 0))
                     elif c>1.0:
                         fp.write(struct.pack('B', 255))
                     else:
                         fp.write(struct.pack('B', c*255))
-                 
+                 '''
                  
                  # export as Floats
-                #fp.write(struct.pack('=i', 156))
-                #fp.write(struct.pack('=i', nv*12))
-                #fp.write(struct.pack('=i', nv))
-                #fp.write(struct.pack('=i', 0))
-                #for c in av:
-                #    fp.write(struct.pack('f', c))
-        except hou.Error, e:
+                fp.write(struct.pack('=i', 156))
+                fp.write(struct.pack('=i', nv*12))
+                fp.write(struct.pack('=i', nv))
+                fp.write(struct.pack('=i', 0))
+                for c in av:
+                    fp.write(struct.pack('f', c))
+        except (hou.Error, e):
             av = None # no Colors!
         except :
-            print "Warning: exception while exporting colors..."
+            print("Warning: exception while exporting colors...")
         
     # write DensityFactor by point: (values in [0, 1]   0 means 4 times Bigger Quads    1 means 4 times Smaller Quads
     ''' right now DensityAttribName is invisible... not finished...
@@ -343,7 +382,7 @@ def exportExoMesh(filename, geo, node, exportPointColors=True, exportMatGroups=T
         if (densityAttribName != ""):
             av = geo.pointFloatAttribValues(densityAttribName)
             if av and len(av)==nv:
-                #print "Has Density Attrib : "+str(len(av))
+                #print("Has Density Attrib : "+str(len(av)))
                 fp.write(struct.pack('=i', 230))
                 fp.write(struct.pack('=i', nv*4))
                 fp.write(struct.pack('=i', nv))
@@ -370,7 +409,7 @@ def exportExoMesh(filename, geo, node, exportPointColors=True, exportMatGroups=T
         try:
             av = geo.primStringAttribValues("shop_materialpath")
             if av and len(av)==nf:
-                #print "Has MatIds : "+str(len(av))
+                #print("Has MatIds : "+str(len(av)))
                 fp.write(struct.pack('=i', 210))
                 fp.write(struct.pack('=i', nf*4))
                 fp.write(struct.pack('=i', nf))
@@ -383,18 +422,18 @@ def exportExoMesh(filename, geo, node, exportPointColors=True, exportMatGroups=T
                         index = materialDict[m]
                     except: # not found
                         materialCounter+=1
-                        #print "new mat index for '"+str(m)+"'"
+                        #print("new mat index for '"+str(m)+"'")
                         materialDict[m] = materialCounter
                         index = materialCounter
                         
                     fp.write(struct.pack('=i', index))
                     testCountWrite += 1
-                #print "testCountWrite="+str(testCountWrite)
+                #print("testCountWrite="+str(testCountWrite))
         except :
             #import traceback
             #print("MatIds : "+str(traceback.format_exc()))
             av = None
-            print "Warning: exception while exporting MaterialIds..."
+            print("Warning: exception while exporting MaterialIds...")
             
     # Face Groups: (sent as polygongroups)
     try:
@@ -415,7 +454,7 @@ def exportExoMesh(filename, geo, node, exportPointColors=True, exportMatGroups=T
                 for g in mygroups:
                     fp.write(struct.pack('=i', g))
     except :
-        print "warning: exception raised while retrieving primitive groups"
+        print("warning: exception raised while retrieving primitive groups")
         av = None
     
     # Specified PrimitiveAttribute (sent as polygroups)
@@ -425,7 +464,7 @@ def exportExoMesh(filename, geo, node, exportPointColors=True, exportMatGroups=T
         if (primName != ""):
             av = geo.primIntAttribValues(primName)
             if av and len(av)==nf:
-                #print "Has Attribute : "+str(primName)+"  "+str(len(av))
+                #print("Has Attribute : "+str(primName)+"  "+str(len(av)))
                 fp.write(struct.pack('=i', 200))
                 fp.write(struct.pack('=i', nf*4))
                 fp.write(struct.pack('=i', nf))
@@ -465,7 +504,7 @@ def exportExoMesh(filename, geo, node, exportPointColors=True, exportMatGroups=T
                                 fp.write(struct.pack('=i', 0))
                                 fp.write(struct.pack('=i', 0))
         except :
-            print "warning: exception raised while retrieving edge groups"
+            print("warning: exception raised while retrieving edge groups")
                     
             
     
@@ -493,6 +532,7 @@ def doRemeshing(node):
     geo = node.geometry()
     
     isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
+    isLinux = (platform.system()=="Linux")
 
     node = node.parent()  # here node become the QuadRemesher SOP node
     
@@ -518,11 +558,13 @@ def doRemeshing(node):
     if isMacOSX :
         XRTempFolder = tempfile.gettempdir()
         #XRTempFolder = "/var/tmp/Exoside"
+    elif isLinux:
+        XRTempFolder = tempfile.gettempdir()
     else :
         XRTempFolder = tempfile.gettempdir() # gettempdir() => c:\users\max\appdata\local\temp\houdini_temp
         XRTempFolder = unixifyPath(XRTempFolder)
     XRTempFolder = os.path.join(XRTempFolder, "QuadRemesher")
-    if verboseDebug: print "TempFolder = "+ XRTempFolder
+    if verboseDebug: print("TempFolder = "+ XRTempFolder)
     if not os.path.exists(XRTempFolder):
         os.makedirs(XRTempFolder)
     
@@ -555,7 +597,7 @@ def doRemeshing(node):
 
     # --------- 1st time : install remesher : 
     installCode = InstallQuadRemesherEngineIfNeeded(node)
-    if installCode<0:
+    if installCode[0]<0:
         raise hou.NodeError("Cannot install RemesherEngine!")
         return
             
@@ -564,7 +606,7 @@ def doRemeshing(node):
     with hou.InterruptableOperation("Remeshing '"+node.name()+"' ...", open_interrupt_dialog=True) as IntOp:    
         
         # ----- export remesh settings -----
-        if verboseDebug: print "Start write settings... in:" + settingsFilename
+        if verboseDebug: print("Start write settings... in:" + settingsFilename)
         settings_file = open(settingsFilename, "w")
         settings_file.write('HostApp=Houdini\n')
         settings_file.write('FileIn="%s"\n' % exportFilename)
@@ -599,7 +641,7 @@ def doRemeshing(node):
         
         
         settings_file.close()
-        if verboseDebug: print "write settings done!"
+        if verboseDebug: print("write settings done!")
         
         # ----- export mesh to retopo -----
         if (exportFilename.endswith('.exomesh')):
@@ -608,8 +650,8 @@ def doRemeshing(node):
             startTime = time.time()
             geo.saveToFile(exportFilename)
             endTime = time.time()
-            #print "export time = "+str(endTime-startTime)+" s ("+exportFilename+")"
-        if verboseDebug: print "export done!"
+            #print("export time = "+str(endTime-startTime)+" s ("+exportFilename+")")
+        if verboseDebug: print("export done!")
         
         
         # ----- run the remeshing engine -----
@@ -695,11 +737,11 @@ def doRemeshing(node):
     # end of with InteruptableOpration
     
     if Aborted:
-        print "Aborted : kill process"
+        print("Aborted : kill process")
         remeshProc.kill()
         return
     
-    if verboseDebug: print "ProgressValueFloat = "+str(ProgressValueFloat)
+    if verboseDebug: print("ProgressValueFloat = "+str(ProgressValueFloat))
     
     if ProgressValueFloat < 0:   # RemeshingFailed!
         if verboseDebug: print("ProgressValueFloat<0 : ProgressTest = '" + str(ProgressText) + "'\n")
@@ -725,12 +767,13 @@ def buttonCookNow(node):
     #   So click on "Cook Now" will not re-cook, if I do not set 'force'
     #   I don't know a 
     try:
-        #print "Cook Now!! : isCookNowCase="+str(isCookNowCase)+"    needToCook="+str(node.needsToCook()) 
+        #print("Cook Now!! : isCookNowCase="+str(isCookNowCase)+"    needToCook="+str(node.needsToCook()) )
         node.cook(force=True)
-    except object as e:
+    #except object as e:
+    except Exception:
         print ("---- ERROR in CookNow... ----")
-        import traceback
-        print(str(traceback.format_exc()) + "\n")
+        #import traceback
+        #print(str(traceback.format_exc()) + "\n")
     
    
 def onPaint(args, node):
@@ -746,8 +789,11 @@ def buttonLicMgr(node):
     
     engineFolder = getQREngineFolder()
     isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
+    isLinux = (platform.system()=="Linux")
     if isMacOSX:
         licenseManagerPath = os.path.join(engineFolder, 'xrLicenseManager.app/Contents/MacOS/xrLicenseManager')
+    elif isLinux:
+        licenseManagerPath = os.path.join(engineFolder, 'xrLicenseManager')
     else:
         licenseManagerPath = os.path.join(engineFolder, 'xrLicenseManager.exe')
     
@@ -807,7 +853,7 @@ def buttonSetPaintingColor():
     '''
 
     if paintNode == None:
-        print "Needs to have a 'Paint' or Attribute Paint' SOP as immediate input of the QuadRemesher SOP. Create it!"
+        print("Needs to have a 'Paint' or Attribute Paint' SOP as immediate input of the QuadRemesher SOP. Create it!")
         return
     
     #inputNodeParms = paintNode.parms()
