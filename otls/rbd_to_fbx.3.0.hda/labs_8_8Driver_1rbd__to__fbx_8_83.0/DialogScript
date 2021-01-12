@@ -1,0 +1,195 @@
+# Dialog script for labs::rbd_to_fbx::3.0 automatically generated
+
+{
+    name	labs::rbd_to_fbx::3.0
+    script	rbd_fbx_rop
+    label	"Labs RBD to FBX"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Settings"
+
+        parm {
+            name    "node_to_export"
+            label   "Node To Export"
+            type    oppath
+            default { "" }
+            parmtag { "opfilter" "!!SOP!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "export_path"
+            label   "Export Path"
+            type    geometry
+            default { "$HIP/export/${HIPNAME}.fbx" }
+            parmtag { "filechooser_pattern" "*fbx" }
+        }
+        parm {
+            name    "f"
+            label   "Start/End/Inc"
+            type    float
+            size    3
+            default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] "1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "group"
+            label   "Group"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "import hou" ]
+                [ "" ]
+                [ "node = kwargs['node']" ]
+                [ "" ]
+                [ "" ]
+                [ "AllGroupNames = set(node.node(\"Import/COPY/object_merge1\").geometry().primGroups())" ]
+                [ "GroupPairs = [[x.name(), x.name()] for x in AllGroupNames]" ]
+                [ "" ]
+                [ "return sum(GroupPairs, [])" ]
+                language python
+            }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Advanced"
+
+        parm {
+            name    "bOverrideName"
+            label   "Override Name"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "sNameOverride"
+            label   "Name Override"
+            type    string
+            default { "piece_" }
+            disablewhen "{ bOverrideName == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "convertaxis"
+            label   "Convert Axis System"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "axissystem"
+            label   "Axis System"
+            type    ordinal
+            default { "yupright" }
+            disablewhen "{ convertaxis == 0 }"
+            menu {
+                [ "opmenu -l -a filmboxfbx1 axissystem" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "convertunits"
+            label   "Convert Units"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "exportkind"
+            label   "Export in ASCII Format"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "stdswitcher"
+            label   "Root Transform"
+
+            parm {
+                name    "t"
+                label   "Translate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                range   { -1 1 }
+                parmtag { "autoscope" "1110000000000000" }
+                parmtag { "script_action" "import objecttoolutils\nobjecttoolutils.matchTransform(kwargs, 0)" }
+                parmtag { "script_action_help" "Select an object to match the translation with." }
+                parmtag { "script_action_icon" "BUTTONS_match_transform" }
+            }
+            parm {
+                name    "r"
+                label   "Rotate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                range   { 0 360 }
+                parmtag { "autoscope" "1110000000000000" }
+                parmtag { "script_action" "import objecttoolutils\nobjecttoolutils.matchTransform(kwargs, 1)" }
+                parmtag { "script_action_help" "Select an object to match the rotation with." }
+                parmtag { "script_action_icon" "BUTTONS_match_rotation" }
+            }
+            parm {
+                name    "s"
+                label   "Scale"
+                type    vector
+                size    3
+                default { "1" "1" "1" }
+                range   { -1 1 }
+                parmtag { "autoscope" "1110000000000000" }
+                parmtag { "script_action" "import objecttoolutils\nobjecttoolutils.matchTransform(kwargs, 2)" }
+                parmtag { "script_action_help" "Select an object to match the scale with." }
+                parmtag { "script_action_icon" "BUTTONS_match_scale" }
+            }
+            parm {
+                name    "p"
+                label   "Pivot"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import objecttoolutils\nobjecttoolutils.matchTransform(kwargs, 3)" }
+                parmtag { "script_action_help" "Select an object to match the pivot with." }
+                parmtag { "script_action_icon" "BUTTONS_match_pivot" }
+            }
+            parm {
+                name    "scale"
+                label   "Uniform Scale"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+}
