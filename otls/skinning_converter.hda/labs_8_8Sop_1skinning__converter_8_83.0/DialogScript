@@ -40,6 +40,7 @@
     groupcollapsible {
         name    "folder1_2"
         label   "Error Visualisation"
+        grouptag { "group_type" "collapsible" }
 
         parm {
             name    "lErrorMethod"
@@ -79,6 +80,7 @@
     groupsimple {
         name    "folder1"
         label   "Conversion Settings"
+        grouptag { "group_type" "simple" }
 
         parm {
             name    "i2FrameRange"
@@ -116,7 +118,7 @@
         }
         parm {
             name    "sepparm4"
-            label   "sepparm4"
+            label   ""
             type    separator
             default { "" }
         }
@@ -161,6 +163,7 @@
             groupsimple {
                 name    "folder4"
                 label   "Primary Bones"
+                grouptag { "group_type" "simple" }
 
                 parm {
                     name    "iUnifBones"
@@ -193,6 +196,7 @@
                 name    "folder5"
                 label   "Secondary Bones"
                 disablewhen "{ boneplacementmode == 0 }"
+                grouptag { "group_type" "simple" }
 
                 parm {
                     name    "fSecondaryBones"
@@ -365,4 +369,148 @@
         invisible
         default { "0" }
     }
+    multiparm {
+        name    "transformations"
+        label    "Transformations"
+        default 0
+        parmtag { "multistartoffset" "0" }
+
+        parm {
+            name    "enable#"
+            label   "Enable"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "group#"
+            label   "Group"
+            type    string
+            default { "!*" }
+            disablewhen "{ enable# == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nsoputils.selectPointGroupParmByName(kwargs)\n" }
+            parmtag { "script_action_help" "Select geometry from an available viewport." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mode#"
+            label   "Mode"
+            type    ordinal
+            joinnext
+            default { "0" }
+            disablewhen "{ enable# == 0 }"
+            menu {
+                "pre"       "Pre-Multiply"
+                "post"      "Post-Multiply"
+                "override"  "Override"
+                "restpose"  "From Rest Pose"
+            }
+        }
+        parm {
+            name    "bake#"
+            label   "Bake From Input"
+            type    button
+            default { "0" }
+            disablewhen "{ enable# == 0 }"
+            hidewhen "{ mode# != override }"
+            parmtag { "script_callback" "hou.phm().bakeKeyframes(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "xOrd#"
+            label   "Transform Order"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "srt"   "Scale Rot Trans"
+                "str"   "Scale Trans Rot"
+                "rst"   "Rot Scale Trans"
+                "rts"   "Rot Trans Scale"
+                "tsr"   "Trans Scale Rot"
+                "trs"   "Trans Rot Scale"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "rOrd#"
+            label   "Rotate Order"
+            type    ordinal
+            nolabel
+            default { "0" }
+            disablewhen "{ enable# == 0 }"
+            menu {
+                "xyz"   "Rx Ry Rz"
+                "xzy"   "Rx Rz Ry"
+                "yxz"   "Ry Rx Rz"
+                "yzx"   "Ry Rz Rx"
+                "zxy"   "Rz Rx Ry"
+                "zyx"   "Rz Ry Rx"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "t#"
+            label   "Translate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            disablewhen "{ enable# == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "r#"
+            label   "Rotate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            disablewhen "{ enable# == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "s#"
+            label   "Scale"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            disablewhen "{ enable# == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupcollapsible {
+            name    "pivot#"
+            label   "Pivot"
+            disablewhen "{ enable# == 0 }"
+            grouptag { "group_type" "collapsible" }
+
+            parm {
+                name    "p#"
+                label   "Pivot Translate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                disablewhen "{ enable# == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "pivot_r#"
+                label   "Pivot Rotate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                disablewhen "{ enable# == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
 }
