@@ -334,7 +334,7 @@ def get_file_name(data, type_="parm"):
         file_path = TEMP_FOLDER + os.sep + file_name
 
     elif type_ == "python_node" or "extra_section|" in type_:
-        sid = hashlib.sha1(data.path()).hexdigest()
+        sid = hashlib.sha1(data.path().encode("utf-8")).hexdigest()
 
         name = data.name()
         if "extra_section|" in type_:
