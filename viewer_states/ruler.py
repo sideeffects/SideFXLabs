@@ -554,7 +554,7 @@ class State(object):
         if (self.curPlane == None):
             return
         plane_vec = State.planes[self.curPlane]
-        rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
+        #rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
         #plane_vec = plane_vec * rot
         arc_geo = createArcGeometry(self.cur_angle, 1)
         hou.GeometryDrawable.setGeometry(self.arc_drawable, arc_geo)
@@ -590,6 +590,9 @@ class State(object):
         index = ray.index(max(ray))
         return index
 
+    def getIntersectionCplane(self, scene_viewer, ray_origin, ray_dir):
+        return Intersection(su.cplaneIntersection(scene_viewer, ray_origin, ray_dir), None)
+
     def intersectWithPlane(self, origin, ray):
         rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
         plane = State.planes[self.curPlane] * rot.inverted()
@@ -605,6 +608,8 @@ class State(object):
                 return Intersection(self.geo_intersector.snapped_position, None, True)
             else:
                 return Intersection(self.geo_intersector.position, None)
+        elif self.scene_viewer.constructionPlane().isVisible():
+            return self.getIntersectionCplane(self.scene_viewer, origin, ray)
         else:
             return self.intersectWithPlane(origin, ray)
 
