@@ -8,16 +8,45 @@ def CreateNewSubnet(a_ContainerName):
     
     return hou.node("/obj").createNode("subnet", a_ContainerName)
 
-def CreateGeoFracContainer(a_Source, a_ContainerDir, a_ContainerName, a_PieceIndex, a_GroupName, a_Frame):
+
+def SetTransforms(a_Node, a_Point):
+    a_Node.parmTuple("t").set(a_Point.position())
+
+    # # invert if not a zero scale matrix
+    # try:
+    #     baked_transform = a_Prim.fullTransform()
+    # except: 
+    #     raise hou.Error("Invalid transforms found. Ensure your packed geometry has valid intrinsic:packedfulltransform values")
+
+
+    # pos = baked_transform.extractTranslates()
+    # rot = baked_transform.extractRotates()
+    # scale = baked_transform.extractScales()
+   
+    # for i, parm_name in enumerate(["tx", "ty", "tz"]):
+    #     a_Node.parm(parm_name).set(pos[i])
+
+    # for i, parm_name in enumerate(["rx", "ry", "rz"]):
+    #     a_Node.parm(parm_name).set(rot[i])
+
+    # for i, parm_name in enumerate(["sx", "sy", "sz"]):
+    #     a_Node.parm(parm_name).set(scale[i])
+
+
+
+def CreateGeoFracContainer(a_Source, a_ContainerDir, a_ContainerName, a_GroupName, a_Frame):
     Geometry = hou.node(a_ContainerDir).createNode("geo", "%s" % a_ContainerName)
     ObjMerge = Geometry.createNode("object_merge")
     ObjMerge.parm("objpath1").set(a_Source)
     ObjMerge.parm("group1").set(str(a_GroupName))
 
+    MatchSize = Geometry.createNode("matchsize")
+    MatchSize.setNextInput(ObjMerge)
+
     TimeShift = Geometry.createNode("timeshift")
     TimeShift.parm("frame").deleteAllKeyframes()
     TimeShift.parm("frame").set(a_Frame)
-    TimeShift.setNextInput(ObjMerge)
+    TimeShift.setNextInput(MatchSize)
 
     Output = Geometry.createNode("output")
     Output.setNextInput(TimeShift)
@@ -26,6 +55,7 @@ def CreateGeoFracContainer(a_Source, a_ContainerDir, a_ContainerName, a_PieceInd
     Output.setHardLocked(1)
 
     Geometry.layoutChildren()
+    SetTransforms(Geometry, ObjMerge.geometry().points()[0])
 
 def Main():
     # Parm Data
@@ -43,15 +73,15 @@ def Main():
 
     # Just export Packed Prims
     if ExportMode == 0:
-        for i, point in enumerate(Geometry.points()):
-            name = point.attribValue("name")
-            CreateGeoFracContainer(GeometrySource.path(), ExportContainer.path(), name, i, i, Frame)
+        for i, prim in enumerate(Geometry.prims()):
+            name = prim.attribValue("name")
+            CreateGeoFracContainer(GeometrySource.path(), ExportContainer.path(), name, "@name={}".format(name), Frame)
 
     # Export Based on Attr
     elif ExportMode == 1:
         SourceArray = list(hou.node("%s/UniqueVals" % hou.pwd().path()).geometry().stringListAttribValue("UniqueDetVals"))
 
         for i, attr in enumerate(SourceArray):
-            CreateGeoFracContainer(GeometrySource.path(), ExportContainer.path(), attr, i, "@%s=%s" % (PieceAttribute, attr), Frame)
+            CreateGeoFracContainer(GeometrySource.path(), ExportContainer.path(), attr, "@%s=%s" % (PieceAttribute, attr), Frame)
 
     ExportContainer.layoutChildren()
