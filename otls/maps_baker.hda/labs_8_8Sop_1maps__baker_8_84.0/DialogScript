@@ -122,6 +122,7 @@
                 "0" "Nearest Surface"
                 "1" "Surface Normal"
                 "2" "Cage Input"
+                "3" "Copy Lowpoly"
             }
         }
         parm {
@@ -130,7 +131,7 @@
             type    log
             joinnext
             default { "1" }
-            hidewhen "{ mBakeMode == 0 }"
+            hidewhen "{ mBakeMode == 0 } { mBakeMode == 3 }"
             range   { 0.001 2 }
         }
         parm {
@@ -666,9 +667,24 @@
                 name    "sPos"
                 label   "Position"
                 type    string
-                joinnext
                 default { "position" }
                 disablewhen "{ bPos == 0 }"
+            }
+            parm {
+                name    "usematerialid"
+                label   "Material ID"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "materialid"
+                label   "Material ID"
+                type    string
+                joinnext
+                default { "materialid" }
+                disablewhen "{ usematerialid == 0 }"
             }
             parm {
                 name    "sPositionFormat"
@@ -1057,6 +1073,20 @@
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "parmvop" "1" }
                 parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+        groupsimple {
+            name    "folder15"
+            label   "Material ID"
+
+            parm {
+                name    "materialidseed"
+                label   "Material ID Seed"
+                type    integer
+                default { "46" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
             }
         }
 
