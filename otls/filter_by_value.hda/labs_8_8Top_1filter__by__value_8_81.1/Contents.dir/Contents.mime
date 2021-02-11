@@ -31,25 +31,25 @@ Content-Disposition: attachment; filename="hdaroot.def"
 Content-Type: text/plain
 
 comment ""
-position -3.93492 -4.71303
+position 12.9748 -8.04098
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display on render off highlight off unload off savedata off compress off colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress off colordefault on exposed on
 outputsNamed3
 {
 }
 inputsNamed3
 {
-0 	attributecreate1 1 1 "input1"
+0 	wedge1 0 1 "input1"
 }
 inputs
 {
-0 	attributecreate1 0 1
+0 	wedge1 0 1
 }
 stat
 {
   create -1
   modify -1
-  author michaelb@boswell
+  author prisms@threadripper1
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -169,6 +169,9 @@ Content-Type: text/plain
                 "1" "Not Equal To"
                 "2" "Greater Than"
                 "3" "Less Than"
+                "4" "Starts With"
+                "5" "Ends With"
+                "6" "Contains"
             }
             parmtag { "script_callback_language" "python" }
         }
@@ -349,18 +352,19 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../iCombineMode\") }
     }
-    channel iValueMultiParm {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../iValueMultiParm\") }
-    }
     channel pdg_workitemgeneration {
       lefttype = extend
       righttype = extend
       default = 2
       flags = 0
       segment { length = 0 value = 2 2 expr = chs(\"../pdg_workitemgeneration\") }
+    }
+    channel iValueMultiParm {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../iValueMultiParm\") }
     }
     channel iValueEnabled_1 {
       lefttype = extend
@@ -409,14 +413,53 @@ EQUAL_TO     = 0
 NOT_EQUAL_TO = 1
 GREATER_THAN = 2
 LESS_THAN    = 3
+STARTS_WITH  = 4
+ENDS_WITH    = 5
+CONTAINS     = 6
+
+# Casting between types, depending on some reference
+def InterpretTypeAs(value, reference):
+    if isinstance(reference, int):
+        return int(value)
+    elif isinstance(reference, float):
+        return float(value)
+    else:
+        return value
+
+# Custom operations
+def CheckEqualTo(value, compareto):
+    return operator.eq(value, compareto)
+
+def CheckNotEqualTo(value, compareto):
+    return operator.ne(value, compareto)
+
+def CheckGreaterThan(value, compareto):
+    return operator.gt(value, compareto)
+
+def CheckLessThan(value, compareto):
+    return operator.lt(value, compareto)
+
+def CheckStartsWith(string, substring):
+    return str(string).startswith(str(substring))
+
+def CheckEndsWith(string, substring):
+    return str(string).endswith(str(substring))
+
+def CheckContains(string, substring):
+    return str(substring) in str(string)
 
 ops = {
-    EQUAL_TO     : operator.eq,
-    NOT_EQUAL_TO : operator.ne,
-    GREATER_THAN : operator.gt,
-    LESS_THAN    : operator.lt
+    EQUAL_TO     : CheckEqualTo,
+    NOT_EQUAL_TO : CheckNotEqualTo,
+    GREATER_THAN : CheckGreaterThan,
+    LESS_THAN    : CheckLessThan,
+    STARTS_WITH  : CheckStartsWith,
+    ENDS_WITH    : CheckEndsWith,
+    CONTAINS     : CheckContains
 }
 
+
+# Get attribute name we want to use
 AttributeName = self[\"sAttrName\"].evaluateString()
 
 if AttributeName == \"\":
@@ -424,32 +467,38 @@ if AttributeName == \"\":
 else:
     AttributeValues = []
 
+    # Loop through multiparm of filter queries. Make list of them
     for x in range(1, self[\"iValueMultiParm\"].evaluateInt() + 1):
         if self[\"iValueEnabled_%s\" % str(x)].evaluateInt() == 1:
+            
             Operation = self[\"iOperation_%s\" % str(x)].evaluateInt()
             Value     = self[\"sValue_%s\" % str(x)].evaluateString()
+            
             AttributeValues.append((Value, ops[Operation]))
     
+    # Compare attribute values with queries to see if they are a match
     Sets = []
     for Entry in AttributeValues:
         Set = set()
         for upstream_item in upstream_items:
-            item_value = upstream_item.attrib(AttributeName).asString()
-            if Entry[1](item_value, Entry[0]):
+            item_value = upstream_item.attrib(AttributeName).__getitem__(0)
+            
+            if Entry[1](item_value, InterpretTypeAs(Entry[0], item_value)):
                 Set.add(upstream_item)
         Sets.append(Set)
-        
+    
+
+    # Compare Sets with CombineMode to get intersections
     CombineMode    = self[\"iCombineMode\"].evaluateInt()
-    filtered_items = []
+    FilteredItems = []
     
     if CombineMode == UNION:
-        filtered_items = set.union(*Sets)
+        FilteredItems = set.union(*Sets)
     else:
-        filtered_items = set.intersection(*Sets)
+        FilteredItems = set.intersection(*Sets)
         
-    for item in filtered_items:
-        item_holder.addWorkItem(cloneResultData=True, preserveType=True, parent=item)
-    "	)
+    for item in FilteredItems:
+        item_holder.addWorkItem(cloneResultData=True, preserveType=True, parent=item)"	)
 useregeneratestatic	[ 0	locks=0 ]	(	"off"	)
 regeneratestatic	[ 0	locks=0 ]	(	"# Custom onRegenerateStatic callback logic. Called when a cook is done on a node
 # that already has static items instead of calling onGenerate.
@@ -482,14 +531,14 @@ addjobparms	[ 0	locks=0 ]	(	0	)
 pdg_workitempriority	[ 0	locks=0 ]	(	"0"	)
 pdg_workitempriorityexpr	[ 0	locks=0 ]	(	0	)
 pdgnodedep1	[ 0	locks=0 ]	(	""	)
-sAttrName	[ 8	locks=0 ]	(	[ sAttrName	foo ] 	)
+sAttrName	[ 8	locks=0 ]	(	[ sAttrName	Test1 ] 	)
 iCombineMode	[ 0	locks=0 ]	(	[ iCombineMode	0 ] 	)
 iValueMultiParm	[ 0	locks=0 ]	(	[ iValueMultiParm	1 ] 	)
 processor4	[ 0	locks=0 ]	(	0	0	0	)
 callbacks5	[ 0	locks=0 ]	(	0	0	0	0	)
 iValueEnabled_1	[ 0	locks=0 ]	(	[ iValueEnabled_1	1 ] 	)
-iOperation_1	[ 0	locks=0 ]	(	[ iOperation_1	1 ] 	)
-sValue_1	[ 0	locks=0 ]	(	[ sValue_1	5 ] 	)
+iOperation_1	[ 0	locks=0 ]	(	[ iOperation_1	6 ] 	)
+sValue_1	[ 0	locks=0 ]	(	[ sValue_1	6 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
