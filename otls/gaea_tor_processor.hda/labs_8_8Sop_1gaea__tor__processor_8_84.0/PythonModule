@@ -26,6 +26,33 @@ def ValidateGaeaInstalled(a_dir):
             return
     raise hou.Error("Cannot Find Gaea at specified location")
 
+def GetAutomationFile(a_node):
+    returnvalue = a_node.parm("automation_file").evalAsString()
+
+    if returnvalue.startswith("opdef:"):
+
+        returnvalue = a_node.parm("automation_file").rawValue()
+
+        fullrelativepath = returnvalue.split(":")[-1]
+        components = fullrelativepath.split("?")
+        relativepath = components[0]
+        file = components[1]
+
+        targetnodedef = a_node.node(relativepath).type().definition()   
+        tempfile = hou.expandString("$HOUDINI_TEMP_DIR/{}".format(file))
+
+        if targetnodedef.hasSection(file):
+            with open(tempfile, 'wb') as sectionfile:
+                try:
+                    sectionfile.write(targetnodedef.sections().get(file).binaryContents())
+                except:
+                    sectionfile.write(targetnodedef.sections().get(file).contents())
+
+            returnvalue = tempfile
+
+    return returnvalue.replace("\\", "/")
+
+
 # This is the main function to process a Gaea Graph inside of Houdini
 def ProcessTor(a_node):
 
@@ -33,7 +60,7 @@ def ProcessTor(a_node):
     gaea_dir, version = GetGaeaRegistryInstall(a_node)
     ValidateGaeaInstalled(gaea_dir)
     gaea_path = os.path.join(gaea_dir, "Gaea.Build.exe").replace("\\", "/")
-    automation_file = a_node.parm("automation_file").evalAsString().replace("\\", "/")
+    automation_file = GetAutomationFile(a_node)
 
     if automation_file == "" or not os.path.isfile(automation_file):
         raise hou.Error("Missing Automation Tor File.")
@@ -183,7 +210,7 @@ def LoadXML(a_node):
     gaea_dir, version = GetGaeaRegistryInstall(a_node)
     ValidateGaeaInstalled(gaea_dir)
     gaea_path = os.path.join(gaea_dir, "Gaea.Build.exe").replace("\\", "/")
-    automation_file = a_node.parm("automation_file").evalAsString().replace("\\", "/")
+    automation_file = GetAutomationFile(a_node)
 
     if not os.path.isfile(os.path.abspath("".join(automation_file))):
         raise hou.Error("Could not find TOR file. Please make sure to specify a valid path")
