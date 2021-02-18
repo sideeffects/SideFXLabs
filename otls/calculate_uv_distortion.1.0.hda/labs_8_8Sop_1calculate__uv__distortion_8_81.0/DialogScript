@@ -1,0 +1,57 @@
+# Dialog script for labs::calculate_uv_distortion::1.0 automatically generated
+
+{
+    name	labs::calculate_uv_distortion::1.0
+    script	labs::calculate_uv_distortion::1.0
+    label	"Labs Calculate UV Distortion"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry with UVs"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "destgroup"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a attribcopy2 destgroup" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sop_input" "0" }
+    }
+    parm {
+        name    "uvattr"
+        label   "UV Attributes"
+        type    string
+        default { "uv" }
+        menureplace {
+            [ "opmenu -l -a attribdelete2 vtxdel" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "distortionattr"
+        label   "Output Attribute"
+        type    string
+        default { "uv_distortion" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "visualize"
+        label   "Visualize"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+}
