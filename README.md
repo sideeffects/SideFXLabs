@@ -14,7 +14,7 @@ Use the built in Updater in Houdini 18.0 or newer to install a version of the to
 The updater provides several options of installation depending on your needs / limitations.
 1. If you do not have internet access, the updater allows you to install a local version of the toolset. This local version is tied to which version of Houdini you are running the updater from. (Ex Houdini 18.0.274 would install 274 of the toolset) To obtain a newer version, you would need a more recent version of Houdini.
 2. REQUIRES INTERNET ACCESS. Download a production build from Github. A production build is released every four weeks. This type of build will not contain the cutting edge additions to the toolset, but will have had more production testing prior to release than a development build. (These builds can be found in the releases section of this repository and are marked as "Release")
-3. REQUIRES INTERNET ACCESS. Download a development build from SideFX.com. A development build gets released every 24 hours. These builds will contain bugfixes that have been implemented in the day prior. To get access to these type of builds, untick the "Production Builds Only" checkbox in the updater.
+3. REQUIRES INTERNET ACCESS. Download a development build from SideFX.com. A development build gets released every 24 hours. These builds will contain bugfixes that have been implemented in the day prior. To get access to these type of builds, untick the "Production Builds Only" checkbox in the updater. 
 
 ## Method 2: Commandline
 Houdini now also allows you to install SideFXLabs through python in case you wish to do so. This is especially useful for deploying the toolset in large environments. The updating can be done through the `sidefxlabs` module.
