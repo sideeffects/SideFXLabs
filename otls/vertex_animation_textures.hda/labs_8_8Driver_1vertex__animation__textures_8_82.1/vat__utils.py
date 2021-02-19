@@ -74,7 +74,7 @@ def data(node):
     else:
         data = []
         data.append({
-            'Name' : "Soft",
+            'Name' : ['Soft', 'Rigid', 'Fluid', 'Sprite'][min(max(int(method), 0), 3)],
             'numOfFrames'  : int(_numOfFrames),
             'speed'        : float(_speed),
             'posMax'    : float(_posMax),
