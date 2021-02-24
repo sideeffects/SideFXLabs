@@ -271,7 +271,7 @@ vec2 hammersley2d(uint i, uint N)
 }
 
 // GGX microfacet required functions under single scattering assumption
-// gives us a new half vector rotated by some random weight based on roughness
+// gives us a new halfv vector rotated by some random weight based on roughness
 vec3 ImportanceSampleGGX(vec2 xi, float roughness, vec3 normal)
 {
     float alpha2        = roughness * roughness;
@@ -280,10 +280,10 @@ vec3 ImportanceSampleGGX(vec2 xi, float roughness, vec3 normal)
     float sin_theta     = sqrt(1.0 - cos_theta * cos_theta);
     
     // Compute the vector from the sampled theta/phi
-    vec3 half;
-    half.x = sin_theta * cos(phi);
-    half.y = sin_theta * sin(phi);
-    half.z = cos_theta;
+    vec3 halfv;
+    halfv.x = sin_theta * cos(phi);
+    halfv.y = sin_theta * sin(phi);
+    halfv.z = cos_theta;
     
     // Compute a shading frame    
     vec3 up = abs(normal.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
@@ -291,7 +291,7 @@ vec3 ImportanceSampleGGX(vec2 xi, float roughness, vec3 normal)
     vec3 tangent_y = cross(tangent_x, normal);
 
     // Return the vector in the shading frame
-    return tangent_x * half.x + tangent_y * half.y + normal * half.z;
+    return tangent_x * halfv.x + tangent_y * halfv.y + normal * halfv.z;
 }
 
 // The GGX microfacet model is F.D.G / 4.cos_theta_i.cos_theta_o
