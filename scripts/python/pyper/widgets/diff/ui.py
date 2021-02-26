@@ -113,8 +113,7 @@ class MainWidget(QtWidgets.QWidget):
         # connect signals
         self.actionRefresh.triggered.connect(self.refresh)
         self.uiCheckBox.stateChanged.connect(self.refresh)
-        # self.uiRefreshBtn.clicked.connect(self.actionRefresh)
-        # QtCore.QObject.connect(self.uiRefreshBtn, QtCore.SIGNAL('clicked()'), self.refresh)
+        self.uiRefreshBtn.clicked.connect(self.refresh)
         
         ## connect widget signals
         spreadsheets = self._spreadsheets
