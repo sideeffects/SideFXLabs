@@ -191,7 +191,8 @@ class Model(QtCore.QAbstractTableModel):
                     parm[2] = self._nodeDict[name][2]
 
     def refresh(self, mylist=None):
-        self._logger.debug("Refreshing spreadsheet's model.")
+        self._logger.debug("Refreshing spreadsheet %s" % self)
+
         self.beginResetModel()
 
         # first build the node dictionary
