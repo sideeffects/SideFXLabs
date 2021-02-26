@@ -108,10 +108,13 @@ class MainWidget(QtWidgets.QWidget):
             self.uiSplitter.addWidget(sheet)
 
         # add actions
-        self.uiSplitter.addAction(self.actionRefresh)
+        # self.uiSplitter.addAction(self.actionRefresh)
 
         # connect signals
         self.actionRefresh.triggered.connect(self.refresh)
+        self.uiCheckBox.stateChanged.connect(self.refresh)
+        # self.uiRefreshBtn.clicked.connect(self.actionRefresh)
+        # QtCore.QObject.connect(self.uiRefreshBtn, QtCore.SIGNAL('clicked()'), self.refresh)
         
         ## connect widget signals
         spreadsheets = self._spreadsheets
@@ -220,13 +223,18 @@ class MainWidget(QtWidgets.QWidget):
                     # compare the values and set the flag if different
                     if srcNodeDict[name][1] != dstNodeDict[name][1]:
                         parm[2] = spreadsheet.model.FLAGS.NOTEQUAL
+                        # but only add the parm to the display parm list is the checkbox is checked
+                        if self.uiCheckBox.isChecked():
+                            mylist.append(parm)
             # name is on the destination node
             else:
                 parm = dstNodeDict[name][:]
                 parm[1] = "NA"
                 parm[2] = spreadsheet.model.FLAGS.NA
 
-            mylist.append(parm)
+            # but only add the parm to the display parm list is the checkbox is not checked
+            if not self.uiCheckBox.isChecked():
+                mylist.append(parm)
 
         # sort mylist by the first key of each item
         mylist.sort(key=lambda x: str(x[0]))
