@@ -54,8 +54,8 @@ class Model(QtCore.QAbstractTableModel):
 
         self._appModel = appModel
         self._nodePath = nodePath
-        self._nodeDict = {}
-        self._displayParmList = []  # list meant for display; it could contain more/less parameters than the nodeParmList
+        self._nodeDict = {}         # a dictionary with the node's parameters name, value, flag and path
+        self._displayParmList = []  # list of parms to display; it could contain more/less parameters than the nodeDict
 
         self.refresh()
 
@@ -105,7 +105,7 @@ class Model(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.BackgroundRole:
             if self._displayParmList[row][2] == FLAGS.NOTEQUAL:
-                return QtGui.QColor(253, 103, 33, 200)
+                return QtGui.QColor(253, 103, 33, 100)
 
     def setData(self, index, value, role=QtCore.Qt.EditRole, quiet=False):
         if not index.isValid():
@@ -115,16 +115,16 @@ class Model(QtCore.QAbstractTableModel):
         column = index.column()
 
         if role == QtCore.Qt.EditRole:
-            # prepare a parm list containing dictionaries (needed by the appModel)
+            # prepare a parm list containing dictionaries (needed by appModel)
             parms = [{"path": self._displayParmList[row][3], "value": str(value)}, ]
 
-            # tell the appModel to set the parms in the scene
+            # tell appModel to set the parms
             try:
                 self._appModel.setParms(parms)
             except (Exception, e):
                 self._logger.error(e)
 
-            # emit the dataChange signal if not quiet
+            # emit dataChange signal if not quiet
             if not quiet:
                 self.dataChanged.emit(index, index)
 
@@ -191,13 +191,13 @@ class Model(QtCore.QAbstractTableModel):
                     parm[2] = self._nodeDict[name][2]
 
     def refresh(self, mylist=None):
-        self._logger.debug("Refreshing spreadsheet %s" % self)
+        self._logger.debug("Refreshing model %s" % self)
 
         self.beginResetModel()
 
         # first build the node dictionary
         self.buildNodeDict()
-        # if no display parameter list is provided, build it 
+        # if no display parameter list is provided, build it
         if not mylist:
             mylist = self.buildDisplayParmList()
         # set the display parameter list
