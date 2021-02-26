@@ -34,6 +34,8 @@ from pyper.vendor.Qt import _QtUiTools
 
 from pyper.widgets import spreadsheet
 
+import importlib
+importlib.reload(spreadsheet)
 
 class UiLoader(_QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
@@ -66,7 +68,6 @@ class MainWidget(QtWidgets.QWidget):
         # get the first two selected nodes... 
         srcNodePath = dstNodePath = ""
         selectedNodes = self._appModel.selection()
-        # nodePathes = [self._appModel.getPath(node for node in selectedNodes]
         if selectedNodes:
             srcNodePath = self._appModel.getPath(selectedNodes[0])
             if len(selectedNodes) > 1:
@@ -231,7 +232,7 @@ class MainWidget(QtWidgets.QWidget):
                 parm[1] = "NA"
                 parm[2] = spreadsheet.model.FLAGS.NA
 
-            # but only add the parm to the display parm list is the checkbox is not checked
+            # add the parm to the display parm list if the checkbox is NOT checked
             if not self.uiCheckBox.isChecked():
                 mylist.append(parm)
 
@@ -245,11 +246,11 @@ class MainWidget(QtWidgets.QWidget):
 
         if self._spreadsheets:
             # first refresh the spreadsheets so the model is updated
-            # we need that so that the nodeDict is refreshed
+            # this is needed for nodeDict to be up to date
             for spreadsheet in self._spreadsheets:
                 spreadsheet.refresh()
 
-            # now nodeDict has been updated for each model, build the displayParmList
+            # once nodeDict has been updated for each model, build the displayParmList
             displayParmList = self.buildDisplayParmList()
 
             # finally refresh the spreadsheet with the displayParmList
