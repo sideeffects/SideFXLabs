@@ -1,0 +1,165 @@
+# Dialog script for labs::remove_uv_distortion::1.0 automatically generated
+
+{
+    name	labs::remove_uv_distortion::1.0
+    script	labs::remove_uv_distortion::1.0
+    label	"Labs Remove UV Distortion"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a blast1 group" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "vtxdel"
+        label   "UV Attribute"
+        type    string
+        default { "uv" }
+        menureplace {
+            [ "opmenu -l -a attribdelete1 vtxdel" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "mode"
+        label   "Removal Mode"
+        type    ordinal
+        joinnext
+        default { "0" }
+        menu {
+            "0" "Peaks"
+            "1" "Holes"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "iterations"
+        label   "Iterations"
+        type    integer
+        default { "10" }
+        disablewhen "{ mode != 0 }"
+        range   { 1 100 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "usecluster"
+        label   "Use Distortion Averages"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "solvestretching"
+        label   "Solve Stretching"
+        type    toggle
+        nolabel
+        joinnext
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "maxnegdist"
+        label   "Max Stretch"
+        type    float
+        default { "-0.2" }
+        disablewhen "{ solvestretching == 0 }"
+        range   { -1 0! }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "solvesquashing"
+        label   "Solve Squashing"
+        type    toggle
+        nolabel
+        joinnext
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "maxposdist"
+        label   "Max Squash"
+        type    float
+        default { "0.2" }
+        disablewhen "{ solvesquashing == 0 }"
+        range   { 0! 1 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "visualizedistortion"
+        label   "Visualize Distortion"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "folder0"
+        label   "Advanced"
+
+        parm {
+            name    "regressionmetric"
+            label   "Regression Metric"
+            type    ordinal
+            default { "rms" }
+            menu {
+                "max"       "Maximum"
+                "min"       "Minimum"
+                "mean"      "Average"
+                "mode"      "Mode"
+                "median"    "Median"
+                "sum"       "Sum"
+                "sumsquare" "Sum of Squares"
+                "rms"       "Root Mean Square"
+                "first"     "First Match"
+                "last"      "Last Match"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "discardregressions"
+            label   "Discard Regressions"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "flattenmethod"
+            label   "Flattening Method"
+            type    ordinal
+            default { "abf" }
+            menu {
+                "scp"   "Spectral (SCP)"
+                "abf"   "Angle-Based (ABF)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "douvlayout"
+            label   "UV Layout"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

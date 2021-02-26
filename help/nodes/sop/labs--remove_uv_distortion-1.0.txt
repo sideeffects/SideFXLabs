@@ -1,0 +1,55 @@
+= Labs Remove UV Distortion =
+
+#type: node
+#context: sop
+#internal: labs::remove_uv_distortion::1.0
+#icon: remove_uv_distortion
+#tags: sidefxlabs, uv
+
+""" Remove UV Distortion tries to reduce UV distortion by inserting new seams """
+
+The Remove UV Distortion tool tries to reduce the UV distortion on geometry with pre-existing UVs. It does so by calculating the distortion found in the UVs and cut new seams based on that.
+Depending on the polycount of your geometry, this can take some time due to the nature of the used operations.
+
+The tool is most useful for cases where you have clear "hotspots" of distortion. 
+
+NOTE:
+    Due to the algorithms used of flattening UVs, solving stretching will often result in self-intersecting UVs (overlaps). This is the reason the stretch toggle has been disabled by default.
+
+TIP:
+    Putting two remove distortion nodes after eachother, the first with mode set to "Holes", and the second set to "Peaks" often produces very clean results on heavily distorted UVs.
+
+[Image:/images/remove_uv_distortion_1.jpg]
+
+
+@parameters
+    Group:
+        The group of primitives containing UVs to be processed.
+    UV Attribute:
+        The UV attribute to be processed. Useful if you need to do this operation on a non-default UV set.
+    Removal Mode:
+        The types of distortion to be removed. Holes will search and cut nested loops in UV shells (which will occur when flattening a tube without connecting the two boundary edges), or peaks which are spots of distortion.
+    Iterations:
+	The number of iterations to apply while removing distortion. The process of finding and removing distortion is an iterative process, so generally higher iterations mean better results. Higher values can also help cases where no improvements can be found while solving.
+    Use Distortion Averages:
+        When this is toggled, the tool will insert seams from the "average loation" of spots of distortion, instead of the point with highest distortion. Usually using averages produces better results, but this needs to be tested on a per-use-case basis.
+    Solve Stretching:
+        Toggles if the tool should try and resolve stretching. (primitives using more texel density than neighboring primitives, indicated in blue) Note: Solving stretching frequently results in self-intersecting UV shells, and is generally left off. 
+    Max Stretch:
+        The maximum amount of (negative) distortion to solve towards. Note: Solving stretching frequently results in self-intersecting UV shells, and is generally left off. 
+    Solve Squashing:
+        Toggles if the tool should try and resolve squashing. (primitives using less texel density than neighboring primitives, indicated in red).
+    Max Squash:
+        The maximum amount of (positive) distortion to solve towards. 
+    Visualize Distortion:
+        Toggles if the visualizer should refresh post distortion removal.
+
+   == Advanced ==
+   Regression Metric:
+       The method used to calculate distortion amounts before comparing if an iteration has better UVs than the previous iteration. The default is Root Mean Square since it filters out any outliers we dont usually care about. (which averages does not)
+   Discard Regressions:
+       Toggles if the check whether or not an iteration has improved should be disabled or not. Usually you would leave this on, but in very rare cases you might want to disable this to see what happens.
+   Flattening Method:
+       The method used to flatten the UVs using the newly generated UV seams.
+   UV Layout:
+       Toggles if the UVs should be rescaled and repositioned after solving. Disabling can save some processing if you do not care about layout or want to do a layout yourself later.
