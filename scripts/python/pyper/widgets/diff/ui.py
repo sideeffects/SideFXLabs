@@ -74,7 +74,7 @@ class MainWidget(QtWidgets.QWidget):
                 dstNodePath = self._appModel.getPath(selectedNodes[1])
         nodePathes = [srcNodePath, dstNodePath]
         
-        # ... to create the spreadsheets...
+        #... to create the spreadsheets
         self._spreadsheets = []
         self._spreadsheets = [spreadsheet.ui.MainWidget(appModel=self._appModel, nodePath=nodePath, parent=self) for nodePath in nodePathes]
 
@@ -116,7 +116,6 @@ class MainWidget(QtWidgets.QWidget):
         self.uiCheckBox.stateChanged.connect(self.refresh)
         self.uiRefreshBtn.clicked.connect(self.refresh)
         
-        ## connect widget signals
         spreadsheets = self._spreadsheets
         for idx, spreadsheet in enumerate(spreadsheets):
             # build a temporary list to pair one element to the next in a circular way 
@@ -128,6 +127,7 @@ class MainWidget(QtWidgets.QWidget):
             tableViewSrc.verticalScrollBar().valueChanged.connect(tableViewDst.verticalScrollBar().setValue)
             # refresh if spreadsheet changes
             tableViewSrc.model().dataChanged.connect(self.refresh)
+            tableViewDst.model().dataChanged.connect(self.refresh)
             # sync selection between the two spreadsheets
             selectionModel = tableViewSrc.selectionModel()
             selectionModel.selectionChanged.connect(lambda selected, deselected, id=idx: self.syncSelection(selected, deselected, id))
@@ -136,7 +136,7 @@ class MainWidget(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         name = __name__.split(".")[-2].capitalize() # note: [-2] to get the name of the module above .ui
-        self._logger.info("Closing %s..." % (name))
+        self._logger.debug("Closing %s..." % (name))
         self.setParent(None)
         event.accept()
         self._logger.info("%s closed." % (name))
@@ -200,7 +200,7 @@ class MainWidget(QtWidgets.QWidget):
         # the problem is that the widget does not know it needs to refresh the ui so we force it to update itself
         self.update()
 
-    def buildDisplayParmList(self):
+    def buildDisplayList(self):
         # get the nodes' dictionaries
         srcNodeDict = self._spreadsheets[0].model().nodeDict
         dstNodeDict = self._spreadsheets[1].model().nodeDict
@@ -213,20 +213,20 @@ class MainWidget(QtWidgets.QWidget):
 
         # for each name
         for name in names:
-            # name is on the source node
             if name in srcNodeDict.keys():
+            # if name is on the source node...
                 parm = srcNodeDict[name][:]
                 parm[1] = "NA"
                 parm[2] = spreadsheet.model.FLAGS.NA
-                #...and on the destination node
+                #... and on the destination node
                 if name in dstNodeDict.keys():
-                    # compare the values and set the flag if different
+                    #... then set the flag if values are different
                     if srcNodeDict[name][1] != dstNodeDict[name][1]:
                         parm[2] = spreadsheet.model.FLAGS.NOTEQUAL
-                        # but only add the parm to the display parm list is the checkbox is checked
+                        # but only add the parm to the display parm list if the checkbox is checked
                         if self.uiCheckBox.isChecked():
                             mylist.append(parm)
-            # name is on the destination node
+            # otherwise name is on the destination node (because names is the union of src and dst keys)
             else:
                 parm = dstNodeDict[name][:]
                 parm[1] = "NA"
@@ -242,20 +242,19 @@ class MainWidget(QtWidgets.QWidget):
         return mylist 
 
     def refresh(self):
-        self._logger.debug("Refreshing Diff UI.")
-
+        self._logger.info("Refreshing diff %s" % self)
+    
         if self._spreadsheets:
             # first refresh the spreadsheets so the model is updated
             # this is needed for nodeDict to be up to date
             for spreadsheet in self._spreadsheets:
                 spreadsheet.refresh()
-
-            # once nodeDict has been updated for each model, build the displayParmList
-            displayParmList = self.buildDisplayParmList()
-
-            # finally refresh the spreadsheet with the displayParmList
+    
+            # once nodeDict has been updated for each model, build the displayList
+            displayList = self.buildDisplayList()
+    
+            # finally refresh the spreadsheet with the displayList
             for spreadsheet in self._spreadsheets:
                 spreadsheet.model().beginResetModel()
-                spreadsheet.model().refresh(mylist=displayParmList)
+                spreadsheet.model().refresh(displayList)
                 spreadsheet.model().endResetModel()
-

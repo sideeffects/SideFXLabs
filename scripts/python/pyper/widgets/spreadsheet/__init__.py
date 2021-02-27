@@ -35,7 +35,7 @@ from . import ui
 import importlib
 importlib.reload(ui)
 
-## global variables
+# global variables
 NAME = __name__.split(".")[-1].capitalize()
 
 

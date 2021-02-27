@@ -55,26 +55,10 @@ class Model(QtCore.QAbstractTableModel):
         self._appModel = appModel
         self._nodePath = nodePath
         self._nodeDict = {}         # a dictionary with the node's parameters name, value, flag and path
-        self._displayParmList = []  # list of parms to display; it could contain more/less parameters than the nodeDict
-
-        self.refresh()
-
-    def nodePath():
-        """path to the node we want to display the parameters."""
-        def fget(self): return self._nodePath
-        def fset(self, value): 
-            self._nodePath = value
-        return locals()
-    nodePath = property(**nodePath())
-
-    def nodeDict():
-        """ """
-        def fget(self): return self._nodeDict
-        return locals()
-    nodeDict = property(**nodeDict())
+        self._displayList = []  # list of parms to display; it could contain more/less parameters than the nodeDict
 
     def rowCount(self, parent):
-        return len(self._displayParmList)
+        return len(self._displayList)
 
     def columnCount(self, parent):
         return 2
@@ -84,7 +68,7 @@ class Model(QtCore.QAbstractTableModel):
             return COLUMNS.names[section]
 
     def getData(self, row, column):
-        return self._displayParmList[row][column]
+        return self._displayList[row][column]
 
     def data(self, index, role):
         if not index.isValid():
@@ -94,8 +78,12 @@ class Model(QtCore.QAbstractTableModel):
         row = index.row()
         column = index.column()
         
-        if (role == QtCore.Qt.DisplayRole) | (role == QtCore.Qt.EditRole):
-            return self._displayParmList[row][column]
+        if role == QtCore.Qt.DisplayRole:
+            return self._displayList[row][column]
+
+        if role == QtCore.Qt.EditRole:
+            if self._displayList[row][2] != FLAGS.NA:
+                return self._displayList[row][column]
 
         if role == QtCore.Qt.TextAlignmentRole:
             if column == 1:
@@ -103,9 +91,19 @@ class Model(QtCore.QAbstractTableModel):
             else:
                 return QtCore.Qt.AlignVCenter
 
+        if role == QtCore.Qt.ForegroundRole:
+            if self._displayList[row][2] == FLAGS.NA:
+                return QtGui.QColor(80, 80, 80, 255)
+
         if role == QtCore.Qt.BackgroundRole:
-            if self._displayParmList[row][2] == FLAGS.NOTEQUAL:
+            if self._displayList[row][2] == FLAGS.NOTEQUAL:
                 return QtGui.QColor(253, 103, 33, 100)
+
+        if role == QtCore.Qt.FontRole:
+            if self._displayList[row][2] == FLAGS.NA:
+                font = QtGui.QFont()
+                font.setItalic(True)
+                return font
 
     def setData(self, index, value, role=QtCore.Qt.EditRole, quiet=False):
         if not index.isValid():
@@ -116,7 +114,7 @@ class Model(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.EditRole:
             # prepare a parm list containing dictionaries (needed by appModel)
-            parms = [{"path": self._displayParmList[row][3], "value": str(value)}, ]
+            parms = [{"path": self._displayList[row][3], "value": str(value)}, ]
 
             # tell appModel to set the parms
             try:
@@ -128,8 +126,10 @@ class Model(QtCore.QAbstractTableModel):
             if not quiet:
                 self.dataChanged.emit(index, index)
 
-            # and tell the model to refresh itself
-            self.refresh()
+            # we now don't tell the model to refresh itself 
+            # because it should be done by the receiver of the 'dataChanged' signal
+            # self.refresh(self.buildDisplayList())
+
             return True
 
         return False
@@ -145,7 +145,7 @@ class Model(QtCore.QAbstractTableModel):
             item = index.internalPointer()
 
             # enable the nodes parameters but not the NA ones (non available)
-            if self._displayParmList[row][2] != FLAGS.NA:
+            if self._displayList[row][2] != FLAGS.NA:
                 res = res | QtCore.Qt.ItemIsEnabled
 
             # allow changes of values 
@@ -154,57 +154,74 @@ class Model(QtCore.QAbstractTableModel):
 
         return res
 
+    def nodePath():
+        """ Path to the node we want to display the parameters. """
+        def fget(self): return self._nodePath
+        def fset(self, value): 
+            self._logger.debug("Refreshing nodePath with node \"%s\"." % value)
+            self._nodePath = value
+            self.buildNodeDict()
+        return locals()
+    nodePath = property(**nodePath())
+
+    def nodeDict():
+        """ """
+        def fget(self): return self._nodeDict
+        return locals()
+    nodeDict = property(**nodeDict())
+
     def buildNodeDict(self):
         """ Builds a dictionary with node's parameters name, value, flag and path. """
         # get the node parameters as a list of paths...
         paths = self._appModel.getParms(self._nodePath)
         # ... then build a list of [name, value, flag, path] ...
-        mylist = [[self._appModel.getName(path), self._appModel.evalAsString(path), FLAGS.NORMAL, path] for path in paths]
+        parmlist = [[self._appModel.getName(path), self._appModel.evalAsString(path), FLAGS.NORMAL, path] for path in paths]
         # ... and finally convert to dictionary
-        self._nodeDict = dict((k[0], k[0:]) for k in mylist)
+        self._nodeDict = dict((k[0], k[0:]) for k in parmlist)
 
-    def buildDisplayParmList(self):
-        """ Builds the list of parameters to display from the node's dictionary. """
-        # empty the current parameter list and fill it
-        mylist = []
+    def buildDisplayList(self):
+        """ Defines the list of parameters to display in the spreadsheet.
+        Note: this list can be different from the node's full parameter list. 
+        It can contain extra parameters that are not available on the node itself.
+        For instance if this spreadsheet is used by the Diff widget, then the display
+        list could contain spare parameters from one of the other nodes it is compared to.
+        """
+        # build the list
+        parmlist = []
         for key, value in self._nodeDict.items():
-            mylist.append(value)
+            parmlist.append(value)
+        # and sort it by the first key of each item
+        parmlist.sort(key=lambda x: str(x[0]))
 
-        # sort it by the first key of each item
-        mylist.sort(key=lambda x: str(x[0]))
+        return parmlist
 
-        return mylist
+    def setDisplayList(self, parmlist):
+        """ Set the display list to the parm list passed as parameter. 
+        This is needed in case we want the parent to define the display list."""
+        self._displayList = copy.deepcopy(parmlist)
 
-    def setDisplayParmList(self, parmList):
-        """ Set the display list to the argument parmList. """
-        self._displayParmList = copy.deepcopy(parmList)
-
-    def fillDisplayParmList(self):
-        """ This function fills the display list with the parameters available on the current node. """
+    def fillDisplayList(self):
+        """ This function fills the display list with the parameters from the current node. 
+        Note: remember that the display list could be different from the node's full parameter list.
+        It could contain extra parameters that are not available on the node itself.
+        For instance if this spreadsheet is used by the Diff widget, then the display
+        list could contain spare parameters from one of the other nodes it is compared to.
+        """
         # update values
-        for parm in self._displayParmList:
+        for parm in self._displayList:
             if parm[0] in self._nodeDict.keys():
-                name = parm[0]
-                parm[1] = self._nodeDict[name][1]
-                parm[3] = self._nodeDict[name][3]
+                name = parm[0]                          # name
+                parm[1] = self._nodeDict[name][1]       # value
                 if parm[2] != FLAGS.NOTEQUAL:
-                    parm[2] = self._nodeDict[name][2]
+                    parm[2] = self._nodeDict[name][2]   # FLAG
+                parm[3] = self._nodeDict[name][3]       # path
 
-    def refresh(self, mylist=None):
-        self._logger.debug("Refreshing model %s" % self)
-
+    def refresh(self, parmlist=None):
+        """ Refresh the model, defining and then filling the display list. """
+        self._logger.info("Refreshing model %s" % self)
         self.beginResetModel()
-
-        # first build the node dictionary
-        self.buildNodeDict()
-        # if no display parameter list is provided, build it
-        if not mylist:
-            mylist = self.buildDisplayParmList()
-        # set the display parameter list
-        self.setDisplayParmList(mylist)
-        # fill the display parameter list
-        self.fillDisplayParmList()
-        
+        if not parmlist:
+            parmlist = self.buildDisplayList()
+        self.setDisplayList(parmlist)
+        self.fillDisplayList()
         self.endResetModel()
-
-

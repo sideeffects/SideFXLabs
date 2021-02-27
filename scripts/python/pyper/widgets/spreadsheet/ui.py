@@ -39,6 +39,9 @@ import importlib
 importlib.reload(model)
 
 
+from .model import FLAGS
+
+
 class UiLoader(_QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
         _QtUiTools.QUiLoader.__init__(self, baseinstance)
@@ -56,7 +59,7 @@ class UiLoader(_QtUiTools.QUiLoader):
 
 class MainWidget(QtWidgets.QWidget):
 
-    def __init__(self, appModel, nodePath="", parent=None):
+    def __init__(self, appModel, nodepath="", parent=None):
         """ """
         super(MainWidget, self).__init__(parent)
 
@@ -68,13 +71,15 @@ class MainWidget(QtWidgets.QWidget):
         self._logger.debug("%s is using %s application model." % (__name__, self._appModel.name))
 
         # get the first selected node to build the spreadsheet
-        if not nodePath:
+        if not nodepath:
             selectedNodes = self._appModel.selection()
             if selectedNodes:
-                nodePath = selectedNodes[0]
+                nodepath = selectedNodes[0]
+        
+        # @todo: do I need to define self._nodepath here in spreadsheet?
 
         # define the model and its proxy model
-        self._model = model.Model(self._appModel, nodePath)
+        self._model = model.Model(self._appModel, nodepath)
         self._proxyModel = proxymodel.ProxyModel(self._model)
 
         # define parent in case this widget is not part of a parent widget
@@ -82,7 +87,7 @@ class MainWidget(QtWidgets.QWidget):
             self.setParent(self._appModel.mainQtWindow, QtCore.Qt.Window)
 
         # setup the UI
-        self.setup_ui(nodePath)
+        self.setup_ui(nodepath)
 
         # some cosmetics
         self.centerWidget()
@@ -95,7 +100,7 @@ class MainWidget(QtWidgets.QWidget):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
 
-    def setup_ui(self, nodePath=""):
+    def setup_ui(self, nodepath=""):
         """ """
         # build the ui
         uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
@@ -123,22 +128,23 @@ class MainWidget(QtWidgets.QWidget):
         self.uiTableView.addAction(self.actionRefresh)
 
         # connect signals
-        self.actionRefresh.triggered.connect(self.refresh)
-
         # check whether the parent has a refresh() function and connect it
         if hasattr(self.parent(), 'refresh'):
-            functionToConnect = self.parent().refresh
+            refreshFunction = lambda: self.parent().refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
         # otherwise connect the refresh() function of self
         elif hasattr(self, 'refresh'):
-            functionToConnect = self.refresh
-        self.uiLineEdit.textChanged.connect(functionToConnect)
-        
+            refreshFunction = lambda: self.refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
+        # refreshFunction = lambda: self.refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
+        self.uiLineEdit.textChanged.connect(refreshFunction)
+        self.actionRefresh.triggered.connect(refreshFunction)
+        self.model().dataChanged.connect(refreshFunction)
+
         # initialize uiLineEdit with the node path
-        self.uiLineEdit.setText(nodePath)
+        self.uiLineEdit.setText(nodepath)
 
     def closeEvent(self, event):
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
-        self._logger.info("Closing %s..." % (name))
+        self._logger.debug("Closing %s..." % (name))
         self.setParent(None)
         event.accept()
         self._logger.info("%s closed." % (name))
@@ -146,7 +152,12 @@ class MainWidget(QtWidgets.QWidget):
     def model(self):
         return self._model
 
-    def refresh(self, lineEditText="", mylist=None):
+    def refresh(self, parmlist=None):
+        """ Refresh the spreadsheet.
+        It updates the node path and asks the model to refresh """
+        # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)' 
+        # if not, it could pass some extra, unwanted, arguments.
+        # for instance 'uiLineEdit.textChanged' will pass the text in the line edit field as parmlist.
+        self._logger.info("Refreshing spreadsheet %s" % self)
         self._model.nodePath = str(self.uiLineEdit.text())
-        self._logger.debug("Refreshing spreadsheet with node \"%s\"." % self._model._nodePath)
-        self._model.refresh(mylist)
+        self._model.refresh(parmlist)
