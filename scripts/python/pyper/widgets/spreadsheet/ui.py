@@ -75,8 +75,6 @@ class MainWidget(QtWidgets.QWidget):
             selectedNodes = self._appModel.selection()
             if selectedNodes:
                 nodepath = selectedNodes[0]
-        
-        # @todo: do I need to define self._nodepath here in spreadsheet?
 
         # define the model and its proxy model
         self._model = model.Model(self._appModel, nodepath)
