@@ -76,7 +76,7 @@ class MainWidget(QtWidgets.QWidget):
         
         #... to create the spreadsheets
         self._spreadsheets = []
-        self._spreadsheets = [spreadsheet.ui.MainWidget(appModel=self._appModel, nodePath=nodePath, parent=self) for nodePath in nodePathes]
+        self._spreadsheets = [spreadsheet.ui.MainWidget(appModel=self._appModel, nodepath=nodePath, parent=self) for nodePath in nodePathes]
 
         # define parent in case this widget is not part of a parent widget
         if not parent:
@@ -126,8 +126,10 @@ class MainWidget(QtWidgets.QWidget):
             # sync the current spreadsheet scrollbar to the next in list (thanks to the circular pairing above)
             tableViewSrc.verticalScrollBar().valueChanged.connect(tableViewDst.verticalScrollBar().setValue)
             # refresh if spreadsheet changes
-            tableViewSrc.model().dataChanged.connect(self.refresh)
-            tableViewDst.model().dataChanged.connect(self.refresh)
+            refreshFunction = lambda: self.refresh()
+            spreadsheet.uiLineEdit.textChanged.connect(refreshFunction)
+            tableViewSrc.model().dataChanged.connect(refreshFunction)
+            # tableViewDst.model().dataChanged.connect(refreshFunction)
             # sync selection between the two spreadsheets
             selectionModel = tableViewSrc.selectionModel()
             selectionModel.selectionChanged.connect(lambda selected, deselected, id=idx: self.syncSelection(selected, deselected, id))
