@@ -224,12 +224,14 @@ class State(object):
 
     # Clear the stash so we're working with live geo
     def onExit(self, kwargs):
-        with hou.undos.disabler():
-            self.node.parm("stash").set(None) 
-            self.ResetShapeBoundParms(kwargs)
-            self.transform_handle.show(False)
-            self.ToolActive(kwargs, 0) 
-             
+        try:
+            with hou.undos.disabler():
+                self.node.parm("stash").set(None) 
+                self.ResetShapeBoundParms(kwargs)
+                self.transform_handle.show(False)
+                self.ToolActive(kwargs, 0) 
+        except:
+            pass
 
 
 def createViewerStateTemplate():
