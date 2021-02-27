@@ -123,13 +123,15 @@ class MainWidget(QtWidgets.QWidget):
             tmplist = spreadsheets[idx:] + spreadsheets[:idx]
             tableViewSrc = tmplist[0].uiTableView
             tableViewDst = tmplist[1].uiTableView
+
             # sync the current spreadsheet scrollbar to the next in list (thanks to the circular pairing above)
             tableViewSrc.verticalScrollBar().valueChanged.connect(tableViewDst.verticalScrollBar().setValue)
+
             # refresh if spreadsheet changes
             refreshFunction = lambda: self.refresh()
             spreadsheet.uiLineEdit.textChanged.connect(refreshFunction)
             tableViewSrc.model().dataChanged.connect(refreshFunction)
-            # tableViewDst.model().dataChanged.connect(refreshFunction)
+
             # sync selection between the two spreadsheets
             selectionModel = tableViewSrc.selectionModel()
             selectionModel.selectionChanged.connect(lambda selected, deselected, id=idx: self.syncSelection(selected, deselected, id))
