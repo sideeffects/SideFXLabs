@@ -217,20 +217,22 @@ class MainWidget(QtWidgets.QWidget):
 
         # for each name
         for name in names:
+            # if name is on the source node 
             if name in srcNodeDict.keys():
-            # if name is on the source node...
+                # if it is only on the source node
                 parm = srcNodeDict[name][:]
                 parm[1] = "NA"
                 parm[2] = spreadsheet.model.FLAGS.NA
-                #... and on the destination node
+                # if it is also on the destination node...
                 if name in dstNodeDict.keys():
-                    #... then set the flag if values are different
+                    #... then compare values
                     if srcNodeDict[name][1] != dstNodeDict[name][1]:
+                        #and set the flag if the values are different
                         parm[2] = spreadsheet.model.FLAGS.NOTEQUAL
                         # but only add the parm to the display parm list if the checkbox is checked
                         if self.uiShowDifferencesOnly.isChecked():
                             mylist.append(parm)
-            # otherwise name is on the destination node (because names is the union of src and dst keys)
+            # otherwise name is on the destination node only (because names is the union of src and dst keys)
             else:
                 parm = dstNodeDict[name][:]
                 parm[1] = "NA"
