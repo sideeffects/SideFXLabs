@@ -113,7 +113,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # connect signals
         self.actionRefresh.triggered.connect(self.refresh)
-        self.uiCheckBox.stateChanged.connect(self.refresh)
+        self.uiShowDifferencesOnly.stateChanged.connect(self.refresh)
         self.uiRefreshBtn.clicked.connect(self.refresh)
         
         spreadsheets = self._spreadsheets
@@ -228,7 +228,7 @@ class MainWidget(QtWidgets.QWidget):
                     if srcNodeDict[name][1] != dstNodeDict[name][1]:
                         parm[2] = spreadsheet.model.FLAGS.NOTEQUAL
                         # but only add the parm to the display parm list if the checkbox is checked
-                        if self.uiCheckBox.isChecked():
+                        if self.uiShowDifferencesOnly.isChecked():
                             mylist.append(parm)
             # otherwise name is on the destination node (because names is the union of src and dst keys)
             else:
@@ -237,7 +237,7 @@ class MainWidget(QtWidgets.QWidget):
                 parm[2] = spreadsheet.model.FLAGS.NA
 
             # add the parm to the display parm list if the checkbox is NOT checked
-            if not self.uiCheckBox.isChecked():
+            if not self.uiShowDifferencesOnly.isChecked():
                 mylist.append(parm)
 
         # sort mylist by the first key of each item
