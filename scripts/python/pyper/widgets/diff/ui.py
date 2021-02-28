@@ -127,10 +127,8 @@ class MainWidget(QtWidgets.QWidget):
             # sync the current spreadsheet scrollbar to the next in list (thanks to the circular pairing above)
             tableViewSrc.verticalScrollBar().valueChanged.connect(tableViewDst.verticalScrollBar().setValue)
 
-            # refresh if spreadsheet changes
-            refreshFunction = lambda: self.refresh()
-            spreadsheet.uiLineEdit.textChanged.connect(refreshFunction)
-            tableViewSrc.model().dataChanged.connect(refreshFunction)
+            # refresh Diff UI if spreadsheet changes
+            spreadsheet.spreadsheetChanged.connect(lambda: self.refresh())
 
             # sync selection between the two spreadsheets
             selectionModel = tableViewSrc.selectionModel()
@@ -248,7 +246,7 @@ class MainWidget(QtWidgets.QWidget):
         return mylist 
 
     def refresh(self):
-        self._logger.info("Refreshing diff %s" % self)
+        self._logger.debug("Refreshing diff %s" % self)
     
         if self._spreadsheets:
             # first refresh the spreadsheets so the model is updated

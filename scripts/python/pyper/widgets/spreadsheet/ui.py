@@ -59,6 +59,9 @@ class UiLoader(_QtUiTools.QUiLoader):
 
 class MainWidget(QtWidgets.QWidget):
 
+    # create signals
+    spreadsheetChanged = QtCore.Signal()
+
     def __init__(self, appModel, nodepath="", parent=None):
         """ """
         super(MainWidget, self).__init__(parent)
@@ -125,20 +128,22 @@ class MainWidget(QtWidgets.QWidget):
         # add actions
         self.uiTableView.addAction(self.actionRefresh)
 
-        # connect signals
-        # check whether the parent has a refresh() function and connect it
+        # define the refresh function to use (choose between self or parent)
         if hasattr(self.parent(), 'refresh'):
+            # check whether the parent has a refresh() function and connect it
             refreshFunction = lambda: self.parent().refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
-        # otherwise connect the refresh() function of self
-        elif hasattr(self, 'refresh'):
+        else:
+            # otherwise connect the refresh() function of self
             refreshFunction = lambda: self.refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
-        # refreshFunction = lambda: self.refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
-        self.uiLineEdit.textChanged.connect(refreshFunction)
-        self.actionRefresh.triggered.connect(refreshFunction)
-        self.model().dataChanged.connect(refreshFunction)
+
+        # connect signals
+        self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged 
+        self.model().dataChanged.connect(lambda: self.spreadsheetChanged.emit())      # a change in the model emits spreadsheetChanged
+        self.spreadsheetChanged.connect(refreshFunction)                              # when spreadsheetChanged is triggered, refresh the spreadsheet
+        self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
 
         # initialize uiLineEdit with the node path
-        self.uiLineEdit.setText(nodepath)
+        self.uiLineEdit.setText(nodepath)       
 
     def closeEvent(self, event):
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
@@ -156,6 +161,6 @@ class MainWidget(QtWidgets.QWidget):
         # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)' 
         # if not, it could pass some extra, unwanted, arguments.
         # for instance 'uiLineEdit.textChanged' will pass the text in the line edit field as parmlist.
-        self._logger.info("Refreshing spreadsheet %s" % self)
+        self._logger.debug("Refreshing spreadsheet %s" % self)
         self._model.nodePath = str(self.uiLineEdit.text())
         self._model.refresh(parmlist)
