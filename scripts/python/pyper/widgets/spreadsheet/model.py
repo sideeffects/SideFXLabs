@@ -126,9 +126,8 @@ class Model(QtCore.QAbstractTableModel):
             if not quiet:
                 self.dataChanged.emit(index, index)
 
-            # we now don't tell the model to refresh itself 
-            # because it should be done by the receiver of the 'dataChanged' signal
-            # self.refresh(self.buildDisplayList())
+            # we don't tell the model to refresh itself
+            # because it should be done by the receiver of the 'dataChanged' signal, either in the view or its parent
 
             return True
 
