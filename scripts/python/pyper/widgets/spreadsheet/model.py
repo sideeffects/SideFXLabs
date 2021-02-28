@@ -55,7 +55,7 @@ class Model(QtCore.QAbstractTableModel):
         self._appModel = appModel
         self._nodePath = nodePath
         self._nodeDict = {}         # a dictionary with the node's parameters name, value, flag and path
-        self._displayList = []  # list of parms to display; it could contain more/less parameters than the nodeDict
+        self._displayList = []      # list of parms to display; it could contain more/less parameters than the nodeDict
 
     def rowCount(self, parent):
         return len(self._displayList)
@@ -208,13 +208,16 @@ class Model(QtCore.QAbstractTableModel):
         list could contain spare parameters from one of the other nodes it is compared to.
         """
         # update values
-        for parm in self._displayList:
-            if parm[0] in self._nodeDict.keys():
-                name = parm[0]                          # name
-                parm[1] = self._nodeDict[name][1]       # value
-                if parm[2] != FLAGS.NOTEQUAL:
-                    parm[2] = self._nodeDict[name][2]   # FLAG
-                parm[3] = self._nodeDict[name][3]       # path
+        if len(self._nodeDict.keys()):
+            for parm in self._displayList:
+                if parm[0] in self._nodeDict.keys():
+                    name = parm[0]                          # name
+                    parm[1] = self._nodeDict[name][1]       # value
+                    if parm[2] != FLAGS.NOTEQUAL:
+                        parm[2] = self._nodeDict[name][2]   # FLAG
+                    parm[3] = self._nodeDict[name][3]       # path
+        else:
+            self.setDisplayList([])
 
     def refresh(self, parmlist=None):
         """ Refresh the model, defining and then filling the display list. """
