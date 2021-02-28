@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This file defines the items that appear in the pane tab type menu.
+
+    Files named the same (ie. PaneTabTypeMenu.xml) can exist in
+    $HOME/houdiniX.Y/ directory and will supplement the original definitions
+    found in $HFS/houdini/ (aka $HH).
+
+    The format in this file is similar to the format in $HH/MainMenuMaster
+    except that it uses the <menuDocument> and <menu> tags instead of 
+    <mainMenu> and <menuBar>. See the comments in that file for more advanced
+    customization abilities.
+    
+    Another difference here is that most menu items in this file have no labels
+    because they are dynamically created by Houdini. If labels are supplied to
+    the items which currently have no labels in this file, they will be
+    ignored.
+
+    Note that the id's correspond to their hotkeys with the h.pane
+    prefix (where available). For example, the item with id,
+    "scene_view", refers to the action in the hotkeys manager as
+    "h.pane.scene_view".
+
+    Also note that you can specify which context a particular menu item shows
+    up in. To do this, add a context expression property.  For example, to make
+    the menu item appear only for translate parameters you can do:
+        <context>
+            <expression>hou.curDesktop().name() == "Build"</expression>
+        </context>
+
+    For context expressions and menu scripts, a 'kwargs' python dictionary is
+    provided with the following values:
+        'panetab'   : The pane tab (hou.PaneTab object) that the menu was
+                      opened for.  When creating a new pane tab then `panetab`
+                      is set to None.
+
+    To insert a Python Panel interface into the menu, place an <actionItem> element
+    into the XML with the "id" set to "pythonpanel::__interface_name__" where
+    "__interface_name__" is the name of the Python Panel interface. 
+
+    For example, to insert a new "myInterface" Python Panel into the menu, you can do:
+        <actionItem id="pythonpanel::myInterface">
+            <label>Label for My Interface</label>
+        </actionItem>
+        
+    Or to move the Autorigs (Python Panel) tool to a new location, then
+    insert into the XML:
+        <actionItem id="pythonpanel::sesi_auto_rigs">
+            <label>Autorigs</label>
+        </actionItem>
+-->
+
+<menuDocument>
+    <!-- menuDocument can only contain 1 menu element, whose id is 
+         implicitly "root_menu"
+      -->
+    <menu>
+        <subMenu id="panetype_labs">
+
+            <label>Labs</label>
+            
+            <actionItem id="pythonpanel::labs::diff">
+                <label>Parameter Diff</label>
+            </actionItem>
+
+        </subMenu>
+    </menu>
+</menuDocument>
