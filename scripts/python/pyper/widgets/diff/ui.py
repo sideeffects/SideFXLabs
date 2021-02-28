@@ -246,7 +246,7 @@ class MainWidget(QtWidgets.QWidget):
         return mylist 
 
     def refresh(self):
-        self._logger.info("Refreshing diff %s" % self)
+        self._logger.debug("Refreshing diff %s" % self)
     
         if self._spreadsheets:
             # first refresh the spreadsheets so the model is updated

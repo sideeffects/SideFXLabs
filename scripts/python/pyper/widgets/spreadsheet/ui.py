@@ -156,6 +156,6 @@ class MainWidget(QtWidgets.QWidget):
         # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)' 
         # if not, it could pass some extra, unwanted, arguments.
         # for instance 'uiLineEdit.textChanged' will pass the text in the line edit field as parmlist.
-        self._logger.info("Refreshing spreadsheet %s" % self)
+        self._logger.debug("Refreshing spreadsheet %s" % self)
         self._model.nodePath = str(self.uiLineEdit.text())
         self._model.refresh(parmlist)
