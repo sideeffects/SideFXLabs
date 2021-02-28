@@ -218,7 +218,8 @@ class Model(QtCore.QAbstractTableModel):
 
     def refresh(self, parmlist=None):
         """ Refresh the model, defining and then filling the display list. """
-        self._logger.info("Refreshing model %s" % self)
+        self._logger.debug("Refreshing model %s" % self)
+
         self.beginResetModel()
         if not parmlist:
             parmlist = self.buildDisplayList()
