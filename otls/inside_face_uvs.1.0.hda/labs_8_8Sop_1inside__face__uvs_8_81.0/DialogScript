@@ -1,0 +1,119 @@
+# Dialog script for labs::inside_face_uvs::1.0 automatically generated
+
+{
+    name	labs::inside_face_uvs::1.0
+    script	gamedev::inside_face_uvs
+    label	"Labs Inside Face UVs"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Fractured Geo"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "destgroup"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a attribcopy3 destgroup" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sop_input" "0" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "UV"
+
+        parm {
+            name    "insidegroup"
+            label   "Inside Group"
+            type    string
+            default { "inside" }
+            menutoggle {
+                [ "opmenu -l -a split2 group" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "attrib"
+            label   "Attribute"
+            type    string
+            default { "uv" }
+            menureplace {
+                [ "opmenu -l -a attribdelete2 vtxdel" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "tiling"
+            label   "Tiling"
+            type    float
+            default { "1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "method"
+            label   "Flattening Method"
+            type    ordinal
+            default { "abf" }
+            menu {
+                "scp"   "Spectral (SCP)"
+                "abf"   "Angle-Based (ABF)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Normals"
+
+        parm {
+            name    "computenormals"
+            label   "Compute Normals"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cuspangle"
+            label   "Cusp Angle"
+            type    float
+            default { "35" }
+            disablewhen "{ computenormals == 0 }"
+            range   { 0! 180! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "normalmethod"
+            label   "Weighting Method"
+            type    integer
+            default { "2" }
+            disablewhen "{ computenormals == 0 }"
+            menu {
+                "uniform"   "Each Vertex Equally"
+                "angle"     "By Vertex Angle"
+                "area"      "By Face Area"
+            }
+            range   { 0! 2! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
