@@ -54,7 +54,7 @@ class Markers(object):
     def get_type_menu(cls):
         """ Get a menu for use in Houdini for the TYPE_ markers. """
         menu = []
-        for name, value in sorted(cls.__dict__.iteritems(), key=lambda i: i[0]):
+        for name, value in sorted(cls.__dict__.items(), key=lambda i: i[0]):
             if name and name.startswith('TYPE_'):
                 menu.append(value)
                 menu.append(name[5:].lower().capitalize())
@@ -333,7 +333,12 @@ def write_string(f, value):
     Raises a ``ValueError`` if the string's size is greater than can be represented with uint32.
 
     """
-    encoded_byte_string = value.encode('utf-8')
+    if hasattr(value, 'encode'):
+        # Encode to utf-8 
+        encoded_byte_string = value.encode('utf-8')
+    else:
+        # Assuming here that this is already a utf-8 bytes array
+        encoded_byte_string = value
     # Write the size type marker, first determine the length
     # of the string and check 
     num_bytes = len(encoded_byte_string)
@@ -367,9 +372,17 @@ def write_basic_value(f, value, pack_type=None, clamp=True):
     if pack_type == Markers.TYPE_BOOL:
         casted_value = bool(value)
     elif pack_type == Markers.TYPE_CHAR:
-        casted_value = str(value)
+        if isinstance(value, bytes):
+            casted_value = value
+        elif isinstance(value, basestring):
+            casted_value = value.encode('utf-8')
+        else:
+            casted_value = str(value).encode('utf-8')
         if casted_value:
-            casted_value = value[0]
+            # Slice to get a bytes array of length 1 in both py2.7 and py3
+            casted_value = casted_value[0:1]
+        else:
+            casted_value = b'\0'
     elif (pack_type == Markers.TYPE_INT8 or pack_type == Markers.TYPE_UINT8 or 
             pack_type == Markers.TYPE_INT16 or pack_type == Markers.TYPE_UINT16 or 
             pack_type == Markers.TYPE_INT32 or pack_type == Markers.TYPE_UINT32 or 
@@ -435,7 +448,7 @@ def write_object(f, obj, pack_type=None, clamp=True):
     """
     f.write(Markers.OBJECT_START)
     pack_type_is_mapping = bool(isinstance(pack_type, Mapping))
-    for key, value in obj.iteritems():
+    for key, value in obj.items():
         if not isinstance(key, basestring):
             raise TypeError('Mapping keys must be strings: {0}'.format(key))
         write_string(f, key)
@@ -468,7 +481,7 @@ def write_array(f, obj, pack_type=None, clamp=True):
     """
     open_array(f)
     if obj:
-        if pack_type and not isinstance(pack_type, basestring) and isinstance(pack_type, Iterable):
+        if pack_type and not isinstance(pack_type, bytes) and isinstance(pack_type, Iterable):
             index = 0
             for value in obj:
                 write_value(f, value, pack_type[index], clamp)
@@ -501,9 +514,11 @@ def write_value(f, value, pack_type=None, clamp=True):
     """
     if isinstance(value, Mapping):
         write_object(f, value, pack_type, clamp)
-    elif isinstance(value, basestring):
+    elif isinstance(value, (bytes, basestring)):
         if pack_type == Markers.TYPE_CHAR:
-            write_basic_value(f, value[0] if value else 0, pack_type, clamp)
+            # Slice value to ensure we don't get an int in python 3 if value is
+            # bytes
+            write_basic_value(f, value[0:1] if value else 0, pack_type, clamp)
         else:
             write_string(f, value)
     elif isinstance(value, Iterable):

@@ -14,6 +14,19 @@ g_supported_attribute_data_types = (
     hou.attribData.Int,
 )
 
+
+class JSONBytesEncoder(json.JSONEncoder):
+    """ Encoder that encodes bytes to unicode. Intended for use in Python 3. """
+    def __init__(self, *args, **kwargs):
+        self._default_bytes_encoding = kwargs.pop('default_bytes_encoding', 'utf-8')
+        super(JSONBytesEncoder, self).__init__(*args, **kwargs)
+
+    def default(self, o):
+        if isinstance(o, bytes):
+            return o.decode(self._default_bytes_encoding)
+        return super(JSONBytesEncoder, self).default(o)
+
+
 def report_and_raise_error(message, exception_class):
     """ Convenience function for reporting (print or UI popup)
     an error and raising an exception.
@@ -393,7 +406,7 @@ def _export_json_frame_internal(node, frame, render_node, is_binary, file_handle
         
         point_data = []          
         attrib_component_index = 0
-        for attrib_name, point_attr in point_attribs.iteritems():
+        for attrib_name, point_attr in point_attribs.items():
             attrib_value = point.attribValue(point_attr)
             # expand attributes with more than one component
             # directly into the point_data array
@@ -454,9 +467,9 @@ def export_json_footer(node, render_node=None, niagara_data=None):
             file_handle.seek(0)
             niagara_data.dump_begin(file_handle)
     else:
-        with open(json_path, 'w') as file_handle:
+        with open(json_path, 'wt') as file_handle:
             # Dump the entire cache to text json
-            json.dump(niagara_data.to_dict(), file_handle)
+            json.dump(niagara_data.to_dict(), file_handle, cls=JSONBytesEncoder)
             
     if hasattr(hou.session, 'niagara_rop_instance_data'):
         # Clear the instance data for this ROP
