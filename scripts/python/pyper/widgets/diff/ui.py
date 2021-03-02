@@ -113,7 +113,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # connect signals
         self.actionRefresh.triggered.connect(self.refresh)
-        self.uiShowDifferencesOnly.stateChanged.connect(self.refresh)
+        self.uiShowDiffOnly.stateChanged.connect(self.refresh)
         self.uiRefreshBtn.clicked.connect(self.refresh)
         
         spreadsheets = self._spreadsheets
@@ -225,20 +225,16 @@ class MainWidget(QtWidgets.QWidget):
                 if name in dstNodeDict.keys():
                     #... then compare values
                     if srcNodeDict[name][1] != dstNodeDict[name][1]:
-                        #and set the flag if the values are different
+                        # and set the flag if the values are different
                         parm[2] = spreadsheet.model.FLAGS.NOTEQUAL
-                        # but only add the parm to the display parm list if the checkbox is checked
-                        if self.uiShowDifferencesOnly.isChecked():
-                            mylist.append(parm)
+
             # otherwise name is on the destination node only (because names is the union of src and dst keys)
             else:
                 parm = dstNodeDict[name][:]
                 parm[1] = "NA"
                 parm[2] = spreadsheet.model.FLAGS.NA
 
-            # add the parm to the display parm list if the checkbox is NOT checked
-            if not self.uiShowDifferencesOnly.isChecked():
-                mylist.append(parm)
+            mylist.append(parm)
 
         # sort mylist by the first key of each item
         mylist.sort(key=lambda x: str(x[0]))
@@ -253,6 +249,7 @@ class MainWidget(QtWidgets.QWidget):
             # this is needed for nodeDict to be up to date
             for spreadsheet in self._spreadsheets:
                 spreadsheet.refresh()
+                spreadsheet.showdiffonly = self.uiShowDiffOnly.isChecked()
     
             # once nodeDict has been updated for each model, build the displayList
             displayList = self.buildDisplayList()

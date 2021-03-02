@@ -37,7 +37,7 @@ def enum(*enumerated):
     enums["names"] = enumerated
     return type('enum', (), enums)
 
-COLUMNS = enum("Name", "Value")
+COLUMNS = enum("Name", "Value", "", "Path", "Show")
 FLAGS   = enum("NORMAL", "NOTEQUAL", "NA")
 
 
@@ -61,7 +61,7 @@ class Model(QtCore.QAbstractTableModel):
         return len(self._displayList)
 
     def columnCount(self, parent):
-        return 2
+        return 4
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
@@ -173,8 +173,14 @@ class Model(QtCore.QAbstractTableModel):
         """ Builds a dictionary with node's parameters name, value, flag and path. """
         # get the node parameters as a list of paths...
         paths = self._appModel.getParms(self._nodePath)
-        # ... then build a list of [name, value, flag, path] ...
-        parmlist = [[self._appModel.getName(path), self._appModel.evalAsString(path), FLAGS.NORMAL, path] for path in paths]
+        # ... then build a list of [name, value, flag, path]...
+        parmlist = []
+        for path in paths:
+            name = self._appModel.getName(path)
+            value = self._appModel.evalAsString(path)
+            flag = FLAGS.NORMAL
+            show = True
+            parmlist.append([name, value, flag, path, show])
         # ... and finally convert to dictionary
         self._nodeDict = dict((k[0], k[0:]) for k in parmlist)
 
@@ -215,6 +221,7 @@ class Model(QtCore.QAbstractTableModel):
                     if parm[2] != FLAGS.NOTEQUAL:
                         parm[2] = self._nodeDict[name][2]   # FLAG
                     parm[3] = self._nodeDict[name][3]       # path
+                    parm[4] = self._nodeDict[name][4]       # show
         else:
             self.setDisplayList([])
 

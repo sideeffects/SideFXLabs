@@ -28,6 +28,7 @@ import logging
 
 from pyper.vendor.Qt import QtCore
 
+from .model import FLAGS
 
 class ProxyModel(QtCore.QSortFilterProxyModel):
 
@@ -37,3 +38,31 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
 
         self.setSourceModel(model)
         self.setDynamicSortFilter(True)
+        
+        self._showdiffonly = False
+
+    def showdiffonly():
+        """ """
+        def fget(self): return self._showdiffonly
+        def fset(self, value): 
+            self._logger.debug("Set showdiffonly to \"%s\"." % value)
+            self._showdiffonly = value
+        return locals()
+    showdiffonly = property(**showdiffonly())
+
+    def filterAcceptsRow(self, rownum, parent):
+        model = self.sourceModel()
+
+        cell = model.index(rownum, 2)
+        if self._showdiffonly and (cell.data() != FLAGS.NOTEQUAL):
+            return False
+        else:
+            return True
+
+    def filterAcceptsColumn(self, colnum, parent):
+        model = self.sourceModel()
+
+        if colnum in [0, 1, 2, 3, 4]:
+            return True
+        else:
+            return False

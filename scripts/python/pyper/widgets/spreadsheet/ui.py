@@ -37,6 +37,7 @@ from . import proxymodel
 
 import importlib
 importlib.reload(model)
+importlib.reload(proxymodel)
 
 
 from .model import FLAGS
@@ -82,6 +83,7 @@ class MainWidget(QtWidgets.QWidget):
         # define the model and its proxy model
         self._model = model.Model(self._appModel, nodepath)
         self._proxyModel = proxymodel.ProxyModel(self._model)
+        self._showdiffonly = False
 
         # define parent in case this widget is not part of a parent widget
         if not parent:
@@ -92,6 +94,16 @@ class MainWidget(QtWidgets.QWidget):
 
         # some cosmetics
         self.centerWidget()
+
+    def showdiffonly():
+        """ """
+        def fget(self): return self._showdiffonly
+        def fset(self, value): 
+            self._logger.debug("Set showdiffonly to \"%s\"." % value)
+            self._showdiffonly = value
+            self._proxyModel.showdiffonly = value # and set the proxymodel's attribute so it's available for filtering
+        return locals()
+    showdiffonly = property(**showdiffonly())
 
     def centerWidget(self):
         """ Centers the widget on screen. (source: https://stackoverflow.com/a/20244839) """
@@ -118,7 +130,7 @@ class MainWidget(QtWidgets.QWidget):
         self.uiTableView.horizontalHeader().resizeSection(1, 50)
         self.uiTableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
 
-        # define the proxy model needed to sort the view
+        # define how the proxy model should sort the view
         self._proxyModel.sort(0, QtCore.Qt.AscendingOrder)
 
         # define a delegate to override the inherited color palette
