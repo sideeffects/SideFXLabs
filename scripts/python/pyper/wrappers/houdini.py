@@ -125,6 +125,12 @@ class Model(standalone.Model):
             return True
         return False
 
+    def getLabel(self, path):
+        if self.isParameter(path):
+            return self._houmodule.parm(path).description()
+        else:
+            return ''
+
     #def listParameters(self, path):
     #    node = self.getHoudiniObject(path)
     #    if not node:
