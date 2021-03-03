@@ -61,6 +61,9 @@ class MainWidget(QtWidgets.QWidget):
         # initialize/get the logger
         self._logger = logging.getLogger(__name__)
 
+        # define some variables
+        headerNames = ["Name", "Value", "Tags", "Path", "Show"]
+
         # define the application model to use
         self._appModel = appModel
         self._logger.debug("%s is using %s application model." % (__name__, self._appModel.name))
@@ -74,9 +77,10 @@ class MainWidget(QtWidgets.QWidget):
                 dstNodePath = self._appModel.getPath(selectedNodes[1])
         nodePathes = [srcNodePath, dstNodePath]
         
-        #... to create the spreadsheets
+        #... and create the spreadsheets
+        # @note: in the future I would like to have more nodes, hence the this list
         self._spreadsheets = []
-        self._spreadsheets = [spreadsheet.ui.MainWidget(appModel=self._appModel, nodepath=nodePath, parent=self) for nodePath in nodePathes]
+        self._spreadsheets = [spreadsheet.ui.MainWidget(headerNames=headerNames, appModel=self._appModel, nodepath=nodePath, parent=self) for nodePath in nodePathes]
 
         # define parent in case this widget is not part of a parent widget
         if not parent:
@@ -226,7 +230,7 @@ class MainWidget(QtWidgets.QWidget):
                     #... then compare values
                     if srcNodeDict[name][1] != dstNodeDict[name][1]:
                         # and set the flag if the values are different
-                        parm[2] = spreadsheet.model.FLAGS.NOTEQUAL
+                        parm[2] = spreadsheet.model.FLAGS.HIGHLIGHT
 
             # otherwise name is on the destination node only (because names is the union of src and dst keys)
             else:

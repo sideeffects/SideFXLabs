@@ -37,8 +37,7 @@ def enum(*enumerated):
     enums["names"] = enumerated
     return type('enum', (), enums)
 
-COLUMNS = enum("Name", "Value", "", "Path", "Show")
-FLAGS   = enum("NORMAL", "NOTEQUAL", "NA")
+FLAGS   = enum("NORMAL", "HIGHLIGHT", "NA")
 
 
 class MyDelegate(QtWidgets.QItemDelegate):
@@ -48,12 +47,18 @@ class MyDelegate(QtWidgets.QItemDelegate):
 
 class Model(QtCore.QAbstractTableModel):
     
-    def __init__(self, appModel, nodePath="", parent=None):
+    def __init__(self, appModel, headerNames, nodePath="", parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._logger = logging.getLogger(__name__)
 
-        self._appModel = appModel
-        self._nodePath = nodePath
+        # manage columns header names and extend the list if it's too short
+        self._headerNames = headerNames
+        if len(self._headerNames) < self.columnCount():
+            n = self.columnCount()-len(self._headerNames)
+            self._headerNames.extend([""]*n)
+
+        self._appModel = appModel   # the dcc wrapper
+        self._nodePath = nodePath   # the node path
         self._nodeDict = {}         # a dictionary with the node's parameters name, value, flag and path
         self._displayList = []      # list of parms to display; it could contain more/less parameters than the nodeDict
 
@@ -61,11 +66,11 @@ class Model(QtCore.QAbstractTableModel):
         return len(self._displayList)
 
     def columnCount(self, parent):
-        return 4
+        return 5
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
-            return COLUMNS.names[section]
+            return self._headerNames[section]
 
     def getData(self, row, column):
         return self._displayList[row][column]
@@ -96,7 +101,7 @@ class Model(QtCore.QAbstractTableModel):
                 return QtGui.QColor(80, 80, 80, 255)
 
         if role == QtCore.Qt.BackgroundRole:
-            if self._displayList[row][2] == FLAGS.NOTEQUAL:
+            if self._displayList[row][2] == FLAGS.HIGHLIGHT:
                 return QtGui.QColor(253, 103, 33, 100)
 
         if role == QtCore.Qt.FontRole:
@@ -218,7 +223,7 @@ class Model(QtCore.QAbstractTableModel):
                 if parm[0] in self._nodeDict.keys():
                     name = parm[0]                          # name
                     parm[1] = self._nodeDict[name][1]       # value
-                    if parm[2] != FLAGS.NOTEQUAL:
+                    if parm[2] != FLAGS.HIGHLIGHT:
                         parm[2] = self._nodeDict[name][2]   # FLAG
                     parm[3] = self._nodeDict[name][3]       # path
                     parm[4] = self._nodeDict[name][4]       # show

@@ -40,9 +40,6 @@ importlib.reload(model)
 importlib.reload(proxymodel)
 
 
-from .model import FLAGS
-
-
 class UiLoader(_QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
         _QtUiTools.QUiLoader.__init__(self, baseinstance)
@@ -63,12 +60,16 @@ class MainWidget(QtWidgets.QWidget):
     # create signals
     spreadsheetChanged = QtCore.Signal()
 
-    def __init__(self, appModel, nodepath="", parent=None):
+    def __init__(self, appModel, headerNames=None, nodepath="", parent=None):
         """ """
         super(MainWidget, self).__init__(parent)
 
         # initialize/get the logger
         self._logger = logging.getLogger(__name__)
+
+        # define some variables
+        if not headerNames:
+            headerNames = ["Name", "Value", "Tags", "Path", "Show"]
 
         # define the application model to use
         self._appModel = appModel
@@ -81,7 +82,7 @@ class MainWidget(QtWidgets.QWidget):
                 nodepath = selectedNodes[0]
 
         # define the model and its proxy model
-        self._model = model.Model(self._appModel, nodepath)
+        self._model = model.Model(headerNames, self._appModel, nodepath)
         self._proxyModel = proxymodel.ProxyModel(self._model)
         self._showdiffonly = False
 

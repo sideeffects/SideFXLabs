@@ -50,19 +50,19 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         return locals()
     showdiffonly = property(**showdiffonly())
 
-    def filterAcceptsRow(self, rownum, parent):
+    def filterAcceptsRow(self, rowIdx, parent):
         model = self.sourceModel()
 
-        cell = model.index(rownum, 2)
-        if self._showdiffonly and (cell.data() != FLAGS.NOTEQUAL):
+        cell = model.index(rowIdx, 2)
+        if self._showdiffonly and (cell.data() != FLAGS.HIGHLIGHT):
             return False
         else:
             return True
 
-    def filterAcceptsColumn(self, colnum, parent):
+    def filterAcceptsColumn(self, columnIdx, parent):
         model = self.sourceModel()
 
-        if colnum in [0, 1, 2, 3, 4]:
+        if columnIdx in [0, 1, 2, 3, 4]:
             return True
         else:
             return False
