@@ -52,6 +52,7 @@ class UiLoader(_QtUiTools.QUiLoader):
             return widget
 
 
+# class MainWidget(QtWidgets.QMainWindow):
 class MainWidget(QtWidgets.QWidget):
 
     def __init__(self, appModel, parent=None):
@@ -119,10 +120,10 @@ class MainWidget(QtWidgets.QWidget):
 
         # connect signals
         self.actionRefresh.triggered.connect(self.refresh)
-        self.uiShowName.stateChanged.connect(self.refresh)
-        self.uiShowLabel.stateChanged.connect(self.refresh)
-        self.uiShowDiffOnly.stateChanged.connect(self.refresh)
         self.uiRefreshBtn.clicked.connect(self.refresh)
+        self.uiShowDiffOnly.stateChanged.connect(self.refresh)
+        # self.uiShowName.stateChanged.connect(self.refresh)
+        # self.uiShowLabel.stateChanged.connect(self.refresh)
         
         spreadsheets = self._spreadsheets
         for idx, spreadsheet in enumerate(spreadsheets):
@@ -267,10 +268,10 @@ class MainWidget(QtWidgets.QWidget):
             # this is needed for nodeDict to be up to date
             for spreadsheet in self._spreadsheets:
                 spreadsheet.refresh()
-                spreadsheet.showname = self.uiShowName.isChecked()
-                spreadsheet.showlabel = self.uiShowLabel.isChecked()
                 spreadsheet.showdiffonly = self.uiShowDiffOnly.isChecked()
-    
+                spreadsheet.showname = False # self.uiShowName.isChecked()
+                spreadsheet.showlabel = True # self.uiShowLabel.isChecked()
+
             # once nodeDict has been updated for each model, build the displayList
             displayList = self.buildDisplayList()
     
