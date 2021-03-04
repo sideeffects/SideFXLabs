@@ -52,7 +52,6 @@ class UiLoader(_QtUiTools.QUiLoader):
             return widget
 
 
-# class MainWidget(QtWidgets.QMainWindow):
 class MainWidget(QtWidgets.QWidget):
 
     def __init__(self, appModel, parent=None):
