@@ -196,6 +196,9 @@ class Model(standalone.Model):
     def selection(self):
         return [node.path() for node in self._houmodule.selectedNodes()]
 
+    def clearSelection(self):
+        self._houmodule.clearAllSelected()
+
     def setParms(self, parms=[]):
         """
         Receives a list of parameters to set.

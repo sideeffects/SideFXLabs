@@ -94,6 +94,9 @@ class Model(object):
     def selection(self):
         pass
 
+    def clearSelection(self):
+        pass
+
     def setParms(self, parms=[]):
         pass
 
