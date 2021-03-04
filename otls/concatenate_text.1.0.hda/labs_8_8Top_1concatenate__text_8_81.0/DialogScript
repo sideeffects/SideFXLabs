@@ -1,0 +1,78 @@
+# Dialog script for labs::concatenate_text::1.0 automatically generated
+
+{
+    name	labs::concatenate_text::1.0
+    script	labs::concatenate_text::1.0
+    label	"Labs Concatenate Text"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+    inputlabel	2	"Input 2"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Source"
+
+        parm {
+            name    "sourcefiles"
+            label   "Source Files"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Upstream Output Files"
+                "1" "Custom File Path"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "tag"
+            label   "File Tag"
+            type    string
+            default { "file/text" }
+            hidewhen "{ sourcefiles != 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filepath"
+            label   "File Path"
+            type    file
+            default { "" }
+            hidewhen "{ sourcefiles != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Target"
+
+        parm {
+            name    "outputfile"
+            label   "Output File"
+            type    file
+            default { "$HIP/$OS.txt" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputtag"
+            label   "File Tag"
+            type    string
+            default { "file/text" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepchar"
+            label   "Newline Each Input"
+            type    toggle
+            default { "1" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
