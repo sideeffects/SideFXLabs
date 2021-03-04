@@ -189,7 +189,7 @@ class Model(QtCore.QAbstractTableModel):
         parmlist = []
         for path in paths:
             name = self._appModel.getName(path)
-            label = self._appModel.getLabel(path)
+            label = "%s (%s)" % (self._appModel.getLabel(path), name)
             value = self._appModel.evalAsString(path)
             flag = FLAGS.NORMAL
             show = True

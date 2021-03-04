@@ -62,7 +62,7 @@ class MainWidget(QtWidgets.QWidget):
         self._logger = logging.getLogger(__name__)
 
         # define some variables
-        headerNames = ["Name", "Label", "Value", "Tags", "Path", "Show"]
+        headerNames = ["Name", "Parameter", "Value", "Tags", "Path", "Show"]
 
         # define the application model to use
         self._appModel = appModel
