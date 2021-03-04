@@ -62,7 +62,7 @@ class MainWidget(QtWidgets.QWidget):
         self._logger = logging.getLogger(__name__)
 
         # define some variables
-        headerNames = ["Name", "Value", "Tags", "Path", "Show"]
+        headerNames = ["Name", "Label", "Value", "Tags", "Path", "Show"]
 
         # define the application model to use
         self._appModel = appModel
@@ -76,6 +76,8 @@ class MainWidget(QtWidgets.QWidget):
             if len(selectedNodes) > 1:
                 dstNodePath = self._appModel.getPath(selectedNodes[1])
         nodePathes = [srcNodePath, dstNodePath]
+        # clear selection so any modification in houdini does not accidentally change all selected nodes
+        self._appModel.clearSelection()
         
         #... and create the spreadsheets
         # @note: in the future I would like to have more nodes, hence the this list
@@ -117,6 +119,8 @@ class MainWidget(QtWidgets.QWidget):
 
         # connect signals
         self.actionRefresh.triggered.connect(self.refresh)
+        self.uiShowName.stateChanged.connect(self.refresh)
+        self.uiShowLabel.stateChanged.connect(self.refresh)
         self.uiShowDiffOnly.stateChanged.connect(self.refresh)
         self.uiRefreshBtn.clicked.connect(self.refresh)
         
@@ -193,8 +197,8 @@ class MainWidget(QtWidgets.QWidget):
         # initialize and build item selection 
         itemSelection = QtCore.QItemSelection()
         for row in rows:
-            topSrc = dstSpreadsheet.model().index(row, 0)
-            bottomDst = dstSpreadsheet.model().index(row, 1)
+            topSrc = dstSpreadsheet.model.index(row, 0)
+            bottomDst = dstSpreadsheet.model.index(row, 1)
             itemSelection.append(QtCore.QItemSelectionRange(topSrc, bottomDst))
         
         # to avoid signals to be sent recursively, we need to block signals before sending new selection to the destination model
@@ -208,8 +212,8 @@ class MainWidget(QtWidgets.QWidget):
 
     def buildDisplayList(self):
         # get the nodes' dictionaries
-        srcNodeDict = self._spreadsheets[0].model().nodeDict
-        dstNodeDict = self._spreadsheets[1].model().nodeDict
+        srcNodeDict = self._spreadsheets[0].model.nodeDict
+        dstNodeDict = self._spreadsheets[1].model.nodeDict
 
         # and make a list with all non duplicated names
         names = list(set(srcNodeDict.keys()).union(set(dstNodeDict.keys())))
@@ -219,24 +223,34 @@ class MainWidget(QtWidgets.QWidget):
 
         # for each name
         for name in names:
+            parm = []
             # if name is on the source node 
             if name in srcNodeDict.keys():
                 # if it is only on the source node
-                parm = srcNodeDict[name][:]
-                parm[1] = "NA"
-                parm[2] = spreadsheet.model.FLAGS.NA
+                parm = list(srcNodeDict[name].values())
+                parm[0] = srcNodeDict[name]['name']
+                parm[1] = srcNodeDict[name]['label']
+                parm[2] = srcNodeDict[name]['value']
+                parm[3] = spreadsheet.model.FLAGS.NA
+                parm[4] = srcNodeDict[name]['path']
+                parm[5] = srcNodeDict[name]['show']
+
                 # if it is also on the destination node...
                 if name in dstNodeDict.keys():
                     #... then compare values
-                    if srcNodeDict[name][1] != dstNodeDict[name][1]:
+                    if srcNodeDict[name]['value'] != dstNodeDict[name]['value']:
                         # and set the flag if the values are different
-                        parm[2] = spreadsheet.model.FLAGS.HIGHLIGHT
+                        parm[3] = spreadsheet.model.FLAGS.HIGHLIGHT
 
             # otherwise name is on the destination node only (because names is the union of src and dst keys)
             else:
-                parm = dstNodeDict[name][:]
-                parm[1] = "NA"
-                parm[2] = spreadsheet.model.FLAGS.NA
+                parm = list(dstNodeDict[name].values())
+                parm[0] = dstNodeDict[name]['name']
+                parm[1] = dstNodeDict[name]['label']
+                parm[2] = 'NA'
+                parm[3] = spreadsheet.model.FLAGS.NA
+                parm[4] = dstNodeDict[name]['path']
+                parm[5] = dstNodeDict[name]['show']
 
             mylist.append(parm)
 
@@ -253,6 +267,8 @@ class MainWidget(QtWidgets.QWidget):
             # this is needed for nodeDict to be up to date
             for spreadsheet in self._spreadsheets:
                 spreadsheet.refresh()
+                spreadsheet.showname = self.uiShowName.isChecked()
+                spreadsheet.showlabel = self.uiShowLabel.isChecked()
                 spreadsheet.showdiffonly = self.uiShowDiffOnly.isChecked()
     
             # once nodeDict has been updated for each model, build the displayList
@@ -260,6 +276,6 @@ class MainWidget(QtWidgets.QWidget):
     
             # finally refresh the spreadsheet with the displayList
             for spreadsheet in self._spreadsheets:
-                spreadsheet.model().beginResetModel()
-                spreadsheet.model().refresh(displayList)
-                spreadsheet.model().endResetModel()
+                spreadsheet.model.beginResetModel()
+                spreadsheet.model.refresh(displayList)
+                spreadsheet.model.endResetModel()

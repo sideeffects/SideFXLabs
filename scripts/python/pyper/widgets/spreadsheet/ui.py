@@ -69,7 +69,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # define some variables
         if not headerNames:
-            headerNames = ["Name", "Value", "Tags", "Path", "Show"]
+            headerNames = ["Name", "Label", "Value", "Tags", "Path", "Show"]
 
         # define the application model to use
         self._appModel = appModel
@@ -82,9 +82,11 @@ class MainWidget(QtWidgets.QWidget):
                 nodepath = selectedNodes[0]
 
         # define the model and its proxy model
-        self._model = model.Model(headerNames, self._appModel, nodepath)
+        self._model = model.Model(self._appModel, headerNames, nodepath)
         self._proxyModel = proxymodel.ProxyModel(self._model)
-        self._showdiffonly = False
+        self._showname = True
+        self._showlabel = True
+        self._showdiffonly = True
 
         # define parent in case this widget is not part of a parent widget
         if not parent:
@@ -95,6 +97,32 @@ class MainWidget(QtWidgets.QWidget):
 
         # some cosmetics
         self.centerWidget()
+
+    def model():
+        """ """
+        def fget(self): return self._model
+        return locals()
+    model = property(**model())
+
+    def showname():
+        """ """
+        def fget(self): return self._showname
+        def fset(self, value): 
+            self._logger.debug("Set showname to \"%s\"." % value)
+            self._showname = value
+            self._proxyModel.showname = value # and set the proxymodel's attribute so it's available for filtering
+        return locals()
+    showname = property(**showname())
+
+    def showlabel():
+        """ """
+        def fget(self): return self._showlabel
+        def fset(self, value): 
+            self._logger.debug("Set showlabel to \"%s\"." % value)
+            self._showlabel = value
+            self._proxyModel.showlabel = value # and set the proxymodel's attribute so it's available for filtering
+        return locals()
+    showlabel = property(**showlabel())
 
     def showdiffonly():
         """ """
@@ -151,7 +179,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # connect signals
         self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged 
-        self.model().dataChanged.connect(lambda: self.spreadsheetChanged.emit())      # a change in the model emits spreadsheetChanged
+        self.model.dataChanged.connect(lambda: self.spreadsheetChanged.emit())      # a change in the model emits spreadsheetChanged
         self.spreadsheetChanged.connect(refreshFunction)                              # when spreadsheetChanged is triggered, refresh the spreadsheet
         self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
 
@@ -164,9 +192,6 @@ class MainWidget(QtWidgets.QWidget):
         self.setParent(None)
         event.accept()
         self._logger.info("%s closed." % (name))
-
-    def model(self):
-        return self._model
 
     def refresh(self, parmlist=None):
         """ Refresh the spreadsheet.

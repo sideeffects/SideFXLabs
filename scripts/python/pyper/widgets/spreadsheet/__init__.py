@@ -33,6 +33,7 @@ from pyper import wrappers
 from . import ui
 
 import importlib
+importlib.reload(wrappers)
 importlib.reload(ui)
 
 # global variables

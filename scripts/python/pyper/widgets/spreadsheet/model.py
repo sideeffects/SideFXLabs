@@ -53,20 +53,20 @@ class Model(QtCore.QAbstractTableModel):
 
         # manage columns header names and extend the list if it's too short
         self._headerNames = headerNames
-        if len(self._headerNames) < self.columnCount():
+        if len(self._headerNames) < self.columnCount(parent):
             n = self.columnCount()-len(self._headerNames)
             self._headerNames.extend([""]*n)
 
         self._appModel = appModel   # the dcc wrapper
         self._nodePath = nodePath   # the node path
-        self._nodeDict = {}         # a dictionary with the node's parameters name, value, flag and path
+        self._nodeDict = {}         # contains node's parameters name, label, value...
         self._displayList = []      # list of parms to display; it could contain more/less parameters than the nodeDict
 
     def rowCount(self, parent):
         return len(self._displayList)
 
     def columnCount(self, parent):
-        return 5
+        return 6
 
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
@@ -87,25 +87,25 @@ class Model(QtCore.QAbstractTableModel):
             return self._displayList[row][column]
 
         if role == QtCore.Qt.EditRole:
-            if self._displayList[row][2] != FLAGS.NA:
+            if self._displayList[row][3] != FLAGS.NA:
                 return self._displayList[row][column]
 
         if role == QtCore.Qt.TextAlignmentRole:
-            if column == 1:
+            if column == 2:
                 return (QtCore.Qt.AlignCenter)
-            else:
-                return QtCore.Qt.AlignVCenter
+            # else:
+            #     return QtCore.Qt.AlignVCenter
 
         if role == QtCore.Qt.ForegroundRole:
-            if self._displayList[row][2] == FLAGS.NA:
+            if self._displayList[row][3] == FLAGS.NA:
                 return QtGui.QColor(80, 80, 80, 255)
 
         if role == QtCore.Qt.BackgroundRole:
-            if self._displayList[row][2] == FLAGS.HIGHLIGHT:
+            if self._displayList[row][3] == FLAGS.HIGHLIGHT:
                 return QtGui.QColor(253, 103, 33, 100)
 
         if role == QtCore.Qt.FontRole:
-            if self._displayList[row][2] == FLAGS.NA:
+            if self._displayList[row][3] == FLAGS.NA:
                 font = QtGui.QFont()
                 font.setItalic(True)
                 return font
@@ -119,7 +119,7 @@ class Model(QtCore.QAbstractTableModel):
 
         if role == QtCore.Qt.EditRole:
             # prepare a parm list containing dictionaries (needed by appModel)
-            parms = [{"path": self._displayList[row][3], "value": str(value)}, ]
+            parms = [{"path": self._displayList[row][4], "value": str(value)}, ]
 
             # tell appModel to set the parms
             try:
@@ -153,7 +153,7 @@ class Model(QtCore.QAbstractTableModel):
                 res = res | QtCore.Qt.ItemIsEnabled
 
             # allow changes of values 
-            if column is 1:
+            if column is 2:
                 res = res | QtCore.Qt.ItemIsEditable
 
         return res
@@ -175,19 +175,28 @@ class Model(QtCore.QAbstractTableModel):
     nodeDict = property(**nodeDict())
 
     def buildNodeDict(self):
-        """ Builds a dictionary with node's parameters name, value, flag and path. """
+        """ Builds a dictionary with node's parameters name, value, flag and path. 
+        The dictionnary is built as follow:
+            {parameter name 1: {dictionnary with name, label, value, path},
+             parameter name 2: {dictionnary with name, label, value, path},
+             ...
+             parameter name n: {dictionnary with name, label, value, path},
+            }
+        """
         # get the node parameters as a list of paths...
         paths = self._appModel.getParms(self._nodePath)
         # ... then build a list of [name, value, flag, path]...
         parmlist = []
         for path in paths:
             name = self._appModel.getName(path)
+            label = self._appModel.getLabel(path)
             value = self._appModel.evalAsString(path)
             flag = FLAGS.NORMAL
             show = True
-            parmlist.append([name, value, flag, path, show])
-        # ... and finally convert to dictionary
-        self._nodeDict = dict((k[0], k[0:]) for k in parmlist)
+            parmlist.append({'name': name, 'label': label, 'value': value, 'flag': flag, 'path': path, 'show': show})
+
+        for parm in parmlist:
+            self._nodeDict[parm['name']] = parm
 
     def buildDisplayList(self):
         """ Defines the list of parameters to display in the spreadsheet.
@@ -196,12 +205,22 @@ class Model(QtCore.QAbstractTableModel):
         For instance if this spreadsheet is used by the Diff widget, then the display
         list could contain spare parameters from one of the other nodes it is compared to.
         """
-        # build the list
+        # nodeDict is a dictionnary built as follow:
+        # {parameter name 1: {dictionnary with name, label, value, path},
+        #  parameter name 2: {dictionnary with name, label, value, path},
+        #  ...
+        #  parameter name n: {dictionnary with name, label, value, path},
+        # }
+        
+        # create an empty list
         parmlist = []
-        for key, value in self._nodeDict.items():
-            parmlist.append(value)
+        for x in self._nodeDict.values():
+            # reminder: x is a dictionnary, see comment above
+            parm = list(x.values())
+            parmlist.append(parm)
+
         # and sort it by the first key of each item
-        parmlist.sort(key=lambda x: str(x[0]))
+        # parmlist.sort(key=lambda x: str(x[0]))
 
         return parmlist
 
@@ -219,14 +238,15 @@ class Model(QtCore.QAbstractTableModel):
         """
         # update values
         if len(self._nodeDict.keys()):
-            for parm in self._displayList:
-                if parm[0] in self._nodeDict.keys():
-                    name = parm[0]                          # name
-                    parm[1] = self._nodeDict[name][1]       # value
-                    if parm[2] != FLAGS.HIGHLIGHT:
-                        parm[2] = self._nodeDict[name][2]   # FLAG
-                    parm[3] = self._nodeDict[name][3]       # path
-                    parm[4] = self._nodeDict[name][4]       # show
+            for row in self._displayList:
+                if row[0] in self._nodeDict.keys():
+                    name = row[0]
+                    row[1] = self._nodeDict[name]['label']
+                    row[2] = self._nodeDict[name]['value']
+                    if row[3] != FLAGS.HIGHLIGHT:
+                        row[3] = self._nodeDict[name]['flag']
+                    row[4] = self._nodeDict[name]['path']
+                    row[5] = self._nodeDict[name]['show']
         else:
             self.setDisplayList([])
 
