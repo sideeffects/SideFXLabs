@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	try:
 		hou.hipFile.load(os.path.join(local_dir, "PDG_UnitTest.hip").replace("\\", "/"))
 
-		_topnode = hou.node("/obj/topnet1/filecopy1")
+		_topnode = hou.node("/obj/topnet1/concatenate_text1")
 
 		print "starting pdg"
 		_topnode.dirtyAllTasks(False)
