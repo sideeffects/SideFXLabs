@@ -183,6 +183,8 @@ class Model(QtCore.QAbstractTableModel):
              parameter name n: {dictionnary with name, label, value, path},
             }
         """
+        # empty node dictionnary first
+        self._nodeDict = {}
         # get the node parameters as a list of paths...
         paths = self._appModel.getParms(self._nodePath)
         # ... then build a list of [name, value, flag, path]...
