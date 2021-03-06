@@ -40,6 +40,22 @@ importlib.reload(model)
 importlib.reload(proxymodel)
 
 
+class CustomLineEdit(QtWidgets.QLineEdit):
+    """docstring for CustomLineEdit."""
+
+    def __init__(self):
+        super(CustomLineEdit, self).__init__()
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasFormat('text/plain'):
+            e.accept()
+        else:
+            e.ignore()
+    
+    def dropEvent(self, e):
+        self.setText(e.mimeData().text())
+
+
 class UiLoader(_QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
         _QtUiTools.QUiLoader.__init__(self, baseinstance)
@@ -145,14 +161,27 @@ class MainWidget(QtWidgets.QWidget):
     def setup_ui(self, nodepath=""):
         """ """
         # build the ui
-        uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
-        UiLoader(self).load(uifile)        
+        # uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
+        # UiLoader(self).load(uifile)        
+
+        # I could not figure out how to replace a promoted widget in the .ui file with the UiLoader()
+        # So I build the entire widget manually
+
         self.setWindowTitle(__name__.split(".")[-2].capitalize())
 
-        # tell the view which model to display
-        self.uiTableView.setModel(self._proxyModel)
+        self.uiLineEdit = CustomLineEdit()
+        self.uiTableView = QtWidgets.QTableView()
+        self.uiVerticalLayout = QtWidgets.QVBoxLayout()
+
+        # configure the layout
+        self.setLayout(self.uiVerticalLayout)
+        self.uiVerticalLayout.addWidget(self.uiLineEdit)
+        self.uiVerticalLayout.addWidget(self.uiTableView)
+        # print(dir(self.uiVerticalLayout))
+        self.uiVerticalLayout.setMargin(0)
 
         # configure the view
+        self.uiTableView.setModel(self._proxyModel) # tell the view which model to display
         self.uiTableView.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
         self.uiTableView.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
         self.uiTableView.horizontalHeader().resizeSection(0, 200)
@@ -167,7 +196,7 @@ class MainWidget(QtWidgets.QWidget):
         self.uiTableView.setItemDelegate(delegate)
 
         # add actions
-        self.uiTableView.addAction(self.actionRefresh)
+        # self.uiTableView.addAction(self.actionRefresh)
 
         # define the refresh function to use (choose between self or parent)
         if hasattr(self.parent(), 'refresh'):
@@ -181,7 +210,7 @@ class MainWidget(QtWidgets.QWidget):
         self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged 
         self.model.dataChanged.connect(lambda: self.spreadsheetChanged.emit())      # a change in the model emits spreadsheetChanged
         self.spreadsheetChanged.connect(refreshFunction)                              # when spreadsheetChanged is triggered, refresh the spreadsheet
-        self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
+        # self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
 
         # initialize uiLineEdit with the node path
         self.uiLineEdit.setText(nodepath)       
