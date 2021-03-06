@@ -40,6 +40,23 @@ importlib.reload(model)
 importlib.reload(proxymodel)
 
 
+class CustomLineEdit(QtWidgets.QLineEdit):
+    """docstring for CustomLineEdit."""
+
+    def __init__(self):
+        super(CustomLineEdit, self).__init__()
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasFormat('text/plain'):
+            e.accept()
+        else:
+            e.ignore()
+    
+    def dropEvent(self, e):
+        print("coucou")
+        self.setText(e.mimeData().text())
+
+
 class UiLoader(_QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
         _QtUiTools.QUiLoader.__init__(self, baseinstance)
@@ -184,7 +201,9 @@ class MainWidget(QtWidgets.QWidget):
         self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
 
         # initialize uiLineEdit with the node path
-        self.uiLineEdit.setText(nodepath)       
+        self.uiLineEdit.setText(nodepath)
+        self.showdiffonly = False
+        self.showlabel = True
 
     def closeEvent(self, event):
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
