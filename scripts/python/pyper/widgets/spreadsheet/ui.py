@@ -184,7 +184,9 @@ class MainWidget(QtWidgets.QWidget):
         self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
 
         # initialize uiLineEdit with the node path
-        self.uiLineEdit.setText(nodepath)       
+        self.uiLineEdit.setText(nodepath)
+        self.showdiffonly = False
+        self.showlabel = True
 
     def closeEvent(self, event):
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
