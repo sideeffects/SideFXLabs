@@ -100,9 +100,9 @@ class MainWidget(QtWidgets.QWidget):
         # define the model and its proxy model
         self._model = model.Model(self._appModel, headerNames, nodepath)
         self._proxyModel = proxymodel.ProxyModel(self._model)
-        self._showname = True
+        self._showname = False
         self._showlabel = True
-        self._showdiffonly = True
+        self._showdiffonly = False
 
         # define parent in case this widget is not part of a parent widget
         if not parent:

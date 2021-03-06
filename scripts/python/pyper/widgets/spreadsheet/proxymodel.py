@@ -39,9 +39,9 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         self.setSourceModel(model)
         self.setDynamicSortFilter(True)
         
-        self._showname = True
+        self._showname = False
         self._showlabel = True
-        self._showdiffonly = True
+        self._showdiffonly = False
 
     def showname():
         """ """
