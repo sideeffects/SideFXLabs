@@ -23,6 +23,7 @@ License:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import absolute_import
 
 import os
 import logging
@@ -32,12 +33,19 @@ from pyper.vendor.Qt import QtCore
 from pyper.vendor.Qt import QtWidgets
 from pyper.vendor.Qt import _QtUiTools
 
-from . import model
-from . import proxymodel
+try:
+    from . import model
+    from . import proxymodel
+except Exception as e:
+    try:
+        import model
+        import proxymodel
+    except (ImportError):
+        pass
 
-import importlib
-importlib.reload(model)
-importlib.reload(proxymodel)
+from imp import reload
+reload(model)
+reload(proxymodel)
 
 
 class CustomLineEdit(QtWidgets.QLineEdit):

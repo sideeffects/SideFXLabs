@@ -32,8 +32,8 @@ from pyper.utils import logs
 from pyper import wrappers
 from . import ui
 
-import importlib
-importlib.reload(ui)
+from imp import reload
+reload(ui)
 
 ## global variables
 NAME = __name__.split(".")[-1].capitalize()
