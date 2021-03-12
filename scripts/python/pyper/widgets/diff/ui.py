@@ -34,6 +34,8 @@ from pyper.vendor.Qt import _QtUiTools
 
 from pyper.widgets import spreadsheet
 
+from imp import reload
+reload(spreadsheet)
 
 class UiLoader(_QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
@@ -59,6 +61,9 @@ class MainWidget(QtWidgets.QWidget):
         # initialize/get the logger
         self._logger = logging.getLogger(__name__)
 
+        # define some variables
+        headerNames = ["Name", "Parameter", "Value", "Tags", "Path", "Show"]
+
         # define the application model to use
         self._appModel = appModel
         self._logger.debug("%s is using %s application model." % (__name__, self._appModel.name))
@@ -66,16 +71,18 @@ class MainWidget(QtWidgets.QWidget):
         # get the first two selected nodes... 
         srcNodePath = dstNodePath = ""
         selectedNodes = self._appModel.selection()
-        # nodePathes = [self._appModel.getPath(node for node in selectedNodes]
         if selectedNodes:
             srcNodePath = self._appModel.getPath(selectedNodes[0])
             if len(selectedNodes) > 1:
                 dstNodePath = self._appModel.getPath(selectedNodes[1])
         nodePathes = [srcNodePath, dstNodePath]
+        # clear selection so any modification in houdini does not accidentally change all selected nodes
+        self._appModel.clearSelection()
         
-        # ... to create the spreadsheets...
+        #... and create the spreadsheets
+        # @note: in the future I would like to have more nodes, hence the this list
         self._spreadsheets = []
-        self._spreadsheets = [spreadsheet.ui.MainWidget(appModel=self._appModel, nodePath=nodePath, parent=self) for nodePath in nodePathes]
+        self._spreadsheets = [spreadsheet.ui.MainWidget(headerNames=headerNames, appModel=self._appModel, nodepath=nodePath, parent=self) for nodePath in nodePathes]
 
         # define parent in case this widget is not part of a parent widget
         if not parent:
@@ -108,12 +115,15 @@ class MainWidget(QtWidgets.QWidget):
             self.uiSplitter.addWidget(sheet)
 
         # add actions
-        self.uiSplitter.addAction(self.actionRefresh)
+        # self.uiSplitter.addAction(self.actionRefresh)
 
         # connect signals
         self.actionRefresh.triggered.connect(self.refresh)
+        self.uiRefreshBtn.clicked.connect(self.refresh)
+        self.uiShowDiffOnly.stateChanged.connect(self.refresh)
+        # self.uiShowName.stateChanged.connect(self.refresh)
+        # self.uiShowLabel.stateChanged.connect(self.refresh)
         
-        ## connect widget signals
         spreadsheets = self._spreadsheets
         for idx, spreadsheet in enumerate(spreadsheets):
             # build a temporary list to pair one element to the next in a circular way 
@@ -121,10 +131,13 @@ class MainWidget(QtWidgets.QWidget):
             tmplist = spreadsheets[idx:] + spreadsheets[:idx]
             tableViewSrc = tmplist[0].uiTableView
             tableViewDst = tmplist[1].uiTableView
+
             # sync the current spreadsheet scrollbar to the next in list (thanks to the circular pairing above)
             tableViewSrc.verticalScrollBar().valueChanged.connect(tableViewDst.verticalScrollBar().setValue)
-            # refresh if spreadsheet changes
-            tableViewSrc.model().dataChanged.connect(self.refresh)
+
+            # refresh Diff UI if spreadsheet changes
+            spreadsheet.spreadsheetChanged.connect(lambda: self.refresh())
+
             # sync selection between the two spreadsheets
             selectionModel = tableViewSrc.selectionModel()
             selectionModel.selectionChanged.connect(lambda selected, deselected, id=idx: self.syncSelection(selected, deselected, id))
@@ -133,7 +146,7 @@ class MainWidget(QtWidgets.QWidget):
 
     def closeEvent(self, event):
         name = __name__.split(".")[-2].capitalize() # note: [-2] to get the name of the module above .ui
-        self._logger.info("Closing %s..." % (name))
+        self._logger.debug("Closing %s..." % (name))
         self.setParent(None)
         event.accept()
         self._logger.info("%s closed." % (name))
@@ -184,8 +197,8 @@ class MainWidget(QtWidgets.QWidget):
         # initialize and build item selection 
         itemSelection = QtCore.QItemSelection()
         for row in rows:
-            topSrc = dstSpreadsheet.model().index(row, 0)
-            bottomDst = dstSpreadsheet.model().index(row, 1)
+            topSrc = dstSpreadsheet.model.index(row, 0)
+            bottomDst = dstSpreadsheet.model.index(row, 1)
             itemSelection.append(QtCore.QItemSelectionRange(topSrc, bottomDst))
         
         # to avoid signals to be sent recursively, we need to block signals before sending new selection to the destination model
@@ -197,10 +210,10 @@ class MainWidget(QtWidgets.QWidget):
         # the problem is that the widget does not know it needs to refresh the ui so we force it to update itself
         self.update()
 
-    def buildDisplayParmList(self):
+    def buildDisplayList(self):
         # get the nodes' dictionaries
-        srcNodeDict = self._spreadsheets[0].model().nodeDict
-        dstNodeDict = self._spreadsheets[1].model().nodeDict
+        srcNodeDict = self._spreadsheets[0].model.nodeDict
+        dstNodeDict = self._spreadsheets[1].model.nodeDict
 
         # and make a list with all non duplicated names
         names = list(set(srcNodeDict.keys()).union(set(dstNodeDict.keys())))
@@ -210,21 +223,34 @@ class MainWidget(QtWidgets.QWidget):
 
         # for each name
         for name in names:
-            # name is on the source node
+            parm = []
+            # if name is on the source node 
             if name in srcNodeDict.keys():
-                parm = srcNodeDict[name][:]
-                parm[1] = "NA"
-                parm[2] = spreadsheet.model.FLAGS.NA
-                #...and on the destination node
+                # if it is only on the source node
+                parm = list(srcNodeDict[name].values())
+                parm[0] = srcNodeDict[name]['name']
+                parm[1] = srcNodeDict[name]['label']
+                parm[2] = srcNodeDict[name]['value']
+                parm[3] = spreadsheet.model.FLAGS.NA
+                parm[4] = srcNodeDict[name]['path']
+                parm[5] = srcNodeDict[name]['show']
+
+                # if it is also on the destination node...
                 if name in dstNodeDict.keys():
-                    # compare the values and set the flag if different
-                    if srcNodeDict[name][1] != dstNodeDict[name][1]:
-                        parm[2] = spreadsheet.model.FLAGS.NOTEQUAL
-            # name is on the destination node
+                    #... then compare values
+                    if srcNodeDict[name]['value'] != dstNodeDict[name]['value']:
+                        # and set the flag if the values are different
+                        parm[3] = spreadsheet.model.FLAGS.HIGHLIGHT
+
+            # otherwise name is on the destination node only (because names is the union of src and dst keys)
             else:
-                parm = dstNodeDict[name][:]
-                parm[1] = "NA"
-                parm[2] = spreadsheet.model.FLAGS.NA
+                parm = list(dstNodeDict[name].values())
+                parm[0] = dstNodeDict[name]['name']
+                parm[1] = dstNodeDict[name]['label']
+                parm[2] = 'NA'
+                parm[3] = spreadsheet.model.FLAGS.NA
+                parm[4] = dstNodeDict[name]['path']
+                parm[5] = dstNodeDict[name]['show']
 
             mylist.append(parm)
 
@@ -234,20 +260,22 @@ class MainWidget(QtWidgets.QWidget):
         return mylist 
 
     def refresh(self):
-        self._logger.debug("Refreshing Diff UI.")
-
+        self._logger.debug("Refreshing diff %s" % self)
+    
         if self._spreadsheets:
             # first refresh the spreadsheets so the model is updated
-            # we need that so that the nodeDict is refreshed
+            # this is needed for nodeDict to be up to date
             for spreadsheet in self._spreadsheets:
                 spreadsheet.refresh()
+                spreadsheet.showdiffonly = self.uiShowDiffOnly.isChecked()
+                spreadsheet.showname = False # self.uiShowName.isChecked()
+                spreadsheet.showlabel = True # self.uiShowLabel.isChecked()
 
-            # now nodeDict has been updated for each model, build the displayParmList
-            displayParmList = self.buildDisplayParmList()
-
-            # finally refresh the spreadsheet with the displayParmList
+            # once nodeDict has been updated for each model, build the displayList
+            displayList = self.buildDisplayList()
+    
+            # finally refresh the spreadsheet with the displayList
             for spreadsheet in self._spreadsheets:
-                spreadsheet.model().beginResetModel()
-                spreadsheet.model().refresh(mylist=displayParmList)
-                spreadsheet.model().endResetModel()
-
+                spreadsheet.model.beginResetModel()
+                spreadsheet.model.refresh(displayList)
+                spreadsheet.model.endResetModel()

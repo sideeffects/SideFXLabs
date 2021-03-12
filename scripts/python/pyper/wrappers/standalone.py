@@ -82,6 +82,9 @@ class Model(object):
     def isParameter(self, path):
         pass
 
+    def getLabel(self, path):
+        pass
+
     def parmCount(self, path):
         pass
 
@@ -89,6 +92,9 @@ class Model(object):
         pass
 
     def selection(self):
+        pass
+
+    def clearSelection(self):
         pass
 
     def setParms(self, parms=[]):

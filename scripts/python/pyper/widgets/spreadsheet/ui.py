@@ -23,6 +23,7 @@ License:
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import absolute_import
 
 import os
 import logging
@@ -32,8 +33,35 @@ from pyper.vendor.Qt import QtCore
 from pyper.vendor.Qt import QtWidgets
 from pyper.vendor.Qt import _QtUiTools
 
-from . import model
-from . import proxymodel
+try:
+    from . import model
+    from . import proxymodel
+except Exception as e:
+    try:
+        import model
+        import proxymodel
+    except (ImportError):
+        pass
+
+from imp import reload
+reload(model)
+reload(proxymodel)
+
+
+class CustomLineEdit(QtWidgets.QLineEdit):
+    """docstring for CustomLineEdit."""
+
+    def __init__(self):
+        super(CustomLineEdit, self).__init__()
+
+    def dragEnterEvent(self, e):
+        if e.mimeData().hasFormat('text/plain'):
+            e.accept()
+        else:
+            e.ignore()
+    
+    def dropEvent(self, e):
+        self.setText(e.mimeData().text())
 
 
 class UiLoader(_QtUiTools.QUiLoader):
@@ -53,36 +81,83 @@ class UiLoader(_QtUiTools.QUiLoader):
 
 class MainWidget(QtWidgets.QWidget):
 
-    def __init__(self, appModel, nodePath="", parent=None):
+    # create signals
+    spreadsheetChanged = QtCore.Signal()
+
+    def __init__(self, appModel, headerNames=None, nodepath="", parent=None):
         """ """
         super(MainWidget, self).__init__(parent)
 
         # initialize/get the logger
         self._logger = logging.getLogger(__name__)
 
+        # define some variables
+        if not headerNames:
+            headerNames = ["Name", "Label", "Value", "Tags", "Path", "Show"]
+
         # define the application model to use
         self._appModel = appModel
         self._logger.debug("%s is using %s application model." % (__name__, self._appModel.name))
 
         # get the first selected node to build the spreadsheet
-        if not nodePath:
+        if not nodepath:
             selectedNodes = self._appModel.selection()
             if selectedNodes:
-                nodePath = selectedNodes[0]
+                nodepath = selectedNodes[0]
 
         # define the model and its proxy model
-        self._model = model.Model(self._appModel, nodePath)
+        self._model = model.Model(self._appModel, headerNames, nodepath)
         self._proxyModel = proxymodel.ProxyModel(self._model)
+        self._showname = False
+        self._showlabel = True
+        self._showdiffonly = False
 
         # define parent in case this widget is not part of a parent widget
         if not parent:
             self.setParent(self._appModel.mainQtWindow, QtCore.Qt.Window)
 
         # setup the UI
-        self.setup_ui(nodePath)
+        self.setup_ui(nodepath)
 
         # some cosmetics
+        self.resize(400, 600)
         self.centerWidget()
+
+    def model():
+        """ """
+        def fget(self): return self._model
+        return locals()
+    model = property(**model())
+
+    def showname():
+        """ """
+        def fget(self): return self._showname
+        def fset(self, value): 
+            self._logger.debug("Set showname to \"%s\"." % value)
+            self._showname = value
+            self._proxyModel.showname = value # and set the proxymodel's attribute so it's available for filtering
+        return locals()
+    showname = property(**showname())
+
+    def showlabel():
+        """ """
+        def fget(self): return self._showlabel
+        def fset(self, value): 
+            self._logger.debug("Set showlabel to \"%s\"." % value)
+            self._showlabel = value
+            self._proxyModel.showlabel = value # and set the proxymodel's attribute so it's available for filtering
+        return locals()
+    showlabel = property(**showlabel())
+
+    def showdiffonly():
+        """ """
+        def fget(self): return self._showdiffonly
+        def fset(self, value): 
+            self._logger.debug("Set showdiffonly to \"%s\"." % value)
+            self._showdiffonly = value
+            self._proxyModel.showdiffonly = value # and set the proxymodel's attribute so it's available for filtering
+        return locals()
+    showdiffonly = property(**showdiffonly())
 
     def centerWidget(self):
         """ Centers the widget on screen. (source: https://stackoverflow.com/a/20244839) """
@@ -92,58 +167,90 @@ class MainWidget(QtWidgets.QWidget):
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
 
-    def setup_ui(self, nodePath=""):
+    def setup_ui(self, nodepath=""):
         """ """
         # build the ui
-        uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
-        UiLoader(self).load(uifile)        
-        self.setWindowTitle(__name__.split(".")[-2].capitalize())
+        # uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
+        # UiLoader(self).load(uifile)        
+        # I could not figure out how to replace a promoted widget in the .ui file with the UiLoader()
+        # So I build the entire widget manually
 
-        # tell the view which model to display
-        self.uiTableView.setModel(self._proxyModel)
+        # build the ui
+        self.setWindowTitle(__name__.split(".")[-2].capitalize())
+        
+        # create the widgets
+        self.uiLineEdit = CustomLineEdit()
+        self.uiTableView = QtWidgets.QTableView()
+        self.uiVerticalLayout = QtWidgets.QVBoxLayout()
+
+        # configure the layout
+        self.setLayout(self.uiVerticalLayout)
+        self.uiVerticalLayout.addWidget(self.uiLineEdit)
+        self.uiVerticalLayout.addWidget(self.uiTableView)
+        self.uiVerticalLayout.setMargin(0)
 
         # configure the view
+        self.uiTableView.setModel(self._proxyModel) # tell the view which model to display
+        self.uiTableView.setShowGrid(False)
+        self.uiTableView.setTabKeyNavigation(False)
+        self.uiTableView.setAlternatingRowColors(True)
+        self.uiTableView.setSelectionBehavior(QtWidgets.QTableView.SelectRows)
+        self.uiTableView.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.uiTableView.setWordWrap(False)
+        self.uiTableView.horizontalHeader().setStretchLastSection(True)
+        self.uiTableView.horizontalHeader().setHighlightSections(True)
         self.uiTableView.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
         self.uiTableView.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Interactive)
         self.uiTableView.horizontalHeader().resizeSection(0, 200)
         self.uiTableView.horizontalHeader().resizeSection(1, 50)
+        self.uiTableView.verticalHeader().setVisible(False)
+        self.uiTableView.verticalHeader().setHighlightSections(True)
         self.uiTableView.verticalHeader().setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
-
-        # define the proxy model needed to sort the view
-        self._proxyModel.sort(0, QtCore.Qt.AscendingOrder)
+        self.uiTableView.verticalHeader().setDefaultSectionSize(16)
+        self.uiTableView.verticalHeader().setMinimumSectionSize(10)
 
         # define a delegate to override the inherited color palette
         delegate = model.MyDelegate(self)
         self.uiTableView.setItemDelegate(delegate)
 
+        # define how the proxy model should sort the view
+        self._proxyModel.sort(0, QtCore.Qt.AscendingOrder)
+        
         # add actions
-        self.uiTableView.addAction(self.actionRefresh)
+        # self.uiTableView.addAction(self.actionRefresh)
+
+        # define the refresh function to use (choose between self or parent)
+        if hasattr(self.parent(), 'refresh'):
+            # check whether the parent has a refresh() function and connect it
+            refreshFunction = lambda: self.parent().refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
+        else:
+            # otherwise connect the refresh() function of self
+            refreshFunction = lambda: self.refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
 
         # connect signals
-        self.actionRefresh.triggered.connect(self.refresh)
+        self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged 
+        self.model.dataChanged.connect(lambda: self.spreadsheetChanged.emit())      # a change in the model emits spreadsheetChanged
+        self.spreadsheetChanged.connect(refreshFunction)                              # when spreadsheetChanged is triggered, refresh the spreadsheet
+        # self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
 
-        # check whether the parent has a refresh() function and connect it
-        if hasattr(self.parent(), 'refresh'):
-            functionToConnect = self.parent().refresh
-        # otherwise connect the refresh() function of self
-        elif hasattr(self, 'refresh'):
-            functionToConnect = self.refresh
-        self.uiLineEdit.textChanged.connect(functionToConnect)
-        
         # initialize uiLineEdit with the node path
-        self.uiLineEdit.setText(nodePath)
+        self.uiLineEdit.setText(nodepath)
+        self.showdiffonly = False
+        self.showlabel = True
 
     def closeEvent(self, event):
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
-        self._logger.info("Closing %s..." % (name))
+        self._logger.debug("Closing %s..." % (name))
         self.setParent(None)
         event.accept()
         self._logger.info("%s closed." % (name))
 
-    def model(self):
-        return self._model
-
-    def refresh(self, lineEditText="", mylist=None):
+    def refresh(self, parmlist=None):
+        """ Refresh the spreadsheet.
+        It updates the node path and asks the model to refresh """
+        # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)' 
+        # if not, it could pass some extra, unwanted, arguments.
+        # for instance 'uiLineEdit.textChanged' will pass the text in the line edit field as parmlist.
+        self._logger.debug("Refreshing spreadsheet %s" % self)
         self._model.nodePath = str(self.uiLineEdit.text())
-        self._logger.debug("Refreshing spreadsheet with node \"%s\"." % self._model._nodePath)
-        self._model.refresh(mylist)
+        self._model.refresh(parmlist)

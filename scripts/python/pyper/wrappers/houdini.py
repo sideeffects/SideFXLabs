@@ -125,6 +125,12 @@ class Model(standalone.Model):
             return True
         return False
 
+    def getLabel(self, path):
+        if self.isParameter(path):
+            return self._houmodule.parm(path).description()
+        else:
+            return ''
+
     #def listParameters(self, path):
     #    node = self.getHoudiniObject(path)
     #    if not node:
@@ -189,6 +195,9 @@ class Model(standalone.Model):
 
     def selection(self):
         return [node.path() for node in self._houmodule.selectedNodes()]
+
+    def clearSelection(self):
+        self._houmodule.clearAllSelected()
 
     def setParms(self, parms=[]):
         """
