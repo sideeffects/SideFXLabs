@@ -1,0 +1,363 @@
+# Dialog script for labs::terrain_texture::1.0 automatically generated
+
+{
+    name	labs::terrain_texture::1.0
+    script	gamedev::sop_terrain_texture_rop
+    label	"Labs Terrain Texture Output"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Polygon Geometry"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder2"
+        label   "Output"
+
+        parm {
+            name    "execute"
+            label   "Render"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "kwargs['node'].hm().Render(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+            parmtag { "takecontrol" "always" }
+        }
+        parm {
+            name    "outputdir"
+            label   "Output"
+            type    image
+            default { "$HIP/render/${HIPNAME}_$(CHANNEL)_$(X).$(Y).tga" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vm_uvunwrapres"
+            label   "Resolution"
+            type    intvector2
+            joinnext
+            size    2
+            default { "2048" "2048" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "resdropdown"
+            label   "Resolution Dropdown"
+            type    button
+            default { "0" }
+            menumini {
+                "256 256"   "256 x 256"
+                "512 512"   "512 x 512"
+                "1024 1024" "1024 x 1024"
+                "2048 2048" "2048 x 2048"
+                "4096 4096" "4096 x 4096"
+                "8192 8192" "8192 x 8192"
+            }
+            parmtag { "script_callback" "opparm . vm_uvunwrapres (`arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)`" }
+            parmtag { "script_callback_language" "hscript" }
+        }
+        parm {
+            name    "bDivideTiles"
+            label   "Divide into tiled maps"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "iNumTiles"
+            label   "Tile Count"
+            type    intvector2
+            size    2
+            default { "4" "4" }
+            disablewhen "{ bDivideTiles == 0 }"
+            range   { -1 1 }
+        }
+        parm {
+            name    "tile_offset"
+            label   "TileOffset_Hidden"
+            type    vector2
+            invisible
+            size    2
+            default { "0" "0" }
+            range   { -1 1 }
+        }
+        parm {
+            name    "execute2"
+            label   "Re-Export Tiles"
+            type    button
+            default { "0" }
+            disablewhen "{ bDivideTiles == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "kwargs['node'].hm().ReTile(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+            parmtag { "takecontrol" "always" }
+        }
+    }
+
+    groupsimple {
+        name    "folder5"
+        label   "Maps"
+
+        parm {
+            name    "bExportNormal"
+            label   "Export"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "normaloutput"
+            label   "Normal"
+            type    image
+            default { "normal" }
+            disablewhen "{ bExportNormal == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp1 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "bExportHeight"
+            label   "Export"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "heightoutput"
+            label   "Height"
+            type    image
+            default { "height" }
+            disablewhen "{ bExportHeight == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp2 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "bExportOcclusion"
+            label   "Export"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "occlusionoutput"
+            label   "Occlusion"
+            type    image
+            default { "occlusion" }
+            disablewhen "{ bExportOcclusion == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp4 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "bExportCavity"
+            label   "Export"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "cavityoutput"
+            label   "Cavity"
+            type    image
+            default { "cavity" }
+            disablewhen "{ bExportCavity == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp2 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "exportcurvature"
+            label   "Export"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "curvatureoutput"
+            label   "Curvature"
+            type    image
+            default { "curvature" }
+            disablewhen "{ bExportCavity == 0 }"
+            menureplace {
+                [ "opmenu -l cop2net1/rop_comp2 copoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder3"
+        label   "Advanced"
+
+        groupsimple {
+            name    "folder0"
+            label   "Normal Map"
+
+            parm {
+                name    "vm_bake_tangentnormalflipy"
+                label   "Flip Y"
+                type    toggle
+                default { "off" }
+                disablewhen "{ bExportNormal == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_tangentnormalflipx"
+                label   "Flip X"
+                type    toggle
+                default { "off" }
+                disablewhen "{ bExportNormal == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_usemikkt"
+                label   "Use MikkT"
+                type    toggle
+                default { "on" }
+                disablewhen "{ bExportNormal == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "mantra_class" "renderer" }
+                parmtag { "mantra_name" "bake_usemikkt" }
+                parmtag { "spare_category" "Baking" }
+            }
+        }
+
+        groupsimple {
+            name    "folder1"
+            label   "Height Map"
+
+            parm {
+                name    "bNormalize"
+                label   "Remap Range"
+                type    toggle
+                joinnext
+                default { "1" }
+            }
+            parm {
+                name    "range"
+                label   "Range"
+                type    vector2
+                nolabel
+                size    2
+                default { "-100" "100" }
+                disablewhen "{ bNormalize == 0 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "iRasterDepth"
+                label   "Raster Depth"
+                type    ordinal
+                default { "3" }
+                menu {
+                    "0" "8 Bit Integer"
+                    "1" "16 Bit Integer"
+                    "2" "16 Bit Floating Point"
+                    "3" "32 Bit Floating Point"
+                }
+            }
+        }
+
+        groupsimple {
+            name    "folder4"
+            label   "Rays"
+
+            parm {
+                name    "vm_bake_occlusionbias"
+                label   "Occlusion Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_cavitydistance"
+                label   "Cavity Distance"
+                type    float
+                default { "5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_cavitybias"
+                label   "Cavity Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_curvatureocc"
+                label   "Occlusion-based Curvature"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_curvaturesdist"
+                label   "Curvature Ray Distance"
+                type    float
+                default { "5" }
+                disablewhen "{ vm_bake_curvatureocc == 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_curvaturescale"
+                label   "Curvature Scale"
+                type    float
+                default { "3" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+            parm {
+                name    "vm_bake_curvaturebias"
+                label   "Curvature Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Baking" }
+            }
+        }
+
+    }
+
+    parm {
+        name    "sFileOutputName"
+        label   "OutputName_Hidden"
+        type    string
+        invisible
+        default { "" }
+    }
+}
