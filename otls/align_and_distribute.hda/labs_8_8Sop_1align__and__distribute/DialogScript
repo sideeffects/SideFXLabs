@@ -16,7 +16,7 @@
 
     groupsimple {
         name    "folder1"
-        label   "Folder Name"
+        label   "Pieces"
 
         parm {
             name    "split_by"
@@ -42,27 +42,27 @@
             }
         }
         parm {
+            name    "bbox_relative"
+            label   "Bounding Box Relative"
+            type    toggle
+            invisible
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
             name    "offset"
-            label   "Spacing"
+            label   "Padding"
             type    float
             default { "1" }
             help    "Spacing applied between each element."
             range   { 0 10 }
         }
         parm {
-            name    "bbox_relative"
-            label   "Bounding Box Relative"
-            type    toggle
-            default { "1" }
-            parmtag { "script_callback_language" "python" }
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
         }
-    }
-
-    groupsimple {
-        name    "folder0"
-        label   "Global Alignment"
-        grouptag { "group_type" "simple" }
-
         parm {
             name    "axis_align"
             label   "Axis Align"
@@ -118,9 +118,16 @@
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
         }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Alignment"
+        grouptag { "group_type" "simple" }
+
         parm {
             name    "mAlignMode"
-            label   "Alignment Mode"
+            label   "Mode"
             type    ordinal
             default { "0" }
             menu {
@@ -129,33 +136,60 @@
             }
             parmtag { "script_callback_language" "python" }
         }
-        parm {
-            name    "axis"
-            label   "Axis"
-            type    ordinal
-            joinnext
-            default { "0" }
-            help    "Determine which axis the elements should be spread along."
-            disablewhen "{ mAlignMode == 1 }"
-            menu {
-                "0" "X"
-                "1" "Y"
-                "2" "Z"
+        groupsimple {
+            name    "folder2"
+            label   "Linear"
+            hidewhen "{ mAlignMode == 1 }"
+
+            parm {
+                name    "axis"
+                label   "Axis"
+                type    ordinal
+                joinnext
+                default { "0" }
+                help    "Determine which axis the elements should be spread along."
+                menu {
+                    "0" "X"
+                    "1" "Y"
+                    "2" "Z"
+                }
+            }
+            parm {
+                name    "alignment"
+                label   "Alignment"
+                type    ordinal
+                default { "0" }
+                help    "Determine if elements should be spread along the positive or negative direction of the selected axis."
+                menu {
+                    "0" "Positive"
+                    "1" "Center"
+                    "2" "Negative"
+                }
             }
         }
-        parm {
-            name    "alignment"
-            label   "Alignment"
-            type    ordinal
-            default { "0" }
-            help    "Determine if elements should be spread along the positive or negative direction of the selected axis."
-            disablewhen "{ mAlignMode == 1 }"
-            menu {
-                "0" "Positive"
-                "1" "Center"
-                "2" "Negative"
+
+        groupsimple {
+            name    "folder3"
+            label   "Grid"
+            hidewhen "{ mAlignMode != 1 }"
+
+            parm {
+                name    "orient"
+                label   "Axis"
+                type    ordinal
+                default { "zx" }
+                disablewhen "{ mAlignMode != 1 }"
+                menu {
+                    "xy"    "XY Plane"
+                    "yz"    "YZ Plane"
+                    "zx"    "ZX Plane"
+                }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
             }
         }
+
     }
 
 }
