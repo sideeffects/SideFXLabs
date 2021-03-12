@@ -300,6 +300,10 @@ def get_file_ext(parm, type_="parm"):
     elif editorlang == "python":
         return ".py"
 
+    elif editorlang == "opencl":
+        return ".cl"
+
+
     else:
 
         try:
