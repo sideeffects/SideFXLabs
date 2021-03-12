@@ -101,20 +101,7 @@ def get_config_file():
     try:
         return hou.findFile("ExternalEditor.cfg")
     except hou.OperationFailed:
-        
-        ver = hou.applicationVersion()
-        if sys.platform in ["darwin", "os2", "os2emx"]:
-            verStr = "{}.{}".format(ver[0], ver[1])
-        else:
-            verStr = "houdini{}.{}".format(ver[0], ver[1])
-
-        cfg_root = hou.expandString("$HOME") + os.sep + verStr
-        if not os.path.exists(cfg_root):
-            os.makedirs(cfg_root)
-
-        cfg = cfg_root + os.sep + "ExternalEditor.cfg"
-
-        return cfg
+        return os.path.join(hou.expandString("$HOUDINI_USER_PREF_DIR"), "ExternalEditor.cfg")
 
 def set_external_editor():
 
