@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import *
-import subprocess, os, hou
+import subprocess, os, hou, json
 
 def add_images(node):
 
@@ -36,8 +36,9 @@ def log(cmd, cache, folder, node):
             StartupInfo = subprocess.STARTUPINFO()
             subprocess.STARTF_USESHOWWINDOW = 1
             StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
-        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo)
+        
+        customenv = json.loads(node.parent().parm("customenv").eval())   
+        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=customenv)
 
         # Process is still running
         while Process.poll() == None:
