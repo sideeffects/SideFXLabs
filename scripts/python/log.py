@@ -7,7 +7,13 @@ import os
 import sys
 import json
 from subprocess import Popen, PIPE, STDOUT
-from itertools import izip
+
+try:
+    # Python 2
+    from itertools import izip
+except ImportError:
+    # Python 3
+    izip = zip
 
 # =============================================================================
 # FUNCTIONS
@@ -24,9 +30,9 @@ def node(node,level,string):
     if node.parm("enableVerbosity") :
         eVil = node.evalParm("enableVerbosity")    
         if eVil >= level:
-            print string
+            print (string)
     else :
-        print string
+        print (string)
 
 # -----------------------------------------------------------------------------
 #    Name: script(level,string)
@@ -38,9 +44,9 @@ def node(node,level,string):
 # -----------------------------------------------------------------------------      
 def script(level,string):
     if hou.getenv("HOUDINI_ADMIN", False) and level >= 1:   
-        print string    
+        print (string)    
     elif level == 0 :
-        print string      
+        print (string)      
 
 # -----------------------------------------------------------------------------
 #    Name: env(node,path)
