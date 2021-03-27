@@ -1,0 +1,636 @@
+# Dialog script for labs::archive_project::1.0 automatically generated
+
+{
+    name	labs::archive_project::1.0
+    script	jmp::dev::archive_project::1.0
+    label	"Labs Archive Project"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+    inputlabel	2	"Input 2"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+
+    groupsimple {
+        name    "folder7"
+        label   "Dev Notes"
+        invisibletab
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "newparameter"
+            label   "Label"
+            type    string
+            invisible
+            nolabel
+            default { "Except the \"Collect\" Archive button - All Grey-ed out buttons are just placeholders for\nfuture updates(features not implemented)\nPress Gather Dependencies to see if the asset successfully scans the scene." }
+            disablewhen "{ disable_feat == 1 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "autoselect" "0000000000000000" }
+            parmtag { "editor" "1" }
+            parmtag { "editorlines" "5" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Archival"
+
+        parm {
+            name    "gather_dep"
+            label   "Scan HIP for Dependencies"
+            type    button
+            joinnext
+            default { "0" }
+            disablewhen "{ enable_abc == 0 enable_usd == = 0 == enable_geo == == 0 enable_img == 0 enable_hda == 0 enable_misc == 0 }"
+            parmtag { "script_callback" "hou.phm().scanScene(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "archive_execute"
+            label   "Archive"
+            type    button
+            joinnext
+            default { "0" }
+            disablewhen "{ assetlist < 1 }"
+            parmtag { "script_callback" "hou.phm().executeArchive(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "report_enable"
+            label   "Generate Report"
+            type    toggle
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "refresh_note"
+            label   "Label"
+            type    label
+            nolabel
+            size    16
+            default { "Refresh List!" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" }
+            parmtag { "export_disable" "1" }
+        }
+    }
+
+    groupsimple {
+        name    "folder8"
+        label   "Location"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "control_project_name"
+            label   "Project Name"
+            type    string
+            default { "$HIPNAME" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "autoselect" "1000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "control_dest_folder"
+            label   "Archive Destination"
+            type    directory
+            default { "$HIP/archive/01" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "sepparm3"
+        label   "sepparm3"
+        type    separator
+        default { "" }
+    }
+    group {
+        name    "archive"
+        label   "Files"
+
+        parm {
+            name    "est_file_size"
+            label   "Estimated Archive Size"
+            type    label
+            default { "" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        groupsimple {
+            name    "folder6"
+            label   "Options"
+            grouptag { "group_type" "simple" }
+
+            groupsimple {
+                name    "folder9"
+                label   "Assets to Scan"
+                grouptag { "group_type" "simple" }
+
+                parm {
+                    name    "enable_abc"
+                    label   "Alembics"
+                    type    toggle
+                    joinnext
+                    default { "1" }
+                    parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "enable_usd"
+                    label   "USDs"
+                    type    toggle
+                    joinnext
+                    default { "0" }
+                    parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "enable_geo"
+                    label   "Geometry"
+                    type    toggle
+                    joinnext
+                    default { "1" }
+                    parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "enable_img"
+                    label   "Image/Textures"
+                    type    toggle
+                    joinnext
+                    default { "1" }
+                    parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "enable_hda"
+                    label   "HDAs"
+                    type    toggle
+                    joinnext
+                    default { "1" }
+                    parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "enable_misc"
+                    label   "Misc(Any)"
+                    type    toggle
+                    default { "1" }
+                    parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupcollapsible {
+                    name    "folder9_1"
+                    label   "Additional Scan Configuration"
+                    grouptag { "group_type" "collapsible" }
+
+                    parm {
+                        name    "ignore_seq"
+                        label   "Ignore Sequences"
+                        type    toggle
+                        default { "0" }
+                        parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "ignore_extn"
+                        label   "Ignore Extensions"
+                        type    toggle
+                        default { "0" }
+                        parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "extn_list"
+                        label   "Extension List"
+                        type    string
+                        default { "" }
+                        hidewhen "{ ignore_extn == 0 }"
+                        parmtag { "script_callback" "hou.phm().ForceRefreshEnable(kwargs)" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "ignore_pdg_var"
+                        label   "Ignore `@attrib` calls"
+                        type    toggle
+                        default { "1" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        groupsimple {
+            name    "folder0"
+            label   "Assets"
+            grouptag { "group_type" "simple" }
+            parmtag { "script_callback" "hou.phm().setEstFileSize(kwargs)" }
+
+            parm {
+                name    "filtering_enable"
+                label   "Edit List"
+                type    toggle
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "force_refresh"
+                label   "Refresh List"
+                type    button
+                default { "0" }
+                hidewhen "{ assetlist < 1 }"
+                parmtag { "script_callback" "hou.phm().ForceRefresh(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            multiparm {
+                name    "assetlist"
+                label    "Asset List"
+                default 0
+                disablewhen "{ enable_abc == 0 enable_usd == = 0 == enable_geo == == 0 enable_img == 0 enable_hda == 0 enable_misc == 0 }"
+                hidewhen "{ filtering_enable == 0 }"
+                parmtag { "script_callback" "hou.phm().updateFromMultiParm(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+
+                parm {
+                    name    "sepparm2_#"
+                    label   "sepparm2_#"
+                    type    separator
+                    default { "" }
+                }
+                parm {
+                    name    "id_#"
+                    label   "Job ID"
+                    type    string
+                    invisible
+                    default { "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "parameter_#"
+                    label   "Parameter"
+                    type    oppath
+                    default { "" }
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "filepath_#"
+                    label   "File Path"
+                    type    directory
+                    default { "" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "asset_type_#"
+                    label   "Type"
+                    type    label
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "asset_size_#"
+                    label   "Size"
+                    type    label
+                    default { "" }
+                }
+            }
+
+        }
+
+        group {
+            name    "folder0_1"
+            label   "Additional Files | Directories(WIP)"
+            tabbreak
+            hidewhentab "{ disable_feat == 1 }"
+
+            groupsimple {
+                name    "xn__"
+                label   "Add Files"
+                grouptag { "group_type" "simple" }
+
+                multiparm {
+                    name    "add_file_list"
+                    label    "Files"
+                    default 0
+                    disablewhen "{ disable_feat == 1 }"
+                    hidewhen "{ disable_feat == 1 }"
+
+                    parm {
+                        name    "sepparm7_#"
+                        label   "sepparm7_#"
+                        type    separator
+                        default { "" }
+                    }
+                    parm {
+                        name    "file_source_#"
+                        label   "Source"
+                        type    file
+                        default { "" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "file_dest_#"
+                        label   "Destination"
+                        type    directory
+                        default { "" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+            groupsimple {
+                name    "folder4"
+                label   "Add Directories"
+                grouptag { "group_type" "simple" }
+
+                multiparm {
+                    name    "directories"
+                    label    "Directories"
+                    default 0
+                    disablewhen "{ disable_feat == 1 }"
+
+                    parm {
+                        name    "sepparm7_#_2"
+                        label   "sepparm7_#_2"
+                        type    separator
+                        default { "" }
+                    }
+                    parm {
+                        name    "dir_source_#"
+                        label   "Source"
+                        type    directory
+                        default { "" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "dir_dest_#"
+                        label   "Destination"
+                        type    directory
+                        default { "" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+    group {
+        name    "archive_1"
+        label   "Configuration"
+
+        group {
+            name    "folder2_1"
+            label   "Reporting"
+
+            parm {
+                name    "sepparm7"
+                label   "sepparm7"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "report_label"
+                label   "Report File Name"
+                type    string
+                joinnext
+                default { "`$HIPNAME`_arc_report" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "json_label"
+                label   " .json"
+                type    geometrydata
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm10"
+                label   "sepparm10"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "solo_report"
+                label   "Generate Report (Only)"
+                type    button
+                default { "0" }
+                parmtag { "script_callback" "hou.phm().GenerateReport(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "export_assets"
+                label   "Include Assets"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "export_meta"
+                label   "Include HIP Metadata"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "append_env"
+                label   "Include Environment"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "append_note"
+                label   "Add Note"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "note_field"
+                label   "Notes"
+                type    string
+                default { "Sometimes that's just the way it has to be. \nSure, there were probably other options, but he didn't let them enter his mind. \nIt was done and that was that. \nIt was just the way it had to be." }
+                hidewhen "{ append_note == 0 }"
+                parmtag { "editor" "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        group {
+            name    "folder2_1_1"
+            label   "Archive Subpath"
+
+            parm {
+                name    "sepparm8"
+                label   "sepparm8"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "labelparm"
+                label   "Copy To Sub-Path:"
+                type    label
+                invisible
+                default { "" }
+                parmtag { "export_disable" "1" }
+            }
+            parm {
+                name    "labelparm2"
+                label   "Copy To Sub-Path:"
+                type    label
+                joinnext
+                default { "" }
+                parmtag { "export_disable" "1" }
+            }
+            parm {
+                name    "refresh_paths"
+                label   "Update Paths"
+                type    button
+                default { "0" }
+                parmtag { "script_callback" "hou.phm().RefreshPaths(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "abc_path"
+                label   "Alembics"
+                type    string
+                default { "abc" }
+                disablewhen "{ enable_abc == 0 }"
+                parmtag { "script_callback" "hou.phm().UpdatePathsEnable(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "usd_path"
+                label   "USDs"
+                type    string
+                default { "usd" }
+                disablewhen "{ enable_usd == 0 }"
+                parmtag { "script_callback" "hou.phm().UpdatePathsEnable(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "geo_path"
+                label   "Geometry"
+                type    string
+                default { "geo" }
+                disablewhen "{ enable_geo == 0 }"
+                parmtag { "script_callback" "hou.phm().UpdatePathsEnable(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "img_path"
+                label   "Image/Textures"
+                type    string
+                default { "img" }
+                disablewhen "{ enable_img == 0 }"
+                parmtag { "script_callback" "hou.phm().UpdatePathsEnable(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "hda_path"
+                label   "HDAs"
+                type    string
+                default { "hda" }
+                disablewhen "{ enable_hda == 0 }"
+                parmtag { "script_callback" "hou.phm().UpdatePathsEnable(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "misc_path"
+                label   "Misc (Any)"
+                type    string
+                default { "misc" }
+                disablewhen "{ enable_misc == 0 }"
+                parmtag { "script_callback" "hou.phm().UpdatePathsEnable(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        group {
+            name    "folder2_1_2"
+            label   "Advanced"
+
+            parm {
+                name    "sepparm11"
+                label   "sepparm11"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "set_paths_hip"
+                label   "Change Parameter Paths on Archived HIP file"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm4"
+                label   "sepparm4"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+        }
+
+        group {
+            name    "folder2_1_3"
+            label   "Presets(WIP)"
+            hidewhentab "{ disable_feat == 1 }"
+
+            parm {
+                name    "use_presets"
+                label   "Use Presets"
+                type    toggle
+                default { "0" }
+                disablewhen "{ disable_feat == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "preset_file_path"
+                label   "File"
+                type    file
+                default { "" }
+                disablewhen "{ disable_feat == 1 }"
+                hidewhen "{ use_presets == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    parm {
+        name    "disable_feat"
+        label   "Disable WIP Features"
+        type    toggle
+        invisible
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

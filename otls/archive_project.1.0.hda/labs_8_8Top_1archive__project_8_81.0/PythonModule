@@ -1,0 +1,319 @@
+import hou
+import pdg
+
+'''
+BUILD HELPER FUNCTIONS
+
+'''
+
+#update multiparm
+def updateFromMultiParm(kwargs):
+
+    node = kwargs['node']
+
+    filter = hou.node(node.path()+"/FILTERED_ITEMS")
+    output = hou.node(node.path()+"/COMPRESS_OP")
+
+    multiparm = node.parm('assetlist')
+    multiparmcount = node.parm('assetlist').eval()
+
+    if multiparmcount > 0:
+        try:
+            filter.dirtyTasks(1)
+            filter.executeGraph(generate_only=True, block=True)
+            workitems = getWorkItems(filter)
+            filesize_list = getFileSize(kwargs, workitems)
+            setEstFileSize(kwargs, filesize_list)
+
+            output.executeGraph(generate_only=True, block=True)
+
+        except:
+            hou.ui.displayMessage("List Update Failed")
+            return
+
+    else:
+        node.parm("est_file_size").set("0 B")
+        node.dirtyAllTasks(1)
+
+
+
+#function to check if hipfile is saved and prompt to save
+def checkHipFileSaved(kwargs):
+    hip_save = hou.hipFile.hasUnsavedChanges()
+    if(hip_save==True):
+        try:
+            if hou.ui.displayMessage("Current HIP has unsaved changes. Press OK to save before proceeding", title="File Save", buttons=('OK',))==0:
+                hou.hipFile.save()
+        except:
+            hou.ui.displayMessage("File needs to be saved - Aborting Gather")
+            return
+
+
+#get work items
+def getWorkItems(topnode):
+    itemholder = topnode.getPDGNode()
+    workitems = itemholder.workItems
+
+    return workitems
+
+
+#set est file size parm
+def setEstFileSize(kwargs, file_size_cluster):
+
+    node = kwargs['node']
+
+    total_size = 0
+    for i in range(len(file_size_cluster)):
+        total_size += file_size_cluster[i]
+
+    printable_size = getReadableFileSize(total_size)
+    try:
+        node.parm("est_file_size").set(printable_size)
+    except:
+        node.parm("est_file_size").set("Could Not Set Estimated File Size")
+
+#build multiparm with items
+def setParms(kwargs, work_items):
+    import sys
+
+    parent = kwargs['node']
+
+    multiparm = parent.parm('assetlist')
+    multiparm.set(0)
+
+    #build parms list
+    if len(work_items)>0:
+        job_id = []
+        parm_path = []
+        file_path = []
+        asset_type = []
+
+        for item in work_items:
+            job_id.append(item.attribValue("job_id"))
+            parm_path.append(item.attribValue("parm_path"))
+            file_path.append(item.attribValue("source_path"))
+            asset_type.append(item.attribValue("file_type"))
+
+        for i in range(len(job_id)):
+            #build multiparm instances
+            multiparm.insertMultiParmInstance(i)
+            parent.parm("id_"+str(job_id[i])).set(str(job_id[i]))
+            parent.parm("parameter_"+str(job_id[i])).set(parm_path[i])
+            parent.parm("filepath_"+str(job_id[i])).set(file_path[i])
+            parent.parm("asset_type_"+str(job_id[i])).set(asset_type[i])
+
+        #link values to filtering and build job id
+        copyJobidMultiparm(kwargs, multiparm)
+        workitems = setFilteredItems(kwargs, multiparm)
+        filesize_list = getFileSize(kwargs, workitems)
+        setFileSizeItems(kwargs, multiparm, filesize_list)
+
+        return filesize_list
+
+    else:
+        hou.ui.displayMessage("Nothing to List")
+        return
+
+
+#COPY FILTERED JOB ID
+def copyJobidMultiparm(kwargs, multi_parm):
+    node = kwargs['node']
+    filter = hou.node(node.path()+"/filter_job_id")
+    for i in range(multi_parm.eval()):
+        filter.parm("sValue_"+str(i+1)).set('`chs("../id_{}")`'.format(str(i+1)))
+
+#filter items and execute
+def setFilteredItems(kwargs, multi_parm):
+    node = kwargs['node']
+    filter = hou.node(node.path()+"/FILTERED_ITEMS")
+    try:
+        filter.executeGraph(generate_only=True, block=True)
+        workitems = getWorkItems(filter)
+        return workitems
+    except:
+        hou.ui.displayMessage("Could Not Update List")
+        return
+
+#get FILE SIZE from work items
+def getFileSize(kwargs, work_items):
+    if len(work_items)>0:
+        file_size = []
+
+    for item in work_items:
+        item_size = item.attribValue("file_size_bits")
+        if item_size:
+            file_size.append(item_size)
+        else:
+            file_size.append(0)
+
+    return file_size
+
+
+#set file_size on ui
+def setFileSizeItems(kwargs, multi_parm, file_size_cluster):
+    parent = kwargs['node']
+    for i in range(1, multi_parm.eval()+1, 1):
+        convert_size = getReadableFileSize(file_size_cluster[i])
+        parent.parm("asset_size_"+str(i)).set(convert_size)
+
+#function to convert to readable file sizes with rounding
+def getReadableFileSize(size_in_bytes):
+    import math
+
+    SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+    index = 0
+    while size_in_bytes >= 1024:
+        size_in_bytes /= 1024
+        size_in_bytes = round(size_in_bytes, 2)
+        index += 1
+    try:
+        return "{} {}".format(size_in_bytes, SIZE_UNITS[index])
+    except IndexError:
+        return 'File too large'
+
+#force user to refresh
+def ForceRefreshEnable(kwargs):
+    node = kwargs["node"]
+    refresh_parm = node.parmTuple('force_refresh')
+    collect_parm = node.parmTuple('archive_execute')
+    refresh_note = node.parmTuple('refresh_note')
+    collect_parm.disable(True)
+    refresh_parm.disable(False)
+    refresh_note.hide(False)
+
+#refresh list
+def ForceRefresh(kwargs):
+    node = kwargs['node']
+
+    refresh_parm = node.parmTuple('force_refresh')
+    collect_parm = node.parmTuple('archive_execute')
+    refresh_note = node.parmTuple('refresh_note')
+    
+    marker_node = hou.node(node.path()+"/ALL_ITEMS")
+    filter_node = hou.node(node.path()+"/COMPRESS_OP")
+
+    #execute marker node and get work items and build multiparm
+    try:
+        marker_node.executeGraph(generate_only=True, block=True)
+        work_items = getWorkItems(marker_node)
+        list_file_size = setParms(kwargs, work_items)
+        setEstFileSize(kwargs, list_file_size)
+
+    except:
+        hou.ui.displayMessage("Could Not Refresh Assets")
+        return
+
+    #set to FILTERED
+    try:
+        filter_node.executeGraph(generate_only=True, block=True)
+        collect_parm.disable(False)
+        refresh_parm.disable(True)
+        refresh_note.hide(True)
+    except:
+        hou.ui.displayMessage("Could Not Refresh Assets")
+        return
+
+#Generate Report Only
+def GenerateReport(kwargs):
+    node = kwargs['node']
+
+    jsongen = hou.node(node.path()+"/combine_and_export_json")
+
+    try:
+        jsongen.executeGraph(block=True)
+    except:
+        hou.ui.setStatusMessage("Report Generate Failed", severity=hou.severityType.ImportantMessage)
+        return
+
+#Enable Update Paths
+def UpdatePathsEnable(kwargs):
+    node = kwargs['node']
+
+    node.parmTuple('refresh_paths').disable(False)
+
+
+#Update Paths
+def RefreshPaths(kwargs):
+    node = kwargs['node']
+
+    if node.parm('assetlist').eval()>0:
+        filter = hou.node(node.path()+"/filter_files_ui_fn")
+        dep_mark = hou.node(node.path()+"/remove_self")
+        filter.dirtyAllTasks(1)
+        dep_mark.dirtyAllTasks(1)
+
+        ForceRefresh(kwargs)
+        node.parmTuple('refresh_paths').disable(True)
+
+    else:
+        hou.ui.displayMessage("No Assets to Update")
+        node.parmTuple('refresh_paths').disable(True)
+        return
+        
+'''
+MAIN FUNCTIONS
+
+'''
+
+'''
+Scan scene and populate multiparm block
+
+'''
+def scanScene(kwargs):
+    import os
+    import hou
+    import pdg
+    import subprocess
+
+    node = kwargs['node']
+
+    #check if hip file is saved and execute save
+    checkHipFileSaved(kwargs)
+
+    #dirty PDG Node
+    node.dirtyAllTasks(1)
+
+    #set initial estfilesize
+    node.parm("est_file_size").set("0 B")
+
+    #assign and set all checkpoint nodes
+    marker = hou.node(node.path()+"/ALL_ITEMS")
+    filterenable = hou.node(node.path()+"/enable_filtering")
+    output = hou.node(node.path()+"/COMPRESS_OP")
+
+    #execute marker node and get work items and build multiparm
+    try:
+        marker.executeGraph(generate_only=True, block=True)
+        
+        node.parmTuple('refresh_note').hide(True)
+        node.parmTuple('refresh_note').hide(True)
+        
+        workitems = getWorkItems(marker)
+        filterenable.parm("input").set(1)
+        listfilesize = setParms(kwargs, workitems)
+        setEstFileSize(kwargs, listfilesize)
+        
+        node.parmTuple('archive_execute').disable(False)
+    except:
+        hou.ui.displayMessage("Could Not Gather Assets. Try Again")
+        return
+
+    #set to FILTERED
+    try:
+        output.executeGraph(generate_only=True, block=True)
+    except:
+        hou.ui.displayMessage("Could Not Gather Assets. Check Setup and Try Again.")
+        return
+
+#EXECUTE COPY
+def executeArchive(kwargs):
+    node = kwargs['node']
+
+    #get output node
+
+    out = hou.node(node.path()+"/COMPRESS_OP")
+    try:
+        out.executeGraph(block=False)
+    except:
+        hou.ui.displayMessage("Copy Failed")
+        return

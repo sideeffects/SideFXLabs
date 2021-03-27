@@ -1,0 +1,140 @@
+= Labs Archive Project =
+
+#type: node
+#context: top
+#internal: labs::archive_project::1.0
+#icon: 
+#tags: tech, model
+
+""" Utility TOP to Collect and Archive current HIP file dependencies """
+
+The Archive Project TOP node attempts to collect all, if not, most external file dependencies. It essentially facilitates cherry-picking external dependencies from a list. 
+
+Additionally, it changes target parameters to reflect updated file paths and generates a report of files, scene meta-data and environment information.
+
+:note:
+    Archive Project copies file dependencies into a file/folder structure illustrated as follows.    
+    __archive_destination/project_name/asset_type/parent_node_name/file_name__
+    
+    (Similar to standard Houdini Project Structure)
+    
+@parameters
+    == Archival ==
+    Scan HIP for Dependencies:
+        Scan scene file and collect all dependencies. 
+        
+        This will also engage the __Assets List__ menu below where you can review and edit assets that are associated with the hip file and prepare them for archiving.
+    Archive:
+        Execute the archiving process. 
+        
+        Copies all the assets that's been collected. Review the __Assets__ Menu for information on what assets are being archived.
+        :note:
+            If the Archive button is greyed out, some internal dependencies need to be updated. The __Refresh List__ button will be enabled simultaneously.
+            Press __Refresh List__ update dependencies to re-enable the __Archive__ button.
+    Generate Report:
+        Enable to generate a JSON file with a description of dependencies
+    == Location ==
+    Project Name:
+        Name of parent folder to archive to. Usually this would be the name of the project.
+    Archive Destination:
+        Location on disk to collect files. 
+    ~~~        
+        
+    == Files ==
+    Estimated Archive Size:
+        Approximation of archive size.
+    ==== Assets to Scan ====
+    Alembics:
+        Scan for alembics.
+    USDs:
+        Scan for usd references.
+    Geometry:
+        Scan for Houdini Geometry.
+    Image/Textures:
+        Scan for images and textures.
+    HDAs:
+        Scan for HDAs and OTLs.
+    Misc(Any):
+        Scan for other dependencies that are not standard Houdini files.
+    ==== Additional Scan Configuration ====
+    Ignore Sequences:
+        Scan ignores Dependencies with `'$F*'` sequences. 
+        
+        Useful if you need only single frame references and not full sequences caches.
+    Ignore Extensions:
+        Scan ignores a list of extensions to be included. The list needs to space separated.
+        
+        *_eg. .json .py .exr_*
+    Extension List:
+        Space Separated list of extensions.
+    Ignore `@attrib` calls:
+        Scan ignores `@pdg_attrib` calls. 
+        
+        This is to make sure that no undesirable pdg attributes will muddle the scan. PDG attributes need to be evaluated for it to be considered a candidate for archiving anyway. 
+    === Assets ===
+    Refresh List:
+        Update Asset list and internal scripts.
+        
+        When certain parameters are changed, it requires an update to the list of assets along with some internal dependencies to reflect these new changes. For the sake of optimization (so that every action does not trigger a chain of processes), the update is a manual operation tied to this button.
+        :tip:
+            This button will enable itself automatically, if it detects the need for an internal update. Simultaneously, it will also disable the __Archive__ button, so that it does not engage unless the internal update is performed.
+    Edit List:
+        Enables the option to populate __Asset List__ for review and edit.
+    ==== Asset List ====
+    Parameter:
+        Parameter that houses the path to the asset.
+    File Path:
+        Path to the asset on disk.
+    Type:
+        Type of the asset.
+    Size:
+        Estimated file size of the asset.
+    == Configure Archive ==     
+    === Reporting ===
+    Report File Name:
+        Name of the JSON file to store the Archive Summary
+    Generate Report Only:
+        Collect References and Generate a Report.
+        :note:
+            Like the names suggests, it *ONLY* generates a report. 
+        
+        Skips all the bells and whistles of the Archive Tab and generates report of the file dependencies and other meta-data(from options below).
+        
+    Include Assets:
+        Include report of list of assets.
+    Include HIP Metadata:
+        Include report of current hipfile metadata. 
+        :note:
+            HIP metadata includes Houdini build and version, OS build, date and time of hip file edits etc.
+    Include Environment:
+        Include report of Houdini Environment. Also includes packages.
+    Add Note:
+        Add a user-defined note to the report.
+    === Archive Subpath ===
+    
+    You can change the paths to which collected assets need to be copied to.
+    
+    Update Paths:
+        Internally updates paths to reflect changes from the options below.
+    Alembics:
+        Path for alembics.
+    USDs:
+        Path for usd references.
+    Geometry:
+        Path for Houdini Geometry.
+    Image/Textures:
+        Path for images and textures.
+    HDAs:
+        Path for HDAs and OTLs.
+    Misc(Any):
+        Path for Misc files.
+        
+    === Advanced ===
+    Change Parameter Paths on Archived HIP file:
+        If enabled, it changes parameters to reflect new paths of the dependencies. 
+        
+        The script attempts to make all file paths relative to $HIP. This ensures no missing dependencies, if the files have been archived, when the scene is opened again in another system or file location.
+
+:tip:
+    Archive Project works as a standard TOP node and does not require engaging with the __Scan HIP for Dependencies__ and __Archive__ buttons to function. These methods are however required if the user wants to be able to pick and choose from the __Asset List__ menu and minor utility display information associated with the node's UI.
+    __Right Click > Generate Node__ a vanilla Archive Project TOP to see how that works.
