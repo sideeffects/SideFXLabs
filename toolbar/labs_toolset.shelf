@@ -359,11 +359,15 @@ viewer.setCurrentState("labs::ruler")
 
   <tool name="labs::diff" label="Parmameter Diff" icon="$SIDEFXLABS/help/icons/diff.svg">
     <helpURL>/shelf/labs--diff.txt</helpURL>
-    <script scriptType="python"><![CDATA[import importlib
-import pyper.widgets.diff as module
-importlib.reload(module)
+    <script scriptType="python"><![CDATA[import pyper.widgets.diff as diffmodule
 
-win = module.run()
+try:
+  reload(diffmodule)
+except NameError:
+  from importlib import reload
+  reload(diffmodule)
+
+win = diffmodule.run()
 hou.session.dummy = win]]></script>
   </tool>
 </shelfDocument>
