@@ -1,9 +1,9 @@
-# Dialog script for gamedev::sop_instant_meshes automatically generated
+# Dialog script for labs::instant_meshes automatically generated
 
 {
-    name	gamedev::sop_instant_meshes
+    name	labs::instant_meshes
     script	gamedev::sop_instant_meshes
-    label	"GameDev Instant Meshes"
+    label	"Labs Instant Meshes"
 
     help {
 	""
@@ -14,15 +14,30 @@
     inputlabel	3	"Sub-Network Input #3"
     inputlabel	4	"Sub-Network Input #4"
 
-    group {
+    parm {
+        name    "execute"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "1" }
+        range   { 0 1 }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual Mode"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
         name    "mesh_settings"
         label   "Mesh Options"
 
         parm {
             name    "poly_count"
-            label   "Desired Vertex Count"
+            label   "Desired Polygon Count"
             type    integer
-            default { "1000" }
+            default { "5000" }
             range   { 0 10000 }
         }
         parm {
@@ -32,61 +47,67 @@
             default { "0" }
         }
         parm {
+            name    "deterministic"
+            label   "Deterministic"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
             name    "crease_angle"
             label   "Crease Angle"
             type    float
             default { "30" }
             range   { 0 180 }
         }
-        parm {
-            name    "clear_cache"
-            label   "Clear Cache"
-            type    button
-            default { "1" }
-            range   { 0 1 }
-        }
     }
 
-    group {
-        name    "mesh_settings_1"
-        label   "Settings"
+    groupsimple {
+        name    "folder0"
+        label   "Executable"
 
         parm {
             name    "instant_meshes_exe"
-            label   "Instant Meshes Location"
+            label   "Instant Meshes"
             type    file
             default { "$HOUDINI_USER_PREF_DIR/Instant Meshes.exe" }
             range   { 0 1 }
         }
         parm {
+            name    "website"
+            label   "Download Instant Meshes"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "import webbrowser;webbrowser.open_new(\"https://github.com/wjakob/instant-meshes\")" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "mesh_settings_1"
+        label   "Advanced"
+
+        parm {
             name    "remeshed_tmp_file"
-            label   "Remeshed Tmp File"
+            label   "Instant Meshes Cache"
             type    geometry
-            default { "$TEMP/input_geo.obj" }
+            default { "$HOUDINI_TEMP_DIR/input_geo.obj" }
             range   { 0 1 }
         }
         parm {
             name    "unremeshed_tmp_file"
-            label   "Unremeshed Tmp File"
+            label   "Houdini Cache"
             type    geometry
-            default { "$TEMP/output_geo.obj" }
+            default { "$HOUDINI_TEMP_DIR/output_geo.obj" }
             range   { 0 1 }
         }
         parm {
             name    "hide_instant_meshes_dialog"
-            label   "Hide Instant Meshes Dialog"
+            label   "Hide Dialog"
             type    toggle
             default { "1" }
             range   { 0 1 }
         }
     }
 
-    parm {
-        name    "website"
-        label   "Instant Meshes Website"
-        type    button
-        default { "0" }
-        parmtag { "script_callback" "import webbrowser;webbrowser.open_new(\"https://github.com/wjakob/instant-meshes\")" }
-        parmtag { "script_callback_language" "python" }
-    }
 }

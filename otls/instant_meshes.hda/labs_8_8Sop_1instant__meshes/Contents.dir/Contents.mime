@@ -11,7 +11,7 @@ Sop
 Content-Disposition: attachment; filename="hdaroot.init"
 Content-Type: text/plain
 
-type = gamedev::sop_instant_meshes
+type = labs::instant_meshes
 matchesdef = 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -20,23 +20,25 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 21.5 6.47422
-connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+position -6.10472 -0.464602
+connectornextid 1
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
 inputsNamed3
 {
+0 	testgeometry_pighead1 0 1 "input1"
 }
 inputs
 {
+0 	testgeometry_pighead1 0 1
 }
 stat
 {
   create -1
   modify -1
-  author MAINGEAR@DESKTOP-P98C1VA
+  author prisms@threadripper1
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -75,8 +77,8 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -2.82452 4.19312
-connectornextid 0
+position -1.12604 4.27035
+connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
@@ -84,11 +86,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-4 	in 1 1 "input1"
+0 	cache_input 2 1 "input1"
 }
 inputs
 {
-0 	in 0 1
+0 	cache_input 0 1
 }
 stat
 {
@@ -137,6 +139,8 @@ cachesize	[ 0	locks=0 ]	(	0	)
 prefetch	[ 0	locks=0 ]	(	"off"	)
 f	[ 0	locks=0 ]	(	1	24	)
 index	[ 0	locks=0 ]	(	[ index	0 ] 	)
+wrap	[ 0	locks=0 ]	(	"cycle"	)
+retry	[ 0	locks=0 ]	(	0	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -163,7 +167,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.12604 6.47728
+position -1.12604 6.45305
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -224,7 +228,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.75303 1.8715
+position -1.12604 3.27035
 connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -233,11 +237,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	cache_input 2 1 "input1"
+0 	file_node 1 1 "input1"
 }
 inputs
 {
-0 	cache_input 0 1
+0 	file_node 0 1
 }
 stat
 {
@@ -263,28 +267,44 @@ node = hou.pwd().parent()
 selfnode = hou.pwd()
 geo = selfnode.geometry()
 
-instant_meshes = str(node.parm(\"instant_meshes_exe\").eval())
-in_path = str(node.parm(\"unremeshed_tmp_file\").eval())
-out_path = str(node.parm(\"remeshed_tmp_file\").eval())
-numPolys = str(node.parm(\"poly_count\").eval() / 4)
+instant_meshes = node.parm(\"instant_meshes_exe\").evalAsString()
+in_path = node.parm(\"unremeshed_tmp_file\").evalAsString()
+out_path = node.parm(\"remeshed_tmp_file\").evalAsString()
 hide_instant_meshes_dialog = node.parm(\"hide_instant_meshes_dialog\").eval()
+
+
+numPolys = str(int(node.parm(\"poly_count\").evalAsInt()/4))
 quad_dominant = node.parm(\"quad_dominant\").eval()
-if quad_dominant: 
-    numPolys = str(node.parm(\"poly_count\").eval() )
+deterministic = node.parm(\"deterministic\").evalAsInt()
 crease_angle = str(node.parm(\"crease_angle\").eval())
 
+if not os.path.isfile(instant_meshes):
+    raise hou.NodeError(\"No instantmeshes executable has been found at {}. Please check if it exists or change the path this tool should look for the executable.\".format(instant_meshes))
+    
 # Build Instant Meshes Commandline
 cmd = [instant_meshes]
+
+if deterministic:
+    cmd.append(\"-d\")
+
 if quad_dominant:
     cmd.append(\"-D\")
-cmd.append(\"-f\")
-cmd.append(numPolys)
+
+if quad_dominant: 
+    numPolys = str(node.parm(\"poly_count\").evalAsInt())
+    cmd.append(\"-f\")
+    cmd.append(numPolys)
+else:
+    cmd.append(\"-v\")
+    cmd.append(numPolys)
+
 cmd.append(\"-c\")
 cmd.append(crease_angle)
 
 cmd.append(\"-o\")
 cmd.append(out_path)    
 cmd.append(in_path)
+
 
 # disable IM dialog box 
 si = None
@@ -297,11 +317,7 @@ if os.name == 'nt':
 subprocess.call(cmd, startupinfo=si)
 
 # Reload the remeshed geo
-geo.loadFromFile(out_path)
-
-
-
-"	)
+geo.loadFromFile(out_path)"	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -328,7 +344,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.8302 2.7068
+position -1.12604 5.36035
 connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -337,13 +353,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-4 	file_node 1 1 "input1"
-5 	in 1 1 "input2"
+4 	in 1 1 "input1"
 }
 inputs
 {
-0 	file_node 0 1
-1 	in 0 1
+0 	in 0 1
 }
 stat
 {
@@ -386,7 +400,14 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = ch(\"../clear_cache\") }
+      segment { length = 0 expr = ch(\"../execute\") }
+    }
+    channel clearonchange {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = 1-ch(\"../manual_mode\") }
     }
   }
 
@@ -403,11 +424,11 @@ index	[ 8	locks=0 ]	(	[ index	1 ] 	)
 param	[ 0	locks=0 ]	(	i	)
 indextime	[ 0	locks=0 ]	(	"on"	)
 loadmethod	[ 0	locks=0 ]	(	"needed"	)
-clearonchange	[ 0	locks=0 ]	(	"on"	)
+clearonchange	[ 8	locks=0 ]	(	[ clearonchange	1 ] 	)
 cachepoints	[ 0	locks=0 ]	(	"off"	)
 blendpos	[ 0	locks=0 ]	(	"off"	)
 reload	[ 0	locks=0 ]	(	0	)
-clear	[ 8	locks=0 ]	(	[ clear	1 ] 	)
+clear	[ 8	locks=0 ]	(	[ clear	0 ] 	)
 clearframe	[ 0	locks=0 ]	(	0	)
 }
 
@@ -435,8 +456,8 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.502209 -0.374145
-connectornextid 3
+position -1.12604 2.27035
+connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
@@ -445,12 +466,10 @@ outputsNamed3
 inputsNamed3
 {
 0 	python1 4 1 "input1"
-1 	merge1 0 1 "input2"
 }
 inputs
 {
 0 	python1 0 1
-1 	merge1 0 1
 }
 stat
 {
@@ -493,7 +512,13 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = ch(\"../clear_cache\") }
+      segment { length = 0 expr = ch(\"../execute\") }
+    }
+    channel clearonchange {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../cache_input/clearonchange\") }
     }
   }
 
@@ -510,77 +535,16 @@ index	[ 8	locks=0 ]	(	[ index	1 ] 	)
 param	[ 0	locks=0 ]	(	i	)
 indextime	[ 0	locks=0 ]	(	"on"	)
 loadmethod	[ 0	locks=0 ]	(	"needed"	)
-clearonchange	[ 0	locks=0 ]	(	"on"	)
+clearonchange	[ 8	locks=0 ]	(	[ clearonchange	1 ] 	)
 cachepoints	[ 0	locks=0 ]	(	"off"	)
 blendpos	[ 0	locks=0 ]	(	"off"	)
 reload	[ 0	locks=0 ]	(	0	)
-clear	[ 0	locks=0 ]	(	[ clear	1 ] 	)
+clear	[ 0	locks=0 ]	(	[ clear	0 ] 	)
 clearframe	[ 0	locks=0 ]	(	0	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/cache_output.userdata"
-Content-Type: text/plain
-
-{
-	"___Version___":{
-		"type":"string",
-		"value":"___EXTERNAL___"
-	}
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/merge1.init"
-Content-Type: text/plain
-
-type = merge
-matchesdef = 0
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/merge1.def"
-Content-Type: text/plain
-
-sopflags sopflags = 
-comment ""
-position 0.285981 0.843861
-connectornextid 3
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
-outputsNamed3
-{
-0 "output1"
-}
-inputsNamed3
-{
-1 	in 1 1 "input1"
-2 	python1 4 1 "input2"
-}
-inputs
-{
-0 	in 0 1
-1 	python1 0 1
-}
-stat
-{
-  create -1
-  modify -1
-  author Luiz@Luiz-PC
-  access 0777
-}
-color UT_Color RGB 0.8 0.8 0.8 
-delscript ""
-exprlanguage hscript
-end
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/merge1.parm"
-Content-Type: text/plain
-
-{
-version 0.8
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/merge1.userdata"
 Content-Type: text/plain
 
 {
@@ -603,7 +567,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.502209 -1.77916
+position -1.12604 1.27035
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -637,6 +601,7 @@ Content-Type: text/plain
 {
 version 0.8
 group	[ 0	locks=0 ]	(	""	)
+grouptype	[ 0	locks=0 ]	(	"guess"	)
 prenml	[ 0	locks=0 ]	(	"off"	)
 unit	[ 0	locks=0 ]	(	"off"	)
 unique	[ 0	locks=0 ]	(	"off"	)
@@ -678,7 +643,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.502209 -4.37415
+position -1.12604 0.270349
 connectornextid 2
 flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -729,13 +694,12 @@ Content-Type: text/plain
 Content-Disposition: attachment; filename="hdaroot.order"
 Content-Type: text/plain
 
-8
+7
 file_node
 in
 python1
 cache_input
 cache_output
-merge1
 facet1
 output1
 
