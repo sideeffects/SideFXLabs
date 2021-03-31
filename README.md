@@ -1,7 +1,7 @@
 ![SideFXLabs logo](https://github.com/sideeffects/SideFXLabs/blob/Development/help/icons/sidefxlabs_full.png)
 # SideFX Labs - Houdini 18.5
 
-SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Paul Ambrosiussen, and receives a lot of contributions from the always-active Houdini community. The toolset originates from the GameDevelopmentToolset, which got a re-launch in the Houdini 18.0 release. To get automatic bi-weekly updates, subscribe to the following thread: [Update Thread](https://www.sidefx.com/forum/topic/70854/)
+SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Paul Ambrosiussen and Mai Ao. It also receives a lot of contributions from the always-active Houdini community. The toolset originates from the GameDevelopmentToolset, which got a re-launch in the Houdini 18.0 release. To get automatic bi-weekly updates, subscribe to the following thread: [Update Thread](https://www.sidefx.com/forum/topic/70854/)
 
 # Installation
 
@@ -17,40 +17,46 @@ The updater provides several options of installation depending on your needs / l
 3. REQUIRES INTERNET ACCESS. Download a development build from SideFX.com. A development build gets released every 24 hours. These builds will contain bugfixes that have been implemented in the day prior. To get access to these type of builds, untick the "Production Builds Only" checkbox in the updater. 
 
 ## Method 2: Commandline
-Houdini now also allows you to install SideFXLabs through python in case you wish to do so. This is especially useful for deploying the toolset in large environments. The updating can be done through the `sidefxlabs` module.
+Houdini now also allows you to install SideFXLabs through python in case you wish to do so. This is especially useful for deploying the toolset in large environments. The updating can be done through the `sidefxlabs` module. Launch Houdini, on the menu bar, choose Windows > Python Shell. Then you can type in the following commands:
 
 ```python
 import sidefxlabs
 
-updater = sidefxlabs.SideFXLabsUpdater() # This is the updater object
+updater = sidefxlabs.SideFXLabsUpdater() # This is the updater object.
 
-updater.production_releases # List containing the available production releases
-updater.development_releases # List containing the available development releases
+updater.production_releases # Lists containing the available production releases
+updater.development_releases # Lists containing the available development releases
 
-updater.install_latest_production_toolset() # Install the latest production build from sidefx.com.
-updater.install_latest_development_toolset() # Install the latest development build from sidefx.com.
-updater.install_embedded_toolset() # Install the embedded version of the toolset. No internet required
+updater.install_latest_production_toolset() # Installs the latest production build from sidefx.com
+updater.install_latest_development_toolset() # Installs the latest development build from sidefx.com
+updater.install_embedded_toolset() # Installs the embedded version of the toolset. No internet required
 
 # Tip: Check the contents of updater.production_releases or updater.development_releases
 # to see which most recent versions are available.
-updater.update_toolset_version(VERSION_NUMBER) # Install a specific version of the toolset. 
+updater.update_toolset_version(VERSION_NUMBER) # Installs a specific version of the toolset, e.g., '18.5.533'
 
 updater.uninstall_toolset() # Uninstalls the toolset from Houdini. Did we do something wrong? :(
 ```
 
 In addition to the above examples, you can also run a headless session of Hython using simple script arguments.
-You can for example do this in a command prompts like this:
+You can for example do this in Command Prompt:
 
 ```
-set HFS=C:/Program Files/Side Effects Software/Houdini 18.0.493
-%HFS%/bin/hython2.7.exe %HFS%/houdini/python2.7libs/sidefxlabs.py ARGUMENTS
+set HFS=C:/Program Files/Side Effects Software/Houdini 18.5.532
+"%HFS%/bin/hython2.7.exe" "%HFS%/houdini/python2.7libs/sidefxlabs.py" -p
 
 The available arguments are:
--p/--latestproduction 
--d/--latestdevelopment 
--e/--embedded 
+-p/--installs latest production release 
+-d/--installs latest development release
+-e/--installs embedded version
 -v/--version NUM 
--u/--uninstall
+-u/--uninstalls
+```
+
+You can also search for and run Houdini's own Command Line Tools 18.5.533 (or whatever Houdini version you have; this is a separate program on your desktop). In Command Line Tools, you do not have to set the variable HFS since it will already be set for you. You may also skip the double quotes in the second line:
+
+```
+%HFS%/bin/hython2.7.exe %HFS%/houdini/python2.7libs/sidefxlabs.py -p
 ```
 
 ## Method 3: Manually Download from Github
