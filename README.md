@@ -7,16 +7,16 @@ SideFX Labs is a completely free, open-source toolset geared towards assisting H
 
 You can install the SideFX Labs Toolset directly from inside Houdini, (Requires Houdini 18.0 or newer) or install it manually using the packages system.
 
-## Method 1 (Recommended): Built in Updater
+## Method 1 (Recommended): Built-in Updater
 
-Use the built in Updater in Houdini 18.0 or newer to install a version of the toolset. The updater can be found in the SideFX Labs shelf.
+Use the built-in Updater in Houdini 18.0 or newer to install a version of the toolset. The updater can be found in the SideFX Labs shelf.
 
 The updater provides several options of installation depending on your needs / limitations.
 1. If you do not have internet access, the updater allows you to install a local version of the toolset. This local version is tied to which version of Houdini you are running the updater from. (Ex Houdini 18.0.274 would install 274 of the toolset) To obtain a newer version, you would need a more recent version of Houdini.
 2. REQUIRES INTERNET ACCESS. Download a production build from Github. A production build is released every four weeks. This type of build will not contain the cutting edge additions to the toolset, but will have had more production testing prior to release than a development build. (These builds can be found in the releases section of this repository and are marked as "Release")
 3. REQUIRES INTERNET ACCESS. Download a development build from SideFX.com. A development build gets released every 24 hours. These builds will contain bugfixes that have been implemented in the day prior. To get access to these type of builds, untick the "Production Builds Only" checkbox in the updater. 
 
-## Method 2: Commandline
+## Method 2: Command Line
 Houdini now also allows you to install SideFXLabs through python in case you wish to do so. This is especially useful for deploying the toolset in large environments. The updating can be done through the `sidefxlabs` module. Launch Houdini, on the menu bar, choose Windows > Python Shell. Then you can type in the following commands:
 
 ```python
@@ -27,13 +27,13 @@ updater = sidefxlabs.SideFXLabsUpdater() # This is the updater object.
 updater.production_releases # Lists containing the available production releases
 updater.development_releases # Lists containing the available development releases
 
-updater.install_latest_production_toolset() # Installs the latest production build from sidefx.com
-updater.install_latest_development_toolset() # Installs the latest development build from sidefx.com
-updater.install_embedded_toolset() # Installs the embedded version of the toolset. No internet required
+updater.install_latest_production_toolset() # Installs latest production build from sidefx.com
+updater.install_latest_development_toolset() # Installs latest development build from sidefx.com
+updater.install_embedded_toolset() # Installs embedded version of the toolset. No internet required.
 
 # Tip: Check the contents of updater.production_releases or updater.development_releases
 # to see which most recent versions are available.
-updater.update_toolset_version(VERSION_NUMBER) # Installs a specific version of the toolset, e.g., '18.5.533'
+updater.update_toolset_version(VERSION_NUMBER) # Installs a specific version, e.g., '18.5.533'
 
 updater.uninstall_toolset() # Uninstalls the toolset from Houdini. Did we do something wrong? :(
 ```
