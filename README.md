@@ -53,7 +53,7 @@ The available arguments are:
 -u/--uninstalls
 ```
 
-You can also search for and run Houdini's own Command Line Tools 18.5.533 (or whatever Houdini version you have; this is a separate program on your desktop). In Command Line Tools, you do not have to set the variable HFS since it will already be set for you. You may also skip the double quotes in the second line:
+You can also search for and run Houdini's own Command Line Tools 18.5.533 (or whatever Houdini version you have; this is a separate program on your system that comes with Houdini). In Command Line Tools, you do not have to set the variable HFS since it will already be set for you. You may also skip the double quotes in the second line:
 
 ```
 %HFS%/bin/hython2.7.exe %HFS%/houdini/python2.7libs/sidefxlabs.py -p
