@@ -90,7 +90,7 @@ class SampleColor(QWidget):
         
         for s, x, y in self.samplepositions:
             _color = QColor(self._screenshots[s].toImage().pixel(x, y))
-            values.append((_color.red()/255.0,_color.green()/255.0,_color.blue()/255.0))
+            values.append((pow(_color.red()/255.0,2.2),pow(_color.green()/255.0,2.2),pow(_color.blue()/255.0,2.2)))
 
         self.colorparms[0].set(hou.Ramp(bases, keys, values))
 
