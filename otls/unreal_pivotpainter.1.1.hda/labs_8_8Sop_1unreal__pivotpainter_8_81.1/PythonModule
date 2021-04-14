@@ -1,0 +1,14 @@
+def ExportAsset(kwargs):
+    
+    node = kwargs['node']
+    
+    FBXExporter = node.node("FBX_Exporter1")
+    FBXExporter.render()
+    
+    if node.parm("version").evalAsInt() == 1:
+    
+        with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
+            _topnode = node.node("topnet1/output0")
+            _topnode.dirtyAllTasks(False)
+            _topnode.executeGraph(False, True, False, False)
+ 
