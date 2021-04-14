@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This file defines the menu items in the Houdini Network View pane.
+    Files named the same (ie. NetworkViewMenu.xml) can exist in
+    $HOME/houdiniX.Y/ directory and will supplement the original definitions
+    found in $HFS/houdini/ (aka $HH).
+    The format in this file is similar to the format in $HH/MainMenuMaster.
+    See the comments in that file for more advanced customization abilities.
+    
+    Note that the id's correspond to their hotkeys with the h. prefix. Please
+    use ids that begin with playbar. when adding new items.
+    For scriptItem elements, a 'kwargs' python dictionary is provided with the
+    following values:
+	'parms'	    :	A list of hou.Parm objects which the script was invoked
+			upon.
+	'toolname'  :	The menu item's hotkey id 
+	'altclick'  :	True if the Alt key was also pressed, False otherwise
+	'ctrlclick'  :	True if the Ctrl key was also pressed, False otherwise
+	'shiftclick'  :	True if the Shift key was also pressed, False otherwise
+	'cmdclick'  :	True if the Option key was also pressed, False
+			otherwise. Note that this can only be true on OSX.
+-->
+
+<mainMenu>
+    <menuBar>
+
+
+    <subMenu id = "labs_network_view_menu">
+        <modifyItem><insertBefore>help_menu</insertBefore></modifyItem>
+        <label>Labs</label>
+
+            <scriptItem id="labs_paint">
+                <label>Paint</label>
+                <scriptCode><![CDATA[
+import networkeditordrawing
+
+try:
+  reload(networkeditordrawing)
+except NameError:
+  from importlib import reload
+  reload(networkeditordrawing)
+
+
+networkeditordrawing.paint(kwargs['editor'])
+                ]]></scriptCode>
+            </scriptItem>
+
+        </subMenu>
+
+    </menuBar>
+</mainMenu>
