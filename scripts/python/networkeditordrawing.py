@@ -15,15 +15,11 @@ class NetworkEditorPainter(QWidget):
         self.colorpickeractive = False
 
         self.brushcolor = QColor('#FFCC4D')
-        self.brushsize = 5
+        self.brushsize = 8
 
         self.startdragpos = -1
-
         self.configureScene()
-        self.initializeBrush()
-        self.updateBrushColor(self.brushcolor)
-        self.updateBrushSize(self.brushsize)
-
+        self.updateBrush()
         
     def configureScene(self): 
 
@@ -52,7 +48,6 @@ class NetworkEditorPainter(QWidget):
         self.outputdrawingcanvas.fill(Qt.transparent)
 
         self.graphicsscene = QGraphicsScene(self)
-
         self.screens = QApplication.screens()
 
         self.screendimensionrects = [x.geometry() for x in self.screens]
@@ -124,7 +119,8 @@ class NetworkEditorPainter(QWidget):
             self.closeWidget()
 
     def wheelEvent(self,event):
-        self.updateBrushSize(max(1, self.brushsize + event.delta()/120))
+        self.brushsize = max(1, self.brushsize + event.delta()/120)
+        self.updateBrush()
         event.setAccepted(True)
 
     def paintEvent(self, QPaintEvent):
@@ -143,6 +139,7 @@ class NetworkEditorPainter(QWidget):
                     painter.setRenderHint(QPainter.HighQualityAntialiasing, True)
                     pen.setWidth(self.brushsize)
                     pen.setColor(self.brushcolor)
+                    pen.setCapStyle(Qt.RoundCap)
                     painter.setPen(pen)
                     painter.drawLine(self.oldMouseX[1], self.oldMouseY[1], self.mouseX[1], self.mouseY[1])
                     painter.end()
@@ -153,40 +150,30 @@ class NetworkEditorPainter(QWidget):
         self.oldMouseY = self.mouseY
 
     def pickScreenColorForBrush(self, screenid):
-        self.updateBrushColor(QColor(self.screenshots[screenid].toImage().pixel(self.mouseX[2], self.mouseY[2])))
+        self.brushcolor = QColor(self.screenshots[screenid].toImage().pixel(self.mouseX[2], self.mouseY[2]))
+        self.updateBrush()
 
     def resetMouse(self):
         self.mouseX, self.mouseY, self.oldMouseX, self.oldMouseY = [[-1,-1, 0] for x in range(4)]
         
-
     def storeScreenColors(self):
         self.graphicsview.setCursor(QCursor(Qt.PointingHandCursor))
         self.screenshots = [x.grabWindow(0) for x in QApplication.screens()]
         self.colorpickeractive = True
 
-    def updateBrushColor(self, color):
-        self.brushcolor = color
-        newbrushpix = QCursor(self.cursor).pixmap().copy()
-        newbrushpix.fill(color)
-        self.cursor = QCursor(newbrushpix)
-        self.graphicsview.setCursor(self.cursor)
-
-    def updateBrushSize(self, size):
-        self.brushsize = size
-        newbrushpix = QCursor(self.cursor).pixmap().copy()
-        newbrushpix = newbrushpix.scaled(QSize(size,size), Qt.IgnoreAspectRatio, Qt.FastTransformation)
-        self.cursor = QCursor(newbrushpix)
-        self.graphicsview.setCursor(self.cursor)
-
-    def initializeBrush(self):
+    def updateBrush(self):
         newbrushpix = QPixmap(self.brushsize, self.brushsize)
-        newbrushpix.fill(self.brushcolor)
+        newbrushpix.fill(Qt.transparent)
+        painter = QPainter(newbrushpix) 
+        painter.setBrush(self.brushcolor) 
+        painter.drawEllipse(QRect(0,0, self.brushsize, self.brushsize))
+        painter.end()
         self.cursor = QCursor(newbrushpix)
+        self.graphicsview.setCursor(self.cursor)
 
     def closeWidget(self):
         self.graphicsview.close()
         self.close()
-
 
     def exportPaintingToEditor(self):
 
