@@ -1,0 +1,81 @@
+= Labs Unreal Pivot Painter =
+
+#type: node
+#context: sop
+#internal: labs::unreal_pivotpainter
+#icon: unreal_pivotpainter
+#tags: sidefxlabs,  model, gamedev
+
+""" Pivot Painter stores model pivot and rotation information for geometry used in a shader. """
+
+Pivot Painter is a sop that stores model pivot and rotation information in the model's vertex data and additional UV channels for PP1, and in textures for PP2. That information can then be used inside of Unreal's shader system to create interactive effects.
+This tool is specifically built to work with the material functions provided by Epic Games in Unreal Engine. It is however possible to use this encoded information in other engines such as Unity, since it uses common attributes and textures.
+[https://docs.unrealengine.com/en-US/Engine/Content/Tools/PivotPainter/index.html]
+
+TIP:
+    Important pivot attributes are: N and name for PP1. N and hierarchy for PP2.
+
+    Important geometry attributes are: uv and name for PP1. uv and hierarchy for PP2. 
+
+    Important optional attributes used for PP2 when using the "Selection Order" is the `selectionIndex` attribute. This integer attribute starts at 0. 
+
+    It is now also possible to provide an `up` attribute on the pivot points, which will be used in the tangent calculations instead of trying to generate them. If you have an up vector already, it is highly recommended you provide it.
+
+TIP:
+    An important update made to this tool requires you to no longer scale up the input geometry and pivots 100x before the tool. The tool does this for you now.
+
+@parameters
+    Export:
+        Pressing this button will compute all data and export the required files to disk.
+    Mode:
+        Allows for specifying what method should be used to encode pivot information for the given geometry and pivots. See the Epic Unreal Engine documentation for specifics and difference.
+    Asset Name:
+        The name used for the asset that will be exported to disk. This name will be used for the FBX and optional textures.
+    Output Directory:
+        The directory in which the generated assets will be exported.
+    Restore Input Scale:
+        This toggle controls if the output of this sop should restore the geometry to Houdini units. This does NOT affect the exporting process of the node, and is only really useful if you want to do further processing on the geo before exporting.
+    Data Packing Method:
+        This menu determines if the tool should encode PivotPainter information in the default way, or based on a custom configuration.
+    Layout Lightmap UVs:
+        This forces the tool to automatically generate Lightmap UVs based on the primary UVs.
+    UV Padding:
+        This controls the padding applied to the Lightmap UVs while they are laid out.
+
+    Range: 
+        Custom range used for encoding extents channels with. Previously this was hardcoded to 2048 (like in 3dsmax) Lowering this number will give you far superior precision, and this change is coming to the max plugin soon too.
+    == Texture # ==
+    RGB:
+        Controls the type of information that will be encoded in these channels. The value you choose highly depends on your shader in engine.
+    A:
+        Controls the type of information that will be encoded in this channel. The value you choose highly depends on your shader in engine.
+
+    == Per Object ==
+    Custom Attribute for Random Value:
+	Turning this on will use the specified attribute for the random data instead of generating it.
+    Custom Value Attribute:
+        The float attribute name used to encode a value in the random slot.
+    Pivot Position:
+        The attribute components used to encode Pivot Position.
+    Forward Axis:
+        The attribute components used to encode the Forward Axis.
+    Random Value:
+        The attribute component used to encode a random value.
+    Motion Mask:
+        The attribute component used to encode the Motion Mask.
+    == Hierarchical ==
+    Leaf Pivot Position:
+        The attribute components used to encode the Leaf Pivot Position.
+    Branch Pivot Position:
+        The attribute components used to encode the Branch Pivot Position.
+    Branch Angle:
+        The attribute components used to encode the Branch Angle.
+    Use Mask:
+        This toggle enables/disables the use of vertex colors for the motion mask of the object.
+    Input Data:
+        This menu allows you to control if you want the tool to try and generate pivot positions, or if you want to use your own.
+    Branches Group:
+        The primitive group containing the branches geometry.
+    Leaves Group:
+        The primitive group containing the leaves geometry.
+    
