@@ -1,13 +1,21 @@
-from PySide2 import QtWidgets
 import os, hou
 
 
-def on_button_click():
-    fileNames = QtWidgets.QFileDialog.getOpenFileNames(None,
-        ("Open Geometry"), hou.getenv("HIP"), ("Geometry Files (*.obj *.fbx *.bmp *.bgeo *.bgeo.sc)"))
+def add_files(node):
+
+    files = hou.ui.selectFile(start_directory="$HIP", title="Select one or more files to open", collapse_sequences=False, file_type=hou.fileType.Geometry, pattern=None, default_value=None, multiple_select=True, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
+    files = files.split(";")
+
+    if len(files) == 0:
+        return 
         
-    for filename in fileNames[0]: 
-        cur_count = hou.pwd().parm("filecount").eval()
-        hou.pwd().parm("filecount").set(cur_count+1)
-        hou.pwd().parm("file_" + str(cur_count+1)).set(filename)
-        
+    parm = node.parm("filecount")
+    length = parm.evalAsInt()
+
+    for i in range(length):
+        parm.removeMultiParmInstance(0)
+    
+    for i, filename in enumerate(files):
+        parm.insertMultiParmInstance(i)
+        instance = parm.multiParmInstances()[i]
+        instance.set(filename.strip())
