@@ -119,8 +119,9 @@ class NetworkEditorPainter(QWidget):
             self.closeWidget()
 
     def wheelEvent(self,event):
-        self.brushsize = max(1, self.brushsize + event.delta()/120)
-        self.updateBrush()
+        if not self.colorpickeractive:
+            self.brushsize = max(1, self.brushsize + event.delta()/120)
+            self.updateBrush()
         event.setAccepted(True)
 
     def paintEvent(self, QPaintEvent):
