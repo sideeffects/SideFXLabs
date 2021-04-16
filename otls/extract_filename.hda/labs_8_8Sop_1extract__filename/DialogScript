@@ -1,9 +1,9 @@
-# Dialog script for gamedev::sop_extract_filename automatically generated
+# Dialog script for labs::extract_filename automatically generated
 
 {
-    name	gamedev::sop_extract_filename
+    name	labs::extract_filename
     script	gamedev::sop_extract_filename
-    label	"GameDev Extract Filename"
+    label	"Labs Extract Filename"
 
     help {
 	""
@@ -14,22 +14,54 @@
     inputlabel	3	"Sub-Network Input #3"
     inputlabel	4	"Sub-Network Input #4"
 
-    parm {
-        name    "fullpath_attribute"
-        label   "Full Path Attribute"
-        type    string
-        default { "fullpath" }
+    groupsimple {
+        name    "folder1"
+        label   "Input"
+
+        parm {
+            name    "inputmode"
+            label   "Input"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Above File SOP"
+                "1" "Custom File SOP"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "customfilesop"
+            label   "File SOP"
+            type    oppath
+            default { "" }
+            disablewhen "{ inputmode == 0 }"
+            parmtag { "opfilter" "!!SOP!!" }
+            parmtag { "script_callback_language" "python" }
+        }
     }
-    parm {
-        name    "filepath_attribute"
-        label   "File Path Attribute"
-        type    string
-        default { "filepath" }
+
+    groupsimple {
+        name    "folder0"
+        label   "Output"
+
+        parm {
+            name    "fullpath_attribute"
+            label   "Full Path Attribute"
+            type    string
+            default { "fullpath" }
+        }
+        parm {
+            name    "filepath_attribute"
+            label   "File Path Attribute"
+            type    string
+            default { "filepath" }
+        }
+        parm {
+            name    "filename_attribute"
+            label   "Filename Attribute"
+            type    string
+            default { "filename" }
+        }
     }
-    parm {
-        name    "filename_attribute"
-        label   "Filename Attribute"
-        type    string
-        default { "filename" }
-    }
+
 }
