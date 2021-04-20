@@ -182,17 +182,18 @@ class MainWidget(QtWidgets.QWidget):
 
     def syncSelection(self, selected, deselected, id):
         """Synchronize the spreadsheet selections"""
-        spreadsheets = self._spreadsheets
-        if id == 1:
-            # reverse the list so the srcSpreadsheet contains the correct spreadsheet
-            spreadsheets.reverse()
+
         # assign spreadsheets to src and dst
-        srcSpreadsheet = spreadsheets[0]
-        dstSpreadsheet = spreadsheets[1]
+        # use modulo to cycle through the spreadsheets
+        spreadsheets = self._spreadsheets
+        srcSpreadsheet = spreadsheets[id]
+        dstSpreadsheet = spreadsheets[(id+1)%2]
 
         # get selection
-        selection = srcSpreadsheet.uiTableView.selectionModel().selectedRows()
-        rows = [index.model().mapToSource(index).row() for index in selection]
+        indexes = srcSpreadsheet.uiTableView.selectionModel().selectedIndexes()
+        rows = [index.row() for index in indexes]
+        # note: do not use index.model().mapToSource(index).row() as it will give the original index
+        # and will not take into account when rows are hidden by the proxymodel 
         
         # initialize and build item selection 
         itemSelection = QtCore.QItemSelection()
