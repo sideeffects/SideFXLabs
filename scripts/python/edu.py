@@ -3,6 +3,7 @@
 # Like color coded sticky notes...
 # 
 
+import os
 import hou
 
 # define colors
@@ -39,3 +40,25 @@ def createNotes(stickytype="info"):
     sticky.setColor(hou.Color(normalize_color(COLOR_BG[stickytype])))
     sticky.setTextColor(hou.Color(normalize_color(COLOR_TXT[stickytype])))
     sticky.setText(("#%s" % stickytype))
+
+# This code attaches background images to nodes 
+def numberItems():
+    # initialize variables
+    index = 0
+    images = []
+
+    # get the selected nodes
+    nodes = hou.selectedNodes()
+    # get the network editor
+    editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    for node in nodes:
+        image = hou.NetworkImage()
+        # must be full path
+        fullpath = os.path.expandvars('${SIDEFXLABS}/misc/stickers/Edu/SIDEFX_CUSTOM_EMBLEMS_%02d.png' % index)
+        image.setPath(fullpath)
+        image.setRelativeToPath(node.path())
+        image.setRect(hou.BoundingRect(-0.1, 0.1, -1.1, 1.1))
+        index += 1
+        images.append(image)
+
+    editor.setBackgroundImages(images)
