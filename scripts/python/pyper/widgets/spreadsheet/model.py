@@ -222,7 +222,7 @@ class Model(QtCore.QAbstractTableModel):
             parmlist.append(parm)
 
         # and sort it by the first key of each item
-        # parmlist.sort(key=lambda x: str(x[0]))
+        parmlist.sort(key=lambda x: str(x[0]))
 
         return parmlist
 
