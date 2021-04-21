@@ -1,0 +1,165 @@
+# Dialog script for labs::flowmap_distort::1.0 automatically generated
+
+{
+    name	labs::flowmap_distort::1.0
+    script	flowmap_distort
+    label	"Labs Flowmap Distort"
+
+    code {
+	"// ----------------------------"
+	"// MY LOGIC"
+	"// ----------------------------"
+	"float timespeed = $time * 0.01 * $speed;"
+	"vector2 tilingUV = set($uv.x * $uvtiling.x, $uv.y * $uvtiling.y); "
+	"vector2 flowmap;"
+	""
+	"if ($mode == 0) {"
+	"    "
+	"    flowmap = set($flowmapColor.r, $flowmapColor.g);"
+	"    flowmap = flowmap * 2.0 - 1.0;"
+	""
+	"} else if ($mode == 1) {"
+	"    vector tex = colormap($flowmapTexture, $uv);"
+	"    flowmap = set(tex.r, tex.g);"
+	"    flowmap = flowmap * 2.0 - 1.0;"
+	"}"
+	""
+	"flowmap *= -1.0;"
+	"flowmap *= $distortion;"
+	""
+	"vector2 uvtex1 = tilingUV + (flowmap * frac(timespeed)) ;"
+	"vector2 uvtex2 = tilingUV + (flowmap * frac((timespeed-0.5)));"
+	""
+	"vector tex1 = colormap($diffuseTexture, uvtex1);"
+	"vector tex2 = colormap($diffuseTexture, uvtex2);"
+	""
+	"float fractime = frac(timespeed);"
+	"float lerpval  = lerp(frac(fractime) * 2.0, (1.0 - frac(fractime)) * 2.0, floor(frac(fractime) * 2.0));"
+	""
+	"$result = lerp(tex2, tex1, lerpval);"
+    }
+
+    input	string	diffuseTexture	"Diffuse Texture"
+    input	vector	uvtiling	"Diffuse Tiling"
+    input	int	mode	"Flowmap Mode"
+    input	string	flowmapTexture	"Flowmap Texture"
+    input	float	time	Time
+    input	float	speed	Speed
+    input	float	distortion	Distortion
+    input	vector	uv	Label
+    input	vector	flowmapColor	Color
+    output	vector	result	Color
+    inputflags	diffuseTexture	0
+    inputflags	uvtiling	0
+    inputflags	mode	0
+    inputflags	flowmapTexture	0
+    inputflags	time	0
+    inputflags	speed	0
+    inputflags	distortion	0
+    inputflags	uv	0
+    inputflags	flowmapColor	0
+    signature	"Default Inputs"	default	{ string vector int string float float float vector vector vector }
+
+    outputoverrides	default
+    {
+	___begin	auto
+			(0,0,0)
+    }
+
+    help {
+	""
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "In"
+        invisibletab
+
+        parm {
+            name    "uv"
+            label   "Label"
+            type    vector
+            invisible
+            size    3
+            default { "0" "0" "0" }
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "flowmapColor"
+            label   "vertcolor"
+            type    vector
+            invisible
+            size    3
+            default { "0" "0" "0" }
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Flowmap"
+
+        parm {
+            name    "diffuseTexture"
+            label   "Diffuse Texture"
+            type    image
+            default { "$SIDEFXLABS/misc/flowmap/flowmap_visualize.jpg" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uvtiling"
+            label   "Diffuse Tiling"
+            type    vector2
+            size    2
+            default { "1" "1" }
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "speed"
+            label   "Speed"
+            type    float
+            default { "5" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "distortion"
+            label   "Distortion"
+            type    float
+            default { "0.2" }
+            range   { 0 2 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mode"
+            label   "Flowmap Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Color"
+                "1" "Texture"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "flowmapTexture"
+            label   "Flowmap Texture"
+            type    image
+            default { "" }
+            disablewhen "{ mode == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "time"
+            label   "Time"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
