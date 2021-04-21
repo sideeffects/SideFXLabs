@@ -1,0 +1,337 @@
+# Dialog script for labs::random_selection::1.0 automatically generated
+
+{
+    name	labs::random_selection::1.0
+    script	random_selection
+    label	"Labs Random Selection"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	2	"Selected Only"
+    outputlabel	3	"Non-selected Only"
+
+    parm {
+        name    "class"
+        label   "Elements"
+        type    ordinal
+        default { "1" }
+        help    "What class of elements to operate on."
+        menu {
+            "0" "Primitives"
+            "1" "Points"
+        }
+    }
+    parm {
+        name    "selectionmode"
+        label   "Selection Mode"
+        type    ordinal
+        joinnext
+        default { "0" }
+        help    "Exact Number modes output precise numbers of selected elements. Exact Number - Randomize Element Order scrambles the input element order before selection, and it is the only mode that does this. Probability evaluates selection separately on a per-element basis, so the final selection ratio and number are not precise and are affected by Random Seed. Periodic modes periodically select and then skip a certain number of elements following to the input element order. The numbers of selected and skipped elements in different periods can be constant or random."
+        menu {
+            "0" "Exact Number - Preserve Element Order"
+            "1" "Exact Number - Randomize Element Order"
+            "2" "Probability"
+            "3" "Periodic - Constant Intervals"
+            "4" "Periodic - Random Intervals"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "specification"
+        label   "Specification"
+        type    ordinal
+        nolabel
+        default { "0" }
+        disablewhen "{ selectionmode > 1 }"
+        hidewhen "{ selectionmode > 1 }"
+        menu {
+            "0" "By Ratio"
+            "1" "By Count"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "ratio"
+        label   "Ratio"
+        type    float
+        default { "0" }
+        help    "The ratio of the number of elements to select to the total number of elements."
+        disablewhen "{ specification == 1 } { selectionmode > 1 }"
+        hidewhen "{ specification == 1 } { selectionmode > 1 }"
+        range   { 0! 1! }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "count"
+        label   "Count"
+        type    integer
+        default { "0" }
+        help    "The number of elements to select."
+        disablewhen "{ specification == 0 } { selectionmode > 1 }"
+        hidewhen "{ specification == 0 } { selectionmode > 1 }"
+        range   { 0! 10000 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "probability"
+        label   "Probability"
+        type    float
+        default { "0" }
+        help    "An individual element's probability of selection."
+        disablewhen "{ selectionmode != 2 }"
+        hidewhen "{ selectionmode != 2 }"
+        range   { 0! 1! }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "offset"
+        label   "Offset"
+        type    integer
+        default { "0" }
+        help    "Offsets the selection pattern."
+        disablewhen "{ selectionmode < 3 }"
+        hidewhen "{ selectionmode < 3 }"
+        range   { -100 100 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder1"
+        label   "In Every Period..."
+        disablewhentab "{ selectionmode < 3 }"
+        hidewhentab "{ selectionmode < 3 }"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "selectlen"
+            label   "Select"
+            type    integer
+            default { "0" }
+            help    "The number of elements to select in the first part of every period."
+            disablewhen "{ selectionmode != 3 }"
+            hidewhen "{ selectionmode != 3 }"
+            range   { 1! 20 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "skiplen"
+            label   "Skip"
+            type    integer
+            default { "0" }
+            help    "The number of elements to skip in the second part of every period."
+            disablewhen "{ selectionmode != 3 }"
+            hidewhen "{ selectionmode != 3 }"
+            range   { 1! 20 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "selectlenmin"
+            label   "Select Min"
+            type    integer
+            default { "0" }
+            help    "The minimum number of elements to select in the first part of every period. The final number is randomly generated between the min and max on a per-period basis."
+            disablewhen "{ selectionmode != 4 }"
+            hidewhen "{ selectionmode != 4 }"
+            range   { 1! 20 }
+            parmtag { "script_callback" "hou.pwd().hm().increaseMax('selectlenmin', 'selectlenmax')" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "selectlenmax"
+            label   "Select Max"
+            type    integer
+            default { "5" }
+            help    "The maximum number of elements to select in the first part of every period. The final number is randomly generated between the min and max on a per-period basis."
+            disablewhen "{ selectionmode != 4 }"
+            hidewhen "{ selectionmode != 4 }"
+            range   { 1! 20 }
+            parmtag { "script_callback" "hou.pwd().hm().decreaseMin('selectlenmin', 'selectlenmax')" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "skiplenmin"
+            label   "Skip Min"
+            type    integer
+            default { "0" }
+            help    "The minimum number of elements to skip in the second part of every period. The final number is randomly generated between the min and max on a per-period basis."
+            disablewhen "{ selectionmode != 4 }"
+            hidewhen "{ selectionmode != 4 }"
+            range   { 1! 20 }
+            parmtag { "script_callback" "hou.pwd().hm().increaseMax('skiplenmin', 'skiplenmax')" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "skiplenmax"
+            label   "Skip Max"
+            type    integer
+            default { "5" }
+            help    "The maximum number of elements to skip in the second part of every period. The final number is randomly generated between the min and max on a per-period basis."
+            disablewhen "{ selectionmode != 4 }"
+            hidewhen "{ selectionmode != 4 }"
+            range   { 1! 20 }
+            parmtag { "script_callback" "hou.pwd().hm().decreaseMin('skiplenmin', 'skiplenmax')" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "randseed"
+        label   "Random Seed"
+        type    integer
+        default { "0" }
+        help    "Affects the selection pattern. In Probability mode, it also affects the final selection ratio and number."
+        disablewhen "{ selectionmode == 3 }"
+        hidewhen "{ selectionmode == 3 }"
+        range   { 0! 200 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "sepparm"
+        label   "sepparm"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "deletenonselected"
+        label   "Delete Non-selected"
+        type    toggle
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "deleteselected"
+        label   "Delete Selected"
+        type    toggle
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback" "if hou.pwd().evalParm(\"deleteselected\") == 1: hou.pwd().setParms({\"creategroup\": 0, \"colorselected\": 0})" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "creategroup"
+        label   "Create Group from Selected"
+        type    toggle
+        default { "0" }
+        disablewhen "{ deleteselected == 1 }"
+        hidewhen "{ deleteselected == 1 }"
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "groupname"
+        label   "Group Name"
+        type    string
+        default { "selected" }
+        disablewhen "{ creategroup == 0 } { deleteselected == 1 }"
+        hidewhen "{ deleteselected == 1 }"
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Color Selected"
+        disablewhentab "{ deleteselected == 1 }"
+        disablewhen "{ deleteselected == 1 }"
+        hidewhentab "{ deleteselected == 1 }"
+        hidewhen "{ deleteselected == 1 }"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "colorselected"
+            label   "Color Selected"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "deleteallcolorattribs"
+            label   "Delete All Existing Color Attributes"
+            type    toggle
+            default { [ "off" hscript-expr ] }
+            disablewhen "{ colorselected == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "colortype"
+            label   "Color Type"
+            type    integer
+            default { "0" }
+            disablewhen "{ colorselected == 0 }"
+            menu {
+                "0" "Constant"
+                "1" "Bounding Box"
+                "2" "Random"
+                "3" "Ramp from Attribute"
+                "4" "Random from Attribute"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "color"
+            label   "Color"
+            type    color
+            size    3
+            default { "0" "0.45" "0.9" }
+            disablewhen "{ colorselected == 0 }"
+            hidewhen "{ colortype != 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "seed"
+            label   "Color Seed"
+            type    float
+            default { "0" }
+            disablewhen "{ colorselected == 0 }"
+            hidewhen "{ colortype != 2 colortype != 4 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "rampattribute"
+            label   "Attribute"
+            type    string
+            default { "" }
+            disablewhen "{ colorselected == 0 }"
+            hidewhen "{ colortype != 3 colortype != 4 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "ramprange"
+            label   "Range"
+            type    float
+            size    2
+            default { "0" "1" }
+            disablewhen "{ colorselected == 0 }"
+            hidewhen "{ colortype != 3 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "ramp"
+            label   "Attribute Ramp"
+            type    ramp_rgb
+            default { "2" }
+            disablewhen "{ colorselected == 0 }"
+            hidewhen "{ colortype != 3 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+            parmtag { "rampbasisdefault" "linear" }
+            parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0 0 0 ) 1interp ( linear ) 2pos ( 1 ) 2c ( 1 1 1 ) 2interp ( linear )" }
+            parmtag { "rampcolortype" "rgb" }
+            parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "rampvalues_var" "vecramp_the_key_values" }
+        }
+    }
+
+}

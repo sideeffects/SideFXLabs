@@ -124,8 +124,8 @@ def create_folder_structure(node):
             if container not in parms_dict.keys():
                 parms_dict[container] = [[pt.label(), pt.help()]]
             else:
-                print pt.label()
-                print parms_dict.values()
+                print (pt.label())
+                print (parms_dict.values())
                 if pt.label() not in parms_dict.values():
                     parms_dict[container].append([pt.label(), pt.help()])
                 
