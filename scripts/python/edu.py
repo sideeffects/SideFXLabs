@@ -54,7 +54,7 @@ def numberItems():
     for node in nodes:
         image = hou.NetworkImage()
         # must be full path
-        fullpath = os.path.expandvars('${SIDEFXLABS}/misc/stickers/Edu/SIDEFX_CUSTOM_EMBLEMS_%02d.png' % index)
+        fullpath = os.path.expandvars('${SIDEFXLABS}/misc/stickers/Edu/SIDEFX_CUSTOM_EMBLEMS_%02d.png' % (index+1))
         image.setPath(fullpath)
         image.setRelativeToPath(node.path())
         image.setRect(hou.BoundingRect(-0.1, 0.1, -1.1, 1.1))
