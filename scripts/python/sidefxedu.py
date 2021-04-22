@@ -32,17 +32,32 @@ pane = editors[-1]
 node = pane.pwd()
 
 # create a sticky info in current node
-def createNotes(stickytype="info"):
+def createNotes(kwargs, stickytype="info"):
+
+    ctrlclick = kwargs['ctrlclick']
+    shiftclick = kwargs['shiftclick']
+    altclick = kwargs['altclick']
+    cmdclick = kwargs['cmdclick']
+
+    stickytype = 'info'
+    if(ctrlclick):
+        stickytype = 'warning'
+    elif(shiftclick):
+        stickytype = 'bestpractice'
+    elif(altclick):
+        stickytype = 'tip'
+
+    position = pane.overviewPosFromScreen(hou.Vector2(0, 0))
+
     sticky = node.createStickyNote()
     sticky.setBounds(hou.BoundingRect(0, 0, 4, 4))
-    position = pane.overviewPosFromScreen(hou.Vector2(0, 0))
     sticky.setPosition(position)
+    sticky.setText(("#%s" % stickytype))
     sticky.setColor(hou.Color(normalize_color(COLOR_BG[stickytype])))
     sticky.setTextColor(hou.Color(normalize_color(COLOR_TXT[stickytype])))
-    sticky.setText(("#%s" % stickytype))
 
 # This code attaches background images to nodes 
-def numberItems():
+def numberItems(kwargs=[]):
     # initialize variables
     index = 0
     images = []
