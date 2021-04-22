@@ -24,13 +24,6 @@ COLOR_TXT = {
 def normalize_color(color):
     return tuple(x/255.0 for x in color)
 
-# get network editor
-editors = [pane for pane in hou.ui.paneTabs() if isinstance(pane, hou.NetworkEditor)]
-pane = editors[-1]
-
-# get current node in network editor
-node = pane.pwd()
-
 # create a sticky info in current node
 def createNotes(kwargs, stickytype="info"):
 
@@ -47,11 +40,16 @@ def createNotes(kwargs, stickytype="info"):
     elif(altclick):
         stickytype = 'tip'
 
-    position = pane.overviewPosFromScreen(hou.Vector2(0, 0))
+    # get the network editor
+    editor = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    
+    # get the current node in the network editor
+    node = editor.pwd()
+    # position = pane.overviewPosFromScreen(hou.Vector2(0, 0))
 
     sticky = node.createStickyNote()
     sticky.setBounds(hou.BoundingRect(0, 0, 4, 4))
-    sticky.setPosition(position)
+    # sticky.setPosition(position)
     sticky.setText(("#%s" % stickytype))
     sticky.setColor(hou.Color(normalize_color(COLOR_BG[stickytype])))
     sticky.setTextColor(hou.Color(normalize_color(COLOR_TXT[stickytype])))
