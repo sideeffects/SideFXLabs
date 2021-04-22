@@ -276,6 +276,7 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
   </tool>
 
   <tool name="labs::sticker_placer" label="Sticker Placer" icon="$SIDEFXLABS/help/icons/stickerplacer.svg">
+    <helpURL>/nodes/other/labs--sticker_picker</helpURL>
     <toolMenuContext name="viewer">
       <contextNetType>OBJ</contextNetType>
       <contextNetType>SOP</contextNetType>
@@ -298,9 +299,15 @@ hou.hscript(h_preamble + h_extra_args + h_cmd)
       <contextNetType>TOP</contextNetType>
       <contextNetType>LOP</contextNetType>
     </toolMenuContext>
-    <script scriptType="python"><![CDATA[import stickerplacer
+    <script scriptType="python"><![CDATA[import stickerplacer as module
 
-dialog = stickerplacer.StickerPlacer(hou.ui.mainQtWindow())
+try:
+  reload(module)
+except NameError:
+  from importlib import reload
+  reload(module)
+
+dialog = module.StickerPlacer(hou.ui.mainQtWindow())
 dialog.show()
 ]]></script>
   </tool>
