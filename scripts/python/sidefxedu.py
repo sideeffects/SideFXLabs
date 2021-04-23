@@ -122,9 +122,32 @@ def numberItems(kwargs):
     editor.setBackgroundImages(images)
 
 
+def setquickmarks(kwargs):
+    import nodegraphview
+    nodegraphview.createQuickMark(kwargs['pane'], 101)
+    nodegraphview.createQuickMark(kwargs['pane'], 102)
+    nodegraphview.createQuickMark(kwargs['pane'], 103)
+    nodegraphview.createQuickMark(kwargs['pane'], 104)
+
+def jumpQuickmark(kwargs):
+    import nodegraphview
+
+    index = 101
+    
+    ctrlclick = kwargs['ctrlclick']
+    shiftclick = kwargs['shiftclick']
+
+    if ctrlclick:
+        index+=1
+    elif shiftclick:
+        index-=1
+
+    nodegraphview.jumpToQuickMark(kwargs['pane'], index)
 
 
-
+#  explore also
+# nodegraphview.QuickMark()
+# nodegraphview.setQuickMark()
 
 
 
