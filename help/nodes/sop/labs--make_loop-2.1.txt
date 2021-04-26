@@ -1,0 +1,50 @@
+= Labs Make Loop =
+
+#type: node
+#context: sop
+#internal: labs::make_loop::2.1
+#icon: make_loop_white
+#tags: sidefxlabs,  model, gamedev
+
+""" Takes a mesh or volume that is animated and loops them. """
+
+This node will make either a mesh, volume or particle effect loop. 
+
+The general idea is that it will offset the animation by half of the timeline and then do a sinewave to blend between the two animations. 
+
+This will work with meshes with constant topology or volumes, or with particles coming out of a popnet with the right attributes.
+
+:col:
+    [Image:/images/make_loop_before.gif]
+    
+    Mesh sequence before looping applied 
+
+:col:
+    [Image:/images/make_loop_after.gif]
+
+    Mesh sequence after looping applied 
+
+NOTE:
+    If you set the time range too short for particles, all particles will be removed before looping; You will therefore have to modify their lifespan settings accordingly. You need the following point attributes from an input particle system to get it to work: *id*, *age*, *life*, and *pscale* (it will be created for you if it is missing).
+
+
+@parameters
+    Start Frame:
+        First frame of the input animation.
+    End Frame:
+        Last frame of the input animation.
+    Num. of Double-Loops:
+        The loops are always created in pairs of two. This is due to how the looping effect is achieved: first, the base animation is divided into a number of sections specified by this parameter's value, and only the first section is retained and looped for this number of times; then, the looped base animation is copied and shifted by half the length of a single base loop; finally, the base loops and the shifted loops are blended or added together, creating seamless transitions. As a result, in the length of a single base loop, the visuals actually repeat twice. Hence the loops are more appropriately called "double-loops", e.g.: if this paramater is set to 3, you will see 6 visually repeating cycles.
+    Offset Clashing Particle IDs:
+        Offsets the point IDs from different loops to avoid clashing ID values. It is recommended to leave this on. However, this will not fix existing duplicated IDs in the input geometry.
+    Particle Wrap Mode:
+        Particles still alive at the end of the animation will have the rest of their lifespans wrapped to the start of the animation. "Stay Alive ..." is best suited for Houdini; it keeps the IDs consistent and ages the particles naturally. "Die at End and Respawn ..." is suited for Niagara; it offsets the ID, age, and life attributes to create two distinct group of particles for the end and the start of the animation; it will often result in a few mismatched particles during transitions, which can be countered with *Ease In Pscale*. "Spawn at Start ..." is suited for Niagara; it identifies the particles that need wrapping, spawns them at the start of the animation, keeps them alive, sets their pscales to zero when they should be invisible, and then lets them reappear at the end of the animation; this gives the smoothest transitions in Niagara but it will waste some resources moving invisible particles. "Never Spawn ..." deletes the particles that need wrapping; it sidesteps the problem, but it will result in noticeable drops in particle count during transitions.
+    Ease In Pscale:
+        Linearly scales the pscale attribute from 0% to 100% at the beginning of each particle's original lifespan (unaffected by any modifications to the age and life attributes from particle wrapping). This is particularly helpful when *Particle Wrap Mode* is set to "Die at End and Respawn ...", as this obfuscates the minor glitches that may happen during transitions.
+    Ease-In Duration:
+        In seconds, the absolute duration of each particle's pscale ease-in effect.
+    == Visualization ==
+    Output Preview Geometry:
+        Outputs preview geometry with primitive spheres. The pscale attribute affects the scales of the spheres. Turning this on overrides the output of this SOP, so turn it off to output the actual particles.
+    Color by Normalized Age:
+        Colors the preview spheres using the age attribute divided by the life attribute. The 0-to-1 value is mapped to the red-to-violet color gradient.
