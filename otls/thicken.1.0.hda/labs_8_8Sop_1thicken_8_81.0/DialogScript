@@ -1,0 +1,126 @@
+# Dialog script for labs::thicken::1.0 automatically generated
+
+{
+    name	labs::thicken::1.0
+    script	gamedev::sop_thicken
+    label	"Labs Thicken"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh To Add Thickness To"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a split1 group" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].parmTuple('grouptype')\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "grouptype"
+        label   "Group Type"
+        type    ordinal
+        default { "guess" }
+        menu {
+            "guess"         "Guess from Group"
+            "breakpoints"   "Breakpoints"
+            "edges"         "Edges"
+            "points"        "Points"
+            "prims"         "Primitives"
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "negate"
+        label   "Invert Selection"
+        type    toggle
+        default { "off" }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    groupsimple {
+        name    "folder1"
+        label   "Thicken"
+
+        parm {
+            name    "depth"
+            label   "Depth"
+            type    float
+            default { "0.1" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "both_directions"
+            label   "Both Directions"
+            type    toggle
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "dissolve_middle_edge"
+            label   "Dissolve Middle Edge"
+            type    toggle
+            default { "1" }
+            disablewhen "{ both_directions == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "reduce_back"
+            label   "Reduce Back Side"
+            type    toggle
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "reduction_percentage"
+            label   "Percentage"
+            type    float
+            default { "50" }
+            disablewhen "{ reduce_back == 0 }"
+            range   { 0 100 }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder0"
+        label   "Normals"
+
+        parm {
+            name    "type"
+            label   "Add Normals to"
+            type    ordinal
+            default { "typevertex" }
+            menu {
+                "typepoint"     "Points"
+                "typevertex"    "Vertices"
+                "typeprim"      "Primitives"
+                "typedetail"    "Detail"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cuspangle"
+            label   "Cusp Angle"
+            type    float
+            default { "60" }
+            range   { 0! 180! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

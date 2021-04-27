@@ -1,0 +1,159 @@
+# Dialog script for labs::make_loop::2.1 automatically generated
+
+{
+    name	labs::make_loop::2.1
+    script	gamedev::sop_make_loop
+    label	"Labs Make Loop"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sequence to Loop"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "inputtype"
+        label   "Input Type"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Volume or VDB"
+            "1" "Particle"
+            "2" "Primitive"
+        }
+        parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Looping Settings"
+
+        parm {
+            name    "start_frame"
+            label   "Start Frame"
+            type    integer
+            default { [ "$RFSTART" hscript-expr ] }
+            range   { 0 10 }
+            parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "end_frame"
+            label   "End Frame"
+            type    integer
+            default { [ "$RFEND" hscript-expr ] }
+            range   { 0 10 }
+            parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "loops"
+            label   "Num. of Double-Loops"
+            type    integer
+            default { "1" }
+            range   { 1! 10 }
+            parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ inputtype != 1 }"
+        }
+        parm {
+            name    "uniqueid"
+            label   "Offset Clashing Particle IDs"
+            type    toggle
+            default { "1" }
+            disablewhen "{ inputtype != 1 }"
+            hidewhen "{ inputtype != 1 }"
+            parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "wrapmode"
+            label   "Particle Wrap Mode"
+            type    ordinal
+            default { "2" }
+            disablewhen "{ inputtype != 1 } { uniqueid == 0 }"
+            hidewhen "{ inputtype != 1 } { uniqueid == 0 }"
+            menu {
+                "0" "Stay Alive from End to Start (Houdini)"
+                "1" "Die at End and Respawn as New Particles at Start (Niagara)"
+                "2" "Spawn at Start, Hide, Then Reappear at End (Niagara)"
+                "3" "Never Spawn to Avoid Wrapping"
+            }
+            parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fadein"
+            label   "Fade In Pscale"
+            type    toggle
+            default { "0" }
+            disablewhen "{ inputtype != 1 }"
+            hidewhen "{ inputtype != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fadeinduration"
+            label   "Fade-In Duration"
+            type    float
+            default { "0.2" }
+            disablewhen "{ fadein == 0 } { inputtype != 1 }"
+            hidewhen "{ inputtype != 1 }"
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "recomputemaxid"
+            label   "Recompute Max ID"
+            type    button
+            invisible
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Visualization"
+        disablewhen "{ inputtype != 1 }"
+        hidewhen "{ inputtype != 1 }"
+
+        parm {
+            name    "previs"
+            label   "Output Preview Geometry"
+            type    toggle
+            default { "0" }
+            disablewhen "{ inputtype != 1 }"
+            hidewhen "{ inputtype != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "previsscale"
+            label   "Preview Sphere Scale"
+            type    float
+            default { "0.2" }
+            disablewhen "{ previs == 0 }"
+            hidewhen "{ previs == 0 }"
+            range   { 0! 2 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "colornage"
+            label   "Color by Normalized Age"
+            type    toggle
+            default { "1" }
+            disablewhen "{ previs == 0 }"
+            hidewhen "{ previs == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
