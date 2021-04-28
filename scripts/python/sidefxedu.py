@@ -61,7 +61,6 @@ def createNotes(kwargs, stickytype="info"):
 class Quickmarks(object):
 
     # TODO: 
-    # - replace jumpTo() with jumpTo(value)
     # - use quickmark().jump() instead of jumpTo(value)
 
     def __init__(self):
@@ -70,11 +69,17 @@ class Quickmarks(object):
         self._qmlist = []
         self._qmcurrent = 0
 
+    def reset(self):
+        self._qmcurrent = 0
+
     def updateQmlist(self, keyword='sidefxedu_quickmark_'):
         self._qmlist = [int(qm.replace(keyword, '')) for qm in self.listQuickmarks()]
+        print(self._qmlist)
 
     def listQuickmarks(self, keyword='sidefxedu_quickmark_'):
-        return [key for key in hou.node('/').userDataDict().keys() if keyword in key]
+        qmlist = [key for key in hou.node('/').userDataDict().keys() if keyword in key]
+        qmlist.sort()
+        return qmlist
 
     def createQuickMark(self, item, index, quickMarkKey):
         net = item.parent()
@@ -103,31 +108,35 @@ class Quickmarks(object):
                 hou.node('/').destroyUserData(k)
 
     def jumpToNext(self):
-        # self.updateQmlist()
-        self._qmcurrent += 1
-        self._qmcurrent = min(self._qmlist[-1], self._qmcurrent)
-        self.jumpTo()
-        # print("Jump to next :: ", self._qmcurrent)
+        value = min(self._qmlist[-1], self._qmcurrent+1)
+        self.jumpTo(value)
+        print("Jump to next :: ", value)
 
     def jumpToPrev(self):
-        # self.updateQmlist()
-        self._qmcurrent -= 1
-        self._qmcurrent = max(self._qmlist[0], self._qmcurrent)
-        self.jumpTo()
-        # print("Jump to prev :: ", self._qmcurrent)
+        value = max(self._qmlist[0], self._qmcurrent-1)
+        self.jumpTo(value)
+        print("Jump to prev :: ", value)
         
     def jumpToFirst(self):
         self.updateQmlist()
-        self._qmcurrent = 0
-        self.jumpTo()
+        value = self._qmlist[0]
+        self.jumpTo(value)
     
     def jumpToLast(self):
         self.updateQmlist()
-        self._qmcurrent = self._qmlist[-1]
-        self.jumpTo()
+        value = self._qmlist[-1]
+        self.jumpTo(value)
 
-    def jumpTo(self):
-        edu_nodegraphview.jumpToQuickMark(self._pane, self._qmcurrent)
+    def jumpTo(self, value):
+        self._qmcurrent = value
+        edu_nodegraphview.jumpToQuickMark(self._pane, value)
+        print("Jump to :: ", value)
+
+    def jumpToQuickMark(editor, index):
+        quickmark = getQuickMark(index)
+        createUndoQuickMark(editor)
+        if quickmark is not None:
+            quickmark.jump(editor)
 
     def numberItems(self, kwargs):
         # This code attaches background images to nodes 
