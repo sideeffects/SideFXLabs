@@ -7,24 +7,11 @@
 
   <toolshelf name="edu_toolset" label="SideFX Education">
     <memberTool name="labs::education_note"/>
-    <memberTool name="labs::parameter_diff"/>
     <memberTool name="labs::number_items"/>
+    <memberTool name="labs::parameter_diff"/>
     <memberTool name="labs::sticker_placer"/>
+    <memberTool name="labs::top_archive_project::1.0"/>
   </toolshelf>
-
-  <tool name="labs::number_items" label="Number Items" icon="$SIDEFXLABS/help/icons/number_items.svg">
-    <helpURL>/shelf/labs--number_items.txt</helpURL>
-    <script scriptType="python"><![CDATA[import sidefxedu as module
-
-try:
-  reload(module)
-except NameError:
-  from importlib import reload
-  reload(module)
-
-module.numberItems(kwargs)
-]]></script>
-  </tool>
 
   <tool name="labs::education_note" label="Education Note" icon="$SIDEFXLABS/help/icons/stickynote.svg">
     <helpURL>/shelf/labs--education_note.txt</helpURL>
@@ -37,5 +24,35 @@ except NameError:
   reload(module)
 
 module.createNotes(kwargs)]]></script>
+  </tool>
+
+  <tool name="labs::number_items" label="Number Items" icon="$SIDEFXLABS/help/icons/number_items.svg">
+    <helpURL>/shelf/labs--number_items.txt</helpURL>
+    <script scriptType="python"><![CDATA[import sidefxedu as module
+
+try:
+  reload(module)
+except NameError:
+  from importlib import reload
+  reload(module)
+
+if not hasattr(hou.session, 'eduqm'):
+    hou.session.eduqm = module.Quickmarks()
+else:
+    eduqm = hou.session.eduqm
+
+if (kwargs["ctrlclick"] and not kwargs["shiftclick"]):
+    eduqm.jumpToPrev()
+elif (kwargs["altclick"] and not kwargs["shiftclick"]):
+    eduqm.jumpToNext()
+elif (kwargs["ctrlclick"] and kwargs["shiftclick"]):
+    eduqm.jumpToFirst()
+elif (kwargs["altclick"] and kwargs["shiftclick"]):
+    eduqm.jumpToLast()
+else:
+    eduqm.numberItems(kwargs)
+    eduqm.jumpToFirst()
+
+  ]]></script>
   </tool>
 </shelfDocument>
