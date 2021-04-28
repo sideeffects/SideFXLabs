@@ -74,7 +74,7 @@ class Quickmarks(object):
 
     def updateQmlist(self, keyword='sidefxedu_quickmark_'):
         self._qmlist = [int(qm.replace(keyword, '')) for qm in self.listQuickmarks()]
-        print(self._qmlist)
+        # print(self._qmlist)
 
     def listQuickmarks(self, keyword='sidefxedu_quickmark_'):
         qmlist = [key for key in hou.node('/').userDataDict().keys() if keyword in key]
@@ -110,12 +110,12 @@ class Quickmarks(object):
     def jumpToNext(self):
         value = min(self._qmlist[-1], self._qmcurrent+1)
         self.jumpTo(value)
-        print("Jump to next :: ", value)
+        # print("Jump to next :: ", value)
 
     def jumpToPrev(self):
         value = max(self._qmlist[0], self._qmcurrent-1)
         self.jumpTo(value)
-        print("Jump to prev :: ", value)
+        # print("Jump to prev :: ", value)
         
     def jumpToFirst(self):
         self.updateQmlist()
@@ -130,7 +130,7 @@ class Quickmarks(object):
     def jumpTo(self, value):
         self._qmcurrent = value
         edu_nodegraphview.jumpToQuickMark(self._pane, value)
-        print("Jump to :: ", value)
+        # print("Jump to :: ", value)
 
     def jumpToQuickMark(editor, index):
         quickmark = getQuickMark(index)
