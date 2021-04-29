@@ -5,9 +5,13 @@
 
 import os
 import hou
-import sidefxedu_nodegraphview as edu_nodegraphview
+import importlib
+
 from past.utils import old_div
 import nodegraphutils as utils
+import sidefxedu_nodegraphview as edu_nodegraphview
+
+importlib.reload(edu_nodegraphview)
 
 
 # define colors
@@ -61,6 +65,7 @@ def createNotes(kwargs, stickytype="info"):
 class Quickmarks(object):
 
     # TODO: 
+    # - delete all previous quickmarks when creating new ones
     # - use quickmark().jump() instead of jumpTo(value)
 
     def __init__(self):
