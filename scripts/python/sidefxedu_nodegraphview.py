@@ -459,11 +459,11 @@ def jumpToNode(editor, node, frame_nodes):
     node.setSelected(True, clear_all_selected = True)
     editor.setCurrentNode(node, False)
 
-def getQuickMark(index):
+def getQuickMark(index, qmKey=theQuickMarkKey):
     if index == theUndoIndex:
         quickmark = theUndoQuickMark
     else:
-        key = theQuickMarkKey + str(index)
+        key = qmKey + str(index)
         value = hou.node('/').userData(key)
         quickmark = QuickMark.fromJson(value)
 
@@ -472,7 +472,7 @@ def getQuickMark(index):
 
     return quickmark
 
-def setQuickMark(index, quickmark):
+def setQuickMark(index, quickmark, qmKey=theQuickMarkKey):
     if quickmark is not None and not quickmark.verify():
         quickmark = None
 
@@ -480,7 +480,7 @@ def setQuickMark(index, quickmark):
         global theUndoQuickMark
         theUndoQuickMark = quickmark
     else:
-        key = theQuickMarkKey + str(index)
+        key = qmKey + str(index)
         value = quickmark.asJson()
         hou.node('/').setUserData(key, value)
 
