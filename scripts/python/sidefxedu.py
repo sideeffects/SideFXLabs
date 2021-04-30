@@ -87,20 +87,22 @@ class Quickmarks(object):
         return qmlist
 
     def createQuickMark(self, item, index, quickMarkKey):
-        net = item.parent()
-        # net = self._pane.pwd() 
-        pos = item.position()
-        bounds = hou.BoundingRect(pos[0]-3, pos[1]-3, pos[0]+3, pos[1]+3) 
-
+        # Define the network 
+        net = item.parent() # net = self._pane.pwd() 
+        
+        # Define the visualization bounds (frame the item in the network)
+        pos = item.position() + hou.Vector2(0, item.size().y())
+        bounds = hou.BoundingRect(pos[0], pos[1], pos[0], pos[1]) 
         # Adjust the bounds so we end up at roughly the "default" zoom level.
         minwidth = old_div(self._pane.screenBounds().size().x(), utils.getDefaultScale())
         minheight = old_div(self._pane.screenBounds().size().y(), utils.getDefaultScale())
         if bounds.size().x() < minwidth:
-            bounds.expand(hou.Vector2((minwidth - bounds.size().x()) * 0.5, 0.0))
+            expandVec = hou.Vector2((minwidth - bounds.size().x()) * 0.5, 0.0)
         if bounds.size().y() < minheight:
-            bounds.expand(hou.Vector2(0.0, (minheight - bounds.size().y()) * 0.5))
+            expandVec = hou.Vector2(0.0, (minheight - bounds.size().y()) * 0.5)
+        bounds.expand(expandVec)
             
-        # bounds = self._pane.visibleBounds()
+        # Define the items to 
         items = [item]
         currentnode = item if isinstance(item, hou.Node) else None
         edu_nodegraphview.setQuickMark(index, edu_nodegraphview.QuickMark(net, bounds, items, currentnode))

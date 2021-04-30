@@ -1,3 +1,9 @@
+"""  
+This is my adaptation of nodegraphview.py to be able to have quickmarks with a different quickmark key
+Mainly to use for the Education tools, but adding this parameter would be useful for other quickmarks
+"""
+
+
 from __future__ import print_function
 from __future__ import division
 from builtins import range
