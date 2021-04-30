@@ -1,6 +1,3 @@
-from PySide2.QtWidgets import *
-import subprocess, os, hou, json
-
 def add_images(node):
 
     files = hou.ui.selectFile(start_directory="$HIP", title="Select one or more files to open", collapse_sequences=False, file_type=hou.fileType.Image, pattern=None, default_value=None, multiple_select=True, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
@@ -17,52 +14,7 @@ def add_images(node):
     for i, filename in enumerate(files):
         parm.insertMultiParmInstance(i)
         instance = parm.multiParmInstances()[i]
-        instance.set(filename.strip())
-
-def log(cmd, cache, folder, node):
-
-    Log = hou.pwd().parent().parm("bExportLog").evalAsInt()
-
-    with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
-        if Log:
-            print("--------")
-            print(node.name())
-
-        logfile = open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a')
-        errorlogfile = open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'a')
-
-        StartupInfo = None
-        if os.name == 'nt':
-            StartupInfo = subprocess.STARTUPINFO()
-            subprocess.STARTF_USESHOWWINDOW = 1
-            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        
-        customenv = json.loads(node.parent().parm("customenv").eval())   
-        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=customenv)
-
-        # Process is still running
-        while Process.poll() == None:
-            try:
-                Operation.updateProgress(0.0)
-            # User interrupted
-            except hou.OperationInterrupted:
-                Process.kill()
-
-        # Close log file, because Process has ended
-        logfile.close()
-        errorlogfile.close()
-
-        with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'r') as myfile:
-            data = myfile.read()
-            if len(data) > 0:
-                hou.ui.displayMessage(data, buttons=('OK',), severity=hou.severityType.Error, title="%s AliceVision Processing Failed!" % node.name())
-            else:
-                myfile.close()
-                os.remove(os.path.join(cache, folder, node.name()+"_errorlog.txt"))
-
-        if Log:
-            print(node.name() + " completed")
-        
+        instance.set(filename.strip())        
     
 def cookNode(node):
     node.node("Atrribute_Creation").cook(force=True)
