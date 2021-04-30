@@ -1,0 +1,11 @@
+import os, hou
+
+def PostRender(node):
+    node.node("cop2net1/depth").render()
+    
+    if node.parm("mRenderEngine").evalAsInt() == 1:
+        node.node("cop2net1/mantra_color").render()
+        
+        tempfile = hou.expandString("$HOUDINI_TEMP_DIR/facebook_rop.exr")
+        if os.path.isfile(tempfile):
+            os.remove(tempfile)

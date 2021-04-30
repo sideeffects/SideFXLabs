@@ -40,7 +40,7 @@ stat
   author prisms@threadripper1
   access 0777
 }
-color UT_Color RGB 0.765 1 0.576 
+color UT_Color RGB 0.29 0.565 0.886 
 delscript ""
 exprlanguage hscript
 end
@@ -102,7 +102,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-python	[ 0	locks=0 ]	(	"import hou, subprocess, os, shutil, labutils
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, shutil, labutils, alicevisionutils
 
 #Prepares arguments for aliceVision_cameraInit.exe and executes
 #Settings based on Meshroom settings
@@ -134,15 +134,14 @@ cmd.append(\"error\")
 cmd.append(\"--output\")
 cmd.append(os.path.join(cache, \"01_CameraInit\", \"cameraInit.sfm\"))
 
-cmd.append(\"--allowSingleView\")
+cmd.append(\"--allowSingleView\")  
 cmd.append(\"1\")
 
 cmd.append(\"--imageFolder\")
 cmd.append(srcimg)
 
-
 if (len(os.listdir(srcimg)) > 0):
-    hou.pwd().parent().hdaModule().log(cmd, cache, \"01_CameraInit\", node)
+    alicevisionutils.process(cmd, cache, \"01_CameraInit\", node)
 else:
     raise ValueError(\"No images selected for processing!\")"	)
 }

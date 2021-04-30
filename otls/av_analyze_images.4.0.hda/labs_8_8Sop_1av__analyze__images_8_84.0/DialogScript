@@ -287,10 +287,20 @@
         label   "Environment"
 
         parm {
+            name    "enablecustomenv"
+            label   "Use Custom Environment"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
             name    "customenv"
             label   "Environment"
             type    string
             default { [ "import os, json\nenv_copy = os.environ.copy()\n\n# Modify the environment here.\n# ---------------------------\n\n\n# ---------------------------\n\nreturn json.dumps(env_copy)" python ] }
+            disablewhen "{ enablecustomenv == 0 }"
             parmtag { "script_callback_language" "python" }
         }
     }
