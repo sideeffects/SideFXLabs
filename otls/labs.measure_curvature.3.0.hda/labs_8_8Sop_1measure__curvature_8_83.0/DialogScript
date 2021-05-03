@@ -1,0 +1,160 @@
+# Dialog script for labs::measure_curvature::3.0 automatically generated
+
+{
+    name	labs::measure_curvature::3.0
+    script	gamedev::sop_measure_curvarture::2.0
+    label	"Labs Measure curvature"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry to Measure"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder0"
+        label   "Curvature Values"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "2" }
+            menu {
+                "0" "Volume Analysis"
+                "1" "Polynomial Fitting"
+                "2" "Tensor (Integral)"
+                "3" "Tensor (Euler)"
+                "4" "Shape Operator"
+                "5" "Approx Shape Operator"
+                "6" "Measure"
+            }
+        }
+        parm {
+            name    "voxelsize"
+            label   "Voxel Size"
+            type    log
+            default { "0.01" }
+            disablewhen "{ method != 0 }"
+            range   { 0 1 }
+        }
+        parm {
+            name    "viscolor"
+            label   "Export Color"
+            type    toggle
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "singlecolor"
+            label   "Single Color"
+            type    toggle
+            default { "0" }
+            disablewhen "{ viscolor == 0 }"
+        }
+        parm {
+            name    "perpiece"
+            label   "Per Piece"
+            type    toggle
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "pieceattr"
+            label   "Piece Attribute"
+            type    string
+            default { "name" }
+            disablewhen "{ perpiece == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Convex Adjustment"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "convexityattr"
+            label   "Attribute"
+            type    string
+            default { "convexity" }
+            parmtag { "script_action" "import soputils\nsoputils.actionToggleVisualizer(kwargs,\n{ 'type': hou.viewportVisualizers.type('vis_color'),\n'parms': {\n    'colortype': 'attribramped',\n    'rangespec': 'auto',\n    'minscalar': 0,\n    'maxscalar': 1,\n    'treatasscalar': True,\n    'using': 'compabs',\n    'component': 0,\n    'colorramp': hou.Ramp((hou.rampBasis.Linear,\n                           hou.rampBasis.Linear),\n                           (0, 1),\n                           ((1, 1, 1), (1, 0, 0)))\n} })" }
+            parmtag { "script_action_help" "Toggle visualization Ctrl-LMB: Open the visualization editor" }
+            parmtag { "script_action_icon" "VIEW_visualization" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "convexintensity"
+            label   "Intensity"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "convexblur"
+            label   "Blur Amount"
+            type    float
+            default { "1" }
+            range   { 0 100 }
+        }
+        parm {
+            name    "convexramp"
+            label   "Remap Range"
+            type    ramp_flt
+            default { "2" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Concave Adjustment"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "concavityattr"
+            label   "Attribute"
+            type    string
+            default { "concavity" }
+            parmtag { "script_action" "import soputils\nsoputils.actionToggleVisualizer(kwargs,\n{ 'type': hou.viewportVisualizers.type('vis_color'),\n'parms': {\n    'colortype': 'attribramped',\n    'rangespec': 'auto',\n    'minscalar': 0,\n    'maxscalar': 1,\n    'treatasscalar': True,\n    'using': 'compabs',\n    'component': 0,\n    'colorramp': hou.Ramp((hou.rampBasis.Linear,\n                           hou.rampBasis.Linear),\n                           (0, 1),\n                           ((1, 1, 1), (1, 0, 0)))\n} })" }
+            parmtag { "script_action_help" "Toggle visualization Ctrl-LMB: Open the visualization editor" }
+            parmtag { "script_action_icon" "VIEW_visualization" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "concaveintensity"
+            label   "Intensity"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "concaveblur"
+            label   "Blur Amount"
+            type    float
+            default { "1" }
+            range   { 0 100 }
+        }
+        parm {
+            name    "concaveramp"
+            label   "Remap Range"
+            type    ramp_flt
+            default { "2" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
