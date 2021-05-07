@@ -1,0 +1,397 @@
+# Dialog script for labs::av_analyze_images::5.0 automatically generated
+
+{
+    name	labs::av_analyze_images::5.0
+    script	AV_Analyze_Images
+    label	"Labs AV Analyze Images"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Initialize"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"AV Structure From Motion"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Feature Extraction"
+
+        parm {
+            name    "describerTypes"
+            label   "Describer Types"
+            type    string
+            default { "sift" }
+            help    "Describer types used to describe an image."
+            menutoggle {
+                "sift"          "sift"
+                "sift_float"    "sift_float"
+                "sift_upright"  "sift_upright"
+                "akaze"         "akaze"
+                "akaze_liop"    "akaze_liop"
+                "akaze_midb"    "akaze_midb"
+                "cctag3"        "cctag3"
+                "cctag4"        "cctag4"
+                "sift_ocv"      "sift_ocv"
+                "akaze_ocv"     "akaze_ocv"
+            }
+        }
+        parm {
+            name    "describerPreset"
+            label   "Describer Preset"
+            type    string
+            default { "normal" }
+            help    "Control the ImageDescriber configuration. Ultra can take a long time."
+            menu {
+                "low"       "Low"
+                "medium"    "Medium"
+                "normal"    "Normal"
+                "high"      "High"
+                "ultra"     "Ultra"
+            }
+        }
+        parm {
+            name    "describerQuality"
+            label   "Describer Quality"
+            type    ordinal
+            default { "normal" }
+            menu {
+                "low"       "Low"
+                "medium"    "Medium"
+                "normal"    "Normal"
+                "high"      "High"
+                "ultra"     "Ultra"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "gridFiltering"
+            label   "Grid Filtering"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "maxNbFeatures"
+            label   "Maximum Number of Features"
+            type    intlog
+            default { "0" }
+            range   { 0 100000 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "contrastFiltering"
+            label   "Contrast Filtering"
+            type    ordinal
+            default { "Static" }
+            menu {
+                "Static"                    "Static"
+                "AdaptiveToMedianVariance"  "AdaptiveToMedianVariance"
+                "NoFiltering"               "NoFiltering"
+                "GridSortOctaves"           "GridSortOctaves"
+                "GridSort"                  "GridSort"
+                "GridSortScaleSteps"        "GridSortScaleSteps"
+                "GridSortOctaveSteps"       "GridSortOctaveSteps"
+                "NonExtremaFiltering"       "NonExtremaFiltering"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "relativePeakThreshold"
+            label   "Relative Peak Threshold"
+            type    float
+            default { "0.02" }
+            range   { 0.01 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "folder2"
+            label   "Advanced"
+
+            parm {
+                name    "forceCpuExtraction"
+                label   "Force CPU Extraction"
+                type    toggle
+                default { "0" }
+                help    "Use only CPU feature extraction."
+            }
+            parm {
+                name    "maxThreads"
+                label   "Max CPU Threads"
+                type    integer
+                default { "0" }
+                help    "Use only CPU feature extraction."
+                range   { 0! 20 }
+            }
+            parm {
+                name    "rangeStart"
+                label   "Range Start"
+                type    integer
+                default { "-1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rangeSize"
+                label   "Range Size"
+                type    integer
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Image Matching"
+
+        groupcollapsible {
+            name    "folder3"
+            label   "Advanced"
+
+            parm {
+                name    "minNbImages"
+                label   "Min Number of Images"
+                type    integer
+                default { "200" }
+                help    "Minimum number of images to use the vocabulary tree. If there are fewer features than this threshold, all matching combinations will be computed."
+                range   { 0 500 }
+            }
+            parm {
+                name    "maxDescriptors"
+                label   "Max Descriptors"
+                type    integer
+                default { "500" }
+                help    "Limit the number of descriptors loaded per image. Zero means no limit."
+                range   { 0 10000 }
+            }
+            parm {
+                name    "nbMatches"
+                label   "Number of Matches"
+                type    integer
+                default { "50" }
+                help    "The number of matches to retrieve for each image. A value of 0 will retrieve all matches."
+                range   { 0 1000 }
+            }
+            parm {
+                name    "nbNeighbors"
+                label   "Number of Nighbors"
+                type    integer
+                default { "50" }
+                help    "The number of matches to retrieve for each image. A value of 0 will retrieve all matches."
+                range   { 0 1000 }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_2"
+        label   "Feature Matching"
+        tabbreak
+
+        parm {
+            name    "guidedMatching"
+            label   "Guided Matching"
+            type    toggle
+            default { "0" }
+            help    "The found model to improvise the pairwise correspondences."
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "crossMatching"
+                label   "Cross Matching"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "photometricMatchingMethod"
+                label   "Photometric Matching Method"
+                type    string
+                default { "ANN_L2" }
+                help    "For scalar based regions descriptor: \\n*BRUTE_FORCE_L2: L2 BruteForce Matching \\n*ANN_L2: L2 approximate nearest neighbor matching \\n*CASCADE_HASHING_L2: L2 Cascade Hasing matching \\n*FAST_CASCADE_HASHING_L2: L2 Cascade Hasing with precomputed hashed regions (faster than CASCADE_HASHING_L2 but uses more memory) \\nFor binary based descriptor: \\n*BRUTE_FORCE_HAMMING: BruteForce Hamming matching"
+                menu {
+                    "BRUTE_FORCE_L2"            "BRUTE_FORCE_L2"
+                    "ANN_L2"                    "ANN_L2"
+                    "CASCADE_HASHING_L2"        "CASCADE_HASHING_L2"
+                    "FAST_CASCADE_HASHING_L2"   "FAST_CASCADE_HASHING_L2"
+                    "BRUTE_FORCE_HAMMING"       "BRUTE_FORCE_HAMMING"
+                }
+            }
+            parm {
+                name    "geometricEstimator"
+                label   "Geometric Estimator"
+                type    string
+                default { "acransac" }
+                help    "Geometric estimator: (acransac: A-Contrario Ransac, loransac: LO-Ransac (only available for \"fundamental_matrix\" model))"
+                menu {
+                    "acransac"  "acransac"
+                    "loransac"  "loransac"
+                }
+            }
+            parm {
+                name    "geometricFilterType"
+                label   "Geometric Filter type"
+                type    string
+                default { "fundamental_matrix" }
+                help    "Geometric validation method to filter features matches: \\n*fundamental_matrix \\n*essential_matrix \\n*homography_matrix \\n*homography_growing \\n*no_filtering"
+                menu {
+                    "fundamental_matrix"    "fundamental_matrix"
+                    "essential_matrix"      "essential_matrix"
+                    "homography_matrix"     "homography_matrix"
+                    "homography_growing"    "homography_growing"
+                    "no_filtering"          "no_filtering"
+                }
+            }
+            parm {
+                name    "distanceRatio"
+                label   "Distance Ratio"
+                type    float
+                default { "0.8" }
+                help    "Distance ratio to discard non meaningful matches."
+                range   { 0 1 }
+            }
+            parm {
+                name    "maxIteration"
+                label   "Max Iteration"
+                type    integer
+                default { "2048" }
+                help    "Maximum number of iterations allowed in ransac step."
+                range   { 1 20000 }
+            }
+            parm {
+                name    "geometricError"
+                label   "Geometric Validation Error"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "knownPosesGeometricErrorMax"
+                label   "Known Poses Geometric Error Max"
+                type    integer
+                default { "4" }
+                help    "Maximum number of iterations allowed in ransac step."
+                range   { 1 20000 }
+            }
+            parm {
+                name    "maxMatches"
+                label   "Max Matches"
+                type    integer
+                default { "0" }
+                help    "Maximum number of matches to keep."
+                range   { 0 10000 }
+            }
+            parm {
+                name    "matchFromKnownCameraPoses"
+                label   "Match From Known Camera Poses"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "randomSeed"
+                label   "Random Seed"
+                type    integer
+                default { "5489" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "savePutativeMatches"
+                label   "Save Putative Matches"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "matchFilePerImage"
+                label   "Match File Per Image"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "useGridSort"
+                label   "Use Grid Sort"
+                type    toggle
+                default { "1" }
+            }
+            parm {
+                name    "exportDebugFiles"
+                label   "Export Debug Files"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "rangeStartMatching"
+                label   "Range Start"
+                type    integer
+                default { "-1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rangeSizeMatching"
+                label   "Range Size"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "folder4"
+        label   "Environment"
+
+        parm {
+            name    "enablecustomenv"
+            label   "Use Custom Environment"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "customenv"
+            label   "Environment"
+            type    string
+            default { [ "import os, json\nenv_copy = os.environ.copy()\n\n# Modify the environment here.\n# ---------------------------\n\n\n# ---------------------------\n\nreturn json.dumps(env_copy)" python ] }
+            disablewhen "{ enablecustomenv == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

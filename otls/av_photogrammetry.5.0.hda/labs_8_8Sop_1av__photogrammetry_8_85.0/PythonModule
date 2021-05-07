@@ -1,0 +1,30 @@
+def ManualCook(node):
+    node.node("av_initialize1").hm().cookNode(node.node("av_initialize1"))
+    node.node("av_analyze_images1").hm().cookNode(node.node("av_analyze_images1"))
+    node.node("av_structure_from_motion1").hm().cookNode(node.node("av_structure_from_motion1"))
+    node.node("av_depth_map1").hm().cookNode(node.node("av_depth_map1"))
+    node.node("av_meshing1").hm().cookNode(node.node("av_meshing1"))
+
+    if node.parm("mColorMode").evalAsString() == "0":
+        node.node("av_texturing1").hm().cookNode(node.node("av_texturing1"))
+
+def add_images(node):
+
+    files = hou.ui.selectFile(start_directory="$HIP", title="Select one or more files to open", collapse_sequences=False, file_type=hou.fileType.Image, pattern=None, default_value=None, multiple_select=True, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
+    files = files.split(";")
+        
+    if len(files) == 0:
+        return 
+        
+    parm = node.parm("src_img")
+    length = parm.evalAsInt()
+    for i in range(length):
+        parm.removeMultiParmInstance(0)
+    
+    for i, filename in enumerate(files):
+        filename = filename.strip()
+        if filename.endswith("/") or filename.endswith("\\"):
+            filename = filename[:-1]
+        parm.insertMultiParmInstance(i)
+        instance = parm.multiParmInstances()[i]
+        instance.set(filename)

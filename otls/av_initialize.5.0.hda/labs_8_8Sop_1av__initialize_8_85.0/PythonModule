@@ -1,0 +1,33 @@
+def add_images(node):
+
+    files = hou.ui.selectFile(start_directory="$HIP", title="Select one or more files to open", collapse_sequences=False, file_type=hou.fileType.Image, pattern=None, default_value=None, multiple_select=True, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
+    files = files.split(";")
+        
+    if len(files) == 0:
+        return 
+        
+    parm = node.parm("src_img")
+    length = parm.evalAsInt()
+    for i in range(length):
+        parm.removeMultiParmInstance(0)
+    
+    for i, filename in enumerate(files):
+        filename = filename.strip()
+        if filename.endswith("/") or filename.endswith("\\"):
+            filename = filename[:-1]
+        parm.insertMultiParmInstance(i)
+        instance = parm.multiParmInstances()[i]
+        instance.set(filename)
+        
+def cookNode(node):
+    node.node("Atrribute_Creation").cook(force=True)
+    node.node("error1").cook(force=True)
+    node.node("File_Setup").cook(force=True)
+
+    avnodes = ["01_Camera_Init"]
+    for process in avnodes:
+            try:
+                node.node(process).cook(force=True)
+            except:
+                hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
+                return

@@ -1,0 +1,341 @@
+# Dialog script for labs::av_structure_from_motion::5.0 automatically generated
+
+{
+    name	labs::av_structure_from_motion::5.0
+    script	AV_Structure_from_Motion
+    label	"Labs AV Structure from Motion"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Analyze Images"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"AV Depth Map"
+    outputlabel	2	"Camera Transforms"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "reload"
+        label   "Reload"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Structure from Motion"
+
+        parm {
+            name    "describerTypes"
+            label   "Describer Types"
+            type    string
+            default { "sift" }
+            help    "Describer types used to describe an image."
+            menutoggle {
+                "sift"          "sift"
+                "sift_float"    "sift_float"
+                "sift_upright"  "sift_upright"
+                "akaze"         "akaze"
+                "akaze_liop"    "akaze_liop"
+                "akaze_midb"    "akaze_midb"
+                "cctag3"        "cctag3"
+                "cctag4"        "cctag4"
+                "sift_ocv"      "sift_ocv"
+                "akaze_ocv"     "akaze_ocv"
+            }
+        }
+        parm {
+            name    "lockScenePreviouslyReconstructed"
+            label   "Lock Scene Previously Reconstructed"
+            type    toggle
+            default { "1" }
+            help    "This option is useful for SfM augmentation. Lock previous reconstructed poses and intrinsics."
+        }
+        parm {
+            name    "useLocalBA"
+            label   "Local Bundle Adjustment"
+            type    toggle
+            default { "0" }
+            help    "Reduces the reconstruction time, especially for large datasets (500+ images), by avoiding computation of the Bundle Adjustment on areas that are not changing."
+        }
+        parm {
+            name    "maxNumberOfMatches"
+            label   "Max Num of Matches"
+            type    integer
+            default { "0" }
+            help    "Maximum number of matches per image pair (and per feature type). This can be useful to have a quick reconstruction overview. A value of 0 is no limit."
+            range   { 0 50000 }
+        }
+        parm {
+            name    "minNumberOfMatches"
+            label   "Min Num of Matches"
+            type    integer
+            default { "0" }
+            help    "Maximum number of matches per image pair (and per feature type). This can be useful to have a quick reconstruction overview. A value of 0 is no limit."
+            range   { 0! 50000 }
+        }
+        parm {
+            name    "minInputTrackLength"
+            label   "Min Input Track Length"
+            type    integer
+            default { "2" }
+            help    "Minimum track length in input of SfM."
+            range   { 2 10 }
+        }
+        parm {
+            name    "lockAllIntrinsics"
+            label   "Force Lock of All Intrinsic Camera Parameters"
+            type    toggle
+            default { "0" }
+            help    "Force to keep constant all the intrinsics parameters of the cameras (focal length, \\n'                         'principal point, distortion if any) during the reconstruction.\\n'                         'This may be helpful if the input cameras are already fully calibrated"
+        }
+        parm {
+            name    "filterTrackForks"
+            label   "Filter Track Forks"
+            type    toggle
+            default { "1" }
+            help    "This option is useful for SfM augmentation. Lock previous reconstructed poses and intrinsics."
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "localizerEstimator"
+                label   "Localizer Estimator"
+                type    string
+                default { "acransac" }
+                help    "Estimator type used to localize cameras (acransac, ransac, lsmeds, loransac, maxconsensus)."
+                menu {
+                    "acransac"      "acransac"
+                    "ransac"        "ransac"
+                    "lsmeds"        "lsmeds"
+                    "loransac"      "loransac"
+                    "maxconsensus"  "maxconsensus"
+                }
+            }
+            parm {
+                name    "localizerEstimatorMaxIterations"
+                label   "Localizer Max Ransac Iterations"
+                type    integer
+                default { "4096" }
+                help    "Maximum number of iterations allowed in ransac step."
+                range   { 1! 20000! }
+            }
+            parm {
+                name    "localizerEstimatorError"
+                label   "Localizer Estimator Error"
+                type    float
+                default { "0" }
+                help    "Maximum error (in pixels) allowed for camera localization (resectioning).\\n'                         'If set to 0, it will select a threshold according to the localizer estimator used\\n'                         '(if ACRansac, it will analyze the input data to select the optimal value)."
+                range   { 0! 100! }
+            }
+            parm {
+                name    "localBAGraphDistance"
+                label   "LocalBA Graph Distance"
+                type    integer
+                default { "1" }
+                help    "Graph-distance limit to define the active region in the Local Bundle Adjustment strategy."
+                range   { 1 10 }
+            }
+            parm {
+                name    "minNumberOfObservationsForTriangulation"
+                label   "Min Observation for Triangulation"
+                type    integer
+                default { "2" }
+                help    "Minimum number of observations to triangulate a point. Setting to 3 (or more) drastically reduces the noise in the point cloud, but the number of final poses is reduced."
+                range   { 2 10 }
+            }
+            parm {
+                name    "minAngleForTriangulation"
+                label   "Min Angle for Triangulation"
+                type    float
+                default { "3" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "minAngleForLandmark"
+                label   "Min Angle for Landmark"
+                type    float
+                default { "2" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "maxReprojectionError"
+                label   "Max Reprojection Error"
+                type    float
+                default { "4" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "maxAngleInitialPair"
+                label   "Max Angle Initial Pair"
+                type    float
+                default { "40" }
+                range   { 0.1 60 }
+            }
+            parm {
+                name    "minAngleInitialPair"
+                label   "Min Angle Initial Pair"
+                type    float
+                default { "5" }
+                range   { 0.1 10 }
+            }
+            parm {
+                name    "observationConstraint"
+                label   "Observation Constraint"
+                type    ordinal
+                default { "Basic" }
+                menu {
+                    "Basic" "Basic"
+                    "Scale" "Scale"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "randomSeed"
+                label   "Random Seed"
+                type    integer
+                default { "5489" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "useOnlyMatchesFromInputFolder"
+                label   "Use Only Inputfolder Matches"
+                type    toggle
+                default { "0" }
+                help    " Use only matches from the input                                          matchesFolder parameter.                                         Matches folders previously added to the                                         SfMData file will be ignored."
+            }
+            parm {
+                name    "useRigConstraint"
+                label   "Use Rig Constraint"
+                type    toggle
+                default { "1" }
+                help    "Enable/Disable rig constraint"
+            }
+            parm {
+                name    "interFileExtension"
+                label   "Inter File Extension"
+                type    string
+                default { ".abc" }
+                menu {
+                    ".abc"  ".abc"
+                    ".ply"  ".ply"
+                }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Prepare Dense Scene"
+        tabbreak
+
+        groupcollapsible {
+            name    "folder2"
+            label   "Advanced"
+
+            parm {
+                name    "outputFileType"
+                label   "Output File Type"
+                type    string
+                default { "exr" }
+                help    "Output file type for the undistorted images."
+                menu {
+                    "jpg"   "jpg"
+                    "png"   "png"
+                    "tif"   "tif"
+                    "exr"   "exr"
+                }
+            }
+            parm {
+                name    "saveMetadata"
+                label   "Save Metadata"
+                type    toggle
+                default { "1" }
+                help    "Save projections and intrinsics information in images metadata (only for .exr images)."
+            }
+            parm {
+                name    "saveMatricesTxtFiles"
+                label   "Save Matrices Text Files"
+                type    toggle
+                default { "0" }
+                help    "Save projections and intrinsics information in text files."
+            }
+            parm {
+                name    "evCorrection"
+                label   "Correct images exposure"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "rangeStart"
+                label   "Range Start"
+                type    integer
+                default { "-1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rangeSize"
+                label   "Range Start"
+                type    integer
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "folder3"
+        label   "Environment"
+
+        parm {
+            name    "enablecustomenv"
+            label   "Use Custom Environment"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "customenv"
+            label   "Environment"
+            type    string
+            default { [ "import os, json\nenv_copy = os.environ.copy()\n\n# Modify the environment here.\n# ---------------------------\n\n\n# ---------------------------\n\nreturn json.dumps(env_copy)" python ] }
+            disablewhen "{ enablecustomenv == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

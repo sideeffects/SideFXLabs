@@ -1,0 +1,11 @@
+def cookNode(node):
+    avnodes = ["11_Texturing"]
+    for process in avnodes:
+        try:
+            node.node(process).cook(force=True)
+        except:
+            hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
+            return
+
+    node.node("obj_importer1").hdaModule().LoadMTL(node.node("obj_importer1"))
+    hou.hscript("glcache -c;") #refresh textures

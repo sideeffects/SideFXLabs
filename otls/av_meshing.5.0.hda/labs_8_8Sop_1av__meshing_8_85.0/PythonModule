@@ -1,0 +1,10 @@
+def cookNode(node):
+    avnodes = ["09_Meshing", "10_Mesh_Filtering"]
+    for process in avnodes:
+        try:
+            node.node(process).cook(force=True)
+        except:
+            hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
+            return
+
+    node.node("Force_Reload").cook(force=True)

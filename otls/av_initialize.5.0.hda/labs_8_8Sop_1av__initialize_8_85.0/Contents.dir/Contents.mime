@@ -1,0 +1,685 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="node_type"
+Content-Type: text/plain
+
+Sop
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.init"
+Content-Type: text/plain
+
+type = labs::av_initialize::5.0
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -4.17561 2.5837
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+}
+inputs
+{
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@threadripper1
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":""
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/01_Camera_Init.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/01_Camera_Init.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 1.62635 4.31304
+connectornextid 2
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	File_Setup 0 1 "input1"
+}
+inputs
+{
+0 	File_Setup 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/01_Camera_Init.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, shutil, labutils, alicevisionutils
+
+#Prepares arguments for aliceVision_cameraInit.exe and executes
+#Settings based on Meshroom settings
+
+node = hou.pwd()
+geo = node.geometry()
+
+bin = geo.attribValue(\"bin\")
+cache = geo.attribValue(\"cache\")
+share = geo.attribValue(\"share\")
+srcimg = geo.attribValue(\"src_img\") 
+
+labutils.empty_directory_recursive(os.path.join(cache, \"01_CameraInit\"))
+
+func = \"aliceVision_cameraInit\"
+
+cmd = os.path.join(bin,func) 
+cmd = [cmd]
+
+cmd.append(\"--imageFolder\")
+cmd.append(srcimg)
+
+cmd.append(\"--sensorDatabase\")
+cmd.append(os.path.join(share, \"aliceVision\", \"cameraSensors.db\"))
+
+
+cmd.append(\"--defaultFocalLengthPix\")
+cmd.append(node.parent().parm(\"defaultFocalLengthPix\").evalAsString())
+
+cmd.append(\"--defaultFieldOfView\")
+cmd.append(node.parent().parm(\"defaultFieldOfView\").evalAsString())
+
+cmd.append(\"--verboseLevel\")
+cmd.append(\"error\")
+
+cmd.append(\"--output\")
+cmd.append(os.path.join(cache, \"01_CameraInit\", \"cameraInit.sfm\"))
+
+cmd.append(\"--allowSingleView\")
+cmd.append(\"1\")
+
+cmd.append(\"--useInternalWhiteBalance\")
+cmd.append(\"1\")
+
+# --groupCameraFallback
+# --allowedCameraModels
+# --viewIdMethod
+
+if (len(os.listdir(srcimg)) > 0):
+    alicevisionutils.process(cmd, cache, \"01_CameraInit\", node)
+else:
+    raise ValueError(\"No images selected for processing!\")"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/01_Camera_Init.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/File_Setup.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/File_Setup.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 1.62635 5.2774
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+1 	error1 1 1 "input1"
+}
+inputs
+{
+0 	error1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/File_Setup.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, subprocess, os, shutil, os.path, labutils
+#-----------------------------------------------------------------------
+#Sets up an AliceVision folder in $HIP and corresponding nested folders,
+#Declares global variables that will be referenced in later nodes
+#-----------------------------------------------------------------------
+
+node = hou.pwd()
+geo = node.geometry()
+
+
+if geo.attribValue(\"dir\") == \"NONE\":
+    hou.ui.displayMessage(\"ALICEVISION_PATH has not been set in the environment variables. Please either set it, or specify the location of the AliceVision binaries in the AliceVision Parameter on \\\"AV_Initialize\\\"\", buttons=('OK',), severity=hou.severityType.Error, title=\"AliceVision Not Installed\")
+  
+
+def ValidateFolder(a_dir):
+    if not os.path.exists(a_dir):
+        os.makedirs(a_dir)
+
+cache = geo.attribValue(\"cache\")
+
+#Creating cache folder
+ValidateFolder(cache) 
+
+#Creating individual subfolders  
+# [\"00_Img\",
+# \"01_CameraInit\",
+# \"02_FeatureExtraction\",
+# \"03_ImageMatching\",
+# \"04_FeatureMatching\",
+# \"05_StructureFromMotion\",
+# \"06_PrepareDenseScene\",
+# \"07_DepthMap\",
+# \"08_DepthMapFilter\", 
+# \"09_Meshing\", 
+# \"10_MeshFiltering\", 
+# \"11_Texturing\"]
+
+folders = [\"00_Img\", \"01_CameraInit\", \"02_FeatureExtraction\", \"03_ImageMatching\", \"04_FeatureMatching\", \"05_StructureFromMotion\", \"06_PrepareDenseScene\", \"07_DepthMap\", \"08_DepthMapFilter\", \"09_Meshing\", \"10_MeshFiltering\", \"11_Texturing\"]
+
+for f in folders:
+    ValidateFolder(os.path.join(cache, f))
+        
+#Adding images to list and copying images to temp folder (AliceVision uses image directory as input)        
+srcimg = node.parent().parm(\"src_img\")
+images = set([srcimg.multiParmInstances()[x].eval() for x in range(srcimg.evalAsInt())])
+
+img_dir = os.path.join(cache, \"00_Img\")
+labutils.empty_directory_recursive(img_dir)
+
+for img in images:
+    shutil.copy(img, img_dir)
+"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/File_Setup.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.init"
+Content-Type: text/plain
+
+type = switch
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 2.70513 2.62519
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	01_Camera_Init 1 1 "input1"
+1 	null1 0 1 "input2"
+}
+inputs
+{
+0 	01_Camera_Init 0 1
+1 	null1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 1 0.7 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.chn"
+Content-Type: text/plain
+
+{
+    channel input {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../manual_mode\") }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/switch1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.init"
+Content-Type: text/plain
+
+type = null
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 4.21412 4.30804
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+1 	error1 1 1 "input1"
+}
+inputs
+{
+0 	error1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.6 0.7 0.77 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+copyinput	[ 0	locks=0 ]	(	"on"	)
+cacheinput	[ 0	locks=0 ]	(	"off"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/null1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.init"
+Content-Type: text/plain
+
+type = output
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 2.70513 1.42787
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+}
+inputsNamed3
+{
+0 	switch1 2 1 "input1"
+}
+inputs
+{
+0 	switch1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author Paul_Ambrosiussen@DESKTOP-A0373M3
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+outputidx	[ 0	locks=0 ]	(	0	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/output0.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/Atrribute_Creation.init"
+Content-Type: text/plain
+
+type = python
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/Atrribute_Creation.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 2.70513 7.75106
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+}
+inputs
+{
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@NEWPORT
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/Atrribute_Creation.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+python	[ 0	locks=0 ]	(	"import hou, os
+
+node = hou.pwd()
+geo = node.geometry()
+
+unique_id = node.parent().parm(\"proj\").eval()
+cache = os.path.join(node.parent().parm(\"cache_dir\").eval(), unique_id)
+
+if os.name == 'nt':
+        cache = cache.replace(\"/\",\"\\\\\\\\\")
+ 
+img_dir = os.path.join(cache, \"00_Img\")
+
+#---------------------------------------------
+#Setting Global Variables
+#---------------------------------------------
+aliceVision_path = hou.getenv(\"ALICEVISION_PATH\")
+if aliceVision_path == None:
+    ParmVal = node.parent().parm(\"alice_dir\").eval()
+    if ParmVal == \"\":
+        aliceVision_path = \"NONE\"
+    else:
+        aliceVision_path = os.path.abspath(ParmVal)
+        
+geo.addAttrib(hou.attribType.Global, \"dir\", \"None\", 0)
+geo.setGlobalAttribValue(\"dir\", aliceVision_path) 
+
+geo.addAttrib(hou.attribType.Global, \"cache\", cache, 0)
+geo.setGlobalAttribValue(\"cache\", cache)
+
+geo.addAttrib(hou.attribType.Global, \"src_img\", \"None\", 0)
+geo.setGlobalAttribValue(\"src_img\", img_dir)
+
+geo.addAttrib(hou.attribType.Global, \"bin\", \"None\", 0)
+geo.setGlobalAttribValue(\"bin\", os.path.join(aliceVision_path, \"bin\"))
+
+geo.addAttrib(hou.attribType.Global, \"share\", \"None\", 0)
+geo.setGlobalAttribValue(\"share\", os.path.join(aliceVision_path, \"share\"))
+
+"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/Atrribute_Creation.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error1.init"
+Content-Type: text/plain
+
+type = error
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 2.70513 6.75106
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	Atrribute_Creation 0 1 "input1"
+}
+inputs
+{
+0 	Atrribute_Creation 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author Paul_Ambrosiussen@DESKTOP-A0373M3
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error1.chn"
+Content-Type: text/plain
+
+{
+    channel errormsg1 {
+      lefttype = extend
+      righttype = extend
+      defaultString = \"\"
+      flags = 0
+      segment { options = {	 autoslope  ai ao }
+
+	 length = 0 accel = 0.33333333333333331 0.33333333333333331 expr = "import hou
+
+node = hou.pwd()
+
+aliceVision_path = hou.getenv(\"ALICEVISION_PATH\")
+
+if aliceVision_path == None:
+    ParmVal = node.parent().parm(\"alice_dir\").eval()
+    if ParmVal == \"\":
+        return \"ALICEVISION_PATH has not been set in the environment variables. Please either set it, or specify the location of the AliceVision binaries in the AliceVision Parameter on \\\"AV_Initialize\\\"\"
+    else:
+        return \"\"
+        
+return \"\"" language = python }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+numerror	[ 0	locks=0 ]	(	1	)
+errormsg1	[ 0	locks=0	autoscope=1	autosel=4294967295 ]	(	[ errormsg1	"" ] 	)
+severity1	[ 0	locks=0 ]	(	"warn"	)
+enable1	[ 0	locks=0 ]	(	1	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/error1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.order"
+Content-Type: text/plain
+
+7
+01_Camera_Init
+File_Setup
+switch1
+null1
+output0
+Atrribute_Creation
+error1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot.net"
+Content-Type: text/plain
+
+1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY--

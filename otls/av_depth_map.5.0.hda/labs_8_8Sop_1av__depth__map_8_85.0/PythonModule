@@ -1,0 +1,18 @@
+def halfStep(node, param):
+    comp = node.parm(param).eval()
+    dec = comp - int(comp)
+    if (dec < .5):
+        comp = int(comp)
+    else:
+        comp = int(comp) + 0.5
+    node.parm(param).set(comp)
+    
+def cookNode(node):
+    avnodes = ["07_Depth_Map", "08_Depth_Map_Filter"]
+    for process in avnodes:
+        try:
+            node.node(process).cook(force=True)
+        except:
+            hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
+            return
+  

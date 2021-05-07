@@ -1,0 +1,321 @@
+# Dialog script for labs::av_depth_map::5.0 automatically generated
+
+{
+    name	labs::av_depth_map::5.0
+    script	AV_Depth_Map
+    label	"Labs AV Depth Map"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"AV Structure From Motion"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"AV Meshing"
+
+    parm {
+        name    "cook"
+        label   "Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().cookNode(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "manual_mode"
+        label   "Manual"
+        type    toggle
+        joinnext
+        default { "1" }
+    }
+    parm {
+        name    "bExportLog"
+        label   "Use Log"
+        type    toggle
+        default { "0" }
+    }
+    group {
+        name    "folder0"
+        label   "Depth Map"
+
+        parm {
+            name    "downscale"
+            label   "Downscale"
+            type    integer
+            default { "2" }
+            help    "Image downscale factor."
+            menu usetokenvalue {
+                "1"     "1"
+                "2"     "2"
+                "4"     "4"
+                "8"     "8"
+                "16"    "16"
+            }
+            range   { 0 10 }
+        }
+        groupcollapsible {
+            name    "folder1"
+            label   "Advanced"
+
+            parm {
+                name    "minViewAngle"
+                label   "Min View Angle"
+                type    float
+                default { "2" }
+                help    "Minimum angle between two views"
+                range   { 0! 10! }
+            }
+            parm {
+                name    "maxViewAngle"
+                label   "Max View Angle"
+                type    float
+                default { "70" }
+                help    "Maximum angle between two views"
+                range   { 10! 120! }
+            }
+            parm {
+                name    "sgmMaxTCams"
+                label   "SGM: Num Neighbor Cameras"
+                type    integer
+                default { "10" }
+                help    "Semi Global Matching: number of neighbor cameras"
+                range   { 1 100 }
+            }
+            parm {
+                name    "sgmWSH"
+                label   "SGM: WSH"
+                type    integer
+                default { "4" }
+                help    "Semi Global Matching: Half-size of the patch used to compute similarity."
+                range   { 1 20 }
+            }
+            parm {
+                name    "sgmGammaC"
+                label   "SGM: GammaC"
+                type    float
+                default { "5.5" }
+                help    "Semi Global Matching: GammaC threshold."
+                range   { 0 30 }
+                parmtag { "export_disable" "1" }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"sGamC\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sgmGammaP"
+                label   "SGM: GammaP"
+                type    float
+                default { "8" }
+                help    "Semi Global Matching: GammaP threshold."
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"sGamP\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "refineMaxTCams"
+                label   "Refine: Num Neighbor Cameras"
+                type    integer
+                default { "6" }
+                help    "Refine: Number of neighbor cameras"
+                range   { 1 20 }
+            }
+            parm {
+                name    "refineNSamplesHalf"
+                label   "Refine: Num of Samples"
+                type    integer
+                default { "150" }
+                range   { 1 500 }
+            }
+            parm {
+                name    "refineNDepthsToRefine"
+                label   "Refine: Num of Depths"
+                type    integer
+                default { "31" }
+                range   { 1 100 }
+            }
+            parm {
+                name    "refineNiters"
+                label   "Refine: Num of Iterations"
+                type    integer
+                default { "100" }
+                range   { 1 500 }
+            }
+            parm {
+                name    "refineWSH"
+                label   "Refine: WSH"
+                type    integer
+                default { "3" }
+                help    "Refine: Half-size of the patch used to compute similarity."
+                range   { 1 20 }
+            }
+            parm {
+                name    "refineSigma"
+                label   "Refine: Sigma"
+                type    float
+                default { "15" }
+                help    "Refine: Sigma threshold"
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"rSigma\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "refineGammaC"
+                label   "Refine: GammaC"
+                type    float
+                default { "15.5" }
+                help    "Refine: GammaC threshold"
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"rGamC\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "refineGammaP"
+                label   "Refine: GammaP"
+                type    float
+                default { "8" }
+                help    "Refine: GammaP threshold"
+                range   { 0 30 }
+                parmtag { "script_callback" "hou.pwd().hdaModule().halfStep(hou.pwd(), \"rGamP\")" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "refineUseTcOrRcPixSize"
+                label   "Refine: Tc or Rc Pixel Size"
+                type    toggle
+                default { "0" }
+                help    "Refine: use minimum pixel size of neighbor cameras (Tc) or current camera pixel size (Rc)"
+            }
+            parm {
+                name    "exportIntermediateResults"
+                label   "Export Intermediate Results"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "nbGPUs"
+                label   "Number of GPUs"
+                type    integer
+                default { "0" }
+                help    "Number of GPUs to use (0 means use all available GPUs)."
+                range   { 0! 5! }
+            }
+            parm {
+                name    "rangeStart"
+                label   "Range Start"
+                type    integer
+                default { "-1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rangeSize"
+                label   "Range Size"
+                type    integer
+                default { "-1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder0_1"
+        label   "Depth Map Filter"
+        tabbreak
+
+        parm {
+            name    "minNumOfConsistentCams"
+            label   "Min Consistent Cameras"
+            type    integer
+            default { "3" }
+            help    "Minimum number of consistent cameras to consider the pixel."
+            range   { 0 10 }
+        }
+        parm {
+            name    "minNumOfConsistentCamsWithLowSimilarity"
+            label   "Min Consistent Cameras Bad Similarity"
+            type    integer
+            default { "4" }
+            help    "Minimum number of consistent cameras for pixels with weak similarity value."
+            range   { 0 10 }
+        }
+        groupcollapsible {
+            name    "folder2"
+            label   "Advanced"
+
+            parm {
+                name    "nNearestCams"
+                label   "Number of Nearest Cams"
+                type    integer
+                default { "10" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pixSizeBall"
+                label   "Filtering Size in Pixels"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "pixSizeBallWithLowSimilarity"
+                label   "Filtering Size in Pixels Bad Similarity"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "computeNormalMaps"
+                label   "Compute Normal Maps"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "rangeStartFilter"
+                label   "Range Start"
+                type    integer
+                default { "-1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rangeSizeFilter"
+                label   "Range Size"
+                type    integer
+                default { "-1" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "folder3"
+        label   "Environment"
+
+        parm {
+            name    "enablecustomenv"
+            label   "Use Custom Environment"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "customenv"
+            label   "Environment"
+            type    string
+            default { [ "import os, json\nenv_copy = os.environ.copy()\n\n# Modify the environment here.\n# ---------------------------\n\n\n# ---------------------------\n\nreturn json.dumps(env_copy)" python ] }
+            disablewhen "{ enablecustomenv == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

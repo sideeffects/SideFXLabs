@@ -1,5 +1,14 @@
 import hou, os, subprocess, json
 
+def evaluateparmtoargument(node, parm):
+    
+    if parm.parmTemplate().type() == hou.parmTemplateType.Toggle:
+        return str(parm.evalAsInt())
+    else:
+        return parm.evalAsString()
+
+
+
 def process(cmd, cache, folder, node):
 
     HDA = node.parent()
