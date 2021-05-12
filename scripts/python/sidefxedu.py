@@ -11,7 +11,12 @@ from past.utils import old_div
 import nodegraphutils as utils
 import sidefxedu_nodegraphview as edu_nodegraphview
 
-importlib.reload(edu_nodegraphview)
+try:
+  reload(edu_nodegraphview)
+except NameError:
+  from importlib import reload
+  reload(edu_nodegraphview)
+
 
 
 # define colors
@@ -99,7 +104,7 @@ class Quickmarks(object):
         if bounds.size().x() < minwidth:
             expandVec = hou.Vector2((minwidth - bounds.size().x()) * 0.5, 0.0)
         if bounds.size().y() < minheight:
-            expandVec = hou.Vector2(0.0, (minheight - bounds.size().y()) * 0.5)
+            expandVec += hou.Vector2(0.0, (minheight - bounds.size().y()) * 0.5)
         bounds.expand(expandVec)
             
         # Define the items to 
