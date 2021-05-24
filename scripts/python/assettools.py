@@ -317,7 +317,7 @@ def setToolSubmenu(hda_def, new_submenu='Digital Assets', old_submenu='Digital A
         'Sop': 'soptoolutils',
         'Vop': 'voptoolutils',
         'VopNet': 'vopnettoolutils',
-        'Driver': 'roptoolutils',
+        'Driver': 'drivertoolutils',
         'TOP': 'toptoolutils',
         'Lop': 'loptoolutils',
         'Dop': 'doptoolutils'}
