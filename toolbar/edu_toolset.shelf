@@ -67,7 +67,12 @@ else:
     <toolMenuContext name="network">
       <contextOpType>Object/topnet</contextOpType>
     </toolMenuContext>
-    <script scriptType="python"><![CDATA[n = hou.node("/obj").createNode('topnet', 'ARCHIVE')
+    <script scriptType="python"><![CDATA[
+pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+
+n = hou.node("/obj").createNode('topnet', 'ARCHIVE')
+n.setPosition(pane.visibleBounds().center())
+
 scheduler = n.children()[0]
 
 archive_top = n.createNode('labs::archive_project')
