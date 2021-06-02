@@ -88,7 +88,6 @@ class Quickmarks(object):
     def updateQmlist(self, keyword=SIDEFXEDU_QUICKMARK_KEY):
         self._qmlist = [int(qm.replace(keyword, '')) for qm in self.listQuickmarks()]
         self._qmlist.sort()
-        # print(self._qmlist)
 
     def listQuickmarks(self, keyword=SIDEFXEDU_QUICKMARK_KEY):
         qmlist = [key for key in hou.node('/').userDataDict().keys() if keyword in key]
@@ -157,39 +156,6 @@ class Quickmarks(object):
         image.setRelativeToPath(itempath)
         image.setRect(IMAGE_BOUNDING_RECT)
         return image
-
-    def jumpToNext(self):
-        value = min(self._qmlist[-1], self._qmcurrent+1)
-        self.jumpTo(value)
-        # print("Jump to next (%d)" % value)
-
-    def jumpToPrev(self):
-        value = max(self._qmlist[0], self._qmcurrent-1)
-        self.jumpTo(value)
-        # print("Jump to prev (%d)" % value)
-
-    def jumpToFirst(self):
-        self.updateQmlist()
-        if len(self._qmlist):
-            value = self._qmlist[0]
-            self.jumpTo(value)
-
-    def jumpToLast(self):
-        self.updateQmlist()
-        if len(self._qmlist):
-            value = self._qmlist[-1]
-            self.jumpTo(value)
-
-    def jumpTo(self, value):
-        self._qmcurrent = value
-        edu_nodegraphview.jumpToQuickMark(self._pane, value)
-        # print("Jump to quickmark %d" % value)
-
-    def jumpToQuickMark(editor, index):
-        quickmark = getQuickMark(index)
-        createUndoQuickMark(editor)
-        if quickmark is not None:
-            quickmark.jump(editor)
 
     def numberItems(self):
         """ This code attaches number background images to the selected network items. """
@@ -279,3 +245,36 @@ class Quickmarks(object):
     def clear(self):
         # delete all quickmarks
         self.deleteQuickmarks()
+
+    def jumpToNext(self):
+        value = min(self._qmlist[-1], self._qmcurrent+1)
+        self.jumpTo(value)
+        # print("Jump to next (%d)" % value)
+
+    def jumpToPrev(self):
+        value = max(self._qmlist[0], self._qmcurrent-1)
+        self.jumpTo(value)
+        # print("Jump to prev (%d)" % value)
+
+    def jumpToFirst(self):
+        self.updateQmlist()
+        if len(self._qmlist):
+            value = self._qmlist[0]
+            self.jumpTo(value)
+
+    def jumpToLast(self):
+        self.updateQmlist()
+        if len(self._qmlist):
+            value = self._qmlist[-1]
+            self.jumpTo(value)
+
+    def jumpTo(self, value):
+        self._qmcurrent = value
+        edu_nodegraphview.jumpToQuickMark(self._pane, value)
+        # print("Jump to quickmark %d" % value)
+
+    def jumpToQuickMark(editor, index):
+        quickmark = getQuickMark(index)
+        createUndoQuickMark(editor)
+        if quickmark is not None:
+            quickmark.jump(editor)
