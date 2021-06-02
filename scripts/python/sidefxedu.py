@@ -61,11 +61,11 @@ def createNotes(kwargs, stickytype="info"):
 
     # get the current node in the network editor pane
     node = pane.pwd()
-    # position = pane.overviewPosFromScreen(hou.Vector2(0, 0))
+    position = pane.visibleBounds().center()
 
     sticky = node.createStickyNote()
     sticky.setBounds(hou.BoundingRect(0, 0, 4, 4))
-    # sticky.setPosition(position)
+    sticky.setPosition(position)
     sticky.setText(("#%s" % stickytype))
     sticky.setColor(hou.Color(normalize_color(COLOR_BG[stickytype])))
     sticky.setTextColor(hou.Color(normalize_color(COLOR_TXT[stickytype])))
