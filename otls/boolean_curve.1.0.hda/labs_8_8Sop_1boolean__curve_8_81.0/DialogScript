@@ -1,0 +1,103 @@
+# Dialog script for labs::boolean_curve::1.0 automatically generated
+
+{
+    name	labs::boolean_curve::1.0
+    script	labs::boolean_curve::1.0
+    label	"Labs Boolean Curve"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Poly Curve"
+    inputlabel	2	"Cutting Surfaces"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Output Geometry"
+
+        parm {
+            name    "operation"
+            label   "Operation"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Subtract"
+                "1" "Intersect"
+                "2" "Shatter"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "useproxtol"
+            label   "useproxtol"
+            type    toggle
+            nolabel
+            joinnext
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "proxtol"
+            label   "Edge Length Threshold"
+            type    float
+            default { "0.01" }
+            disablewhen "{ useproxtol == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Groups"
+
+        parm {
+            name    "ainsideb"
+            label   "A inside B"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "ainsidebgrp"
+            label   "A inside B"
+            type    string
+            default { "ainsideb" }
+            disablewhen "{ ainsideb == 0 }"
+            menureplace {
+                [ "opmenu -l -a group1 groupname" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "aoutsideb"
+            label   "A outside B"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "aoutsidebgrp"
+            label   "A outside B"
+            type    string
+            default { "aoutsideb" }
+            disablewhen "{ aoutsideb == 0 }"
+            menureplace {
+                [ "opmenu -l -a group2 groupname" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

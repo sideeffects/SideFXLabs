@@ -1,0 +1,160 @@
+# Dialog script for labs::edgegroup_to_curve::1.0 automatically generated
+
+{
+    name	labs::edgegroup_to_curve::1.0
+    script	gamedev::sop_edgegroup_to_curve
+    label	"Labs Edge Group To Curve"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to Extract"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "def build_menu_from_group(groups, menu):" ]
+            [ "    if len(groups):" ]
+            [ "        menu.extend((\"-\", \"\"))" ]
+            [ "        " ]
+            [ "    for group in groups:" ]
+            [ "        name = group.name()" ]
+            [ "        menu.extend((name, name))" ]
+            [ "    " ]
+            [ "    return menu" ]
+            [ "    " ]
+            [ "sopnode = hou.pwd()" ]
+            [ "# List of tokens/labels to return." ]
+            [ "menu = []" ]
+            [ "# Make sure there is an input node before asking for its geometry." ]
+            [ "if sopnode.inputs():" ]
+            [ "    # Optionally add in '*' for all groups." ]
+            [ "    menu.extend((\"*\", \"*\"))" ]
+            [ "    geo = sopnode.inputs()[0].geometry()" ]
+            [ "    " ]
+            [ "    menu = build_menu_from_group(geo.edgeGroups(), menu)" ]
+            [ "        " ]
+            [ "return menu" ]
+            language python
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Primitives,hou.geometryType.Edges,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "connectends"
+        label   "Connect End Points"
+        type    toggle
+        default { [ "on" hscript-expr ] }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Thickness"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "add_polywire"
+            label   "Thicken"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "divs"
+            label   "Divisions"
+            type    integer
+            default { "9" }
+            hidewhen "{ add_polywire == 0 }"
+            range   { 1! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "polywire_color"
+            label   "Color"
+            type    color4
+            size    4
+            default { "1" "0" "0" "1" }
+            hidewhen "{ add_polywire == 0 }"
+            range   { 0 1 }
+        }
+        parm {
+            name    "poly_wire_thickness"
+            label   "Thickness"
+            type    float
+            default { "0.01" }
+            hidewhen "{ add_polywire == 0 }"
+            range   { 0.001 0.1 }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Attributes"
+
+        parm {
+            name    "transferattr"
+            label   "Transfer Attributes"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pointattribs"
+            label   "Point"
+            type    string
+            default { "" }
+            hidewhen "{ transferattr == 0 }"
+            menutoggle {
+                [ "opmenu -l -a attribinterpolate1 pointattribs" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "sop_input" "1" }
+        }
+        parm {
+            name    "vertattribs"
+            label   "Vertex"
+            type    string
+            default { "" }
+            hidewhen "{ transferattr == 0 }"
+            menutoggle {
+                [ "opmenu -l -a attribinterpolate1 vertattribs" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "sop_input" "1" }
+        }
+        parm {
+            name    "primattribs"
+            label   "Primitive"
+            type    string
+            default { "" }
+            hidewhen "{ transferattr == 0 }"
+            menutoggle {
+                [ "opmenu -l -a attribinterpolate1 primattribs" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "sop_input" "1" }
+        }
+        parm {
+            name    "detailattribs"
+            label   "Detail"
+            type    string
+            default { "" }
+            hidewhen "{ transferattr == 0 }"
+            menutoggle {
+                [ "opmenu -l -a attribinterpolate1 detailattribs" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "sop_input" "1" }
+        }
+    }
+
+}
