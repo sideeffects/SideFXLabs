@@ -1,4 +1,4 @@
-"""  
+"""
 This is my adaptation of nodegraphview.py to be able to have quickmarks with a different quickmark key
 Mainly to use for the Education tools, but adding this parameter would be useful for other quickmarks
 """
@@ -139,11 +139,11 @@ def frameItems(editor, items, immediate = False):
         # Put a one unit buffer around the items being framed.
         bounds.expand(hou.Vector2(1.0, 1.0))
         if immediate:
-            editor.setVisibleBounds(bounds, 0, max_scale, True) 
+            editor.setVisibleBounds(bounds, 0, max_scale, True)
         else:
             createUndoQuickMark(editor)
             editor.setVisibleBounds(bounds, utils.getViewUpdateTime(editor),
-                                    max_scale, True) 
+                                    max_scale, True)
 
 def ensureItemsAreVisible(editor, items, immediate = False):
     bounds = hou.BoundingRect()
@@ -178,11 +178,11 @@ def ensureItemsAreVisible(editor, items, immediate = False):
             bounds = current_bounds
 
         if immediate:
-            editor.setVisibleBounds(bounds, 0, max_scale, True) 
+            editor.setVisibleBounds(bounds, 0, max_scale, True)
         else:
             createUndoQuickMark(editor)
             editor.setVisibleBounds(bounds, utils.getViewUpdateTime(editor),
-                                    max_scale, True) 
+                                    max_scale, True)
 
 def modifySelection(uievent, editor, items,
                     current = None, shift = None, ctrl = None):
@@ -525,4 +525,3 @@ def quickmarkMenuLabel(index):
         label += path
 
     return label
-
