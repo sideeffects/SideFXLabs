@@ -16,6 +16,9 @@ def process(cmd, cache, folder, node):
     log = HDA.parm("bExportLog").evalAsInt() == 1
 
     with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
+
+        workingdir = os.path.dirname(cmd[0])
+        
         if log:
             print("--------")
             print(node.name())
@@ -35,7 +38,7 @@ def process(cmd, cache, folder, node):
             customenv = json.loads(HDA.parm("customenv").eval())
             clean_env = {str(key): str(value) for key, value in customenv.items()}
 
-        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=clean_env)
+        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=clean_env, cwd=workingdir)
 
         # Process is still running
         while Process.poll() == None:
