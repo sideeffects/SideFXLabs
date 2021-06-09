@@ -1242,7 +1242,9 @@ class NamespaceWidget(QWidget):
 
         if " " in namespace:
             namespace = namespace.replace(" ", "_")
-            self.namespace_edit.setText(namespace)        
+            cursorpos = self.namespace_edit.cursorPosition()
+            self.namespace_edit.setText(namespace)
+            self.namespace_edit.setCursorPosition(cursorpos)
 
     def setSelectedIcon(self, selected):
 
@@ -1862,11 +1864,15 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         if " " in user:
             user = user.replace(" ", "_")
+            cursorpos = self.user_edit.lineEdit().cursorPosition()
             self.user_edit.setEditText(user)
+            self.user_edit.lineEdit().setCursorPosition(cursorpos)
 
         if " " in branch:
             branch = branch.replace(" ", "_")
-            self.branch_edit.setEditText(branch)            
+            cursorpos = self.branch_edit.lineEdit().cursorPosition()
+            self.branch_edit.setEditText(branch)
+            self.branch_edit.lineEdit().setCursorPosition(cursorpos)         
 
         self.setAssetNamePreview(user, branch, self.assettype_edit.text(), major, minor)  
         self.setAssetPathPreivew(self.pathmode.currentText(), user, branch, self.assettype_edit.text(), major, minor)  
@@ -1891,10 +1897,11 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         assettype = self.assettype_edit.text()
 
-        assettype = assettype.lower()        
+        assettype = assettype.lower()
         assettype = assettype.replace(" ", "_")
-
+        cursorpos = self.assettype_edit.cursorPosition() 
         self.assettype_edit.setText(assettype)
+        self.assettype_edit.setCursorPosition(cursorpos) 
 
         self.setAssetNamePreview(user, branch, assettype, major, minor)        
         self.setAssetPathPreivew(self.pathmode.currentText(), user, branch, assettype, major, minor)
