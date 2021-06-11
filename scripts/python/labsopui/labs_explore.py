@@ -6,8 +6,8 @@ import os
 import hou
 import platform
 import subprocess
-import path
-import log
+from labsopui import labs_path
+from labsopui import labs_log
 
 # =============================================================================
 # FUNCTIONS
@@ -34,8 +34,8 @@ def multiparm_path(node,parm):
 def path(node, path):
     path    = os.path.dirname(os.path.abspath(path)) 
     pl      = platform.system()
-    log.node(node, 2, "Your Platform is: " + str(pl))
-    log.node(node, 1, "File path to Browse: " + path)
+    # log.node(node, 2, "Your Platform is: " + str(pl))
+    # log.node(node, 1, "File path to Browse: " + path)
     skp     = 0
     cmd     = "explorer"
     if pl == "Windows":

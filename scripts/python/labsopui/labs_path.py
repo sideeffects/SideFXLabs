@@ -6,7 +6,7 @@ import os
 import re
 import hou
 import datetime
-import oppath
+from labsopui import labs_oppath
 
 # =============================================================================
 # GLOBAL VARIABLES
