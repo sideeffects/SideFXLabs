@@ -776,7 +776,8 @@ def copyToNewVHDA(node):
         major += 1
     minor = 0      
 
-    tabmenu = getToolSubmenu(node.type().definition())[0]
+    tabmenu = getToolSubmenu(node.type().definition())
+    tabmenu = "Digital Asset" if tabmenu == None else tabmenu[0]
     category_name = node.type().category().name()   
 
     button_idx, values = newVHDAWindow(name,
@@ -1908,11 +1909,6 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.updateOKBtn(user, branch, assettype, major, minor)
 
-        assetlabel = assettype        
-        assetlabel = assetlabel.replace("_", " ")
-        assetlabel = assetlabel.capitalize()
-        self.assetlabel_edit.setText(assetlabel)
-
     def on_AssetLabelChange(self):
         user = self.user_edit.currentText() if self.user_enable.isChecked() else ""
         branch = self.branch_edit.currentText() if self.branch_enable.isChecked() else ""        
@@ -2215,10 +2211,6 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         assetlabel_layout.addWidget(assetlabel_label)
         assetlabel_layout.addWidget(self.assetlabel_edit)
-        
-        #assetlabel_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        #self.assetlabel_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-
 
         # Tab Menu
         tabmenu_layout = QHBoxLayout()
@@ -2246,9 +2238,6 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         tabmenu_layout.addWidget(tabmenu_label)        
         tabmenu_layout.addWidget(self.tabmenu_edit)  
-
-        #tabmenu_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        #self.tabmenu_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
 
         # Spacer layout    
         spacer_label = QLabel("")    
