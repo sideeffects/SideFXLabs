@@ -1,0 +1,228 @@
+# Dialog script for labs::simple_rope_wrap::1.0 automatically generated
+
+{
+    name	labs::simple_rope_wrap::1.0
+    script	HE_Rope_Tool
+    label	"Labs Simple Rope Wrap"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Polygon Surfaces"
+    inputlabel	2	"Geometry Object"
+    inputlabel	3	"(optional) Profile Shape"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Curve"
+
+        parm {
+            name    "length"
+            label   "Resolution"
+            type    float
+            default { "0.05" }
+            range   { 0.005! 0.1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "inline"
+            label   "Optimize Curves"
+            type    toggle
+            joinnext
+            default { "off" }
+            disablewhen "{ incroll > 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "inlinedist"
+            label   "Tolerance"
+            type    log
+            default { "1e-05" }
+            disablewhen "{ inline == 0 } { incroll > 0 }"
+            range   { 0 0.1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "simulated"
+            label   "Simulated"
+            type    toggle
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "quasistaticframes"
+            label   "Frames"
+            type    integer
+            default { "20" }
+            disablewhen "{ simulated == 0 }"
+            range   { 1! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Geometry"
+
+        parm {
+            name    "shape"
+            label   "Style"
+            type    integer
+            joinnext
+            default { "1" }
+            menu {
+                "0" "Circle"
+                "1" "Rope"
+                "2" "Custom"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scale"
+            label   "Diameter"
+            type    float
+            default { "0.1" }
+            range   { 0.01 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "incroll"
+            label   "Degrees Twist per Unit"
+            type    float
+            default { "0" }
+            range   { 0 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "divs"
+            label   "Rows"
+            type    integer
+            default { "8" }
+            disablewhen "{ shape > 1 }"
+            range   { 3! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cuspangle"
+            label   "Cusp Angle"
+            type    float
+            default { "180" }
+            range   { 0! 180! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0_1"
+        label   "UV"
+
+        parm {
+            name    "uvscale"
+            label   "UV Scale"
+            type    vector2
+            size    2
+            default { "1" "1" }
+            range   { 0.1 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uvrotation"
+            label   "UV Rotation"
+            type    float
+            default { "0" }
+            range   { -180 180 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder0_2"
+        label   "Optimization"
+
+        parm {
+            name    "polyreduce"
+            label   "Optimize Surface"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "percentage"
+            label   "Percent To Keep"
+            type    float
+            default { "99" }
+            disablewhen "{ polyreduce == 0 }"
+            range   { 0! 100! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "qualitytolerance"
+            label   "Tolerance"
+            type    float
+            default { "1e-05" }
+            disablewhen "{ polyreduce == 0 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder2"
+        label   "Simulation Settings"
+
+        parm {
+            name    "mass"
+            label   "Mass"
+            type    float
+            default { "0.1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "kg1" }
+        }
+        parm {
+            name    "stretchrestscale"
+            label   "Rest Length Scale"
+            type    float
+            default { "0.9" }
+            range   { 0 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "stretchstiffness"
+            label   "Stretch Stiffness"
+            type    float
+            default { "1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "bendstiffness"
+            label   "Bend Stiffness"
+            type    float
+            default { "1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
