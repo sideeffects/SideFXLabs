@@ -1,0 +1,1539 @@
+# Dialog script for labs::vertex_animation_textures::3.0 automatically generated
+
+{
+    name	labs::vertex_animation_textures::3.0
+    script	LaidlawFX::vertex_animation_textures::1.5
+    label	"Labs Vertex Animation Textures"
+
+    help {
+	""
+    }
+
+    parm {
+        name    "renderall"
+        label   "Render All"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hm().cookAndRender()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        invisible
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        invisible
+        export  none
+    }
+    parm {
+        name    "resetsims"
+        label   "Reset Internal Simulations"
+        type    button
+        invisible
+        default { "0" }
+        parmtag { "button_icon" "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "mode"
+        label   "Mode / Target Engine"
+        type    integer
+        joinnext
+        default { "1" }
+        menu {
+            "0" "Soft-Body Deformation (Soft)"
+            "1" "Rigid-Body Dynamics (Rigid)"
+            "2" "Dynamic Remeshing (Fluid)"
+            "3" "Particle Sprites (Sprite)"
+        }
+        range   { 0 10 }
+        parmtag { "script_callback" "hou.pwd().hm().switchMode()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "engine"
+        label   "Target Engine"
+        type    string
+        nolabel
+        default { "unreal" }
+        menu {
+            "unreal"    "Unreal Engine"
+            "unity"     "Unity"
+            "custom"    "Custom"
+        }
+        parmtag { "script_callback" "hou.pwd().hm().setEnginePreset()" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "f"
+        label   "Start/End"
+        type    integer
+        size    2
+        default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] }
+        range   { 0 10 }
+    }
+    parm {
+        name    "soppath"
+        label   "Input Geometry"
+        type    oppath
+        default { "" }
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+    group {
+        name    "fd_settings_1_1"
+        label   "Settings"
+
+        groupsimple {
+            name    "fd_soft"
+            label   "Soft-Body Deformation"
+            hidewhentab "{ mode != 0 }"
+
+            parm {
+                name    "checkconstnumpt"
+                label   "Validate Point Count Consistency"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "packnorm_soft"
+                label   "Export Compressed Normals in Position Alpha"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback" "if hou.pwd().evalParm(\"packnorm_soft\") == 1: hou.pwd().setParms({\"override_pa\": 0})" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_rigid"
+            label   "Rigid-Body Dynamics"
+            hidewhentab "{ mode != 1 }"
+
+            parm {
+                name    "pivotencoding"
+                label   "Pivot Accuracy"
+                type    ordinal
+                default { "1" }
+                menu {
+                    "0" "High (Best Performance at Low Memory Footprint)"
+                    "1" "Very High (Best Quality at Low Memory Footprint)"
+                    "2" "Maximum (Must Turn On Use Full Precision UVs in Unreal)"
+                }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "slerpmode"
+                label   "Rotation Interpolation"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Accurate Multi-RPF Slerp with Angular Velocity"
+                    "1" "Basic Short-Path Slerp without Angular Velocity"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupcollapsible {
+                name    "fd_rigid_edgecase"
+                label   "Edge Case Handling"
+                hidewhentab "{ slerpmode == 1 }"
+                hidewhen "{ slerpmode == 1 }"
+
+                parm {
+                    name    "slerpedgecaseoffset"
+                    label   "Slerp Edge Case Offset"
+                    type    float
+                    default { "10" }
+                    range   { 0! 20 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "slerpedgecaseseed"
+                    label   "Slerp Edge Case Seed"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ slerpmode == 1 }"
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fd_fluid"
+            label   "Dynamic Remeshing"
+            hidewhentab "{ mode != 2 }"
+
+            parm {
+                name    "fusedist"
+                label   "Fuse Distance"
+                type    float
+                default { "0.01" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "packnorm_fluid"
+                label   "Export Compressed Normals in Position Alpha"
+                type    toggle
+                default { "0" }
+                disablewhen "{ fluiduvinalphas == 1 }"
+                parmtag { "script_callback" "if hou.pwd().evalParm(\"packnorm_fluid\") == 1 : hou.pwd().setParms({\"fluiduvinalphas\": 0, \"override_pa\" : 0})" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fluiduvinalphas"
+                label   "Export Fluid UVs in Position Alpha and Color Alpha"
+                type    toggle
+                default { "0" }
+                disablewhen "{ packnorm_fluid == 1 }"
+                parmtag { "script_callback" "if hou.pwd().evalParm(\"fluiduvinalphas\") == 1 : hou.pwd().setParms({\"packnorm_fluid\": 0, \"override_pa\": 0, \"override_a\": 0})" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fluiduvinrg"
+                label   "Export Fluid UVs in Color Red and Green"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback" "if hou.pwd().evalParm(\"fluiduvinrg\") == 1 : hou.pwd().setParms({\"override_c\": 0})" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_sprite"
+            label   "Particle Sprites"
+            hidewhentab "{ mode != 3 }"
+
+            parm {
+                name    "supportparticleinterpolate"
+                label   "Support Particle Interframe Interpolation"
+                type    toggle
+                default { "1" }
+                disablewhen "{ customshapes == 1 multishapes == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cardshape"
+                label   "Card Shape"
+                type    ordinal
+                default { "0" }
+                hidewhen "{ customshapes == 1 }"
+                menu {
+                    "0" "Square Cards"
+                    "1" "Triangle Cards (50% Triangle Count; Less Overshading)"
+                    "2" "Hexagon Cards (200% Triangle Count; Less Transparency Overdraw)"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cardorient_square"
+                label   "Square Orientation"
+                type    ordinal
+                default { "0" }
+                hidewhen "{ customshapes == 1 } { cardshape != 0 }"
+                menu {
+                    "0" "Default"
+                    "1" "Diamond"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cardorient_tri"
+                label   "Triangle Orientation"
+                type    ordinal
+                default { "1" }
+                hidewhen "{ customshapes == 1 } { cardshape != 1 }"
+                menu {
+                    "0" "Up-Pointing"
+                    "1" "Down-Pointing"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cardorient_hex"
+                label   "Hexagon Orientation"
+                type    ordinal
+                default { "0" }
+                hidewhen "{ customshapes == 1 } { cardshape != 2 }"
+                menu {
+                    "0" "Left-Right-Pointing"
+                    "1" "Up-Down-Pointing"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "fd_customcards"
+                label   "Custom Cards"
+
+                parm {
+                    name    "customshapes"
+                    label   "Enable Custom Shapes"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    parmtag { "script_callback" "hou.pwd().hm().toggleCustomShapes()" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "customshapepath"
+                    label   "Custom ZX Shapes"
+                    type    oppath
+                    default { "" }
+                    disablewhen "{ customshapes == 0 }"
+                    parmtag { "opfilter" "!!SOP!!" }
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback" "" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "shapeinputtype"
+                    label   "Shape Input Type"
+                    type    ordinal
+                    default { "1" }
+                    hidewhen "{ customshapes == 0 }"
+                    menu {
+                        "0" "Filled Polygons"
+                        "1" "Closed Hollow Curves"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "multishapes"
+                    label   "Multiple Shape Variants with Shape ID Attribute"
+                    type    toggle
+                    default { "0" }
+                    hidewhen "{ customshapes == 0 }"
+                    parmtag { "script_callback" "if hou.pwd().evalParm(\"customshapes\") * hou.pwd().evalParm(\"multishapes\") == 1: hou.pwd().setParms({\"supportparticleinterpolate\": 1})" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "shapeidattrib"
+                    label   "Shape ID Attribute"
+                    type    string
+                    default { "shape_id" }
+                    hidewhen "{ multishapes == 0 } { customshapes == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "shapewattrib"
+                    label   "Shape Weight Attribute"
+                    type    string
+                    default { "shape_weight" }
+                    hidewhen "{ multishapes == 0 } { customshapes == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "shapekeeprelscale"
+                    label   "Preserve Relative Scales of Different Shapes"
+                    type    toggle
+                    default { "0" }
+                    hidewhen "{ multishapes == 0 } { customshapes == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "reversenorm"
+                    label   "Reverse Custom Card Normals"
+                    type    toggle
+                    default { "0" }
+                    hidewhen "{ customshapes == 0 }"
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fd_general"
+            label   "All Modes"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "normalizedata"
+                label   "Texture Format"
+                type    ordinal
+                joinnext
+                default { "0" }
+                menu {
+                    "0" "HDR (EXR/TIFF as RGBA 16/32 in Engine)"
+                    "1" "Non-HDR (Any Format as RGBA 8 in Engine)"
+                }
+                parmtag { "script_callback" "if hou.pwd().parm(\"normalizedata\").evalAsInt() + hou.pwd().parm(\"allowhdrsplitpos\").evalAsInt() == 0 : hou.pwd().setParms({\"splitpos\": hou.pwd().parm(\"normalizedata\").evalAsInt(), \"enable_pos2\": hou.pwd().parm(\"normalizedata\").evalAsInt()})" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "imageformat"
+                label   "Image Format"
+                type    ordinal
+                nolabel
+                default { "exr" }
+                menu {
+                    "exr"   ".exr"
+                    "tiff"  ".tiff"
+                    "png"   ".png"
+                    "tga"   ".tga"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "splitpos"
+                label   "Split Positions into Two Textures"
+                type    toggle
+                default { "0" }
+                disablewhen "{ normalizedata == 0 allowhdrsplitpos == 0 }"
+                hidewhen "{ normalizedata == 0 allowhdrsplitpos == 0 }"
+                parmtag { "script_callback" "hou.pwd().setParms({\"enable_pos2\" : hou.pwd().parm(\"splitpos\").evalAsInt()})" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "addsparecol"
+                label   "Export Spare Color Texture"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback" "hou.pwd().setParms({\"enable_col2\": hou.pwd().evalParm(\"addsparecol\")})" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "exportvtxcol"
+                label   "Export Static Mesh Vertex Colors"
+                type    toggle
+                default { "0" }
+                disablewhen "{ mode == 2 } { mode == 3 customshapes == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "debugplane"
+                label   "Include Hidden Debug Plane in Geometry"
+                type    toggle
+                default { "1" }
+                disablewhen "{ engine != unreal }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            groupcollapsible {
+                name    "fd_replace"
+                label   "Export Custom Attributes"
+
+                parm {
+                    name    "override_pa"
+                    label   "Override P A"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    disablewhen "{ packnorm_soft == 1 mode == 0 } { packnorm_fluid == 1 mode == 2 } { fluiduvinalphas == 1 mode == 2 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "attrib_to_replace_pa"
+                    label   "In Position Alpha"
+                    type    string
+                    default { "pscale" }
+                    disablewhen "{ override_pa == 0 }"
+                    menureplace {
+                        [ "r = []" ]
+                        [ "node = hou.node(hou.parm(\"soppath\").evalAsString())" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "if inputs and inputs[0]:" ]
+                        [ "    geo = inputs[0].geometry()" ]
+                        [ "    if geo:" ]
+                        [ "        c = 'point'" ]
+                        [ "        if c == 'detail':" ]
+                        [ "            attrs = geo.globalAttribs()" ]
+                        [ "        elif c == 'primitive':" ]
+                        [ "            attrs = geo.primAttribs()" ]
+                        [ "        elif c == 'point':" ]
+                        [ "            attrs = geo.pointAttribs()" ]
+                        [ "        else: # vertex" ]
+                        [ "            attrs = geo.vertexAttribs()" ]
+                        [ "            " ]
+                        [ "        attribtype = 'float' " ]
+                        [ "        for a in attrs:" ]
+                        [ "            if 'float' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "            if 'vec' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "override_c"
+                    label   "Override C"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    disablewhen "{ fluiduvinrg == 1 mode == 2 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "attrib_to_replace_c"
+                    label   "In Color"
+                    type    string
+                    default { "Cd" }
+                    disablewhen "{ override_c == 0 }"
+                    menureplace {
+                        [ "r = []" ]
+                        [ "node = hou.node(hou.parm(\"soppath\").evalAsString())" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "if inputs and inputs[0]:" ]
+                        [ "    geo = inputs[0].geometry()" ]
+                        [ "    if geo:" ]
+                        [ "        c = 'point'" ]
+                        [ "        if c == 'detail':" ]
+                        [ "            attrs = geo.globalAttribs()" ]
+                        [ "        elif c == 'primitive':" ]
+                        [ "            attrs = geo.primAttribs()" ]
+                        [ "        elif c == 'point':" ]
+                        [ "            attrs = geo.pointAttribs()" ]
+                        [ "        else: # vertex" ]
+                        [ "            attrs = geo.vertexAttribs()" ]
+                        [ "            " ]
+                        [ "        attribtype = 'vec' " ]
+                        [ "        for a in attrs:" ]
+                        [ "            if 'float' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "            if 'vec' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "override_a"
+                    label   "Override A"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    disablewhen "{ fluiduvinalphas == 1 mode == 2 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "attrib_to_replace_a"
+                    label   "In Color Alpha"
+                    type    string
+                    default { "Alpha" }
+                    disablewhen "{ override_a == 0 }"
+                    menureplace {
+                        [ "r = []" ]
+                        [ "node = hou.node(hou.parm(\"soppath\").evalAsString())" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "if inputs and inputs[0]:" ]
+                        [ "    geo = inputs[0].geometry()" ]
+                        [ "    if geo:" ]
+                        [ "        c = 'point'" ]
+                        [ "        if c == 'detail':" ]
+                        [ "            attrs = geo.globalAttribs()" ]
+                        [ "        elif c == 'primitive':" ]
+                        [ "            attrs = geo.primAttribs()" ]
+                        [ "        elif c == 'point':" ]
+                        [ "            attrs = geo.pointAttribs()" ]
+                        [ "        else: # vertex" ]
+                        [ "            attrs = geo.vertexAttribs()" ]
+                        [ "            " ]
+                        [ "        attribtype = 'float' " ]
+                        [ "        for a in attrs:" ]
+                        [ "            if 'float' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "            if 'vec' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            parm {
+                name    "sepparm4"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "lb_finaltexsize"
+                label   "lb_finaltexsize"
+                type    label
+                nolabel
+                default { "Last Render's Texture Size: `ch(\"finaltexsizex\")` × `ch(\"finaltexsizey\")`" }
+                hidewhen "{ enablecooking == 1 } { previewtexsize == 1 }"
+            }
+            parm {
+                name    "finaltexsizex"
+                label   "Final Texture Size X"
+                type    integer
+                invisible
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "finaltexsizey"
+                label   "Final Texture Size Y"
+                type    integer
+                invisible
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "lb_finaltexsizelive"
+                label   "lb_finaltexsizelive"
+                type    label
+                nolabel
+                default { "Expected Texture Size: `(1 - ch(\"padpowtwo\")) * ch(\"textures/size/size1\") + ch(\"padpowtwo\") * ch(\"textures/size/pow2sizex\")` × `(1 - ch(\"padpowtwo\")) * ch(\"textures/size/size2\") + ch(\"padpowtwo\") * ch(\"textures/size/pow2sizey\")`" }
+                hidewhen "{ enablecooking == 0 previewtexsize == 0 }"
+            }
+            parm {
+                name    "target_texture_size"
+                label   "Target Texture Width"
+                type    string
+                default { "1024" }
+                menureplace {
+                    "32"    "32"
+                    "64"    "64"
+                    "128"   "128"
+                    "256"   "256"
+                    "512"   "512"
+                    "1024"  "1024"
+                    "2048"  "2048"
+                    "4096"  "4096"
+                    "8192"  "8192"
+                }
+            }
+            parm {
+                name    "previewtexsize"
+                label   "Preview Texture Size (Slow)"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback" "#if hou.pwd().evalParm(\"previewtexsize\") == 1 : hou.pwd().parm(\"resetsims\").pressButton()" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "padpowtwo"
+                label   "Pad Texture Size to Powers of Two"
+                type    toggle
+                default { "0" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fd_settings_1_1_1"
+        label   "Input"
+
+        groupsimple {
+            name    "fd_inputrequirements"
+            label   "Current Mode and Engine Input Requirements"
+
+            parm {
+                name    "lb_expected_soft1"
+                label   "lb_expected_soft"
+                type    label
+                nolabel
+                default { "Constant topology with consistent point count" }
+                hidewhen "{ mode != 0 }"
+            }
+            parm {
+                name    "lb_expected_soft2"
+                label   "lb_expected_soft"
+                type    label
+                nolabel
+                default { "Turn on Facet SOP's Unique Points for selected group to preserve hard edge normals" }
+                hidewhen "{ mode != 0 }"
+            }
+            parm {
+                name    "lb_expected_soft3"
+                label   "lb_expected_soft"
+                type    label
+                nolabel
+                default { "Required:    P" }
+                hidewhen "{ mode != 0 }"
+            }
+            parm {
+                name    "lb_expected_soft4"
+                label   "lb_expected_soft"
+                type    label
+                nolabel
+                default { "Optional:    Cd,  Alpha,  <uv>,  <N>,  <tangentu>" }
+                hidewhen "{ mode != 0 }"
+            }
+            parm {
+                name    "lb_expected_soft5"
+                label   "lb_expected_soft"
+                type    label
+                nolabel
+                default { "To export Spare Color:    Cd2,  Alpha2" }
+                hidewhen "{ mode != 0 }"
+            }
+            parm {
+                name    "lb_expected_soft6"
+                label   "lb_expected_soft"
+                type    label
+                nolabel
+                default { "To export Static Mesh Vertex Color:    <Cd_v>,  <Alpha_v>" }
+                hidewhen "{ mode != 0 }"
+            }
+            parm {
+                name    "lb_expected_soft7"
+                label   "lb_expected_soft"
+                type    label
+                nolabel
+                default { "Do not include:    ^<uv2>" }
+                hidewhen "{ mode != 0 }"
+            }
+            parm {
+                name    "lb_expected_rigid1"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "Packed geometry with consistent piece count" }
+                hidewhen "{ mode != 1 }"
+            }
+            parm {
+                name    "lb_expected_rigid2"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "Required:    [P],  [pivot],  [orient]" }
+                hidewhen "{ mode != 1 }"
+            }
+            parm {
+                name    "lb_expected_rigid3"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "Optional:    [pscale],  [Cd],  [Alpha],  <uv>,  <N>,  <tangentu>" }
+                hidewhen "{ mode != 1 }"
+            }
+            parm {
+                name    "lb_expected_rigid4"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "To enable Multi-RPF Slerp:    [w]" }
+                hidewhen "{ mode != 1 }"
+            }
+            parm {
+                name    "lb_expected_rigid5"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "To export Spare Color:    [Cd2],  [Alpha2]" }
+                hidewhen "{ mode != 1 }"
+            }
+            parm {
+                name    "lb_expected_rigid6"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "To export Static Mesh Vertex Color:    <Cd_v>,  <Alpha_v>" }
+                hidewhen "{ mode != 1 }"
+            }
+            parm {
+                name    "lb_expected_rigid7"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "Do not include:    ^<uv2>,  ^<uv3>,  ^<uv4>" }
+                hidewhen "{ mode != 1 }"
+            }
+            parm {
+                name    "lb_expected_rigid8"
+                label   "lb_expected_rigid"
+                type    label
+                nolabel
+                default { "Do not include if supporting Real-Time Instancing:    ^<uv5>,  ^<uv6>" }
+                hidewhen "{ mode != 1 } { engine != unreal }"
+            }
+            parm {
+                name    "lb_expected_fluid1"
+                label   "lb_expected_fluid"
+                type    label
+                nolabel
+                default { "Required:    P" }
+                hidewhen "{ mode != 2 }"
+            }
+            parm {
+                name    "lb_expected_fluid2"
+                label   "lb_expected_fluid"
+                type    label
+                nolabel
+                default { "Optional:    Cd,  Alpha,  <uv>,  <N>,  <tangentu>" }
+                hidewhen "{ mode != 2 }"
+            }
+            parm {
+                name    "lb_expected_fluid3"
+                label   "lb_expected_fluid"
+                type    label
+                nolabel
+                default { "To export Spare Color:    Cd2,  Alpha2" }
+                hidewhen "{ mode != 2 }"
+            }
+            parm {
+                name    "lb_expected_fluid4"
+                label   "lb_expected_fluid"
+                type    label
+                nolabel
+                default { "Do not include if exporting UVs in Position and Color Alphas:    ^Alpha" }
+                hidewhen "{ mode != 2 }"
+            }
+            parm {
+                name    "lb_expected_fluid5"
+                label   "lb_expected_fluid"
+                type    label
+                nolabel
+                default { "Do not include if exporting UVs in Color RG:    ^Cd.r,  ^Cd.g" }
+                hidewhen "{ mode != 2 }"
+            }
+            parm {
+                name    "lb_expected_sprite1"
+                label   "lb_expected_sprite"
+                type    label
+                nolabel
+                default { "Required:    P" }
+                hidewhen "{ mode != 3 }"
+            }
+            parm {
+                name    "lb_expected_sprite2"
+                label   "lb_expected_sprite"
+                type    label
+                nolabel
+                default { "Optional:    pscale,  Cd,  Alpha" }
+                hidewhen "{ mode != 3 }"
+            }
+            parm {
+                name    "lb_expected_sprite3"
+                label   "lb_expected_sprite"
+                type    label
+                nolabel
+                default { "To support Particle Interframe Interpolation or Multiple Shape Variants:    id" }
+                hidewhen "{ mode != 3 }"
+            }
+            parm {
+                name    "lb_expected_sprite7"
+                label   "lb_expected_sprite"
+                type    label
+                nolabel
+                default { "To export Spare Color:    Cd2,  Alpha2" }
+                hidewhen "{ mode != 3 }"
+            }
+            groupsimple {
+                name    "fd_expected_customcards"
+                label   "On Custom Cards (If Enabled)"
+                hidewhentab "{ mode != 3 }"
+                hidewhen "{ mode != 3 }"
+
+                parm {
+                    name    "lb_expected_sprite4"
+                    label   "lb_expected_sprite"
+                    type    label
+                    nolabel
+                    default { "Required:    P" }
+                    hidewhen "{ mode != 3 }"
+                }
+                parm {
+                    name    "lb_expected_sprite5"
+                    label   "lb_expected_sprite"
+                    type    label
+                    nolabel
+                    default { "Optional:    <uv>" }
+                    hidewhen "{ mode != 3 }"
+                }
+                parm {
+                    name    "lb_expected_sprite6"
+                    label   "lb_expected_sprite"
+                    type    label
+                    nolabel
+                    default { "To export Static Mesh Vertex Color:    <Cd_v>,  <Alpha_v>" }
+                    hidewhen "{ mode != 3 }"
+                }
+            }
+
+            groupcollapsible {
+                name    "fd_inputhelp"
+                label   "Help"
+
+                parm {
+                    name    "lb_inputhelp"
+                    label   "lb_inputhelp"
+                    type    label
+                    nolabel
+                    default { "Point attribute    <Vertex attribute>    [Packed point attribute]    ^Do not include" }
+                }
+                parm {
+                    name    "lb_inputhelp2"
+                    label   "lb_inputhelp"
+                    type    label
+                    nolabel
+                    default { "Some errors and warnings will only be cleared after a successful render." }
+                }
+            }
+
+        }
+
+        groupcollapsible {
+            name    "fd_attribautogen"
+            label   "Attribute Auto Generation"
+            hidewhentab "{ mode == 3 }"
+            hidewhen "{ mode == 3 }"
+
+            parm {
+                name    "autouvmode"
+                label   "UV Generation"
+                type    ordinal
+                default { "1" }
+                menu {
+                    "0" "Compute Missing UVs using UV Unwrap"
+                    "1" "Compute Missing UVs using UV Autoseam and Flatten"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "autonormalmode"
+                label   "Normal Generation"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Compute Missing Normals using Vertex Angle"
+                    "1" "Compute Missing Normals using Face Area"
+                    "2" "Recompute Normals using Vertex Angle"
+                    "3" "Recompute Normals using Face Area"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "autotangentmode"
+                label   "Tangent Generation"
+                type    ordinal
+                default { "1" }
+                menu {
+                    "0" "Compute Missing Tangents using MikkT Method"
+                    "1" "Recompute Tangents using MikkT Method"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "lb_forcecheckinputerrors"
+            label   "lb_forcecheckinputerrors"
+            type    label
+            invisible
+            nolabel
+            default { "`ch(\"textures/size/size1\")` × `ch(\"textures/size/size2\")`" }
+            hidewhen "{ soppath == \"\" }"
+        }
+        parm {
+            name    "lb_forcecheckinputerrors2"
+            label   "lb_forcecheckinputerrors"
+            type    label
+            invisible
+            nolabel
+            default { "`ch(objects/MESH/sprite/force_cook_errors/empty_parm)`" }
+            hidewhen "{ mode != 3 } { customshapepath == \"\" }"
+        }
+    }
+
+    group {
+        name    "fd_settings_1_1_2"
+        label   "Export"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "exportpath"
+            label   "Export Path"
+            type    directory
+            default { "$HIP/export/$HIPNAME" }
+        }
+        parm {
+            name    "assetname"
+            label   "Asset Name"
+            type    string
+            default { "$OS" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "geosuffixmode"
+            label   "Geometry Name Suffix"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "0" "None"
+                "1" "Frame Count"
+                "2" "Frame Count and FPS"
+                "3" "FPS"
+            }
+            parmtag { "script_callback" "hou.pwd().hm().geoFileNameAppend()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "geosuffix"
+            label   "Geometry Suffix String"
+            type    string
+            invisible
+            default { "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "include"
+            label   "Include"
+            type    string
+            default { "gprc" }
+            hidewhen "{ mode == 3 }"
+            menu {
+                "gprc"      "Geometry, Position(s), Rotation, Color(s)"
+                "gpr"       "Geometry, Position(s), Rotation"
+                "gpc"       "Geometry, Position(s), Color(s)"
+                "gp"        "Geometry, Position(s)"
+                "g"         "Geometry"
+                "custom"    "Decide Individually"
+            }
+            parmtag { "script_callback" "hou.pwd().parm(\"resetinclude\").pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "include_sprite"
+            label   "Include"
+            type    string
+            default { "gpc" }
+            hidewhen "{ mode != 3 }"
+            menu {
+                "gpc"       "Geometry, Position(s), Color(s)"
+                "gp"        "Geometry, Position(s)"
+                "g"         "Geometry"
+                "custom"    "Decide Individually"
+            }
+            parmtag { "script_callback" "hou.pwd().parm(\"resetinclude\").pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "resetinclude"
+            label   "Reset Include"
+            type    button
+            invisible
+            default { "0" }
+            parmtag { "script_callback" "hou.pwd().hm().setExportComponents()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ include != 0 }"
+        }
+        parm {
+            name    "enable_geo"
+            label   "Enable Geometry"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "path_geo"
+            label   "Geometry"
+            type    geometry
+            default { "`chs(\"exportpath\")`/geo/`chs(\"assetname\")`_mesh`chs(\"geosuffix\")`.fbx" }
+            disablewhen "{ enable_geo == 0 }"
+            hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+            parmtag { "filechooser_pattern" "*.fbx" }
+        }
+        parm {
+            name    "enable_pos"
+            label   "Enable Position"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "path_pos"
+            label   "Position / Position 1"
+            type    image
+            default { "`chs(\"exportpath\")`/tex/`chs(\"assetname\")`_pos.`chs(imageformat)`" }
+            disablewhen "{ enable_pos == 0 }"
+            hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "enable_pos2"
+            label   "Enable Position 2"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            disablewhen "{ splitpos == 0 } { splitpos == 1 }"
+            hidewhen "{ enable_pos == 0 } { splitpos == 0 } { normalizedata == 0 allowhdrsplitpos == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "path_pos2"
+            label   "Position 2"
+            type    image
+            default { "`chs(\"exportpath\")`/tex/`chs(\"assetname\")`_pos2.`chs(imageformat)`" }
+            disablewhen "{ enable_pos2 == 0 }"
+            hidewhen "{ enable_pos == 0 } { splitpos == 0 } { normalizedata == 0 allowhdrsplitpos == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "enable_rot"
+            label   "Enable Rotation"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            hidewhen "{ mode == 3 } { include != custom }"
+        }
+        parm {
+            name    "path_rot"
+            label   "Rotation"
+            type    image
+            default { "`chs(\"exportpath\")`/tex/`chs(\"assetname\")`_rot.`chs(imageformat)`" }
+            disablewhen "{ enable_rot == 0 }"
+            hidewhen "{ mode == 3 } { include != custom }"
+        }
+        parm {
+            name    "enable_col"
+            label   "Enable Color"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "path_col"
+            label   "Color"
+            type    image
+            default { "`chs(\"exportpath\")`/tex/`chs(\"assetname\")`_col.`chs(imageformat)`" }
+            disablewhen "{ enable_col == 0 }"
+            hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "enable_col2"
+            label   "Enable Spare Color"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            disablewhen "{ addsparecol == 0 } { addsparecol == 1 }"
+            hidewhen "{ enable_col == 0 } { addsparecol == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "path_col2"
+            label   "Spare Color"
+            type    image
+            default { "`chs(\"exportpath\")`/tex/`chs(\"assetname\")`_col2.`chs(imageformat)`" }
+            disablewhen "{ enable_col2 == 0 }"
+            hidewhen "{ enable_col == 0 } { addsparecol == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "enable_unitymat"
+            label   "Enable Unity Material"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            hidewhen "{ engine != unity }"
+        }
+        parm {
+            name    "path_unitymat"
+            label   "Unity Material"
+            type    image
+            default { "`chs(\"exportpath\")`/unity/`chs(\"assetname\")`vertex.mat" }
+            disablewhen "{ enable_unitymat == 0 }"
+            hidewhen "{ engine != unity }"
+        }
+        parm {
+            name    "enable_datafile"
+            label   "Enable Data File"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ exportlegacydatafile == 0 supportinstancing == 0 }"
+        }
+        parm {
+            name    "path_datafile"
+            label   "Real-Time Data"
+            type    image
+            default { "`chs(\"exportpath\")`/data/`chs(\"assetname\")`_data.json" }
+            disablewhen "{ enable_datafile == 0 }"
+            hidewhen "{ exportlegacydatafile == 0 supportinstancing == 0 }"
+        }
+    }
+
+    group {
+        name    "fd_settings_1_1_3"
+        label   "Advanced"
+
+        parm {
+            name    "enablecooking"
+            label   "Live Update (Slow)"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback" "hou.pwd().hm().enableCooking()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "persistliveupdate"
+            label   "Do Not Reset Live Update After Render"
+            type    toggle
+            default { "0" }
+            disablewhen "{ enablecooking == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "allowhdrsplitpos"
+            label   "Allow Splitting Positions into Two HDR Textures"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback" "if hou.pwd().parm(\"normalizedata\").evalAsInt() + hou.pwd().parm(\"allowhdrsplitpos\").evalAsInt() == 0 : hou.pwd().setParms({\"splitpos\": 0, \"enable_pos2\": 0})" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "exportlegacydatafile"
+            label   "Allow Exporting Real-Time Data JSON File (Legacy)"
+            type    toggle
+            default { "0" }
+            disablewhen "{ supportinstancing == 1 }"
+            parmtag { "script_callback" "hou.pwd().setParms({\"enable_datafile\": hou.pwd().evalParm(\"exportlegacydatafile\")})" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "supportinstancing"
+            label   "Support Real-Time Instancing"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback" "if hou.pwd().evalParm(\"supportinstancing\") == 1: hou.pwd().setParms({\"exportlegacydatafile\": 1, \"enable_datafile\": 1})" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "fd_paths_1_1_3"
+            label   "Scripts"
+
+            parm {
+                name    "initsim"
+                label   "Initialize Simulation OPs"
+                type    toggle
+                default { [ "off" hscript-expr ] }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "tprerender"
+                label   "Enable Pre-Render Script"
+                type    toggle
+                nolabel
+                joinnext
+                default { [ "off" hscript-expr ] }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "prerender"
+                label   "Pre-Render Script"
+                type    file
+                joinnext
+                default { "" }
+                disablewhen "{ tprerender == 0 }"
+                menureplace {
+                    [ "opmenu -l geometry prerender" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read" }
+            }
+            parm {
+                name    "lprerender"
+                label   "Pre-Render Script Language"
+                type    string
+                nolabel
+                default { "python" }
+                disablewhen "{ tprerender == 0 }"
+                menu {
+                    "hscript"   "Hscript"
+                    "python"    "Python"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "tpostrender"
+                label   "Enable Post-Render Script"
+                type    toggle
+                nolabel
+                joinnext
+                default { [ "off" hscript-expr ] }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "postrender"
+                label   "Post-Render Script"
+                type    file
+                joinnext
+                default { "" }
+                disablewhen "{ tpostrender == 0 }"
+                menureplace {
+                    [ "opmenu -l geometry postrender" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read" }
+            }
+            parm {
+                name    "lpostrender"
+                label   "Post-Render Script Language"
+                type    string
+                nolabel
+                default { "python" }
+                disablewhen "{ tpostrender == 0 }"
+                menu {
+                    "hscript"   "Hscript"
+                    "python"    "Python"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "pdg_logoutput"
+                label   "PDG Log Output"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "fd_devoptions"
+            label   "Developer Options"
+
+            parm {
+                name    "convertcolorspace"
+                label   "Convert to Image Format Colorspace"
+                type    toggle
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "depth"
+                label   "Raster Depth"
+                type    ordinal
+                default { "float32" }
+                menu {
+                    "int8"      "8 Bit Integer"
+                    "int16"     "16 Bit Integer"
+                    "int32"     "32 Bit Integer"
+                    "float16"   "16 Bit Floating Point"
+                    "float32"   "32 Bit Floating Point"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "usebwpoints"
+                label   "Use Custom Black/White Points"
+                type    toggle
+                nolabel
+                joinnext
+                default { [ "off" hscript-expr ] }
+                disablewhen "{ depth == float16 } { depth == float32 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "bwpoints"
+                label   "Black/White Points"
+                type    integer
+                size    2
+                default { "0" "1" }
+                disablewhen "{ usebwpoints == 0 } { depth == float16 } { depth == float32 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "bcChannelSplit"
+                label   "BC 4-Channel Split"
+                type    integer
+                default { "0" }
+                menu {
+                    "0" "BC7 x 1 XYZW"
+                    "1" "BC6 x 2 - XYZ  W__"
+                    "2" "BC6 x 1 & BC4 x 1 - XYZ  W"
+                    "3" "BC5 x 2 - XY  ZW"
+                    "4" "BC4 x 4 - X  Y  Z  W"
+                }
+                range   { 0 10 }
+            }
+            parm {
+                name    "take"
+                label   "Render With Take"
+                type    string
+                default { "_current_" }
+                menu {
+                    [ "opmenu -l render_mesh_fbx take" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fd_settings_1_1_4"
+        label   "Target Engine"
+        hidewhentab "{ engine != custom }"
+
+        parm {
+            name    "coordsys"
+            label   "Coordinate System"
+            type    ordinal
+            default { "3" }
+            menu {
+                "0" "Y-X-Z Clockwise (Right-Handed Y-Up)"
+                "1" "Z-Y-X Clockwise (Right-Handed Z-Up)"
+                "2" "Y-Z-X Clockwise (Left-Handed Y-Up)"
+                "4" "Z-X-Y Clockwise (Left-Handed Z-Up)"
+            }
+            parmtag { "script_callback" "hou.pwd().hm().setCoordSystem()" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scale"
+            label   "1 Metre in Engine Units"
+            type    float
+            default { "100" }
+            range   { 0! 100 }
+        }
+        parm {
+            name    "coord_pos"
+            label   "Position Coord"
+            type    integer
+            invisible
+            joinnext
+            default { "1" }
+            menu {
+                "0" "X Y Z"
+                "1" "X Z Y"
+                "2" "Y X Z"
+                "3" "Y Z X"
+                "4" "Z X Y"
+                "5" "Z Y X"
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+        parm {
+            name    "coord_flip"
+            label   "Position Invert"
+            type    integer
+            invisible
+            nolabel
+            default { "0" }
+            menu {
+                "0" "+X +Y +Z"
+                "1" "-X +Y +Z"
+                "2" "+X -Y +Z"
+                "3" "+X +Y -Z"
+                "4" "-X -Y +Z"
+                "5" "-X +Y -Z"
+                "6" "-X -Y -Z"
+                "7" "+X -Y -Z"
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+        parm {
+            name    "coord_rot"
+            label   "Rotation Coord"
+            type    integer
+            invisible
+            default { "8" }
+            menu {
+                "0"     "+X +Y +Z +W"
+                "1"     "-X +Y +Z +W"
+                "2"     "+X -Y +Z +W"
+                "3"     "+X +Y -Z +W"
+                "4"     "+X +Y +Z -W"
+                "5"     "-X -Y +Z +W"
+                "6"     "-X +Y -Z +W"
+                "7"     "-X +Y +Z -W"
+                "8"     "-X -Y -Z +W"
+                "9"     "-X -Y +Z -W"
+                "10"    "-X -Y -Z -W"
+                "11"    "+X -Y -Z +W"
+                "12"    "+X -Y +Z -W"
+                "13"    "+X -Y -Z -W"
+                "14"    "+X +Y -Z -W"
+            }
+            range   { 0 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cop2" }
+        }
+    }
+
+    group {
+        name    "fd_settings_1_1_5"
+        label   "Real-Time Shaders"
+
+        parm {
+            name    "shaderengine"
+            label   "Find Shaders For"
+            type    ordinal
+            default { "0" }
+            menu {
+                "unreal"    "Unreal Engine"
+                "unity"     "Unity"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm7"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ engine != unreal }"
+        }
+        parm {
+            name    "openunrealshaderpath"
+            label   "Unreal Engine Content Plugin and Guides"
+            type    button
+            default { "0" }
+            hidewhen "{ shaderengine != unreal }"
+            parmtag { "script_callback" "node = hou.pwd(); from labsopui import labs_explore; labs_explore.path(kwargs['node'], \"%s/unreal/4.26\" % hou.getenv(\"SIDEFXLABS\"))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "openunityshaderpath"
+            label   "Unity Package and Guides"
+            type    button
+            default { "0" }
+            hidewhen "{ shaderengine != unity }"
+            parmtag { "script_callback" "node = hou.pwd(); from labsopui import labs_explore; labs_explore.path(kwargs['node'], \"%s/unity/shaders/URP/Editor\" % hou.getenv(\"SIDEFXLABS\"))" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

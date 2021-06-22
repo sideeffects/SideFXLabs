@@ -1,0 +1,253 @@
+def ReportResult(hda_node, file, tag=None):
+
+    PDGPrint = hda_node.parm('pdg_logoutput').evalAsInt()
+    
+    if PDGPrint:
+        if tag!=None:
+            print ("OUTPUT_FILE: %s; file/%s" % (file, tag))
+        else:
+            print ("OUTPUT_FILE: %s;" % file)
+            
+    return
+
+    
+def switchMode():
+
+    node = hou.pwd()
+    node.setParms({"override_pa": 0, "override_c": 0, "override_a": 0, "exportvtxcol": 0})
+    node.setParms({"packnorm_soft": 0, "packnorm_fluid": 0, "fluiduvinalphas": 0})
+    node.parm("resetinclude").pressButton()
+    
+    if node.evalParm("mode") == 2:
+        node.setParms({"exportvtxcol": 0})
+
+    return 
+    
+
+def toggleCustomShapes():
+
+    node = hou.pwd()
+    custom_shapes = node.evalParm("customshapes")
+    multi_shapes = node.evalParm("multishapes")
+    
+    if custom_shapes == 1 and multi_shapes == 1:
+        node.setParms({"supportparticleinterpolate": 1})
+        
+    elif custom_shapes == 0:
+        node.setParms({"exportvtxcol": 0})
+    
+    return
+    
+    
+def cookAndRender():
+
+    node = hou.pwd()
+    node.setParms({"enablecooking": 1})
+    node.parm("resetsims").pressButton()
+    node.parm("execute").pressButton()
+    
+    return
+
+
+def enableCooking():
+
+    node = hou.pwd()
+    node.parm("resetsims").pressButton()
+    
+    if node.evalParm("enablecooking") == 0:
+        node.setParms({"persistliveupdate": 0})
+    
+    return
+
+
+def setCoordSystem():
+
+    node = hou.pwd()
+    system = node.parm("coordsys").evalAsInt()
+
+    if system == 0:
+        node.setParms({"coord_pos": 0, "coord_flip": 0, "coord_rot": 0})
+    
+    elif system == 1:
+        node.setParms({"coord_pos": 1, "coord_flip": 2, "coord_rot": 11})
+        
+    elif system == 2:
+        node.setParms({"coord_pos": 0, "coord_flip": 1, "coord_rot": 8})
+        
+    elif system == 3:
+        node.setParms({"coord_pos": 1, "coord_flip": 0, "coord_rot": 8})
+
+    return
+
+
+def geoFileNameAppend():
+
+    node = hou.pwd()
+    append_mode = node.evalParm("geosuffixmode")
+
+    if append_mode == 1:
+
+        start = node.evalParm("f1")
+        end = node.evalParm("f2")
+        frame_count = str(end - start + 1)
+        node.parm("geosuffix").set("_" + frame_count + "F")
+    
+    elif append_mode == 2:
+    
+        start = node.evalParm("f1")
+        end = node.evalParm("f2")
+        frame_count = str(end - start + 1)
+        append = "_" + frame_count + "F_"
+        append += str(int(hou.fps())) + "FPS"
+        node.parm("geosuffix").set(append)
+
+    elif append_mode == 3:
+        
+        node.parm("geosuffix").set("_" + str(int(hou.fps())) + "FPS")
+
+    else:
+        node.parm("geosuffix").set("")
+
+    return
+
+
+def setExportComponents():
+    
+    node = hou.pwd()
+
+    if hou.evalParm("mode") != 3:
+
+        include = node.evalParm("include")
+
+        if include == 'gprc':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(1)
+            node.parm("enable_col").set(1)
+
+        elif include == 'gpr':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(1)
+            node.parm("enable_col").set(0)
+
+        elif include == 'gpc':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(1)
+
+        elif include == 'gp':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        elif include == 'g':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(0)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        else:
+
+            pass
+
+    else:
+
+        include = node.evalParm("include_sprite")
+
+        if include == 'gpc':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(1)
+
+        elif include == 'gp':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        elif include == 'g':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(0)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        else:
+
+            node.parm("enable_rot").set(0)
+            pass
+    
+    return
+
+
+def postRender():
+
+    node = hou.pwd().parent()
+    pad = node.evalParm("padpowtwo")
+    tex_node = hou.node("../textures/size/")
+    size1 = tex_node.evalParm("size1")
+    size2 = tex_node.evalParm("size2")
+    pow2sizex = tex_node.evalParm("pow2sizex")
+    pow2sizey = tex_node.evalParm("pow2sizey")
+
+    if pad == 1:
+        node.parm("finaltexsizex").set(pow2sizex)
+        node.parm("finaltexsizey").set(pow2sizey)
+    else:
+        node.parm("finaltexsizex").set(size1)
+        node.parm("finaltexsizey").set(size2)
+
+    if node.evalParm("persistliveupdate") == 0:
+        node.parm("enablecooking").set(0)
+    
+    node.parm("previewtexsize").set(0)
+    
+    return
+
+
+def setEnginePreset():
+
+    node = hou.pwd()
+    engine = node.evalParm("engine")
+
+    if engine == 'unreal':
+
+        node.parm("coordsys").set(3)
+        node.parm("scale").set(100)
+        node.parm("coord_pos").set(1)
+        node.parm("coord_flip").set(0)
+        node.parm("coord_rot").set(8)
+        node.parm("shaderengine").set('unreal')
+        node.parm("debugplane").set(1)
+
+    elif engine == 'unity':
+
+        # Temporary
+        print ('Unity implementation is coming soon.')
+
+        node.parm("coordsys").set(2)
+        node.parm("scale").set(100)
+        node.parm("coord_pos").set(0)
+        node.parm("coord_flip").set(1)
+        node.parm("coord_rot").set(8)
+        node.parm("enable_unitymat").set(1)
+        node.parm("shaderengine").set('unity')
+        node.parm("debugplane").set(0)
+
+    elif engine == 'custom':
+        
+        node.parm("debugplane").set(0)
+        pass
+
+    return
