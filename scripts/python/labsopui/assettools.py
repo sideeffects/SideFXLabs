@@ -1821,7 +1821,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         
         self.assetname_preview.setText(constructVHDATypeName(user, branch,name,major,minor))       
 
-    def setAssetPathPreivew(self, path, user, branch, name, major, minor):     
+    def setAssetPathPreview(self, path, user, branch, name, major, minor):     
 
         
         if not self.version_enable.isChecked():
@@ -1843,7 +1843,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.minorversion_edit.setValue(minor)
 
         self.setAssetNamePreview(user, branch, self.assettype_edit.text(), major, minor)    
-        self.setAssetPathPreivew(self.pathmode.currentText(), user, branch, self.assettype_edit.text(), major, minor)   
+        self.setAssetPathPreview(self.pathmode.currentText(), user, branch, self.assettype_edit.text(), major, minor)   
 
         self.updateOKBtn(user, branch, self.assettype_edit.text(), major, minor)
 
@@ -1876,7 +1876,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
             self.branch_edit.lineEdit().setCursorPosition(cursorpos)         
 
         self.setAssetNamePreview(user, branch, self.assettype_edit.text(), major, minor)  
-        self.setAssetPathPreivew(self.pathmode.currentText(), user, branch, self.assettype_edit.text(), major, minor)  
+        self.setAssetPathPreview(self.pathmode.currentText(), user, branch, self.assettype_edit.text(), major, minor)  
 
         self.updateOKBtn(user, branch, self.assettype_edit.text(), major, minor)
 
@@ -1905,7 +1905,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.assettype_edit.setCursorPosition(cursorpos) 
 
         self.setAssetNamePreview(user, branch, assettype, major, minor)        
-        self.setAssetPathPreivew(self.pathmode.currentText(), user, branch, assettype, major, minor)
+        self.setAssetPathPreview(self.pathmode.currentText(), user, branch, assettype, major, minor)
 
         self.updateOKBtn(user, branch, assettype, major, minor)
 
@@ -1927,7 +1927,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         assettype = self.assettype_edit.text()
 
         self.setAssetNamePreview(user, branch, assettype, major, minor)        
-        self.setAssetPathPreivew(self.pathmode.currentText(), user, branch, assettype, major, minor)
+        self.setAssetPathPreview(self.pathmode.currentText(), user, branch, assettype, major, minor)
 
         self.updateOKBtn(user, branch, assettype, major, minor)
 
@@ -1978,7 +1978,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         if os.path.isdir(dirname):
             self.pathmode.setEditText(dirname)
 
-        self.setAssetPathPreivew(self.pathmode.currentText(),
+        self.setAssetPathPreview(self.pathmode.currentText(),
                                  self.user_edit.currentText(),
                                  self.branch_edit.currentText(),
                                  self.assettype_edit.text(),
@@ -1988,6 +1988,8 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
     def on_PathModeChange(self):   
 
         value = self.pathmode.currentText()
+        cursorpos = self.pathmode.lineEdit().cursorPosition()
+
         default_install_labels = getDefaultInstallLabels()
         default_install_paths = getDefaultInstallPaths()
 
@@ -2001,12 +2003,13 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
             value = default_install_paths[3]
             
         self.pathmode.setEditText(value)       
-        self.setAssetPathPreivew(self.pathmode.currentText(),
+        self.setAssetPathPreview(self.pathmode.currentText(),
                                  self.user_edit.currentText(),
                                  self.branch_edit.currentText(),
                                  self.assettype_edit.text(),
                                  self.majorversion_edit.value(),
                                  self.minorversion_edit.value())
+        self.pathmode.lineEdit().setCursorPosition(cursorpos) 
 
 
     def build_ui(self):        
@@ -2264,7 +2267,8 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.pathmode.setEditable(True)
         self.pathmode.addItems(getDefaultInstallLabels())        
         self.pathmode.setEditText(getVHDAConfigValue(getConfigKeys()[0]))         
-        self.pathmode.activated.connect(self.on_PathModeChange)       
+        self.pathmode.editTextChanged.connect(self.on_PathModeChange)
+
         
         self.assetlocation_btn = QPushButton("")
         self.assetlocation_btn.setIcon(hou.qt.createIcon("BUTTONS_folder"))
