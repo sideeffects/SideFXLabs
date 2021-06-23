@@ -2209,7 +2209,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.assetlabel_edit.setToolTip(self.assetlabel_tooltip)
         self.assetlabel_edit.textChanged.connect(self.on_AssetLabelChange)       
 
-        regex_label = QRegExp("[a-zA-Z_\s]+")
+        regex_label = QRegExp("[a-zA-Z_\s0-9]+")
         validator_label = QRegExpValidator(regex_label) 
         self.assetlabel_edit.setValidator(validator_label)
 
