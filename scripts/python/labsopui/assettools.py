@@ -6,9 +6,9 @@ import re
 import json 
 import defaulttools
 
-from hutil.Qt.QtCore import *
-from hutil.Qt.QtGui import *
-from hutil.Qt.QtWidgets import *
+from hutil.Qt.QtCore import QRegExp, QSize, Qt
+from hutil.Qt.QtGui import QRegExpValidator, QStandardItemModel, QStandardItem, QIcon, QFont
+from hutil.Qt.QtWidgets import QWidget, QLayout, QLineEdit, QLabel, QPushButton, QDialog, QListWidgetItem, QFileDialog, QVBoxLayout, QHBoxLayout, QGroupBox, QListWidget, QListView, QCheckBox, QComboBox, QSpacerItem, QSizePolicy, QSpinBox, QTableView, QTableWidget, QAbstractItemView, QTreeView
 
 
 def getConfigKeys():
