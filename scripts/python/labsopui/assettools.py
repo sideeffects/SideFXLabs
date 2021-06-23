@@ -820,7 +820,7 @@ def createNewVHDAFromSubnet(node):
 
     name = node.name()
     name = ''.join([i for i in name if not i.isdigit()])
-    name = name.lower()
+    #name = name.lower()
     label = name.title()
     label= label.replace("_"," ")  
 
@@ -1899,7 +1899,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         assettype = self.assettype_edit.text()
 
-        assettype = assettype.lower()
+        #assettype = assettype.lower()
         assettype = assettype.replace(" ", "_")
         cursorpos = self.assettype_edit.cursorPosition() 
         self.assettype_edit.setText(assettype)
