@@ -117,14 +117,14 @@ def getDefaultInstallLabels():
 
     """
 
-    return ["Saved Preference", "User Preference", "Hip File Directory", "Site-Specific"]
+    return ["Saved Preference", "User Preference", "Hip File Directory", "Site-Specific", "Embedded"]
 
 def getDefaultInstallPaths():       
     """ Returns a list of possible paths for the File Path dropdown menus.
 
     """
 
-    return [getVHDAConfigValue(getConfigKeys()[0]), "$HOUDINI_USER_PREF_DIR/otls", "$HIP/hda", "$HSITE/hda"]
+    return [getVHDAConfigValue(getConfigKeys()[0]), "$HOUDINI_USER_PREF_DIR/otls", "$HIP/hda", "$HSITE/hda", "Embedded"]
 
 def initVHDAConfigFile():
 
@@ -934,15 +934,18 @@ def copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label
     hda_label = constructVHDALabel(label,namespace_branch)
     hda_filename = constructVHDAFileName(namespace_user, namespace_branch,name,major,minor)
     hda_savedir = savedir
-    hda_filepath = os.path.join(hda_savedir, hda_filename)
+    hda_filepath = os.path.join(hda_savedir, hda_filename) if hda_savedir != "Embedded" else "Embedded"
     tmp_filepath = os.path.join(hou.expandString("$HOUDINI_TEMP_DIR"),"tmphda.hda")
 
-    #button_idx, parmvals = creationInfoWindow(hda_label,hda_name, hda_filename, getHDALibraryFilesPaths(node, False))
 
-    #if button_idx == 1:    
+    # # Update and save new HDA
+    vhda_def = node.type().definition()
+    # vhda_options = vhda_def.options()
+    # vhda_options.setSaveInitialParmsAndContents(True)
+    # vhda_options.setSaveSpareParms(True) ####### TO-DO
 
-    
-    node.type().definition().save(tmp_filepath, template_node=node)
+    vhda_def.save(tmp_filepath, template_node=node)#, options=vhda_options) ######
+
     created_definition = hou.hda.definitionsInFile(tmp_filepath)[0]
     # Sets the tabmenu location only if it differs from the original
     if tabmenu:
@@ -967,11 +970,7 @@ def createVHDA(node, namespace_user, namespace_branch, name, major, minor, label
     hda_label = constructVHDALabel(label,namespace_branch)
     hda_filename = constructVHDAFileName(namespace_user, namespace_branch,name,major,minor)
     hda_savedir = savedir
-    hda_filepath = os.path.join(hda_savedir, hda_filename)
-    
-    #button_idx, parmvals = creationInfoWindow(hda_label,hda_name, hda_filename, getHDALibraryFilesPaths(node, False))
-
-    #if button_idx == 1:    
+    hda_filepath = os.path.join(hda_savedir, hda_filename) if hda_savedir != "Embedded" else "Embedded"  
 
     max_num_inputs = 0
     
@@ -987,8 +986,8 @@ def createVHDA(node, namespace_user, namespace_branch, name, major, minor, label
         hda_file_name = hda_filepath,
         description = hda_label,
         min_num_inputs = 0,
-        max_num_inputs = max_num_inputs#,
-        # save_as_embedded = parmvals[0] == "Embedded"
+        max_num_inputs = max_num_inputs,
+        save_as_embedded = hda_savedir == "Embedded"
     )
 
     vhda_node.setName(name, unique_name=True)
@@ -997,6 +996,8 @@ def createVHDA(node, namespace_user, namespace_branch, name, major, minor, label
     # Update and save new HDA
     vhda_options = vhda_def.options()
     vhda_options.setSaveInitialParmsAndContents(True)
+    #vhda_options.setSaveSpareParms(True) ####### TO-DO
+
     vhda_def.setOptions(vhda_options)
     setVHDASection(vhda_def, False if namespace_user == "" else True,
                              False if namespace_branch == "" else True)
