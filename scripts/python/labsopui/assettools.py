@@ -882,9 +882,11 @@ def increaseMajorVersion(node):
     minor = 0
 
     new_name = constructVHDATypeName(namespace_user, namespace_branch, name, major, minor)
+    node_definition = node.type().definition()
 
-    if NewVHDABumpVersionWindow('major', old_name,new_name, node.type().definition()): 
-        copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label, None, getVHDAConfigValue(getConfigKeys()[0]))  
+    if NewVHDABumpVersionWindow('major', old_name,new_name, node_definition):
+        save_dir = getVHDAConfigValue(getConfigKeys()[0]) if node_definition.libraryFilePath() != "Embedded" else "Embedded"
+        copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label, None, save_dir)  
 
 def increaseMinorVersion(node):
     """ Increases the minor version number of the versioned digital asset. 
@@ -910,9 +912,11 @@ def increaseMinorVersion(node):
         minor = getLatestMinorVersion(definitions, hda_files, namespace_user, namespace_branch, name, major) + 1  
     
     new_name = constructVHDATypeName(namespace_user, namespace_branch, name, major, minor)
+    node_definition = node.type().definition()
 
-    if NewVHDABumpVersionWindow('minor', old_name,new_name, node.type().definition()): 
-        copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label, None, getVHDAConfigValue(getConfigKeys()[0]))  
+    if NewVHDABumpVersionWindow('minor', old_name,new_name, node.type().definition()):
+        save_dir = getVHDAConfigValue(getConfigKeys()[0]) if node_definition.libraryFilePath() != "Embedded" else "Embedded"
+        copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label, None, save_dir)  
       
         
 def setPreferences(node):
