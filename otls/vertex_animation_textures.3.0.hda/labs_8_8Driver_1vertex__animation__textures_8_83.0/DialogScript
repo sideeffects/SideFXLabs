@@ -186,6 +186,13 @@
                 parmtag { "script_callback_language" "python" }
             }
             parm {
+                name    "fluidsmoothnormals"
+                label   "Smooth Normals"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
                 name    "packnorm_fluid"
                 label   "Export Compressed Normals in Position Alpha"
                 type    toggle
@@ -446,7 +453,7 @@
                     name    "attrib_to_replace_pa"
                     label   "In Position Alpha"
                     type    string
-                    default { "pscale" }
+                    default { "age" }
                     disablewhen "{ override_pa == 0 }"
                     menureplace {
                         [ "r = []" ]
@@ -490,7 +497,7 @@
                     name    "attrib_to_replace_c"
                     label   "In Color"
                     type    string
-                    default { "Cd" }
+                    default { "v" }
                     disablewhen "{ override_c == 0 }"
                     menureplace {
                         [ "r = []" ]
@@ -534,7 +541,7 @@
                     name    "attrib_to_replace_a"
                     label   "In Color Alpha"
                     type    string
-                    default { "Alpha" }
+                    default { "opacity" }
                     disablewhen "{ override_a == 0 }"
                     menureplace {
                         [ "r = []" ]
@@ -875,24 +882,52 @@
 
             groupcollapsible {
                 name    "fd_inputhelp"
-                label   "Help"
+                label   "Legend"
 
                 parm {
-                    name    "lb_inputhelp"
-                    label   "lb_inputhelp"
+                    name    "lb_inputlegend"
+                    label   "lb_inputlegend"
                     type    label
                     nolabel
                     default { "Point attribute    <Vertex attribute>    [Packed point attribute]    ^Do not include" }
                 }
-                parm {
-                    name    "lb_inputhelp2"
-                    label   "lb_inputhelp"
-                    type    label
-                    nolabel
-                    default { "Some errors and warnings will only be cleared after a successful render." }
-                }
             }
 
+        }
+
+        groupsimple {
+            name    "fd_inputtips"
+            label   "Tips"
+
+            parm {
+                name    "lb_inputhelp"
+                label   "lb_inputhelp"
+                type    label
+                nolabel
+                default { "Position Alpha automatically exports \"pscale\" by default." }
+                hidewhen "{ mode == 0 } { mode == 2 }"
+            }
+            parm {
+                name    "lb_inputhelp2"
+                label   "lb_inputhelp"
+                type    label
+                nolabel
+                default { "If Position Alpha exports a custom attribute, the shaders assume \"pscale\" is 1." }
+            }
+            parm {
+                name    "lb_inputhelp3"
+                label   "lb_inputhelp"
+                type    label
+                nolabel
+                default { "Caching the animation and loading it from disk shortens this node's render time." }
+            }
+            parm {
+                name    "lb_inputhelp4"
+                label   "lb_inputhelp"
+                type    label
+                nolabel
+                default { "Some errors and warnings will only be cleared after a successful render." }
+            }
         }
 
         groupcollapsible {
