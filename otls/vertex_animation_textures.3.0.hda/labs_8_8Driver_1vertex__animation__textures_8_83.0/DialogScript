@@ -145,6 +145,14 @@
                 }
                 parmtag { "script_callback_language" "python" }
             }
+            parm {
+                name    "rigidsmoothtrajectory"
+                label   "Support Smoothly Interpolated Trajectories"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback" "if hou.pwd().evalParm(\"rigidsmoothtrajectory\") == 1: hou.pwd().setParms({\"override_c\": 0})" }
+                parmtag { "script_callback_language" "python" }
+            }
             groupcollapsible {
                 name    "fd_rigid_edgecase"
                 label   "Edge Case Handling"
@@ -490,7 +498,7 @@
                     nolabel
                     joinnext
                     default { "0" }
-                    disablewhen "{ fluiduvinrg == 1 mode == 2 }"
+                    disablewhen "{ fluiduvinrg == 1 mode == 2 } { rigidsmoothtrajectory == 1 mode == 1 }"
                     parmtag { "script_callback_language" "python" }
                 }
                 parm {
@@ -635,7 +643,7 @@
                 label   "Preview Texture Size (Slow)"
                 type    toggle
                 default { "0" }
-                parmtag { "script_callback" "#if hou.pwd().evalParm(\"previewtexsize\") == 1 : hou.pwd().parm(\"resetsims\").pressButton()" }
+                parmtag { "script_callback" "if hou.pwd().evalParm(\"previewtexsize\") == 1 : hou.pwd().parm(\"resetsims\").pressButton()" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -912,7 +920,8 @@
                 label   "lb_inputhelp"
                 type    label
                 nolabel
-                default { "If Position Alpha exports a custom attribute, the shaders assume \"pscale\" is 1." }
+                default { "If Position Alpha exports a custom attribute, the shader assumes \"pscale\" is 1." }
+                hidewhen "{ mode == 0 } { mode == 2 }"
             }
             parm {
                 name    "lb_inputhelp3"
