@@ -74,7 +74,16 @@ void VAT_Rigid_float(
     float3 rotated = 2.0 * cross(quat.xyz, cross(quat.xyz, atOrigin) + quat.w * atOrigin);
     float3 rotatedNormal = restNormal + 2.0 * cross(quat.xyz, cross(quat.xyz, restNormal) + quat.w * restNormal);
 
-    outPosition = atOrigin + rotated + texturePos;
+
+    float effectiveFrame = ceil(frac(speed * time) * numOfFrames);
+    
+    if (effectiveFrame <= 1.0 || effectiveFrame >= (float)numOfFrames) {
+        outPosition = restPosition;
+
+    } else {
+        outPosition = atOrigin + rotated + texturePos;
+    }
+
     outNormal = rotatedNormal;
 }
 
