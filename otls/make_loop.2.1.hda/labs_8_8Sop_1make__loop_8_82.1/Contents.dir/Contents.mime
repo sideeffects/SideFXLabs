@@ -283,7 +283,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -326,17 +326,32 @@ Content-Type: text/plain
             range   { 0 10 }
         }
         parm {
-            name    "fadein"
+            name    "fade_in"
             label   "Fade In Pscale"
             type    toggle
             default { "0" }
         }
         parm {
-            name    "fadeinduration"
+            name    "fadein_duration"
             label   "Fade-In Duration"
             type    float
             default { "0" }
             range   { 0 1 }
+        }
+        parm {
+            name    "fade_out"
+            label   "Fade Out Pscale"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fadeout_duration"
+            label   "Fade-Out Duration"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "snippet"
@@ -480,18 +495,30 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"start\")+ch(\"../expressions/loop_length\")-1 }
     }
-    channel fadein {
+    channel fade_in {
       lefttype = extend
       righttype = extend
       default = 1
       flags = 0
       segment { length = 0 value = 1 1 expr = ch(\"../fadein\") }
     }
-    channel fadeinduration {
+    channel fadein_duration {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../fadeinduration\") }
+    }
+    channel fade_out {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../fadeout\") }
+    }
+    channel fadeout_duration {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../fadeoutduration\") }
     }
   }
 
@@ -521,12 +548,26 @@ if (birth_time < range_start || death_time > range_end) {
 }
 
 
-if (chi(\"fadein\")) {
+if (chi(\"fade_in\")) {
 
-    float duration = chf(\"fadeinduration\");
+    float duration = chf(\"fadein_duration\");
 
     if (@age <= duration) {
+    
         @pscale *= @age / duration;
+        @pscale = max(0, @pscale);
+    }
+}
+
+
+if (chi(\"fade_out\")) {
+
+    float duration = chf(\"fadeout_duration\");
+
+    if (@life - @age <= duration) {
+    
+        @pscale *= (@life - @age) / duration;
+        @pscale = max(0, @pscale);
     }
 }"	)
 exportlist	[ 0	locks=0 ]	(	*	)
@@ -545,8 +586,10 @@ vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 start	[ 0	locks=0 ]	(	[ start	1 ] 	)
 end	[ 0	locks=0 ]	(	[ end	240 ] 	)
-fadein	[ 0	locks=0 ]	(	[ fadein	0 ] 	)
-fadeinduration	[ 0	locks=0 ]	(	[ fadeinduration	0.71699999999999997 ] 	)
+fade_in	[ 0	locks=0 ]	(	[ fade_in	0 ] 	)
+fadein_duration	[ 0	locks=0 ]	(	[ fadein_duration	0.20000000000000001 ] 	)
+fade_out	[ 8	locks=0 ]	(	[ fade_out	0 ] 	)
+fadeout_duration	[ 0	locks=0 ]	(	[ fadeout_duration	0.20000000000000001 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -670,10 +713,10 @@ time	[ 0	locks=0 ]	(	[ time	16 ] 	)
 startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 speed	[ 0	locks=0 ]	(	1	)
 shiftframe	[ 0	locks=0 ]	(	1	)
-outputrange	[ 0	locks=0 ]	(	[ outputrangex	1 ] 	[ outputrangey	400 ] 	)
+outputrange	[ 0	locks=0 ]	(	[ outputrangex	1 ] 	[ outputrangey	240 ] 	)
 opreb	[ 0	locks=0 ]	(	"cycle"	)
 opostb	[ 0	locks=0 ]	(	"cycle"	)
-inputrange	[ 0	locks=0 ]	(	[ inputrangex	1 ] 	[ inputrangey	400 ] 	)
+inputrange	[ 0	locks=0 ]	(	[ inputrangex	1 ] 	[ inputrangey	240 ] 	)
 ipreb	[ 0	locks=0 ]	(	"cycle"	)
 ipostb	[ 0	locks=0 ]	(	"cycle"	)
 _	[ 0	locks=0 ]	(	""	)
@@ -723,7 +766,7 @@ sopflags sopflags =
 comment ""
 position 8.5 1.85
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 1 "output1"
@@ -743,7 +786,7 @@ stat
   author maia@truro
   access 0777
 }
-color UT_Color RGB 0.8 0.8 0.8 
+color UT_Color RGB 0.094 0.369 0.69 
 delscript ""
 exprlanguage hscript
 end
@@ -889,7 +932,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 3.997 -5.151
+position 5.497 -4.151
 connectornextid 3
 flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -1016,7 +1059,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -1248,8 +1291,8 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
-endframe	[ 0	locks=0 ]	(	[ endframe	400 ] 	)
-looplength	[ 0	locks=0 ]	(	[ looplength	200 ] 	)
+endframe	[ 0	locks=0 ]	(	[ endframe	240 ] 	)
+looplength	[ 0	locks=0 ]	(	[ looplength	240 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1318,7 +1361,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -1587,9 +1630,9 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
-looplength	[ 0	locks=0 ]	(	[ looplength	200 ] 	)
-shiftlength	[ 0	locks=0 ]	(	[ shiftlength	100 ] 	)
-basebranchloops	[ 0	locks=0 ]	(	[ basebranchloops	2 ] 	)
+looplength	[ 0	locks=0 ]	(	[ looplength	240 ] 	)
+shiftlength	[ 0	locks=0 ]	(	[ shiftlength	120 ] 	)
+basebranchloops	[ 0	locks=0 ]	(	[ basebranchloops	1 ] 	)
 dieandrespawn	[ 0	locks=0 ]	(	[ dieandrespawn	0 ] 	)
 }
 
@@ -1659,7 +1702,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -1867,8 +1910,11 @@ snippet	[ 0	locks=0 ]	(	"if (@group___end_frame_pt &&
     return;
 }
 
-@life = @TimeInc * (chf(\"endframe\") - 0);
+// The plus 1 at the end helps to prevent Niagara from glitching.
+@life = @TimeInc * (chf(\"endframe\") - chf(\"startframe\") + 1);
+
 @age = @Time - @TimeInc * (chf(\"startframe\") - 1);
+
 i@__hide = 1;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
@@ -1884,8 +1930,8 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-startframe	[ 8	locks=0 ]	(	[ startframe	1 ] 	)
-endframe	[ 8	locks=0 ]	(	[ endframe	400 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
+endframe	[ 0	locks=0 ]	(	[ endframe	240 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -2120,7 +2166,7 @@ colortype	[ 0	locks=0 ]	(	3	)
 color	[ 0	locks=0 ]	(	1	1	1	)
 seed	[ 0	locks=0 ]	(	0	)
 rampattribute	[ 0	locks=0 ]	(	__nage	)
-ramprange	[ 0	locks=0 ]	(	1	0	)
+ramprange	[ 0	locks=0 ]	(	0	1	)
 ramp	[ 0	locks=0 ]	(	5	)
 ramp1pos	[ 0	locks=0 ]	(	0	)
 ramp1c	[ 0	locks=0 ]	(	0.20000000298023224	0	1	)
@@ -2215,7 +2261,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -2401,7 +2447,7 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"// This SOP compares points at any given frame against
+snippet	[ 0	locks=0 ]	(	"// This node compares points at any given frame against
 // the points present at the end and the start frames.
 
 // Respawn ID offset is on.
@@ -2421,14 +2467,14 @@ if (ptnum_at_end != -1) {
     float last_frame_time = @TimeInc * (chf(\"endframe\") - 1.0);
     float life_start = @Time - @age;
 
-    // Disabled: helps to greatly reduce the number of glitched points
+    // DISABLED: helps to greatly reduce the number of glitched points
     // before the first frame of the new loop, but unfortunately also
     // deletes some good points near the end of the previous loop.
     //life_start = ceil(life_start / @TimeInc) * @TimeInc;
 
     @life = last_frame_time - life_start;
 
-    // Disabled for the same reason stated above
+    // DISABLED: for the same reason stated above
     //@life -= @life % @TimeInc;
 
     if (@life <= 0.0) {
@@ -2520,12 +2566,12 @@ Content-Type: text/plain
 {
 version 0.8
 folder0	[ 0	locks=0 ]	(	0	0	)
-group	[ 0	locks=0 ]	(	""	)
-grouptype	[ 0	locks=0 ]	(	"guess"	)
+group	[ 0	locks=0 ]	(	@__hide==1	)
+grouptype	[ 0	locks=0 ]	(	"points"	)
 class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"@pscale *= 1.0 - (float)i@__hide;"	)
+snippet	[ 0	locks=0 ]	(	"@pscale = 0.0;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -2609,7 +2655,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -2803,14 +2849,14 @@ if (ptnum_at_end != -1) {
     float last_frame_time = @TimeInc * (chf(\"endframe\") - 1.0);
     float life_start = @Time - @age;
     
-    // Disabled: helps to greatly reduce the number of glitched points
+    // DISABLED: helps to greatly reduce the number of glitched points
     // before the first frame of the new loop, but unfortunately also
     // deletes some good points near the end of the previous loop.
     //life_start = rint(life_start / @TimeInc) * @TimeInc;
 
     @life = last_frame_time - life_start;
     
-    // Disabled for the same reason stated above
+    // DISABLED: for the same reason stated above
     //@life -= @life % @TimeInc;
 
     if (@life <= 0.0) {
@@ -2831,7 +2877,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-endframe	[ 0	locks=0 ]	(	[ endframe	400 ] 	)
+endframe	[ 0	locks=0 ]	(	[ endframe	240 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -3450,7 +3496,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 5.5 -3.1502
+position 4 -3.1502
 connectornextid 3
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -3459,12 +3505,12 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	Input_1 0 1 "input1"
+0 	id_to_detail 1 1 "input1"
 1 	Prev_Frame 1 1 "input2"
 }
 inputs
 {
-0 	Input_1 0 1
+0 	id_to_detail 0 1
 1 	Prev_Frame 0 1
 }
 stat
@@ -3525,7 +3571,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 2.49655 -4.15
+position 6.99655 -2.15
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -3593,7 +3639,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 4 -6.15
+position 5.5 -5.15
 connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -3848,11 +3894,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	120 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	169 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	16.625 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 8	locks=0 ]	(	[ frange1	1 ] 	[ frange2	400 ] 	)
+frange	[ 8	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	16.625 ] 	)
 }
 
@@ -3959,7 +4005,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	49 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	5.708333333333333 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
@@ -4491,9 +4537,9 @@ version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
 frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	16.625 ] 	)
+time	[ 0	locks=0 ]	(	[ time	2 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	400 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	16.625 ] 	)
 }
 
@@ -4622,11 +4668,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	[ method	0 ] 	)
-frame	[ 0	locks=0 ]	(	[ frame	120 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	169 ] 	)
 integerframe	[ 0	locks=0 ]	(	[ integerframe	1 ] 	)
-time	[ 0	locks=0 ]	(	[ time	16.625 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	[ rangeclamp	0 ] 	)
-frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	400 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	16.625 ] 	)
 }
 
@@ -4759,7 +4805,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	[ method	0 ] 	)
-frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	49 ] 	)
 integerframe	[ 0	locks=0 ]	(	[ integerframe	1 ] 	)
 time	[ 0	locks=0 ]	(	[ time	5.708333333333333 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	[ rangeclamp	0 ] 	)
@@ -4938,7 +4984,7 @@ sopflags sopflags =
 comment ""
 position -0.5 5.85
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 1 "output1"
@@ -4958,7 +5004,7 @@ stat
   author maia@truro
   access 0777
 }
-color UT_Color RGB 0.8 0.8 0.8 
+color UT_Color RGB 0.98 0.275 0.275 
 delscript ""
 exprlanguage hscript
 end
@@ -4972,7 +5018,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = "ch(\"../inputtype\")==1&&(!haspointattrib(\"../INPUT\", \"id\")||!haspointattrib(\"../INPUT\", \"age\")||!haspointattrib(\"../INPUT\", \"life\"))" }
+      segment { length = 0 expr = "ch(\"../inputtype\")==1 && (!haspointattrib(\"../INPUT\", \"id\")||!haspointattrib(\"../INPUT\", \"age\")||!haspointattrib(\"../INPUT\", \"life\"))" }
     }
   }
 
@@ -4983,9 +5029,9 @@ Content-Type: text/plain
 {
 version 0.8
 numerror	[ 0	locks=0 ]	(	1	)
-errormsg1	[ 0	locks=0 ]	(	"Input particles are missing either point ID, age, or life attribute. Please provide these point attributes and ensure different points do not share IDs, or some operations may have unexpected behaviors."	)
+errormsg1	[ 0	locks=0 ]	(	"Input particles are missing either point ID, age, or life attribute. Please provide these point attributes and make sure different points do not share IDs, otherwise some operations may have unexpected behaviours."	)
 severity1	[ 0	locks=0 ]	(	"error"	)
-enable1	[ 8	locks=0 ]	(	[ enable1	0 ] 	)
+enable1	[ 8	locks=0 ]	(	[ enable1	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -5169,9 +5215,9 @@ version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
 frame	[ 8	locks=0 ]	(	[ frame	240 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	16.625 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	400 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	16.625 ] 	)
 }
 
@@ -5241,7 +5287,7 @@ destgrouptype	[ 0	locks=0 ]	(	"points"	)
 matchbyattribute	[ 0	locks=0 ]	(	"on"	)
 attributetomatch	[ 0	locks=0 ]	(	id	)
 attrib	[ 0	locks=0 ]	(	"otherattrib"	)
-attribname	[ 0	locks=0 ]	(	"P __hide"	)
+attribname	[ 0	locks=0 ]	(	"P __hide pscale"	)
 copyp	[ 0	locks=0 ]	(	"on"	)
 usenewname	[ 0	locks=0 ]	(	"off"	)
 newname	[ 0	locks=0 ]	(	""	)
@@ -6818,11 +6864,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	2 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	50 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	0.54166666666666663 ] 	)
+time	[ 0	locks=0 ]	(	[ time	2 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
-frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	400 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	0 ] 	)
 }
 
@@ -7077,11 +7123,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	399 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	48 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	0 ] 	)
+time	[ 0	locks=0 ]	(	[ time	2 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
-frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	400 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	0 ] 	)
 }
 
