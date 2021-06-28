@@ -1,0 +1,38 @@
+= Labs Calculate Thickness =
+
+#type: node
+#context: sop
+#internal: labs::calculate_thickness:1.0
+#icon: calculate_thickness
+#tags: sidefxlabs,  model
+
+""" Vertex Based Thickness Calculation """
+
+Calculating thickness is very similar to Ambient Occlusion, with the difference that rays are being cast inwards instead of outwards. Calculating thickness is an approximation that can be used for for example cheap Sub Surface Scattering (SSS).
+
+[Image:/images/calculate_thickness.png]
+
+@parameters
+    == Thickness Settings ==
+    Number of Rays:
+        How many samples to generate. Higher number means higher quality at the cost of speed. 
+    Maximum Ray Distance:
+        Stop the Thickness Ray from going beyond this distance. Set this to a higher value when your object is larger in scale. Distance is in worldspace units.
+    == Advanced ==
+    Ray Direction:
+        The direction that the rays used for calculating thickness should be cast. By default it will try to correctly calculate a direction for you, but in special cases you might want to customize this. Note that the provided normals should be pointing outwards, and not inwards.
+    Minimum Ray Distance:
+        The minimum distance the rays have to travel when calculating thickness. Setting this to a higher value will function as contrast.
+    Cone Angle:
+        Maximum angle in degrees away from the center that any sample will be. 
+    Seed:
+        The seed used for sampling with. Change this to get different sampling results.
+    == Output ==
+    Output Thickness as Color ( Cd ):
+        Toggle for the Thickness to be written to the Cd (color) channel on Points.
+    Normalized:
+        When enabled the generated thickness values will be in 0-1 range instead of worldspace units.
+    Thickness Attribute:
+        If the above value is off, this is the override name for the output attribute. 
+    Output curve:
+        This curve lets you do basic levels operations on the Thickness to fine tune the results without needing to rerun the expensive Thickness calculations. 
