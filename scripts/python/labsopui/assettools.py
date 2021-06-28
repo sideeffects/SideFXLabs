@@ -360,46 +360,6 @@ soptoolutils.genericTool(kwargs, \'$HDA_NAME\')]]></script>
 
     hda_def.addSection('Tools.shelf', content)
 
-'''
-def setToolSubmenu(hda_def, new_submenu='Digital Assets'):
-    """ Sest the tab menu entry for a node.         
-
-        :param hda_def: the HDADefition by hou.node.type().definition()     
-        :param new_submenu: This will be the new submenu, replacing old_submenu entry.
-        :param old_submenu: This entry will be replaced by new_submenu.  
-    """
-
-    old_submenu = getToolSubmenu(hda_def)
-    if hda_def.hasSection('Tools.shelf'): 
-        old_submenu = getToolSubmenu(hda_def)[0]
-        if old_submenu != new_submenu:
-            tools = hda_def.sections()["Tools.shelf"]
-            content = tools.contents()
-            new_submenu = '<toolSubmenu>{submenu}</toolSubmenu>'.format(submenu=new_submenu)
-            old_submenu = '<toolSubmenu>{submenu}</toolSubmenu>'.format(submenu=old_submenu)
-            content = content.replace(old_submenu,new_submenu)  
-            hda_def.addSection('Tools.shelf', content) 
-    else:
-        hdatype  = hda_def.nodeType()
-        toolname = hou.shelves.defaultToolName(hdatype.category().name(),
-                                                hdatype.name())    
-            
-        # If there is an existing tool with the specified name, don't
-        # create a new tool. We don't want to override custom tools
-        # with default tools.
-        if hou.shelves.tool(toolname) is not None:                      
-            
-            tf = os.path.join(hou.expandString("$HOUDINI_TEMP_DIR"),"tempassetcontent")
-            temptool = defaulttools.createDefaultHDATool(tf, hdatype, toolname, locations=(new_submenu,))
-            defaulttools.setHDAToolVariables( temptool, hda_def )
-            
-            # save the new tool section that contains the default tool
-            with open(tf, 'rb') as f:
-                contents = f.read()
-            hda_def.addSection('Tools.shelf', contents)
-            os.remove(tf)    
-'''
-
 def setVHDASection(hda_def, has_user=True,has_branch=True):
 
     data = {}
@@ -426,13 +386,13 @@ def setVHDASection(hda_def, has_user=True,has_branch=True):
     os.remove(tmp_filepath)
 
 def allInstalledDefinitionsInScene(node_type_category_name='Sop'):
-    ''' Returns all the HDA definitions installed in the scene.
+    """ Returns all the HDA definitions installed in the scene.
 
         :param node_type_category_name: the HDADefition by hou.node.type().definition()        
    
             hou.nodeTypeCategories().keys()
             ['Shop', 'Cop2', 'CopNet', 'ChopNet', 'Object', 'Driver', 'Chop', 'Sop', 'Manager', 'Vop', 'Director', 'Dop', 'VopNet']
-    '''
+    """
     definitions = []
     for category in hou.nodeTypeCategories().values():
         if category.name() == node_type_category_name:
@@ -442,7 +402,7 @@ def allInstalledDefinitionsInScene(node_type_category_name='Sop'):
     return definitions   
 
 def allVHDAFilesInPath():
-    ''' Returns the filename of all the VHDA definitions saved in the VHDA Path directory, including .hda extension
+    """ Returns the filename of all the VHDA definitions saved in the VHDA Path directory, including .hda extension
 
         Valid asset file namings:
 
@@ -450,7 +410,7 @@ def allVHDAFilesInPath():
         dev.asset_name.2.3.hda
         asset_name.2.3.hda
 
-    '''
+    """
     hda_files = []
     hda_path = hou.expandString(getVHDAConfigValue(getConfigKeys()[0]))      
     
@@ -802,8 +762,6 @@ def copyToNewVHDA(node):
         minor            = values[5]
         tabmenu          = values[6]
         savedir          = values[7]
-
-        #major, minor, paths = hasSpecificVHDA(node, namespace_user, namespace_branch, name, major, minor)
         
         copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label, tabmenu, savedir)    
 
@@ -820,7 +778,7 @@ def createNewVHDAFromSubnet(node):
 
     name = node.name()
     name = ''.join([i for i in name if not i.isdigit()])
-    #name = name.lower()
+
     label = name.title()
     label= label.replace("_"," ")  
 
@@ -854,8 +812,6 @@ def createNewVHDAFromSubnet(node):
         minor            = values[5]
         tabmenu          = values[6]
         savedir          = values[7]
-
-        #major, minor, paths = hasSpecificVHDA(node, namespace_user, namespace_branch, name, major, minor)
 
         createVHDA(node, namespace_user, namespace_branch, name, major, minor, label, tabmenu, savedir) 
        
@@ -919,7 +875,7 @@ def increaseMinorVersion(node):
         copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label, None, save_dir)  
       
         
-def setPreferences(node):
+def openPreferences(node):
     """ Runs the Preference Window
 
         This definition is called from the opmenu Versioned Digital Asset -> Preferences...          
@@ -960,7 +916,6 @@ def copyToVHDA(node, namespace_user, namespace_branch, name, major, minor, label
     created_definition.copyToHDAFile(hda_filepath,hda_name,hda_label)    
     os.remove(tmp_filepath)
 
-    # hou.hda.installFile() currently causes conflict when the definition is destroyed.
     hou.hda.installFile(hda_filepath)
 
     hou.hda.reloadAllFiles(True)        
@@ -1011,11 +966,6 @@ def createVHDA(node, namespace_user, namespace_branch, name, major, minor, label
     hou.hda.installFile(hda_filepath)
     hou.hda.reloadAllFiles(True) 
 
-def changeVersion(node):
-    """ Given a node it builds a list of installed versioned digital assets that can be selected to change to. 
-        
-    """ 
-
 def deleteVersions(node):
     """ Given a node it builds a list of installed and uninstalled versioned digital assets that can be selected and destroyed/removed from the hip file and from disk.   
         
@@ -1030,7 +980,6 @@ def deleteVersions(node):
     
     # Collect installed definitions
     for definition in definitions:  
-        #if isVersionedDefinition(definition):
         other_label, other_namespace_user, other_namespace_type, other_name, other_major, other_minor = separateVHDATypeNameComponents(definition.nodeType())        
         hda_name = constructVHDATypeName(other_namespace_user, other_namespace_type, other_name, other_major, other_minor)        
             
@@ -1049,7 +998,6 @@ def deleteVersions(node):
         from operator import itemgetter
 
         # sort entries
-
         entries_sorted = []
         for entry in sorted(entries, key=itemgetter(0,5,6), reverse=True):                    
             entries_sorted.append((entry[0], # hda_name
@@ -1139,7 +1087,7 @@ def deleteVersions(node):
 def newVHDAWindow(name,label,path,namespace_user,namespace_branch, major, minor, category_name, tabmenu, scene_definitions, hda_files, new_asset):
 
     defaults = [ namespace_user, namespace_branch, name, label, path, major, minor, category_name, tabmenu, scene_definitions, hda_files, new_asset]
-    dialog = New_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
+    dialog = NewVHDADialog(hou.ui.mainQtWindow(), defaults)
     dialog.exec_()
     button_idx = dialog.exitval
     values = dialog.parmvals
@@ -1149,25 +1097,15 @@ def newVHDAWindow(name,label,path,namespace_user,namespace_branch, major, minor,
 def NewVHDABumpVersionWindow(increase, old_name, new_name, hda_def):
 
     defaults = [ increase, old_name, new_name, hda_def]
-    dialog = BumpVersion_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
+    dialog = BumpVersionVHDADialog(hou.ui.mainQtWindow(), defaults)
     dialog.exec_()
     button_idx = dialog.exitval  
     return button_idx
 
-def newVHDAChangeWindow(entries=[]):
-
-    defaults = [ entries ]
-    dialog = Change_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
-    dialog.exec_()
-    button_idx = dialog.exitval
-    values = dialog.parmvals
-
-    return button_idx, values
-
 def newVHDADeleteWindow(entries=[]):
 
     defaults = [ entries ]
-    dialog = Delete_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
+    dialog = DeleteVHDADialog(hou.ui.mainQtWindow(), defaults)
     dialog.exec_()
     button_idx = dialog.exitval
     values = dialog.parmvals
@@ -1177,32 +1115,19 @@ def newVHDADeleteWindow(entries=[]):
 def newVHDADeleteConfirmWindow(entries=[]):
 
     defaults = [ entries ]
-    dialog = Delete_Confirm_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
+    dialog = DeleteConfirmVHDADialog(hou.ui.mainQtWindow(), defaults)
     dialog.exec_()
     button_idx = dialog.exitval   
 
     return button_idx
 
-
 def newVHDAPreferenceWindow(category_name):
     
     defaults = [category_name]
-    dialog = VHDA_Preferences_Dialog(hou.ui.mainQtWindow(), defaults)
+    dialog = VHDAPreferencesDialog(hou.ui.mainQtWindow(), defaults)
     dialog.exec_()
     button_idx = dialog.exitval
     values = dialog.parmvals
-
-'''
-def creationInfoWindow(hda_label,hda_name, hda_filename, paths):
-
-    defaults = [ hda_label, hda_name, hda_filename, paths]
-    dialog = BumpVersion_VHDA_Dialog(hou.ui.mainQtWindow(), defaults)
-    dialog.exec_()
-    button_idx = dialog.exitval
-    values = dialog.parmvals
-
-    return button_idx, values
-'''
 
 class NamespaceWidget(QWidget):
     def __init__(self, parent = None):
@@ -1228,7 +1153,7 @@ class NamespaceWidget(QWidget):
         regex = QRegExp("[a-zA-Z_\s]+")
         validator = QRegExpValidator(regex) 
         self.namespace_edit.setValidator(validator)
-        self.namespace_edit.textChanged.connect(self.on_LineEditChange)
+        self.namespace_edit.textChanged.connect(self.on_LineEditChanged)
 
         self.layout.addWidget(self.namespace_edit)
 
@@ -1236,13 +1161,13 @@ class NamespaceWidget(QWidget):
         self.remove_btn.setIcon(hou.qt.createIcon("BUTTONS_multi_remove"))     
         self.remove_btn.setIconSize(QSize(15, 15))  
         self.remove_btn.setMaximumSize(QSize(23, 23)) 
-        self.remove_btn.clicked.connect(self.on_removeClick)
+        self.remove_btn.clicked.connect(self.on_removedClick)
         
         self.layout.addWidget(self.remove_btn)
 
         self.setLayout(self.layout)    
 
-    def on_LineEditChange(self):       
+    def on_LineEditChanged(self):       
         
         namespace = self.namespace_edit.text()
 
@@ -1274,7 +1199,7 @@ class NamespaceWidget(QWidget):
     def sizeHint(self):
        return QSize(100,25)
 
-    def on_removeClick(self):               
+    def on_removedClick(self):               
         my_row = self.list_widget.row(self.widget_item)        
         self.list_widget.takeItem(my_row) 
         
@@ -1298,9 +1223,9 @@ class NamespaceWidget(QWidget):
         self.remove_btn.setDisabled(disabled)
 
 # PREFERENCES DIALOG
-class VHDA_Preferences_Dialog(QDialog):
+class VHDAPreferencesDialog(QDialog):
     def __init__(self, parent, defaults):
-        super(VHDA_Preferences_Dialog, self).__init__(parent)
+        super(VHDAPreferencesDialog, self).__init__(parent)
 
         self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
         self.setWindowIcon(hou.qt.createIcon("MISC_generic"))   
@@ -1310,7 +1235,7 @@ class VHDA_Preferences_Dialog(QDialog):
         self.exitval = None
         self.custom_path_edit = None
         self.pathlabel_edit = None               
-        self.build_ui()        
+        self.buildUI()        
 
     def closeEvent(self, event):
         pass
@@ -1390,8 +1315,6 @@ class VHDA_Preferences_Dialog(QDialog):
 
         list_widget.setFixedHeight(height_limit if current_height > height_limit else current_height)       
 
-        #self.setFixedHeight(self.sizeHint().height()) 
-
 
     def on_InputFileButtonClicked(self):
         path = hou.expandString(self.pathmode.currentText())
@@ -1403,7 +1326,7 @@ class VHDA_Preferences_Dialog(QDialog):
         if os.path.isdir(dirname):
             self.pathmode.setEditText(dirname)
 
-    def on_PathModeChange(self):   
+    def on_PathModeChanged(self):   
 
         value = self.pathmode.currentText()
         default_install_labels = getDefaultInstallLabels()
@@ -1421,7 +1344,7 @@ class VHDA_Preferences_Dialog(QDialog):
         self.pathmode.setEditText(value)
         self.pathlabel_edit.setText(os.path.normpath(hou.expandString(value)))
 
-    def on_userItemChange(self, current, previous):
+    def on_UserItemChanged(self, current, previous):
         
         if current:
             current_widget = self.user_listwidget.itemWidget(current)
@@ -1430,7 +1353,7 @@ class VHDA_Preferences_Dialog(QDialog):
             previous_widget = self.user_listwidget.itemWidget(previous)
             previous_widget.setSelectedIcon(False)
 
-    def on_branchItemChange(self, current, previous):
+    def on_BranchItemChanged(self, current, previous):
         
         if current:
             current_widget = self.branch_listwidget.itemWidget(current)
@@ -1439,7 +1362,7 @@ class VHDA_Preferences_Dialog(QDialog):
             previous_widget = self.branch_listwidget.itemWidget(previous)
             previous_widget.setSelectedIcon(False)
 
-    def build_ui(self):
+    def buildUI(self):
 
         # BASE LAYOUT ----------------------------     
 
@@ -1461,8 +1384,6 @@ class VHDA_Preferences_Dialog(QDialog):
         user_items_label_layout = QHBoxLayout()
         name_gb_layout.addLayout(user_items_label_layout)
 
-        #_label4 = QLabel("")
-        #_label4.setFixedSize(125, 25)
         self.banch_items_label = QLabel("Custom User Entries")
 
         self.add_btn = QPushButton("")
@@ -1471,30 +1392,22 @@ class VHDA_Preferences_Dialog(QDialog):
         self.add_btn.setMaximumSize(QSize(23, 23))    
         self.add_btn.clicked.connect(self.on_addNewUserItemClicked)     
 
-        #user_items_label_layout.addWidget(_label4)
         user_items_label_layout.addWidget(self.banch_items_label)   
         user_items_label_layout.addWidget(self.add_btn)   
 
         # User Items
         user_items_layout = QHBoxLayout()
-        name_gb_layout.addLayout(user_items_layout)
-
-        #_label3 = QLabel("")
-        #_label3.setFixedSize(125, 25)
-        #_label3.setAlignment(Qt.AlignTop)
-        #user_items_layout.addWidget(_label3)            
+        name_gb_layout.addLayout(user_items_layout)          
 
         self.user_listwidget = QListWidget()
         self.user_listwidget.setAlternatingRowColors(True)  
-        self.user_listwidget.currentItemChanged.connect(self.on_userItemChange)       
+        self.user_listwidget.currentItemChanged.connect(self.on_UserItemChanged)       
 
 
         for entry in getVHDAConfigValue(getConfigKeys()[6]):
             self.addNewItem(self.user_listwidget, entry)
 
         self.user_listwidget.setCurrentRow(getVHDAConfigValue(getConfigKeys()[7]))
-        #self.user_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        #self.user_listwidget.setSizeAdjustPolicy(QListWidget.AdjustToContents)
         self.user_listwidget.setResizeMode(QListView.Adjust)        
 
         user_items_layout.addWidget(self.user_listwidget)   
@@ -1503,8 +1416,6 @@ class VHDA_Preferences_Dialog(QDialog):
         branch_items_label_layout = QHBoxLayout()
         name_gb_layout.addLayout(branch_items_label_layout)
 
-        #_label4 = QLabel("")
-       # _label4.setFixedSize(125, 25)
         self.banch_items_label = QLabel("Custom Branch Entries")
 
         self.add_btn = QPushButton("")
@@ -1513,29 +1424,21 @@ class VHDA_Preferences_Dialog(QDialog):
         self.add_btn.setMaximumSize(QSize(23, 23))    
         self.add_btn.clicked.connect(self.on_addNewBranchItemClicked)     
 
-        #branch_items_label_layout.addWidget(_label4)
         branch_items_label_layout.addWidget(self.banch_items_label)   
         branch_items_label_layout.addWidget(self.add_btn)   
 
         # Branch Items
         branch_items_layout = QHBoxLayout()
-        name_gb_layout.addLayout(branch_items_layout)
-
-        #_label3 = QLabel("")
-        #_label3.setFixedSize(125, 25)
-        #_label3.setAlignment(Qt.AlignTop)
-        #branch_items_layout.addWidget(_label3)            
+        name_gb_layout.addLayout(branch_items_layout)         
 
         self.branch_listwidget = QListWidget()
         self.branch_listwidget.setAlternatingRowColors(True)  
-        self.branch_listwidget.currentItemChanged.connect(self.on_branchItemChange)       
+        self.branch_listwidget.currentItemChanged.connect(self.on_BranchItemChanged)       
 
         for entry in getVHDAConfigValue(getConfigKeys()[4]):
             self.addNewItem(self.branch_listwidget, entry)
 
         self.branch_listwidget.setCurrentRow(getVHDAConfigValue(getConfigKeys()[5]))        
-        #self.branch_listwidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        #self.branch_listwidget.setSizeAdjustPolicy(QListWidget.AdjustToContents)
         self.branch_listwidget.setResizeMode(QListView.Adjust)       
 
         branch_items_layout.addWidget(self.branch_listwidget)   
@@ -1579,7 +1482,6 @@ class VHDA_Preferences_Dialog(QDialog):
 
 
         # SIMPLE FOLDER - Tab Menu ----------------------------
-
         self.tabmenu_gb = QGroupBox("Tab Menu") 
         self.gbcolumn_layout.addWidget(self.tabmenu_gb)
 
@@ -1587,7 +1489,6 @@ class VHDA_Preferences_Dialog(QDialog):
         self.tabmenu_gb.setLayout(tabmenu_gb_layout)          
 
         # Display Branch
-
         tabmenu_layout = QHBoxLayout()   
         tabmenu_gb_layout.addLayout(tabmenu_layout)
 
@@ -1620,9 +1521,6 @@ class VHDA_Preferences_Dialog(QDialog):
         tabmenu_layout.addWidget(tabmenu_label)        
         tabmenu_layout.addWidget(self.tabmenu_edit)  
 
-        #tabmenu_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        #self.tabmenu_edit.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-
         # Spacer layout    
         spacer_label = QLabel("")    
         tabmenu_gb_layout.addWidget(spacer_label) 
@@ -1646,7 +1544,7 @@ class VHDA_Preferences_Dialog(QDialog):
         self.pathmode.setEditable(True)
         self.pathmode.addItems(getDefaultInstallLabels())        
         self.pathmode.setEditText(getVHDAConfigValue(getConfigKeys()[0]))      
-        self.pathmode.activated.connect(self.on_PathModeChange)
+        self.pathmode.activated.connect(self.on_PathModeChanged)
 
         self.assetlocation_btn = QPushButton("")
         self.assetlocation_btn.setIcon(hou.qt.createIcon("BUTTONS_folder"))
@@ -1670,7 +1568,7 @@ class VHDA_Preferences_Dialog(QDialog):
 
         custompath_layout.addWidget(self.pathlabel_edit)
         
-        self.on_PathModeChange()   
+        self.on_PathModeChanged()   
 
         # VERSIONING - Tab Menu ----------------------------
 
@@ -1696,19 +1594,6 @@ and set 'Asset Bar' menu to 'Display Menu of All Definitions'.""")
         buttons_layout = QHBoxLayout()
         layout.addLayout(buttons_layout)
 
-        '''
-        buttons_layout.setAlignment(Qt.AlignRight)
-        self.OK_btn = QPushButton("Apply")
-        self.OK_btn.setFixedWidth(100)
-        self.OK_btn.setDefault(True)
-        self.Cancel_btn = QPushButton("Cancel")
-        self.Cancel_btn.setFixedWidth(100)
-        self.OK_btn.clicked.connect(self.on_OK)
-        self.Cancel_btn.clicked.connect(self.on_Cancel)
-        buttons_layout.addWidget(self.OK_btn)
-        buttons_layout.addWidget(self.Cancel_btn)     
-        '''
-
         # TO DO:
         # Reset Defaults  
              
@@ -1729,15 +1614,11 @@ and set 'Asset Bar' menu to 'Display Menu of All Definitions'.""")
         buttons_layout.addItem(horizontalSpacer)
         buttons_layout.addWidget(self.OK_btn)
         buttons_layout.addWidget(self.Cancel_btn)    
-        
-
-        #self.setFixedWidth(500) 
-        #self.setFixedHeight(self.sizeHint().height()) 
 
 # SAVE AS NEW VHDA DIALOG
-class New_VHDA_Dialog(QDialog):
+class NewVHDADialog(QDialog):
     def __init__(self, parent, defaults):
-        super(New_VHDA_Dialog, self).__init__(parent)
+        super(NewVHDADialog, self).__init__(parent)
 
         self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("New Versioned Digital Asset")
@@ -1755,7 +1636,6 @@ class New_VHDA_Dialog(QDialog):
         self.branch_enable = None
         self.OK_btn = None
         self.validator = None      
-        #self.default_preview_stylesheet = None 
 
         self.user_enable_tooltip = """When you name digital assets, there is a risk that someday Side Effects,
 or a subcontractor, or a third party vendor, will use the same name, causing a conflict.
@@ -1783,14 +1663,13 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.name_preview_tooltip = """Shows the file create."""
 
-        self.build_ui()
+        self.buildUI()
 
     def closeEvent(self, event):
         pass
 
     def on_OK(self):
         self.exitval = 1
-        #major, minor = splitVersionComponents(self.assetversion_edit.text())
         major = self.majorversion_edit.value()
         minor = self.minorversion_edit.value()      
 
@@ -1835,7 +1714,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.pathlabel_edit.setText(os.path.normpath(os.path.join(hou.expandString(path),constructVHDAFileName(user,branch,name,major,minor))))
 
-    def on_MajorVersionChange(self):
+    def on_MajorVersionChanged(self):
         
         user = self.user_edit.currentText() if self.user_enable.isChecked() else ""
         branch = self.branch_edit.currentText() if self.branch_enable.isChecked() else ""        
@@ -1852,7 +1731,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.updateOKBtn(user, branch, self.assettype_edit.text(), major, minor)
 
-    def on_LineEditChange(self):        
+    def on_LineEditChanged(self):        
         user = self.user_edit.currentText() if self.user_enable.isChecked() else ""
         branch = self.branch_edit.currentText() if self.branch_enable.isChecked() else ""
 
@@ -1885,7 +1764,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.updateOKBtn(user, branch, self.assettype_edit.text(), major, minor)
 
-    def on_AssetTypeChange(self):   
+    def on_AssetTypeChanged(self):   
         user = self.user_edit.currentText() if self.user_enable.isChecked() else ""
         branch = self.branch_edit.currentText() if self.branch_enable.isChecked() else ""
 
@@ -1902,9 +1781,8 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
             minor = 0
 
         assettype = self.assettype_edit.text()
-
-        #assettype = assettype.lower()
         assettype = assettype.replace(" ", "_")
+
         cursorpos = self.assettype_edit.cursorPosition() 
         self.assettype_edit.setText(assettype)
         self.assettype_edit.setCursorPosition(cursorpos) 
@@ -1914,7 +1792,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.updateOKBtn(user, branch, assettype, major, minor)
 
-    def on_AssetLabelChange(self):
+    def on_AssetLabelChanged(self):
         user = self.user_edit.currentText() if self.user_enable.isChecked() else ""
         branch = self.branch_edit.currentText() if self.branch_enable.isChecked() else ""        
 
@@ -1936,7 +1814,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.updateOKBtn(user, branch, assettype, major, minor)
 
-    def populate_user_edit(self):
+    def PopulateUserEdit(self):
 
         user_entries = getVHDAConfigValue(getConfigKeys()[6])
         user_entry_idx = getVHDAConfigValue(getConfigKeys()[7])
@@ -1954,7 +1832,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
             self.user_edit.setCurrentIndex(user_entry_idx)
             self.user_edit.setEditText(user_entries[user_entry_idx])  
 
-    def populate_branch_edit(self):
+    def PopulateBranchEdit(self):
 
         branch_entries = getVHDAConfigValue(getConfigKeys()[4])
         branch_entry_idx = getVHDAConfigValue(getConfigKeys()[5])
@@ -1990,7 +1868,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
                                  self.majorversion_edit.value(),
                                  self.minorversion_edit.value())
 
-    def on_PathModeChange(self):   
+    def on_PathModeChanged(self):   
 
         value = self.pathmode.currentText()
         cursorpos = self.pathmode.lineEdit().cursorPosition()
@@ -2017,12 +1895,9 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.pathmode.lineEdit().setCursorPosition(cursorpos) 
 
 
-    def build_ui(self):        
+    def buildUI(self):        
 
-        w = 600
-
-        #self.setFixedWidth(w) 
-        #self.setFixedHeight(w)    
+        w = 600   
 
         # BASE LAYOUT ----------------------------     
         layout = QVBoxLayout()
@@ -2051,7 +1926,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.assettype_edit = QLineEdit(self.defaults[2])
         self.assettype_edit.setToolTip(self.assettype_tooltip)
-        self.assettype_edit.textChanged.connect(self.on_AssetTypeChange)
+        self.assettype_edit.textChanged.connect(self.on_AssetTypeChanged)
 
         regex_type = QRegExp("[a-zA-Z_\s]+")
         validator_type = QRegExpValidator(regex_type) 
@@ -2065,7 +1940,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         name_gb_layout.addLayout(user_layout)    
 
         self.user_enable = QCheckBox()
-        self.user_enable.clicked.connect(self.on_LineEditChange)
+        self.user_enable.clicked.connect(self.on_LineEditChanged)
         
         checked = False
         if self.defaults[11]: # creating from subnet
@@ -2081,7 +1956,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         user_label = QLabel("User")
         user_label.setToolTip(self.user_enable_tooltip)
         user_label.setFixedSize(85, 20)
-        #self.user_edit = QLineEdit(self.defaults[0] if self.defaults[0] != "" else hou.userName())
+
         self.user_edit = QComboBox(self)
         self.user_edit.setEditable(True)
         self.user_edit.setToolTip(self.user_enable_tooltip)        
@@ -2090,7 +1965,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         validator = QRegExpValidator(regex) 
         self.user_edit.setValidator(validator)
 
-        self.user_edit.editTextChanged.connect(self.on_LineEditChange)
+        self.user_edit.editTextChanged.connect(self.on_LineEditChanged)
         user_layout.addWidget(self.user_enable)
         user_layout.addWidget(user_label)
         user_layout.addWidget(self.user_edit)       
@@ -2100,7 +1975,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         name_gb_layout.addLayout(branch_layout) 
 
         self.branch_enable = QCheckBox()
-        self.branch_enable.clicked.connect(self.on_LineEditChange)    
+        self.branch_enable.clicked.connect(self.on_LineEditChanged)    
 
         checked = False
         if self.defaults[11]: # creating from subnet
@@ -2117,12 +1992,12 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         branch_label.setToolTip(self.branch_enable_tooltip)
         branch_label.setFixedSize(85, 20)
 
-        self.branch_edit = QComboBox(self)  #QLineEdit(self.defaults[1] if self.defaults[1] != "" else "dev")
+        self.branch_edit = QComboBox(self)
         self.branch_edit.setEditable(True)
         self.branch_edit.setToolTip(self.branch_enable_tooltip)
         self.branch_edit.setValidator(validator)
-        self.branch_edit.activated.connect(self.on_LineEditChange)
-        self.branch_edit.editTextChanged.connect(self.on_LineEditChange)       
+        self.branch_edit.activated.connect(self.on_LineEditChanged)
+        self.branch_edit.editTextChanged.connect(self.on_LineEditChanged)       
 
         branch_layout.addWidget(self.branch_enable)
         branch_layout.addWidget(branch_label)
@@ -2135,7 +2010,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.version_enable = QCheckBox()
         self.version_enable.setFixedSize(19, 20)
 
-        self.version_enable.clicked.connect(self.on_LineEditChange)
+        self.version_enable.clicked.connect(self.on_LineEditChanged)
 
         checked = False
         if self.defaults[11]: # creating from subnet
@@ -2159,20 +2034,17 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.minorversion_edit = QSpinBox()
         self.majorversion_edit.setToolTip(self.majorversion_tooltip)
         self.minorversion_edit.setToolTip(self.minorversion_tooltip)
-        #self.majorversion_edit.setFixedWidth(35)
         self.majorversion_edit.setFixedHeight(21)
-        #self.minorversion_edit.setFixedWidth(35)
         self.minorversion_edit.setFixedHeight(21)
 
-        #self.branch_edit.setDisabled(not self.branch_enable.isChecked()) setValue(self.defaults[5] if self.defaults[5] != None else 1)
         self.majorversion_edit.setValue(self.defaults[5] if self.defaults[5] != None else 0)
         self.minorversion_edit.setValue(self.defaults[6] if self.defaults[6] != None else 0)
 
         self.majorversion_edit.setRange(1,10000)
         self.minorversion_edit.setRange(0,10000)
        
-        self.majorversion_edit.valueChanged.connect(self.on_MajorVersionChange)
-        self.minorversion_edit.valueChanged.connect(self.on_LineEditChange)
+        self.majorversion_edit.valueChanged.connect(self.on_MajorVersionChanged)
+        self.minorversion_edit.valueChanged.connect(self.on_LineEditChanged)
       
         version_layout.addWidget(self.version_enable)
         version_layout.addWidget(version_label)
@@ -2211,7 +2083,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         assetlabel_label.setFixedSize(85, 20)
         self.assetlabel_edit = QLineEdit(self.defaults[3])
         self.assetlabel_edit.setToolTip(self.assetlabel_tooltip)
-        self.assetlabel_edit.textChanged.connect(self.on_AssetLabelChange)       
+        self.assetlabel_edit.textChanged.connect(self.on_AssetLabelChanged)       
 
         regex_label = QRegExp("[a-zA-Z_\s0-9]+")
         validator_label = QRegExpValidator(regex_label) 
@@ -2254,7 +2126,6 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
 
         # SIMPLE FOLDER - Asset Location ----------------------------      
-
         self.path_gb = QGroupBox("Asset Location") 
         layout.addWidget(self.path_gb)
 
@@ -2262,7 +2133,6 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.path_gb.setLayout(path_gb_layout)
 
         # Save Path
-
         savepath_layout = QHBoxLayout()
         path_gb_layout.addLayout(savepath_layout)
 
@@ -2272,7 +2142,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.pathmode.setEditable(True)
         self.pathmode.addItems(getDefaultInstallLabels())        
         self.pathmode.setEditText(getVHDAConfigValue(getConfigKeys()[0]))         
-        self.pathmode.editTextChanged.connect(self.on_PathModeChange)
+        self.pathmode.editTextChanged.connect(self.on_PathModeChanged)
 
         
         self.assetlocation_btn = QPushButton("")
@@ -2285,7 +2155,6 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         savepath_layout.addWidget(self.assetlocation_btn)     
 
         # Path Preview
-
         custompath_layout = QHBoxLayout()
         path_gb_layout.addLayout(custompath_layout)
 
@@ -2298,12 +2167,10 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         custompath_layout.addWidget(self.pathlabel_edit)
 
         # BUTTON SPACER ----------------------------
-
         verticalSpacer = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
         layout.addItem(verticalSpacer)
 
         # BUTTONS ----------------------------
-
         buttons_layout = QHBoxLayout()
         layout.addLayout(buttons_layout)
 
@@ -2318,17 +2185,15 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         buttons_layout.addWidget(self.OK_btn)
         buttons_layout.addWidget(self.Cancel_btn)        
         
-        self.populate_user_edit()
-        self.populate_branch_edit()
-        self.on_LineEditChange()
-        self.on_PathModeChange()
-        
-        #self.setFixedHeight(self.sizeHint().height()) 
+        self.PopulateUserEdit()
+        self.PopulateBranchEdit()
+        self.on_LineEditChanged()
+        self.on_PathModeChanged()
 
 
-class BumpVersion_VHDA_Dialog(QDialog):
+class BumpVersionVHDADialog(QDialog):
     def __init__(self, parent, defaults):
-        super(BumpVersion_VHDA_Dialog, self).__init__(parent)
+        super(BumpVersionVHDADialog, self).__init__(parent)
 
         self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
 
@@ -2346,7 +2211,7 @@ class BumpVersion_VHDA_Dialog(QDialog):
         self.parmvals = []
         self.exitval = None
         self.custom_path_edit = None
-        self.build_ui()
+        self.buildUI()
 
     def closeEvent(self, event):
         pass
@@ -2359,7 +2224,7 @@ class BumpVersion_VHDA_Dialog(QDialog):
         self.exitval = None
         self.close()   
 
-    def build_ui(self):
+    def buildUI(self):
 
         w = 300
 
@@ -2371,7 +2236,6 @@ class BumpVersion_VHDA_Dialog(QDialog):
         self.setLayout(layout)   
 
         # SIMPLE FOLDER - Asset Preview ----------------------------      
-
         self.path_gb = QGroupBox("Asset Preview") 
         layout.addWidget(self.path_gb)
 
@@ -2379,26 +2243,20 @@ class BumpVersion_VHDA_Dialog(QDialog):
         self.path_gb.setLayout(path_gb_layout)
 
         # Current Asset Preview
-
         currentasset_layout = QHBoxLayout()
         path_gb_layout.addLayout(currentasset_layout)
 
         currentasset_icon = QLabel("")  
         currentasset_icon.setFixedSize(25, 25) 
-        
-        #icon = hou.qt.createIcon(self.defaults[3].icon())        
-        #currentasset_icon.setPixmap(icon.pixmap(QSize(20,20)))
             
         currentasset_label = QLabel("Current Asset")
         currentasset_label.setFixedSize(125, 25)        
         self.currentasset_edit = QLabel(self.defaults[1])
         self.currentasset_edit.setAlignment(Qt.AlignCenter)
-
-        #currentasset_layout.addWidget(currentasset_icon)   
+   
         currentasset_layout.addWidget(self.currentasset_edit)
 
         # Upversion Icon
-
         upversion_layout = QHBoxLayout()
         path_gb_layout.addLayout(upversion_layout)
 
@@ -2415,16 +2273,12 @@ class BumpVersion_VHDA_Dialog(QDialog):
 
         nextasset_icon = QLabel("")  
         nextasset_icon.setFixedSize(25, 25) 
-        
-        #icon = hou.qt.createIcon(self.defaults[3].icon())        
-        #nextasset_icon.setPixmap(icon.pixmap(QSize(20,20)))
 
         nextasset_label = QLabel("Next Asset")
         nextasset_label.setFixedSize(125, 25)        
         self.nextasset_edit = QLabel(self.defaults[2])
         self.nextasset_edit.setAlignment(Qt.AlignCenter)
 
-        #nextasset_layout.addWidget(nextasset_icon)
         nextasset_layout.addWidget(self.nextasset_edit)
 
         # BUTTONS ----------------------------
@@ -2446,181 +2300,10 @@ class BumpVersion_VHDA_Dialog(QDialog):
 
         self.setFixedHeight(self.sizeHint().height()) 
 
-class Change_VHDA_Dialog(QDialog):
+
+class DeleteVHDADialog(QDialog):
     def __init__(self, parent, defaults):
-        super(Change_VHDA_Dialog, self).__init__(parent)
-
-        self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
-        self.setWindowTitle("Change Asset")    
-        self.setWindowIcon(hou.qt.createIcon("BUTTONS_clear"))  
-        self.defaults = defaults
-        self.parmvals = []
-        self.exitval = None
-        self.custom_path_edit = None
-        self.build_ui()
-
-    def closeEvent(self, event):
-        pass
-
-    def on_OK(self):
-        self.exitval = 1           
-       
-        '''
-        selected = []
-        for row in range(len(self.defaults[0])):
-            index = self.table_model.index(row,0)
-            selected.append(int(self.table_model.data(index)))
-        '''
-       
-        selected = []
-        
-        for idx in self.table_view.selectedIndexes():
-
-            if (idx.column() == 0):               
-                selected.append(int(idx.data()))
-        
-        self.parmvals = selected       
-        self.close()
-
-    def on_Cancel(self):
-        self.exitval = None
-        self.close()   
-
-    def build_ui(self):    
-
-        self.setFixedWidth(1000) 
-        self.setFixedHeight(700)   
-
-        # BASE LAYOUT ----------------------------     
-        layout = QVBoxLayout()
-        self.setLayout(layout)   
-
-        # SIMPLE FOLDER - Asset Preview ----------------------------      
-
-        self.assetlist_gb = QGroupBox("Asset Selection") 
-        layout.addWidget(self.assetlist_gb)
-
-        assetlist_gb_layout = QVBoxLayout()
-        self.assetlist_gb.setLayout(assetlist_gb_layout)
-
-
-        # Info Label
-
-        infolabel_layout = QHBoxLayout()
-        assetlist_gb_layout.addLayout(infolabel_layout)
-
-        infolabel = QLabel("Select version to change to!")
-        infolabel_layout.addWidget(infolabel)
-                
-
-        # Asset Items
-        table_view_layout = QHBoxLayout()
-        assetlist_gb_layout.addLayout(table_view_layout)
-
-        self.table_model = QStandardItemModel()
-        self.table_view = QTableView()
-        self.table_view.setModel(self.table_model)
-
-        self.table_model.setHorizontalHeaderLabels(['Idx', 'User', 'Branch', 'Type', 'Version', 'Last Modified', 'File Path'])
-        
-
-        #for column in range(self.table_model.columnCount()):
-        #    self.table_view.setColumnWidth(column, 150)
-
-
-        font_size = 6
-        idx = 0
-        for entry in self.defaults[0]:
-
-            hda_def = entry[1]
-
-            item_idx = QStandardItem(QIcon(hou.qt.createIcon(hda_def.icon())),str(idx))
-            item_idx.setTextAlignment(Qt.AlignCenter)
-            item_idx.setFont(QFont(item_idx.font().family(),font_size))
-
-            item_user = QStandardItem(entry[2])
-            item_user.setTextAlignment(Qt.AlignCenter)
-            item_user.setFont(QFont(item_user.font().family(),font_size))
-              
-            item_branch = QStandardItem(entry[3])
-            item_branch.setTextAlignment(Qt.AlignCenter) 
-            item_branch.setFont(QFont(item_branch.font().family(),font_size))
-
-            item_type = QStandardItem(entry[4])
-            item_type.setTextAlignment(Qt.AlignCenter) 
-            item_type.setFont(QFont(item_type.font().family(),font_size))
-
-            item_version = QStandardItem(str(entry[5]) + "." + str(entry[6]))
-            item_version.setTextAlignment(Qt.AlignCenter) 
-            item_version.setFont(QFont(item_version.font().family(),font_size))
-            
-            item_time = QStandardItem(entry[7])
-            item_time.setTextAlignment(Qt.AlignCenter)     
-            item_time.setFont(QFont(item_time.font().family(),font_size))
-            
-            item_file = QStandardItem(entry[8])
-            item_file.setFont(QFont(item_file.font().family(),font_size))        
-
-            row = [item_idx,
-                   item_user,
-                   item_branch,
-                   item_type,
-                   item_version, 
-                   item_time, 
-                   item_file]
-
-            self.table_model.appendRow(row)               
-            idx += 1
-            
-        #self.table_view.horizontalHeader().hideSection(0)
-        self.table_view.setEditTriggers(QTableWidget.NoEditTriggers)
-        self.table_view.resizeColumnsToContents()
-        self.table_view.resizeRowsToContents()
-        self.table_view.setColumnWidth(1,100)
-        self.table_view.setColumnWidth(2,100)
-        self.table_view.setColumnWidth(3,150)
-        self.table_view.setColumnWidth(4,50)
-        self.table_view.setColumnWidth(5,150)     
-
-        self.table_view.setSortingEnabled(True)   
-        self.table_view.setShowGrid(False)
-
-        self.table_view.horizontalHeader().setStretchLastSection(True) 
-        self.table_view.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table_view.setAlternatingRowColors(True)
-        self.table_view.verticalHeader().setVisible(False)
-
-        table_view_layout.addWidget(self.table_view)     
-
-        
-        # BUTTONS ----------------------------
-
-        buttons_layout = QHBoxLayout()
-        layout.addLayout(buttons_layout)
-
-        buttons_layout.setAlignment(Qt.AlignRight)
-        self.OK_btn = QPushButton("Confirm")    
-        self.Cancel_btn = QPushButton("Cancel")
-        self.OK_btn.clicked.connect(self.on_OK)
-       
-        self.OK_btn.setFixedWidth(100)  
-        self.Cancel_btn.clicked.connect(self.on_Cancel)
-        self.Cancel_btn.setFixedWidth(100)      
-        self.Cancel_btn.setDefault(True)
-
-        buttons_layout.addWidget(self.OK_btn)
-        buttons_layout.addWidget(self.Cancel_btn)    
-
-        height = 115 + self.table_view.horizontalHeader().size().height()
-        for i in range(self.table_model.rowCount()):
-            height += self.table_view.rowHeight(i)        
-
-        self.setFixedHeight(min(height,900)) 
-
-
-class Delete_VHDA_Dialog(QDialog):
-    def __init__(self, parent, defaults):
-        super(Delete_VHDA_Dialog, self).__init__(parent)
+        super(DeleteVHDADialog, self).__init__(parent)
 
         self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Delete Assets")    
@@ -2629,20 +2312,13 @@ class Delete_VHDA_Dialog(QDialog):
         self.parmvals = []
         self.exitval = None
         self.custom_path_edit = None
-        self.build_ui()
+        self.buildUI()
 
     def closeEvent(self, event):
         pass
 
     def on_OK(self):
         self.exitval = 1           
-       
-        '''
-        selected = []
-        for row in range(len(self.defaults[0])):
-            index = self.table_model.index(row,0)
-            selected.append(int(self.table_model.data(index)))
-        '''
        
         selected = []
         
@@ -2658,7 +2334,7 @@ class Delete_VHDA_Dialog(QDialog):
         self.exitval = None
         self.close()   
 
-    def build_ui(self):    
+    def buildUI(self):    
 
         self.setFixedWidth(1000) 
         self.setFixedHeight(700)   
@@ -2668,7 +2344,6 @@ class Delete_VHDA_Dialog(QDialog):
         self.setLayout(layout)   
 
         # SIMPLE FOLDER - Asset Preview ----------------------------      
-
         self.assetlist_gb = QGroupBox("Asset Selection") 
         layout.addWidget(self.assetlist_gb)
 
@@ -2677,14 +2352,12 @@ class Delete_VHDA_Dialog(QDialog):
 
 
         # Info Label
-
         infolabel_layout = QHBoxLayout()
         assetlist_gb_layout.addLayout(infolabel_layout)
 
         infolabel = QLabel("Select one or more versions to delete. Use Shift+Left mouse to select multiple entries.")
         infolabel_layout.addWidget(infolabel)
                 
-
         # Asset Items
         table_view_layout = QHBoxLayout()
         assetlist_gb_layout.addLayout(table_view_layout)
@@ -2694,10 +2367,6 @@ class Delete_VHDA_Dialog(QDialog):
         self.table_view.setModel(self.table_model)
 
         self.table_model.setHorizontalHeaderLabels(['Idx', 'User', 'Branch', 'Type', 'Version', 'Last Modified', 'File Path'])
-        
-
-        #for column in range(self.table_model.columnCount()):
-        #    self.table_view.setColumnWidth(column, 150)
 
 
         font_size = 6
@@ -2744,7 +2413,6 @@ class Delete_VHDA_Dialog(QDialog):
             self.table_model.appendRow(row)               
             idx += 1
             
-        #self.table_view.horizontalHeader().hideSection(0)
         self.table_view.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table_view.resizeColumnsToContents()
         self.table_view.resizeRowsToContents()
@@ -2790,9 +2458,9 @@ class Delete_VHDA_Dialog(QDialog):
         self.setFixedHeight(min(height,900)) 
 
 
-class Delete_Confirm_VHDA_Dialog(QDialog):
+class DeleteConfirmVHDADialog(QDialog):
     def __init__(self, parent, defaults):
-        super(Delete_Confirm_VHDA_Dialog, self).__init__(parent)
+        super(DeleteConfirmVHDADialog, self).__init__(parent)
 
         self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Delete Assets Confirmation")    
@@ -2801,7 +2469,7 @@ class Delete_Confirm_VHDA_Dialog(QDialog):
         self.parmvals = []
         self.exitval = None
         self.custom_path_edit = None
-        self.build_ui()
+        self.buildUI()
 
     def closeEvent(self, event):
         pass
@@ -2814,7 +2482,7 @@ class Delete_Confirm_VHDA_Dialog(QDialog):
         self.exitval = None
         self.close()   
 
-    def build_ui(self):    
+    def buildUI(self):    
 
         self.setFixedWidth(400) 
         self.setFixedHeight(300)   
@@ -2824,7 +2492,6 @@ class Delete_Confirm_VHDA_Dialog(QDialog):
         self.setLayout(layout)   
 
         # SIMPLE FOLDER - Asset Preview ----------------------------      
-
         self.assetlist_gb = QGroupBox("Assets and Instances") 
         layout.addWidget(self.assetlist_gb)
 
@@ -2833,7 +2500,6 @@ class Delete_Confirm_VHDA_Dialog(QDialog):
 
 
         # Info Label
-
         infolabel_layout = QHBoxLayout()
         assetlist_gb_layout.addLayout(infolabel_layout)
 
@@ -2871,7 +2537,6 @@ class Delete_Confirm_VHDA_Dialog(QDialog):
             root.appendRow(type_item)
         
         # BUTTONS ----------------------------
-
         buttons_layout = QHBoxLayout()
         layout.addLayout(buttons_layout)
 
@@ -2893,6 +2558,4 @@ class Delete_Confirm_VHDA_Dialog(QDialog):
        
         height = 50 + (rownum * 20)
       
-
-
         self.setFixedHeight(self.sizeHint().height()) 
