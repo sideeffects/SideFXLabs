@@ -38,7 +38,7 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
 
         self.setSourceModel(model)
         self.setDynamicSortFilter(True)
-        
+
         self._showname = False
         self._showlabel = True
         self._showdiffonly = False
@@ -46,7 +46,7 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
     def showname():
         """ """
         def fget(self): return self._showname
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showname to \"%s\"." % value)
             self._showname = value
         return locals()
@@ -55,7 +55,7 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
     def showlabel():
         """ """
         def fget(self): return self._showlabel
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showlabel to \"%s\"." % value)
             self._showlabel = value
         return locals()
@@ -64,7 +64,7 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
     def showdiffonly():
         """ """
         def fget(self): return self._showdiffonly
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showdiffonly to \"%s\"." % value)
             self._showdiffonly = value
         return locals()
@@ -82,13 +82,13 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
     def filterAcceptsColumn(self, columnIdx, parent):
 
         # columnsToShow = [0, 1, 2, 3, 4, 5]
-        # columnsToShow = [1, 2] 
+        # columnsToShow = [1, 2]
         columnsToShow = []
-        
+
         if self._showname:
             columnsToShow.append(0)
         if self._showlabel:
-            columnsToShow.append(1) 
+            columnsToShow.append(1)
         # show values
         columnsToShow.append(2)
 

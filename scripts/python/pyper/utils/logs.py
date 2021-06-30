@@ -38,10 +38,10 @@ def setup_logging(logger_name, logfile=""):
     """convenience function to setup the logger"""
 
     configFile = LOG_CONFIG
-    
+
     if configFile and os.path.exists(configFile):
         # create the logfile directory if it does not exist
-        logfile = os.path.expanduser(os.path.expandvars(logfile)) 
+        logfile = os.path.expanduser(os.path.expandvars(logfile))
         directory = os.path.dirname(logfile)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -50,7 +50,7 @@ def setup_logging(logger_name, logfile=""):
         with open(configFile) as f:
             logconfig = json.load(f)
             if logfile:
-                # change default logfile 
+                # change default logfile
                 logconfig['handlers']['file']['filename'] = logfile
             logging.config.dictConfig(logconfig)
 
@@ -58,7 +58,7 @@ def setup_logging(logger_name, logfile=""):
         # if no config file, use the basic configuration from the logging module
         logging.basicConfig(level=logging.INFO)
         logging.warning("No logging configuration file found: using basic configuration.")
-        
+
     logger = logging.getLogger(logger_name)
     return logger
 

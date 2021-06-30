@@ -32,7 +32,7 @@ def multiparm_path(node,parm):
 # -----------------------------------------------------------------------------
 
 def path(node, path):
-    path    = os.path.dirname(os.path.abspath(path)) 
+    path    = os.path.dirname(os.path.abspath(path))
     pl      = platform.system()
     # log.node(node, 2, "Your Platform is: " + str(pl))
     # log.node(node, 1, "File path to Browse: " + path)
@@ -41,15 +41,15 @@ def path(node, path):
     if pl == "Windows":
         cmd = "explorer"
     elif pl == "Linux":
-        cmd = "nautilus"        
+        cmd = "nautilus"
     elif pl == "Darwin":
         cmd = "open"
-    else:        
+    else:
         skp = 1
         hou.ui.displayMessage("Can't detect operating system to launch file browser.", severity=hou.severityType.ImportantMessage, default_choice=1, close_choice=1, help="Please PM me and tell me the ouptut from the python shell of: 'import platform, platform.system()' and your command line file browser for your operating system and I can add it.", title="Browse Path")
-    
 
-    if skp == 0 :        
+
+    if skp == 0 :
         if os.path.isdir(path) :
             proc = subprocess.Popen( [cmd, path])
         else:

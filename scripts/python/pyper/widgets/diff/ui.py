@@ -57,7 +57,7 @@ class MainWidget(QtWidgets.QWidget):
     def __init__(self, appModel, parent=None):
         """ """
         super(MainWidget, self).__init__(parent)
-        
+
         # initialize/get the logger
         self._logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class MainWidget(QtWidgets.QWidget):
         self._appModel = appModel
         self._logger.debug("%s is using %s application model." % (__name__, self._appModel.name))
 
-        # get the first two selected nodes... 
+        # get the first two selected nodes...
         srcNodePath = dstNodePath = ""
         selectedNodes = self._appModel.selection()
         if selectedNodes:
@@ -78,7 +78,7 @@ class MainWidget(QtWidgets.QWidget):
         nodePathes = [srcNodePath, dstNodePath]
         # clear selection so any modification in houdini does not accidentally change all selected nodes
         self._appModel.clearSelection()
-        
+
         #... and create the spreadsheets
         # @note: in the future I would like to have more nodes, hence the this list
         self._spreadsheets = []
@@ -123,10 +123,10 @@ class MainWidget(QtWidgets.QWidget):
         self.uiShowDiffOnly.stateChanged.connect(self.refresh)
         # self.uiShowName.stateChanged.connect(self.refresh)
         # self.uiShowLabel.stateChanged.connect(self.refresh)
-        
+
         spreadsheets = self._spreadsheets
         for idx, spreadsheet in enumerate(spreadsheets):
-            # build a temporary list to pair one element to the next in a circular way 
+            # build a temporary list to pair one element to the next in a circular way
             # so that the last element is paired with the first one
             tmplist = spreadsheets[idx:] + spreadsheets[:idx]
             tableViewSrc = tmplist[0].uiTableView
@@ -152,10 +152,10 @@ class MainWidget(QtWidgets.QWidget):
         self._logger.info("%s closed." % (name))
 
     def syncData(self, topLeftIndex, bottomRightIndex):
-        # get the row and model from the index        
+        # get the row and model from the index
         row = topLeftIndex.row()
         model = topLeftIndex.model().sourceModel()
-        
+
         # define source and destination models
         spreadsheetModels = [x.model() for x in self._spreadsheets]
         modelSrc = model
@@ -193,15 +193,15 @@ class MainWidget(QtWidgets.QWidget):
         indexes = srcSpreadsheet.uiTableView.selectionModel().selectedIndexes()
         rows = [index.row() for index in indexes]
         # note: do not use index.model().mapToSource(index).row() as it will give the original index
-        # and will not take into account when rows are hidden by the proxymodel 
-        
-        # initialize and build item selection 
+        # and will not take into account when rows are hidden by the proxymodel
+
+        # initialize and build item selection
         itemSelection = QtCore.QItemSelection()
         for row in rows:
             topSrc = dstSpreadsheet.model.index(row, 0)
             bottomDst = dstSpreadsheet.model.index(row, 1)
             itemSelection.append(QtCore.QItemSelectionRange(topSrc, bottomDst))
-        
+
         # to avoid signals to be sent recursively, we need to block signals before sending new selection to the destination model
         dstSpreadsheet.uiTableView.selectionModel().blockSignals(True)
         # apply selection to the destination selection model
@@ -225,7 +225,7 @@ class MainWidget(QtWidgets.QWidget):
         # for each name
         for name in names:
             parm = []
-            # if name is on the source node 
+            # if name is on the source node
             if name in srcNodeDict.keys():
                 # if it is only on the source node
                 parm = list(srcNodeDict[name].values())
@@ -258,11 +258,11 @@ class MainWidget(QtWidgets.QWidget):
         # sort mylist by the first key of each item
         mylist.sort(key=lambda x: str(x[0]))
 
-        return mylist 
+        return mylist
 
     def refresh(self):
         self._logger.debug("Refreshing diff %s" % self)
-    
+
         if self._spreadsheets:
             # first refresh the spreadsheets so the model is updated
             # this is needed for nodeDict to be up to date
@@ -274,7 +274,7 @@ class MainWidget(QtWidgets.QWidget):
 
             # once nodeDict has been updated for each model, build the displayList
             displayList = self.buildDisplayList()
-    
+
             # finally refresh the spreadsheet with the displayList
             for spreadsheet in self._spreadsheets:
                 spreadsheet.model.beginResetModel()

@@ -70,7 +70,7 @@ class MainWidget(QtWidgets.QWidget):
 
     def setup_ui(self):
         """ """
-        
+
         # build the ui
         uifile = os.path.abspath(os.path.join(os.path.dirname(__file__), "ui/widget.ui"))
         UiLoader(self).load(uifile)

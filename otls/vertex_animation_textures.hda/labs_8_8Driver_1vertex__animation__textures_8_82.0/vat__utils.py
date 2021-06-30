@@ -25,14 +25,14 @@ def data(node):
     try:
         os.remove(path)
     except OSError:
-        pass       
-    #create directory if it does not exist    
+        pass
+    #create directory if it does not exist
     if not os.path.exists(directory):
         os.makedirs(directory)
-    
+
     engine       = str(node.evalParm('engine'))
     method       = node.evalParm('method')
-    component    = node.evalParm('_component')        
+    component    = node.evalParm('_component')
     _numOfFrames = str(node.evalParm('num_frames'))
     _speed       = str(node.evalParm('speed'))
     _posMin      = str(node.evalParm('posminmax1'))
@@ -51,12 +51,12 @@ def data(node):
     _packPscale  = str(node.evalParm('pack_pscale'))
     _normData    = str(node.evalParm('normalize_data'))
     _width       = str(node.evalParm('widthheight1'))
-    _height      = str(node.evalParm('widthheight2'))        
-       
+    _height      = str(node.evalParm('widthheight2'))
+
     data = {}
     if engine == 'unity':
-        data[component] = []  
-        data[component].append({ 
+        data[component] = []
+        data[component].append({
             '_numOfFrames'  : _numOfFrames,
             '_speed'        : _speed,
             '_posMax'       : _posMax,
@@ -75,7 +75,7 @@ def data(node):
             '_packPscale'   : _packPscale,
             '_normData'     : _normData,
             '_width'        : _width,
-            '_height'       : _height         
+            '_height'       : _height
         })
     else:
         data = []
@@ -101,9 +101,9 @@ def data(node):
             'width' : float(_width),
             'height' : float(_height)
         })
-    with open(path, 'w') as f:  
+    with open(path, 'w') as f:
         json.dump(data, f, indent=4, sort_keys=True)
-                  
+
 # -----------------------------------------------------------------------------
 #    Name: _project()
 #  Raises: N/A
@@ -114,12 +114,12 @@ def data(node):
 def _project(node):
     project           = node.evalParm("project")
     project_enable    = node.evalParm("enable_project")
-    
+
     if project_enable == 1 and project != "" :
-        project       = project           
+        project       = project
     else :
-        project       = hou.hscriptExpression('$JOB')  
-    
+        project       = hou.hscriptExpression('$JOB')
+
     return project
 
 # -----------------------------------------------------------------------------
@@ -153,29 +153,29 @@ def _depth(node):
     if (depth == 0 or depth == 'int8') and usebwpoints == 0 :
         ntype = 0
         stype = 'int8'
-    if (depth == 0 or depth == 'int8') and usebwpoints == 1 : 
+    if (depth == 0 or depth == 'int8') and usebwpoints == 1 :
         ntype = 1
         stype = 'int8bw'
-    if (depth == 1 or depth == 'int16')and usebwpoints == 0 :        
+    if (depth == 1 or depth == 'int16')and usebwpoints == 0 :
         ntype = 2
         stype = 'int16'
-    if (depth == 1 or depth == 'int16') and usebwpoints == 1 :        
+    if (depth == 1 or depth == 'int16') and usebwpoints == 1 :
         ntype = 3
         stype = 'int16bw'
-    if (depth == 2 or depth == 'int32') and usebwpoints == 0 :        
+    if (depth == 2 or depth == 'int32') and usebwpoints == 0 :
         ntype = 4
         stype = 'int32'
-    if (depth == 2 or depth == 'int32') and usebwpoints == 1 :        
+    if (depth == 2 or depth == 'int32') and usebwpoints == 1 :
         ntype = 5
         stype = 'int32bw'
-    if (depth == 3 or depth == 'float16'):        
+    if (depth == 3 or depth == 'float16'):
         ntype = 6
         stype = 'float16'
-    if (depth == 4 or depth == 'float32'):        
+    if (depth == 4 or depth == 'float32'):
         ntype = 7
         stype = 'float32'
-    
-    return ntype                              
+
+    return ntype
 
 # -----------------------------------------------------------------------------
 #    Name: shader(node)
@@ -186,9 +186,9 @@ def _depth(node):
 
 def shader(node):
     path = os.path.abspath(node.evalParm('path_shader'))
-    
+
     if not os.path.isfile(path) :
-        engine = node.evalParm('engine') 
+        engine = node.evalParm('engine')
         method = node.evalParm('method')
         if   method == 0:
             smethod = 'soft'
@@ -211,13 +211,13 @@ def shader(node):
         parm = smethod +"_input_shader_"+str(engine)
         node.parm(parm).revertToDefaults()
         input_shader = node.evalParm(parm)
-        
+
         directory = os.path.dirname(path)
         main_shader_path = "%s/SimpleLitVAT%s.shader" % (directory, fname)
         forward_pass_path = "%s/SimpleLitVAT%sForwardPass.hlsl" % (directory, fname)
         input_path = "%s/SimpleLitVAT%sInput.hlsl" % (directory, fname)
 
-        
+
         print("path is: %s" % path)
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -245,33 +245,33 @@ def mat_check(node):
     path = os.path.abspath(node.evalParm('path_mat'))
     if not os.path.isfile(path) :
         print("material doesn't exist")
-        engine = node.evalParm('engine') 
+        engine = node.evalParm('engine')
         method = node.evalParm('method')
         if   method == 0:
             smethod = 'soft'
         elif method == 1:
-            smethod = 'rigid'   
+            smethod = 'rigid'
         elif method == 2:
-            smethod = 'fluid' 
+            smethod = 'fluid'
         elif method == 3:
             smethod = 'sprite'
         parm = smethod +"_mat_"+str(engine)
         node.parm(parm).revertToDefaults()
-        mat = node.evalParm(parm)  
+        mat = node.evalParm(parm)
 
         directory = os.path.dirname(path)
         if not os.path.exists(directory):
-            os.makedirs(directory)   
+            os.makedirs(directory)
         with open(path,'w+') as f:
             f.write(mat)
-    
+
     component   = str(node.evalParm('_component')) + '_mat'
     componentPath = '/mat/'+ component
     matNode     = hou.node(componentPath)
     if not matNode:
         matNode = hou.node('/mat').createNode('materialbuilder', component)
         matNode.moveToGoodPosition()
-        matNode.setColor(hou.Color( (0.0, 0.6, 1.0) ) )   
+        matNode.setColor(hou.Color( (0.0, 0.6, 1.0) ) )
 
 # -----------------------------------------------------------------------------
 #    Name: mat_update(node)
@@ -284,7 +284,7 @@ def mat_update(node):
     #print 'Updating Material'
     mat_check(node)
     shader(node)
-    path = os.path.abspath(node.evalParm('path_mat'))  
+    path = os.path.abspath(node.evalParm('path_mat'))
     if os.path.isfile(path) :
         engine       = str(node.evalParm('engine'))
         method       = node.evalParm('method')
@@ -306,8 +306,8 @@ def mat_update(node):
         _packPscale  = str(node.evalParm('pack_pscale'))
         _normData    = str(node.evalParm('normalize_data'))
         _width       = str(node.evalParm('widthheight1'))
-        _height      = str(node.evalParm('widthheight2'))        
-        
+        _height      = str(node.evalParm('widthheight2'))
+
         numOfFrames  = -1
         speed        = -1
         posMax       = -1
@@ -326,8 +326,8 @@ def mat_update(node):
         packPscale   = -1
         normData     = -1
         width        = -1
-        height       = -1        
-        
+        height       = -1
+
         with open(path) as f:
             for num, line in enumerate(f, 1):
                 if "_numOfFrames" in line:
@@ -361,55 +361,55 @@ def mat_update(node):
                 if "_paddedSizeY" in line:
                     paddedSizeY = num
                 if "_packPscale" in line:
-                    packPscale  = num 
+                    packPscale  = num
                 if "_normData"  in line:
                     normData    = num
                 if "_width"    in line:
                     width       = num
                 if "_height"    in line:
-                    height      = num                    
+                    height      = num
 
         list = open(path).readlines()
         if "_numOfFrames" != -1 :
             list[numOfFrames-1] = '    - _numOfFrames: '+_numOfFrames+'\n'
-        if "_speed"       != -1 :    
+        if "_speed"       != -1 :
             list[speed-1]       = '    - _speed: '      +_speed+'\n'
-        if "_posMin"      != -1 :    
+        if "_posMin"      != -1 :
             list[posMin-1]      = '    - _posMin: '     +_posMin+'\n'
-        if "_posMax"      != -1 :    
+        if "_posMax"      != -1 :
             list[posMax-1]      = '    - _posMax: '     +_posMax+'\n'
-        if "_scaleMin"    != -1 :   
+        if "_scaleMin"    != -1 :
             list[scaleMin-1]    = '    - _scaleMin: '   +_scaleMin+'\n'
-        if "_scaleMax"    != -1 :  
+        if "_scaleMax"    != -1 :
             list[scaleMax-1]    = '    - _scaleMax: '   +_scaleMax+'\n'
-        if "_pivMin"      != -1 :   
+        if "_pivMin"      != -1 :
             list[pivMin-1]      = '    - _pivMin: '     +_pivMin+'\n'
-        if "_pivMax"      != -1 :  
+        if "_pivMax"      != -1 :
             list[pivMax-1]      = '    - _pivMax: '     +_pivMax+'\n'
-        if "_packNorm"    != -1 :  
+        if "_packNorm"    != -1 :
             list[packNorm-1]    = '    - _packNorm: '   +_packNorm+'\n'
-        if "_doubleTex"    != -1 :  
+        if "_doubleTex"    != -1 :
             list[doubleTex-1]    = '    - _doubleTex: '   +_doubleTex+'\n'
-        if "_padPowTwo"    != -1 :  
+        if "_padPowTwo"    != -1 :
             list[padPowTwo-1]    = '    - _padPowTwo: '   +_padPowTwo+'\n'
-        if "_textureSizeX"    != -1 :  
+        if "_textureSizeX"    != -1 :
             list[textureSizeX-1] = '    - _textureSizeX: '   +_textureSizeX+'\n'
-        if "_textureSizeY"    != -1 :  
+        if "_textureSizeY"    != -1 :
             list[textureSizeY-1] = '    - _textureSizeY: '   +_textureSizeY+'\n'
-        if "_paddedSizeX"    != -1 :  
+        if "_paddedSizeX"    != -1 :
             list[paddedSizeX-1] = '    - _paddedSizeX: '   +_paddedSizeX+'\n'
-        if "_paddedSizeY"    != -1 :  
+        if "_paddedSizeY"    != -1 :
             list[paddedSizeY-1] = '    - _paddedSizeY: '   +_paddedSizeY+'\n'
-        if "_packPscale"  != -1 :    
+        if "_packPscale"  != -1 :
             list[packPscale-1]  = '    - _packPscale: ' +_packPscale+'\n'
-        if "_normData"    != -1 :    
+        if "_normData"    != -1 :
             list[normData-1]    = '    - _normData: '   +_normData+'\n'
-        if "_width"      != -1 :   
+        if "_width"      != -1 :
             list[width-1]       = '    - _width: '      +_width+'\n'
-        if "_height"      != -1 :  
-            list[height-1]      = '    - _height: '     +_height+'\n'            
+        if "_height"      != -1 :
+            list[height-1]      = '    - _height: '     +_height+'\n'
         open(path,'w').write(''.join(list))
-    
+
 def padding_pow_two(node):
     size = hou.node(node.path() + "/textures/size")
     scale1 = hou.node(node.path() + "/textures/scale1")
@@ -418,7 +418,7 @@ def padding_pow_two(node):
     size = [x,y]
     padded_size = [4,4]
     max_size = max(x, y)
-    
+
     for i in range(2):
         if size[i] > 4096:
             padded_size[i] = 8192
@@ -440,5 +440,5 @@ def padding_pow_two(node):
             padded_size[i] = 32
         else:
             padded_size[i] = 16
-        
+
     return padded_size

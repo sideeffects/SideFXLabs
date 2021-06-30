@@ -18,13 +18,13 @@ mset.newScene()
 # Load JSON File with Material Data
 ### JSON STRUCTURE -- Only contains existing maps, so size of "Index_X" may vary:
 # {
-#     "PROCESS": 1, 
+#     "PROCESS": 1,
 #     "TEXDATA": {
 #         "Index_0": {
-#             "Albedo": "<path>\TexName_Albedo.jpg", 
-#             "Mesh": "Mushroom10", 
-#             "Material": "MaterialName", 
-#             "Gloss": "<path>\TexName_Gloss.jpg", 
+#             "Albedo": "<path>\TexName_Albedo.jpg",
+#             "Mesh": "Mushroom10",
+#             "Material": "MaterialName",
+#             "Gloss": "<path>\TexName_Gloss.jpg",
 #             "Normal": "<path>\TexName_Normal_LOD0.jpg"
 #         }
 #     }

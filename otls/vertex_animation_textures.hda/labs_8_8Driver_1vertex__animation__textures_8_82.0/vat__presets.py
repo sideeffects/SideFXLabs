@@ -24,10 +24,10 @@ vat_utils = toolutils.createModuleFromSection("vat_utils",node.type(),"vat_utils
 
 def main(node):
     engine = node.evalParm('engine')
-    method = node.evalParm('method')   
-    
+    method = node.evalParm('method')
+
     reset(node)
-    
+
     if engine == 'ue4':
         ue4(node,method)
     elif engine == 'unity':
@@ -43,10 +43,10 @@ def main(node):
     elif engine == 'sop':
         sop(node,method)
     elif engine == 'winter':
-        winter(node,method)    
+        winter(node,method)
     elif engine == 'hammer':
-        hammer(node,method)    
-      
+        hammer(node,method)
+
 # -----------------------------------------------------------------------------
 #    Name: reset(node)
 #  Raises: N/A
@@ -56,48 +56,48 @@ def main(node):
 
 def reset(node):
     node.parm('num_frames').revertToDefaults()
-    node.parm('speed').revertToDefaults()    
-    node.parm('posminmax1').revertToDefaults() 
+    node.parm('speed').revertToDefaults()
+    node.parm('posminmax1').revertToDefaults()
     node.parm('posminmax2').revertToDefaults()
-    node.parm('pivminmax1').revertToDefaults() 
-    node.parm('pivminmax2').revertToDefaults()     
-    node.parm('scaleminmax1').revertToDefaults() 
+    node.parm('pivminmax1').revertToDefaults()
+    node.parm('pivminmax2').revertToDefaults()
+    node.parm('scaleminmax1').revertToDefaults()
     node.parm('scaleminmax2').revertToDefaults()
-    node.parm('widthheight1').revertToDefaults() 
-    node.parm('widthheight2').revertToDefaults()     
+    node.parm('widthheight1').revertToDefaults()
+    node.parm('widthheight2').revertToDefaults()
     node.parm('normalize_data').revertToDefaults()
     node.parm('activepixels1').revertToDefaults()
     node.parm('activepixels2').revertToDefaults()
     node.parm('paddedsize1').revertToDefaults()
     node.parm('paddedsize2').revertToDefaults()
-    node.parm('enable_geo').revertToDefaults() 
+    node.parm('enable_geo').revertToDefaults()
     node.parm('path_geo').revertToDefaults()
-    node.parm('enable_pos').revertToDefaults() 
-    node.parm('path_pos').revertToDefaults() 
-    node.parm('enable_rot').revertToDefaults() 
+    node.parm('enable_pos').revertToDefaults()
+    node.parm('path_pos').revertToDefaults()
+    node.parm('enable_rot').revertToDefaults()
     node.parm('path_rot').revertToDefaults()
-    node.parm('enable_scale').revertToDefaults() 
-    node.parm('path_scale').revertToDefaults()     
-    node.parm('enable_norm').revertToDefaults() 
-    node.parm('path_norm').revertToDefaults() 
-    node.parm('enable_col').revertToDefaults() 
+    node.parm('enable_scale').revertToDefaults()
+    node.parm('path_scale').revertToDefaults()
+    node.parm('enable_norm').revertToDefaults()
+    node.parm('path_norm').revertToDefaults()
+    node.parm('enable_col').revertToDefaults()
     node.parm('path_col').revertToDefaults()
-    node.parm('update_mat').revertToDefaults() 
-    node.parm('path_mat').revertToDefaults()      
-    node.parm('create_shader').revertToDefaults() 
+    node.parm('update_mat').revertToDefaults()
+    node.parm('path_mat').revertToDefaults()
+    node.parm('create_shader').revertToDefaults()
     node.parm('path_shader').revertToDefaults()
-    node.parm('reverse_norm').revertToDefaults()     
+    node.parm('reverse_norm').revertToDefaults()
     node.parm('convertcolorspace').revertToDefaults()
-    node.parm('depth').revertToDefaults()     
+    node.parm('depth').revertToDefaults()
     node.parm('pack_norm').revertToDefaults()
-    node.parm('pack_pscale').revertToDefaults()     
+    node.parm('pack_pscale').revertToDefaults()
     node.parm('coord_pos').revertToDefaults()
     node.parm('invert_pos').revertToDefaults()
-    node.parm('coord_rot').revertToDefaults() 
-    node.parm('coord_col').revertToDefaults() 
-    node.parm('invert_col').revertToDefaults() 
-    node.parm('target_polycount').revertToDefaults() 
-    node.parm('target_texture_size').revertToDefaults() 
+    node.parm('coord_rot').revertToDefaults()
+    node.parm('coord_col').revertToDefaults()
+    node.parm('invert_col').revertToDefaults()
+    node.parm('target_polycount').revertToDefaults()
+    node.parm('target_texture_size').revertToDefaults()
     node.parm('scale').revertToDefaults()
     node.parm('shop_materialpath').revertToDefaults()
 
@@ -128,13 +128,13 @@ def unity(node,method):
 #    node.parm('path_rot').deleteAllKeyframes()
 #    node.parm('path_rot').set('`chs("_project")`/textures/`chs(\"_component\")`_rot.tiff')
 #    node.parm('path_scale').deleteAllKeyframes()
-#    node.parm('path_scale').set('`chs("_project")`/textures/`chs(\"_component\")`_scale.tiff')    
+#    node.parm('path_scale').set('`chs("_project")`/textures/`chs(\"_component\")`_scale.tiff')
 #    node.parm('path_norm').deleteAllKeyframes()
 #    node.parm('path_norm').set('`chs("_project")`/textures/`chs(\"_component\")`_norm.tiff')
 #    node.parm('path_col').deleteAllKeyframes()
 #    node.parm('path_col').set('`chs("_project")`/textures/`chs(\"_component\")`_col.tiff')
     node.parm('path_mat').deleteAllKeyframes()
-    node.parm('path_mat').set('`chs("_project")`/materials/`chs(\"_component\")`_mat.mat')     
+    node.parm('path_mat').set('`chs("_project")`/materials/`chs(\"_component\")`_mat.mat')
     node.parm('convertcolorspace').deleteAllKeyframes()
     node.parm('convertcolorspace').set(0)
 #    node.parm('depth').deleteAllKeyframes()
@@ -142,19 +142,19 @@ def unity(node,method):
 #    node.parm('pack_pscale').deleteAllKeyframes()
 #    node.parm('pack_pscale').set(1)
 #    node.parm('pack_norm').deleteAllKeyframes()
-#    node.parm('pack_norm').set(1)    
+#    node.parm('pack_norm').set(1)
     node.parm('coord_pos').deleteAllKeyframes()
     node.parm('coord_pos').set(0)
     node.parm('invert_pos').deleteAllKeyframes()
     node.parm('invert_pos').set(1)
     node.parm('coord_rot').deleteAllKeyframes()
-#    node.parm('coord_rot').set(11)     
+#    node.parm('coord_rot').set(11)
     if method == 0 :
         node.parm('path_shader').deleteAllKeyframes()
-        node.parm('path_shader').set('`chs("_project")`/shaders/SimpleLitVATSoft.shader')         
+        node.parm('path_shader').set('`chs("_project")`/shaders/SimpleLitVATSoft.shader')
     elif method == 1 :
         node.parm('path_shader').deleteAllKeyframes()
-        node.parm('path_shader').set('`chs("_project")`/shaders/SimpleLitVATRigid.shader')         
+        node.parm('path_shader').set('`chs("_project")`/shaders/SimpleLitVATRigid.shader')
     elif method == 2 :
         vat_utils.primcount(node)
         node.parm('path_shader').deleteAllKeyframes()
@@ -163,12 +163,12 @@ def unity(node,method):
         node.parm('target_texture_size').setExpression('ch("target_polycount")*3')
     elif method == 3 :
         node.parm('reverse_norm').deleteAllKeyframes()
-        node.parm('reverse_norm').set(1)    
+        node.parm('reverse_norm').set(1)
         node.parm('path_shader').deleteAllKeyframes()
         node.parm('path_shader').set('`chs("_project")`/shaders/SimpleLitVATSprite.shader')
-#    vat_utils.mat_check(node) 
-#    vat_utils.shader(node)     
-    
+#    vat_utils.mat_check(node)
+#    vat_utils.shader(node)
+
 # -----------------------------------------------------------------------------
 #    Name: (node)
 #  Raises: N/A
@@ -227,7 +227,7 @@ def alta(node,method):
     node.parm('invert_pos').deleteAllKeyframes()
     node.parm('invert_pos').set(1)
     node.parm('coord_rot').deleteAllKeyframes()
-    node.parm('coord_rot').set(0)    
+    node.parm('coord_rot').set(0)
 
 # -----------------------------------------------------------------------------
 #    Name: altb(node)

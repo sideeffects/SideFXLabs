@@ -1,7 +1,7 @@
 import hou, os, subprocess, json
 
 def evaluateparmtoargument(node, parm):
-    
+
     if parm.parmTemplate().type() == hou.parmTemplateType.Toggle:
         return str(parm.evalAsInt())
     else:
@@ -18,7 +18,7 @@ def process(cmd, cache, folder, node):
     with hou.InterruptableOperation(node.name(), open_interrupt_dialog=True) as Operation:
 
         workingdir = os.path.dirname(cmd[0])
-        
+
         if log:
             print("--------")
             print(node.name())
@@ -31,9 +31,9 @@ def process(cmd, cache, folder, node):
             StartupInfo = subprocess.STARTUPINFO()
             subprocess.STARTF_USESHOWWINDOW = 1
             StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        
+
         clean_env = os.environ.copy()
-        
+
         if HDA.parm("enablecustomenv").evalAsInt() == 1:
             customenv = json.loads(HDA.parm("customenv").eval())
             clean_env = {str(key): str(value) for key, value in customenv.items()}

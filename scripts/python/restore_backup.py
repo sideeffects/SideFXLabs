@@ -18,12 +18,12 @@ def recoverFile():
 
     if not os.path.exists(historyPath):
         return False
-    
-        
+
+
     with open(historyPath, 'r') as file:
         txt = file.read()
         result = re.search(r'^HIP\n{\n((?:[^\n]*(\n+))+?)}', txt)
-        
+
         if not result:
             return False
 
@@ -31,15 +31,15 @@ def recoverFile():
 
         if len(recentFiles) == 0:
             return False
-        
+
         destPath = recentFiles[-1]
         filename = os.path.basename(destPath)
-    
+
     # Get the backup file
     tempDir = hou.getenv('HOUDINI_TEMP_DIR')
 
     os.chdir(tempDir)
-    
+
     bakPattern = r"^crash\.%s\.(.*)\%s" % os.path.splitext(filename)
     entries = [name for name in glob.glob('*.hip*') if re.match(bakPattern, name)]
     entries = [(os.stat(path)[ST_MTIME], path) for path in entries]
@@ -47,14 +47,14 @@ def recoverFile():
     if len(entries) == 0:
         hou.ui.displayMessage('No backup file for %s was found' % filename)
         return False
-        
+
     bakDate, bakFile = sorted(entries, reverse=True)[0]
     bakPath = os.path.join(tempDir, bakFile)
-    
+
     bakDate = datetime.fromtimestamp(int(bakDate))
     bakDate = bakDate.strftime("%m/%d/%Y, %H:%M:%S")
-    
-    
+
+
     # Ask whether restore or not
     msg = "The backup of the most recent opened file was found. Do you want to restore it?"
     details = (
@@ -62,14 +62,14 @@ def recoverFile():
         "Original: " + filename + "\n"
         "Backup: " + bakFile + " (" + bakDate + ")")
     options = ('Yes', 'Cancel')
-    
+
     if hou.ui.displayMessage(msg, options, close_choice=1, details=details, details_expanded=True) == 1:
         return False
-    
+
     prefix, ext = os.path.splitext(destPath)
     newDest = prefix + '_recovered' + ext
     shutil.move(bakPath, newDest)
-    
+
     #if hou.ui.displayMessage('Do you want to open the file?', ('Yes', 'Cancel'), close_choice=1) == 0:
     hou.hipFile.load(newDest)
-    
+
