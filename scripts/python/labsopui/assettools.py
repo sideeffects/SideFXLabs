@@ -2558,4 +2558,4 @@ class DeleteConfirmVHDADialog(QDialog):
        
         height = 50 + (rownum * 20)
       
-        self.setFixedHeight(self.sizeHint().height()) 
+        self.setFixedHeight(self.sizeHint().height())

@@ -56,4 +56,4 @@ def env(node,path):
     lst     = dict(zip(lst[::2], lst[1::2]))
     data    = json.dumps(lst, sort_keys=True, indent=4, separators=(',', ': '))
     with open(path, 'w') as f:
-        f.write(data)          
+        f.write(data)

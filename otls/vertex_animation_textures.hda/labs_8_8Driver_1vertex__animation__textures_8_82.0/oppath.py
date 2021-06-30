@@ -100,4 +100,3 @@ def hq_driver(node):
     else :
         path    = ''   
     return path
- 

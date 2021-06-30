@@ -522,4 +522,4 @@ def file_version(node):
     except WindowsError:
         return ["ElementNotRendered", "ElementNotRendered"]
     except :
-        return ["ElementNotRendered", "ElementNotRendered"]  
+        return ["ElementNotRendered", "ElementNotRendered"]

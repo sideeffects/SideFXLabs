@@ -441,4 +441,4 @@ def padding_pow_two(node):
         else:
             padded_size[i] = 16
         
-    return padded_size 
+    return padded_size
