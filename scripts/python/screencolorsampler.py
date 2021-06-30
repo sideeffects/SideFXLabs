@@ -17,7 +17,7 @@ class SampleColor(QWidget):
         self._canvass = []
         self._scenes = []
         self.configureScene()
-        
+
     def configureScene(self):
 
         # Take fullscreen screenshot
@@ -64,11 +64,11 @@ class SampleColor(QWidget):
                 # Make a painter with the visible pixmap. Have to make a new copy since the original reference gets nuked on self.update() :(
                 pixmap = self._scenes[self.mouseX[0]].items()[0].pixmap().copy()
                 painter = QPainter(pixmap)
-                
+
                 pen = QPen()
                 pen.setWidth(2)
                 pen.setColor(QColor('#FFCC4D'))
-               
+
                 # Draw a point
                 painter.setPen(pen)
                 painter.drawLine(self.oldMouseX[1], self.oldMouseY[1], self.mouseX[1], self.mouseY[1])
@@ -87,7 +87,7 @@ class SampleColor(QWidget):
         keys = [i/float(len(self.samplepositions)) for i, x in enumerate(self.samplepositions)]
 
         values = []
-        
+
         for s, x, y in self.samplepositions:
             _color = QColor(self._screenshots[s].toImage().pixel(x, y))
             values.append((pow(_color.red()/255.0,2.2),pow(_color.green()/255.0,2.2),pow(_color.blue()/255.0,2.2)))

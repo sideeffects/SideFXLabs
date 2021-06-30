@@ -32,7 +32,7 @@ import importlib
 from pyper.__about__ import *
 
 # import base class
-from . import standalone 
+from . import standalone
 
 # add houdini python libraries to the path
 sys.path.append(os.path.join(os.environ['HFS'], "houdini/python2.7libs"))
