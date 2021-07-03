@@ -24,14 +24,14 @@ class TestStringMethods(unittest.TestCase):
                 try:
                     hou.hipFile.load(os.path.join(hipdir, demo_file).replace("\\", "/"))
 
-                    LabsNodeInstances = [x for x in hou.node("/").allSubChildren() if x.type().nameComponents()[1] == "labs"] 
+                    LabsNodeInstances = [x for x in hou.node("/").allSubChildren() if x.type().nameComponents()[1] == "labs"]
 
                     for node in LabsNodeInstances:
                         namespaceOrder = [x for x in node.type().namespaceOrder() if "labs::" in x]
                         if node.type().name() != namespaceOrder[0]:
                             print "Warning... Node instance is using older definition:", node.path()
                             print "Using {0} instead of {1}".format(node.type().name(), namespaceOrder[0])
-                            
+
                 except Exception, e:
                     print str(e)
                     pass

@@ -67,5 +67,5 @@ def run():
     logger.debug("%s's interface has been created: %s" % (NAME, widget))
     logger.info("Running %s in %s." % (NAME, wrapper.name.capitalize()))
 
-    # return the widget in case it is needed 
+    # return the widget in case it is needed
     return widget

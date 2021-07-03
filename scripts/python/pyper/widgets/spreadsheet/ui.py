@@ -59,7 +59,7 @@ class CustomLineEdit(QtWidgets.QLineEdit):
             e.accept()
         else:
             e.ignore()
-    
+
     def dropEvent(self, e):
         self.setText(e.mimeData().text())
 
@@ -132,7 +132,7 @@ class MainWidget(QtWidgets.QWidget):
     def showname():
         """ """
         def fget(self): return self._showname
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showname to \"%s\"." % value)
             self._showname = value
             self._proxyModel.showname = value # and set the proxymodel's attribute so it's available for filtering
@@ -142,7 +142,7 @@ class MainWidget(QtWidgets.QWidget):
     def showlabel():
         """ """
         def fget(self): return self._showlabel
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showlabel to \"%s\"." % value)
             self._showlabel = value
             self._proxyModel.showlabel = value # and set the proxymodel's attribute so it's available for filtering
@@ -152,7 +152,7 @@ class MainWidget(QtWidgets.QWidget):
     def showdiffonly():
         """ """
         def fget(self): return self._showdiffonly
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showdiffonly to \"%s\"." % value)
             self._showdiffonly = value
             self._proxyModel.showdiffonly = value # and set the proxymodel's attribute so it's available for filtering
@@ -171,13 +171,13 @@ class MainWidget(QtWidgets.QWidget):
         """ """
         # build the ui
         # uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
-        # UiLoader(self).load(uifile)        
+        # UiLoader(self).load(uifile)
         # I could not figure out how to replace a promoted widget in the .ui file with the UiLoader()
         # So I build the entire widget manually
 
         # build the ui
         self.setWindowTitle(__name__.split(".")[-2].capitalize())
-        
+
         # create the widgets
         self.uiLineEdit = CustomLineEdit()
         self.uiTableView = QtWidgets.QTableView()
@@ -215,7 +215,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # define how the proxy model should sort the view
         self._proxyModel.sort(0, QtCore.Qt.AscendingOrder)
-        
+
         # add actions
         # self.uiTableView.addAction(self.actionRefresh)
 
@@ -228,7 +228,7 @@ class MainWidget(QtWidgets.QWidget):
             refreshFunction = lambda: self.refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
 
         # connect signals
-        self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged 
+        self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged
         self.model.dataChanged.connect(lambda: self.spreadsheetChanged.emit())      # a change in the model emits spreadsheetChanged
         self.spreadsheetChanged.connect(refreshFunction)                              # when spreadsheetChanged is triggered, refresh the spreadsheet
         # self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
@@ -248,7 +248,7 @@ class MainWidget(QtWidgets.QWidget):
     def refresh(self, parmlist=None):
         """ Refresh the spreadsheet.
         It updates the node path and asks the model to refresh """
-        # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)' 
+        # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)'
         # if not, it could pass some extra, unwanted, arguments.
         # for instance 'uiLineEdit.textChanged' will pass the text in the line edit field as parmlist.
         self._logger.debug("Refreshing spreadsheet %s" % self)

@@ -28,7 +28,7 @@ MAX_INT32 = 2 ** 31 - 1
 class Markers(object):
     """ Type markers as used by the struct module for writing out data in the specified type. Also
     used to indicate the size type of a string.
-    
+
     """
     # Marker definitions: used to denote the start of objects, arrays and special types
     OBJECT_START = b'{'
@@ -109,7 +109,7 @@ class NiagaraData(object):
                 ('attrib_data_type', self.attrib_data_type),
                 ('data_type', self.data_type),
             ))
-        
+
         def dump(self, f):
             """ Write the header in binary format to the file-like object ``f``. """
             f.write(Markers.OBJECT_START)
@@ -148,7 +148,7 @@ class NiagaraData(object):
             with BytesIO() as f:
                 self.dump(f)
                 return f.getvalue()
-    
+
     class FrameEntry(object):
         """ A object containing the data of frame entry. """
         # The data type of the number field: uint32
@@ -177,7 +177,7 @@ class NiagaraData(object):
         @property
         def frame_data(self):
             return self._frame_data
-        
+
         @frame_data.setter
         def frame_data(self, value):
             self._frame_data = value
@@ -197,9 +197,9 @@ class NiagaraData(object):
             ))
 
         def dump_begin(self, f):
-            """ Write this frame entry up to just before the first value in ``frame_data``, to 
-                the custom binary format using the file-like object ``f``. 
-                
+            """ Write this frame entry up to just before the first value in ``frame_data``, to
+                the custom binary format using the file-like object ``f``.
+
             """
             f.write(Markers.OBJECT_START)
 
@@ -220,7 +220,7 @@ class NiagaraData(object):
             """ Write the end markers for the frame_data array and frame_entry object to ``f``. """
             f.write(Markers.ARRAY_END)
 
-            f.write(Markers.OBJECT_END)            
+            f.write(Markers.OBJECT_END)
 
         def dump_frames(self, f, clamp_values_to_pack_type=True):
             """ Dump the content of the ``frame_data`` array to ``f``.
@@ -245,8 +245,8 @@ class NiagaraData(object):
             """ Write the frame entry to the custom binary format via the file-like ``f``. """
             self.dump_begin(f)
 
-            self.dump_frames(f, clamp_values_to_pack_type)            
-            
+            self.dump_frames(f, clamp_values_to_pack_type)
+
             self.dump_end(f)
 
         def dumpb(self, clamp_values_to_pack_type=True):
@@ -263,7 +263,7 @@ class NiagaraData(object):
     @property
     def header(self):
         return self._header
-    
+
     def add_frame(self, frame_entry):
         """ Add a ``frame_entry``. ``frame_entry`` must be an instance of ``NiagaraData.FrameEntry``. """
         if not isinstance(frame_entry, NiagaraData.FrameEntry):
@@ -274,7 +274,7 @@ class NiagaraData(object):
     def _gen_frame_dict_entries(self):
         """ Returns a generator of ordered dicts, one for each FrameEntry in ``self._frames``. Calls
         :meth:`NiagaraData.FrameEntry.to_dict()` to get the dictionary for each FrameEntry.
-        
+
         """
         for frame in self._frames:
             yield frame.to_dict()
@@ -329,18 +329,18 @@ def write_string(f, value):
         - string size type marker: one of ``Markers.TYPE_``
         - the size of the string in bytes, packed according to the size type marker
         - the string byte array itself packed as chars
-    
+
     Raises a ``ValueError`` if the string's size is greater than can be represented with uint32.
 
     """
     if hasattr(value, 'encode'):
-        # Encode to utf-8 
+        # Encode to utf-8
         encoded_byte_string = value.encode('utf-8')
     else:
         # Assuming here that this is already a utf-8 bytes array
         encoded_byte_string = value
     # Write the size type marker, first determine the length
-    # of the string and check 
+    # of the string and check
     num_bytes = len(encoded_byte_string)
     size_type = None
     if num_bytes <= MAX_UINT8:
@@ -360,7 +360,7 @@ def write_basic_value(f, value, pack_type=None, clamp=True):
     """ Write a plain old data ``value``, such as float, int or bool, to ``f``, packed according
     to ``pack_type``.
 
-    Casts ``value`` to the appropriate type depending on ``pack_type``. 
+    Casts ``value`` to the appropriate type depending on ``pack_type``.
 
     Multi-byte values are written with little-endian encoding.
 
@@ -383,9 +383,9 @@ def write_basic_value(f, value, pack_type=None, clamp=True):
             casted_value = casted_value[0:1]
         else:
             casted_value = b'\0'
-    elif (pack_type == Markers.TYPE_INT8 or pack_type == Markers.TYPE_UINT8 or 
-            pack_type == Markers.TYPE_INT16 or pack_type == Markers.TYPE_UINT16 or 
-            pack_type == Markers.TYPE_INT32 or pack_type == Markers.TYPE_UINT32 or 
+    elif (pack_type == Markers.TYPE_INT8 or pack_type == Markers.TYPE_UINT8 or
+            pack_type == Markers.TYPE_INT16 or pack_type == Markers.TYPE_UINT16 or
+            pack_type == Markers.TYPE_INT32 or pack_type == Markers.TYPE_UINT32 or
             pack_type == Markers.TYPE_INT64 or pack_type == Markers.TYPE_UINT64):
         casted_value = int(value)
     elif pack_type == Markers.TYPE_FLOAT32 or pack_type == Markers.TYPE_FLOAT64:
@@ -470,8 +470,8 @@ def close_array(f):
 
 
 def write_array(f, obj, pack_type=None, clamp=True):
-    """ Writes ``obj``, a sequence, as an array of values to ``f``. 
-    
+    """ Writes ``obj``, a sequence, as an array of values to ``f``.
+
     ``pack_type`` defaults to ``None``. If not ``None`` it can be used to specify a single pack type to
     use for all values in the array, or it can be a sequence, with the same length as ``obj``, of pack types.
 
@@ -496,7 +496,7 @@ def write_value(f, value, pack_type=None, clamp=True):
     """ Generic function for wriiting a ``value`` to ``f`` with a specified (optional) ``pack_type``.
 
     Supports:
-    
+
         - ``Mapping`` types via ``write_object
         - strings via ``write_string``
         - ``Iterable`` types via ``write_array``
@@ -510,7 +510,7 @@ def write_value(f, value, pack_type=None, clamp=True):
 
     Raises:
         ``ValueError``: If the type of ``value`` is not supported.
-        
+
     """
     if isinstance(value, Mapping):
         write_object(f, value, pack_type, clamp)

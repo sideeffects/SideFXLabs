@@ -25,7 +25,7 @@ class Tip_Dialog(QDialog):
         with open(self.csvfile,"r") as data:
             self.numtips = sum(1 for row in data)
         self.currenttip = random.randint(0, self.numtips)
-        
+
 
     def TipAtIndex(self, index):
         with open(self.csvfile,"r") as data:
@@ -38,11 +38,11 @@ class Tip_Dialog(QDialog):
 
     def closeEvent(self, event):
         pass
-        
+
     def RandomTip(self):
         self.Randomize()
         self.UpdateTip()
-        
+
 
     def PrevTip(self):
         self.currenttip = max(0, self.currenttip-1)

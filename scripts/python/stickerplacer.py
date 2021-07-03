@@ -15,8 +15,8 @@ class StickerPlacer(QDialog):
         self.populate_widget_icons()
 
     def show_help(self):
-        hou.ui.curDesktop().displayHelpPath("/nodes/other/labs--sticker_picker") 
-        
+        hou.ui.curDesktop().displayHelpPath("/nodes/other/labs--sticker_picker")
+
 
     def get_source_dirs(self):
         sticker_dirs = []
@@ -58,9 +58,9 @@ class StickerPlacer(QDialog):
 
         #self.close()
 
-    
+
     def build_ui(self):
-        
+
         self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Sticker Picker")
 
@@ -76,7 +76,7 @@ class StickerPlacer(QDialog):
 
         self.listwidget.itemDoubleClicked.connect(self.create_sticker)
         self.iconset = QComboBox()
-        
+
         self.iconset.addItems(self.get_source_dirs())
         self.iconset.currentIndexChanged.connect(self.populate_widget_icons)
 

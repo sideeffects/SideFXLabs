@@ -4,7 +4,7 @@ from stateutils import ancestorObject
 import hou, math
 import viewerstate.utils as util
 
-# A minimal state handler implementation. 
+# A minimal state handler implementation.
 class MyState(object):
     def __init__(self, state_name, scene_viewer):
         self.state_name = state_name
@@ -20,7 +20,7 @@ class MyState(object):
         self.measuremode = 0 # 0 = distance, 1 = angle
 
         self.initializeDrawable()
-        
+
     def initializeDrawable(self):
 
         # Measure Line 1
@@ -74,7 +74,7 @@ class MyState(object):
         trans = hou.hmath.buildTranslate(a_position)
 
         # rotation
-        rot = hou.Vector3(0,1,0).matrixToRotateTo(a_direction) 
+        rot = hou.Vector3(0,1,0).matrixToRotateTo(a_direction)
         if a_direction.dot(hou.Vector3(0,1,0)) <= -0.9999:
             rot = hou.hmath.buildRotateAboutAxis(hou.Vector3(1,0,0), 180)
 
@@ -104,9 +104,9 @@ class MyState(object):
         selectedGeometry = self.getSelectedGeometry()
 
         # no geometry selected, so no measurement
-        if not selectedGeometry: 
+        if not selectedGeometry:
             return
-        
+
         # get intersection position
         intersection = util.sopGeometryIntersection(selectedGeometry, origin, direction)
         intersectpos = intersection[1]
@@ -151,7 +151,7 @@ class MyState(object):
 
 # A registration entry-point
 def createViewerStateTemplate():
-    # Choose a name and label 
+    # Choose a name and label
     state_name = "viewportmeasuretool"
     state_label = "Measurement State"
     category = hou.sopNodeTypeCategory()

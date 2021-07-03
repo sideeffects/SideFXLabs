@@ -24,11 +24,11 @@ except ImportError:
 #  Raises: N/A
 # Returns: N/A
 #    Desc: A verbosity print function that handles ui based logging levels.
-# -----------------------------------------------------------------------------      
+# -----------------------------------------------------------------------------
 def node(node,level,string):
-    
+
     if node.parm("enableVerbosity") :
-        eVil = node.evalParm("enableVerbosity")    
+        eVil = node.evalParm("enableVerbosity")
         if eVil >= level:
             print (string)
     else :
@@ -41,19 +41,19 @@ def node(node,level,string):
 #    Desc: A verbosity print function that handles script based logging levels.
 #          0 = Always print.
 #          1 = Print if HOUDINI_ADMIN variable is also set.
-# -----------------------------------------------------------------------------      
+# -----------------------------------------------------------------------------
 def script(level,string):
-    if hou.getenv("HOUDINI_ADMIN", False) and level >= 1:   
-        print (string)    
+    if hou.getenv("HOUDINI_ADMIN", False) and level >= 1:
+        print (string)
     elif level == 0 :
-        print (string)      
+        print (string)
 
 # -----------------------------------------------------------------------------
 #    Name: env(node,path)
 #  Raises: N/A
 # Returns: N/A
 #    Desc: A verbosity print function that handles ui based logging levels.
-# -----------------------------------------------------------------------------      
+# -----------------------------------------------------------------------------
 def env(node,path):
     output  = Popen(["hconfig"], stdin=PIPE, stdout=PIPE, stderr=STDOUT, shell=True)
     output  = output.stdout.read()
@@ -62,4 +62,4 @@ def env(node,path):
     lst     = dict(zip(lst[::2], lst[1::2]))
     data    = json.dumps(lst, sort_keys=True, indent=4, separators=(',', ': '))
     with open(path, 'w') as f:
-        f.write(data)          
+        f.write(data)

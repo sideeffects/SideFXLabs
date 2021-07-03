@@ -37,11 +37,10 @@ my_env["HOUDINI_DSO_ERROR"] = "1"
 
 print latest_houdini, os.path.isfile(latest_houdini)
 
-if os.path.isfile(latest_houdini):       
+if os.path.isfile(latest_houdini):
     for filename in os.listdir(local_dir):
         if "test_" in filename and ".py" in filename:
             print "Running Test:", filename
             subprocess.call([latest_houdini, os.path.join(local_dir, filename)], env=my_env)
 else:
     print "ERROR, No matching Houdini install found"
-        

@@ -41,13 +41,13 @@ def createLineGeometry():
     line_verb = hou.sopNodeTypeCategory().nodeVerb("line")
     hou.SopVerb.setParms(line_verb, {'dir': (0, 0, 1)})
     hou.SopVerb.execute(line_verb, geo, [])
-    return geo 
+    return geo
 
 def createFrustumGeometry():
     geo = hou.Geometry()
     tube_verb = hou.sopNodeTypeCategory().nodeVerb("tube")
     hou.SopVerb.setParms(tube_verb, {
-                'type':1, 'cap':1, 'vertexnormals':1, 't':(0,0,0.25), 
+                'type':1, 'cap':1, 'vertexnormals':1, 't':(0,0,0.25),
                 'r':(-90, 0, 0), 'rad': (0.5, 1), 'height':0.5, 'cols':10})
     hou.SopVerb.execute(tube_verb, geo, [])
     return geo
@@ -82,13 +82,13 @@ class DiskMaker(object):
     def createAttribs(self, geo):
         hou.Geometry.addAttrib(geo, hou.attribType.Point, "Cd", (1.0, 1.0, 1.0))
         hou.Geometry.addAttrib(geo, hou.attribType.Point, "Alpha", 1.0)
-        
+
     def makePoints(self, geo, r, divs, arcs, color, gamma):
         self.createAttribs(geo)
         pi = m.pi
         arc_len = 2 * pi / arcs
         div_len = r / float(divs)
-        
+
         point0 = hou.Geometry.createPoint(geo)
         hou.Point.setAttribValue(point0, "Cd", color)
         hou.Point.setAttribValue(point0, "Alpha", 1.0)
@@ -100,7 +100,7 @@ class DiskMaker(object):
                 hou.Point.setPosition(point, pos)
                 hou.Point.setAttribValue(point, "Cd", color)
                 hou.Point.setAttribValue(point, "Alpha", alpha)
-                
+
     def makeFirstRing(self, geo, arcs):
         points = hou.Geometry.points(geo)
         for i in range(1, arcs):
@@ -112,7 +112,7 @@ class DiskMaker(object):
         hou.Polygon.addVertex(prim, points[0])
         hou.Polygon.addVertex(prim, points[arcs])
         hou.Polygon.addVertex(prim, points[1])
-        
+
     def makeOtherRings(self, geo, arcs, divs):
         points = hou.Geometry.points(geo)
         for i in range(1, divs - 1):
@@ -135,7 +135,7 @@ class DiskMaker(object):
             hou.Polygon.addVertex(prim, p1)
             hou.Polygon.addVertex(prim, p2)
             hou.Polygon.addVertex(prim, p3)
-                
+
     def makePrims(self, geo, arcs, divs):
         self.makeFirstRing(geo, arcs)
         self.makeOtherRings(geo, arcs, divs)
@@ -188,11 +188,11 @@ class Color(object):
         return self.hex_str
 
 def getCameraCancellingScale(translate, model_to_camera, camera_to_ndc, value):
-    model_to_ndc = translate * model_to_camera * camera_to_ndc 
+    model_to_ndc = translate * model_to_camera * camera_to_ndc
     w = model_to_ndc.at(3, 3)
-    if (w == 1): 
+    if (w == 1):
         w = 2 / abs(camera_to_ndc.at(0,0)) #scale ~* orthowidth
-    w *= value 
+    w *= value
     scale = hou.hmath.buildScale(w, w, w)
     return scale
 
@@ -358,11 +358,11 @@ class Measurement(object):
         self.setDiskTransform(self.tail_disk_drawable, self.tail_pos, model_to_camera, camera_to_ndc)
 
     def setHeadDisk(self, plane, scene_viewer):
-        if plane == Plane.X: 
+        if plane == Plane.X:
             self.head_disk_drawable = hou.GeometryDrawable(scene_viewer, hou.drawableGeometryType.Line, "circle", self.disk_x)
-        elif plane == Plane.Y: 
+        elif plane == Plane.Y:
             self.head_disk_drawable = hou.GeometryDrawable(scene_viewer, hou.drawableGeometryType.Line, "circle", self.disk_y)
-        elif plane == Plane.Z: 
+        elif plane == Plane.Z:
             self.head_disk_drawable = hou.GeometryDrawable(scene_viewer, hou.drawableGeometryType.Line, "circle", self.disk_z)
         else:
             return
@@ -405,7 +405,7 @@ class MeasurementContainer(object):
         self.text_scale = text_size
 
     def showAll(self):
-        for m in self.measurements: 
+        for m in self.measurements:
             m.show(True)
 
     def showText(self, val):
@@ -420,7 +420,7 @@ class MeasurementContainer(object):
             m.setTextScale(scale)
 
     def hideAll(self):
-        for m in self.measurements: 
+        for m in self.measurements:
             m.show(False)
 
     def removeAll(self):
@@ -455,7 +455,7 @@ class MeasurementContainer(object):
             m.drawInterrupt(handle, geometry_viewport)
 
     def current(self):
-        if self.count() < 1: 
+        if self.count() < 1:
             raise hou.Error("No measurements available!") #this check is for debugging. we should never be in this place if things work correctly.
         return self.measurements[-1]
 
@@ -476,7 +476,7 @@ class Intersection():
         self.plane = plane
 
 class Mode:
-    idle = 0 
+    idle = 0
     pre_measurement = 1
     measuring = 2
 
@@ -499,7 +499,7 @@ class State(object):
     Press the '{}' key to copy to clip and remove last measurement.
     Hold down the Ctrl key to turn on angle snapping.
     """.format(hou.hotkeys.assignments(Key.copy_to_clip)[0], hou.hotkeys.assignments(Key.pop_copy)[0])
-    
+
     planes = (hou.Vector3(1, 0, 0), hou.Vector3(0, 1, 0), hou.Vector3(0, 0, 1))
     plane_to_next = {Plane.X : hou.Vector3(0, 0, -1), Plane.Y : hou.Vector3(1, 0, 0), Plane.Z : hou.Vector3(1, 0, 0)}
     text_size = 1.0 #mutable by changing the text size parm
@@ -535,11 +535,11 @@ class State(object):
             #print(g_WorldXform)
         else:
             g_WorldXform.setToIdentity()
-                
+
     def show(self, visible):
         """ Display or hide drawables.
         """
-        if visible: 
+        if visible:
             self.measurements.showAll()
         else:
             self.measurements.hideAll()
@@ -549,7 +549,7 @@ class State(object):
         hou.GeometryDrawable.show(self.point_drawable, not val)
 
     def drawAngle(self, angle_snapping_on, handle):
-        if not angle_snapping_on: 
+        if not angle_snapping_on:
             return
         if (self.curPlane == None):
             return
@@ -630,7 +630,7 @@ class State(object):
         closest_angle = below_15 if angle - below_15 < 7.5 else above_15
 
         if hou.Vector3.cross(plane_vec, measurement_vec).dot(plane_normal) < 0:
-            closest_angle = 360 - closest_angle 
+            closest_angle = 360 - closest_angle
         self.cur_angle = closest_angle
 
         rot = hou.hmath.buildRotateAboutAxis(plane_normal, closest_angle)
@@ -780,14 +780,14 @@ class State(object):
                 hou.ui.copyTextToClipboard(str(m))
                 self.measurements.removeMeasurement()
                 return True
-        return False 
+        return False
 
     def onKeyTransitEvent(self, kwargs):
         ui_event = kwargs['ui_event']
         dev = ui_event.device()
         if dev.isKeyDown() and dev.isCtrlKey() and self.mode != Mode.idle:
             self.angleSnapping(True)
-        if dev.isKeyUp() and self.angle_snapping: 
+        if dev.isKeyUp() and self.angle_snapping:
             self.angleSnapping(False)
 
     def onParmChangeEvent(self, kwargs):
@@ -803,7 +803,7 @@ class State(object):
             State.text_size = float(parm_value)
             self.measurements.setScale(float(parm_value))
             self.geometry_viewport.draw()
-            
+
     def onDraw( self, kwargs ):
         """ This callback is used for rendering the drawables
         """
@@ -826,7 +826,7 @@ text_size_item_info = [
         ('1.5', '1.5')]
 
 def createViewerStateTemplate():
-    """ Mandatory entry point to create and return the viewer state 
+    """ Mandatory entry point to create and return the viewer state
         template to register. """
 
     state_typename = "labs::ruler"
