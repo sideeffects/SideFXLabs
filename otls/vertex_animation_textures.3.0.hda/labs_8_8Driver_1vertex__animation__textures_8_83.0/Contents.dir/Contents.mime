@@ -31,7 +31,7 @@ Content-Disposition: attachment; filename="hdaroot.def"
 Content-Type: text/plain
 
 comment ""
-position -3.5 1.85095
+position 4 -1.15
 connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -2026,7 +2026,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-card_shape	[ 0	locks=0 ]	(	[ card_shape	1 ] 	)
+card_shape	[ 0	locks=0 ]	(	[ card_shape	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -7556,14 +7556,14 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/frame_reference.init"
+Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/adjust_w.init"
 Content-Type: text/plain
 
 type = attribwrangle
 matchesdef = 1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/frame_reference.def"
+Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/adjust_w.def"
 Content-Type: text/plain
 
 sopflags sopflags = 
@@ -7596,7 +7596,7 @@ exprlanguage hscript
 end
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/frame_reference.spareparmdef"
+Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/adjust_w.spareparmdef"
 Content-Type: text/plain
 
     group {
@@ -7635,6 +7635,14 @@ Content-Type: text/plain
             baseparm
             label   "Thread Job Size"
             export  none
+        }
+        parm {
+            name    "max_rpf"
+            label   "Max RPF Allowed"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "w_not_provided"
@@ -7769,7 +7777,7 @@ Content-Type: text/plain
 
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/frame_reference.chn"
+Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/adjust_w.chn"
 Content-Type: text/plain
 
 {
@@ -7779,10 +7787,16 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../../../slerpmode\") }
     }
+    channel max_rpf {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../../../maxrpf\") }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/frame_reference.parm"
+Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/adjust_w.parm"
 Content-Type: text/plain
 
 {
@@ -7793,11 +7807,24 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"f@__frame_ref = @Frame;
+snippet	[ 0	locks=0 ]	(	"if (chi(\"w_not_provided\")) {
 
-if (chi(\"w_not_provided\")) {
     v@w = {0.0, 0.0, 0.0};
-}"	)
+
+} else {
+
+    float RAD_360 = 6.2831853;
+
+    if (length(v@w) * @TimeInc > chf(\"max_rpf\") * RAD_360) {
+
+        v@w = normalize(v@w);
+        v@w *= chf(\"max_rpf\") * RAD_360 / @TimeInc;
+    }
+
+}
+
+
+f@__frame_ref = @Frame;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -7812,11 +7839,12 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
+max_rpf	[ 0	locks=0 ]	(	[ max_rpf	50 ] 	)
 w_not_provided	[ 0	locks=0 ]	(	[ w_not_provided	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/frame_reference.userdata"
+Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/adjust_w.userdata"
 Content-Type: text/plain
 
 {
@@ -8494,12 +8522,12 @@ folder1	[ 0	locks=0 ]	(	0	0	)
 mode	[ 8	locks=0 ]	(	[ mode	1 ] 	)
 scale	[ 8	locks=0 ]	(	[ scale	100 ] 	)
 texture_width	[ 8	locks=0 ]	(	[ texture_width	1024 ] 	)
-export_point_count	[ 8	locks=0 ]	(	[ export_point_count	12 ] 	)
+export_point_count	[ 8	locks=0 ]	(	[ export_point_count	110 ] 	)
 finalsize	[ 8	locks=0 ]	(	[ finalsizex	1 ] 	[ finalsizey	1 ] 	)
 finalpow2size	[ 8	locks=0 ]	(	[ finalpow2sizex	1 ] 	[ finalpow2sizey	1 ] 	)
 powoftwo	[ 8	locks=0 ]	(	[ powoftwo	0 ] 	)
 max_pscale	[ 8	locks=0 ]	(	[ max_pscale	0 ] 	)
-max_rpf	[ 8	locks=0 ]	(	[ max_rpf	0.21440167725086212 ] 	)
+max_rpf	[ 8	locks=0 ]	(	[ max_rpf	2.311145544052124 ] 	)
 normalize_data	[ 8	locks=0 ]	(	[ normalize_data	0 ] 	)
 split_pos	[ 8	locks=0 ]	(	[ split_pos	0 ] 	)
 custom_data_in_pa	[ 8	locks=0 ]	(	[ custom_data_in_pa	0 ] 	)
@@ -8587,7 +8615,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -8701,7 +8729,7 @@ sopflags sopflags =
 comment ""
 position 3.997 -9.151
 connectornextid 3
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 2 "output1"
@@ -9670,7 +9698,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-mode	[ 0	locks=0 ]	(	[ mode	3 ] 	)
+mode	[ 0	locks=0 ]	(	[ mode	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -10079,7 +10107,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -10468,7 +10496,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-mode	[ 0	locks=0 ]	(	[ mode	3 ] 	)
+mode	[ 0	locks=0 ]	(	[ mode	1 ] 	)
 check_const_numpt	[ 0	locks=0 ]	(	[ check_const_numpt	1 ] 	)
 }
 
@@ -11150,7 +11178,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -11485,7 +11513,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -12297,7 +12325,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -12786,7 +12814,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -13407,7 +13435,7 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 custom_data_in_pa	[ 8	locks=0 ]	(	[ custom_data_in_pa	0 ] 	)
-first_frame	[ 0	locks=0 ]	(	[ first_frame	120 ] 	)
+first_frame	[ 0	locks=0 ]	(	[ first_frame	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -14821,11 +14849,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	first_frame3 1 1 "input1"
+0 	msg_ui_and_all_modes 0 1 "input1"
 }
 inputs
 {
-0 	first_frame3 0 1
+0 	msg_ui_and_all_modes 0 1
 }
 stat
 {
@@ -14855,13 +14883,11 @@ snippet	[ 0	locks=0 ]	(	"string prim_type = primintrinsic(0, \"typename\", @prim
 
 if (!match(\"Packed*\", prim_type)) {
     i@__not_packed = 1;
-    
-} else {
-    i@__packed = 1;
-
 }
 
-"	)
+if (!match(\"Poly\", prim_type)) {
+    i@__not_poly = 1;
+}"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -15512,7 +15538,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -16117,7 +16143,7 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"@Cd = @accel;"	)
+snippet	[ 0	locks=0 ]	(	"@Cd = v@accel;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -18782,7 +18808,7 @@ mode	[ 8	locks=0 ]	(	[ mode	1 ] 	)
 path	[ 0	locks=0 ]	(	`opfullpath(\"../../objects/TEXTURE/OUT\")`	)
 geo	[ 0	locks=0 ]	(	op:`opfullpath(chs(\"path\"))`	)
 target_texture_size	[ 0	locks=0 ]	(	[ target_texture_size	1024 ] 	)
-numpt	[ 8	locks=0 ]	(	[ numpt	12 ] 	)
+numpt	[ 8	locks=0 ]	(	[ numpt	110 ] 	)
 rbd_frame_export_attribute	[ 0	locks=0 ]	(	orient	)
 quaternion_flip	[ 0	locks=0 ]	(	[ quaternion_flip	8 ] 	)
 coord_swizzle	[ 8	locks=0 ]	(	[ coord_swizzle	1 ] 	)
@@ -18810,7 +18836,7 @@ Content-Disposition: attachment; filename="hdaroot/textures/orient.cop2"
 Content-Type: text/plain
 
 2
-696
+703
 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -19296,7 +19322,7 @@ parmlabel	[ 0	locks=0 ]	(	"Num Of Points"	)
 showlabel	[ 0	locks=0 ]	(	"on"	)
 parmtype	[ 0	locks=0 ]	(	"float"	)
 parmtypename	[ 0	locks=0 ]	(	""	)
-floatdef	[ 0	locks=0 ]	(	[ floatdef	12 ] 	)
+floatdef	[ 0	locks=0 ]	(	[ floatdef	110 ] 	)
 intdef	[ 0	locks=0 ]	(	0	)
 toggledef	[ 0	locks=0 ]	(	"off"	)
 angledef	[ 0	locks=0 ]	(	0	)
@@ -21722,7 +21748,7 @@ posthold	[ 0	locks=0 ]	(	0	)
 path	[ 0	locks=0 ]	(	`opfullpath(\"../../objects/TEXTURE/OUT\")`	)
 geo	[ 0	locks=0 ]	(	op:`opfullpath(chs(\"path\"))`	)
 target_texture_size	[ 0	locks=0 ]	(	[ target_texture_size	1024 ] 	)
-numpt	[ 0	locks=0 ]	(	[ numpt	12 ] 	)
+numpt	[ 0	locks=0 ]	(	[ numpt	110 ] 	)
 export_attribute_cd	[ 0	locks=0 ]	(	Cd	)
 export_attribute_alpha	[ 0	locks=0 ]	(	Alpha	)
 coord_swizzle	[ 0	locks=0 ]	(	0	)
@@ -21750,7 +21776,7 @@ Content-Disposition: attachment; filename="hdaroot/textures/color.cop2"
 Content-Type: text/plain
 
 2
-374
+375
 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -25370,7 +25396,7 @@ geo_path	[ 0	locks=0 ]	(	`opfullpath(\"../../objects/TEXTURE/OUT\")`	)
 geo	[ 0	locks=0 ]	(	op:`chs(\"geo_path\")`	)
 export_attribute_p	[ 0	locks=0 ]	(	P_texture	)
 target_texture_size	[ 8	locks=0 ]	(	[ target_texture_size	1024 ] 	)
-numpt	[ 8	locks=0 ]	(	[ numpt	12 ] 	)
+numpt	[ 8	locks=0 ]	(	[ numpt	110 ] 	)
 coord_swizzle	[ 0	locks=0 ]	(	[ coord_swizzle	1 ] 	)
 coord_flip	[ 0	locks=0 ]	(	[ coord_flip	0 ] 	)
 stdswitcher5	[ 0	locks=0 ]	(	3	3	3	3	)
@@ -25392,7 +25418,7 @@ Content-Disposition: attachment; filename="hdaroot/textures/position.cop2"
 Content-Type: text/plain
 
 2
-560
+561
 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -26971,7 +26997,7 @@ m	[ 0	locks=0 ]	(	[ m	1 ] 	)
 path	[ 0	locks=0 ]	(	`opfullpath(\"../../objects/TEXTURE/OUT\")`	)
 geo	[ 0	locks=0 ]	(	op:`opfullpath(chs(\"path\"))`	)
 target_texture_size	[ 0	locks=0 ]	(	[ target_texture_size	1024 ] 	)
-numpt	[ 0	locks=0 ]	(	[ numpt	12 ] 	)
+numpt	[ 0	locks=0 ]	(	[ numpt	110 ] 	)
 export_attribute	[ 0	locks=0 ]	(	pscale	)
 stdswitcher5	[ 0	locks=0 ]	(	0	0	0	0	)
 }
@@ -26996,7 +27022,7 @@ Content-Disposition: attachment; filename="hdaroot/textures/pscale.cop2"
 Content-Type: text/plain
 
 2
-342
+343
 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -31112,7 +31138,7 @@ posthold	[ 0	locks=0 ]	(	0	)
 path	[ 0	locks=0 ]	(	`opfullpath(\"../../objects/TEXTURE/OUT\")`	)
 geo	[ 0	locks=0 ]	(	op:`opfullpath(chs(\"path\"))`	)
 target_texture_size	[ 0	locks=0 ]	(	[ target_texture_size	1024 ] 	)
-numpt	[ 0	locks=0 ]	(	[ numpt	0 ] 	)
+numpt	[ 0	locks=0 ]	(	[ numpt	110 ] 	)
 export_attribute_cd	[ 0	locks=0 ]	(	Cd2	)
 export_attribute_alpha	[ 0	locks=0 ]	(	Alpha2	)
 coord_swizzle	[ 0	locks=0 ]	(	0	)
@@ -31140,7 +31166,7 @@ Content-Disposition: attachment; filename="hdaroot/textures/spare_color.cop2"
 Content-Type: text/plain
 
 2
-369
+370
 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -34463,7 +34489,7 @@ sopflags sopflags =
 comment ""
 position -3.5 -10.15
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -35148,7 +35174,7 @@ sopflags sopflags =
 comment ""
 position -3.5 -4.15
 connectornextid 3
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 2 "output1"
@@ -36174,7 +36200,7 @@ sopflags sopflags =
 comment ""
 position -0.5 -13.15
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -36994,7 +37020,7 @@ t	[ 0	locks=0 ]	(	0	0	0	)
 r	[ 0	locks=0 ]	(	0	0	0	)
 s	[ 8	locks=0 ]	(	1	1	1	)
 shear	[ 0	locks=0 ]	(	0	0	0	)
-scale	[ 8	locks=0 ]	(	[ scale	0 ] 	)
+scale	[ 8	locks=0 ]	(	[ scale	0.0057543475897786573 ] 	)
 parmgroup_pivotxform	[ 0	locks=0 ]	(	0	)
 p	[ 0	locks=0 ]	(	0	0	0	)
 pr	[ 0	locks=0 ]	(	0	0	0	)
@@ -37098,7 +37124,7 @@ t	[ 0	locks=0 ]	(	0	0	0	)
 r	[ 0	locks=0 ]	(	0	0	0	)
 s	[ 0	locks=0 ]	(	1	1	1	)
 shear	[ 0	locks=0 ]	(	0	0	0	)
-scale	[ 8	locks=0 ]	(	[ scale	0 ] 	)
+scale	[ 8	locks=0 ]	(	[ scale	173.78164672851563 ] 	)
 parmgroup_pivotxform	[ 0	locks=0 ]	(	0	)
 p	[ 0	locks=0 ]	(	0	0	0	)
 pr	[ 0	locks=0 ]	(	0	0	0	)
@@ -37524,7 +37550,7 @@ s	[ 0	locks=0 ]	(	1	1	1	)
 shear	[ 0	locks=0 ]	(	0	0	0	)
 scale	[ 0	locks=0 ]	(	0.90000000000000002	)
 parmgroup_pivotxform	[ 0	locks=0 ]	(	1	)
-p	[ 8	locks=0 ]	(	[ px	0 ] 	[ py	0 ] 	[ pz	0 ] 	)
+p	[ 8	locks=0 ]	(	[ px	1.5951042175292969 ] 	[ py	-0.11207389831542969 ] 	[ pz	9.9683208465576172 ] 	)
 pr	[ 0	locks=0 ]	(	0	0	0	)
 parmgroup_prexform	[ 0	locks=0 ]	(	0	)
 prexform_xOrd	[ 0	locks=0 ]	(	"srt"	)
@@ -37688,7 +37714,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 0	locks=0 ]	(	[ input	1 ] 	)
+input	[ 0	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -40196,7 +40222,7 @@ sopflags sopflags =
 comment ""
 position -0.5 -9.15
 connectornextid 3
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 2 "output1"
@@ -42662,7 +42688,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -43661,7 +43687,7 @@ size1	[ 0	locks=0 ]	(	3	)
 default1v	[ 0	locks=0 ]	(	0	0	0	0	)
 writevalues1	[ 0	locks=0 ]	(	"on"	)
 uselocal1	[ 0	locks=0 ]	(	"on"	)
-value1v	[ 8	locks=0 ]	(	[ value1v1	0 ] 	[ value1v2	10 ] 	[ value1v3	-40 ] 	0	)
+value1v	[ 8	locks=0 ]	(	[ value1v1	0.34115827083587646 ] 	[ value1v2	5.3422150611877441 ] 	[ value1v3	0.63791173696517944 ] 	0	)
 string1	[ 0	locks=0 ]	(	""	)
 }
 
@@ -47430,7 +47456,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -48530,7 +48556,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	3 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -48872,7 +48898,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF+0.5 }
+      segment { length = 0 expr = ch(\"../next_frame2/frame\") }
     }
     channel time {
       lefttype = extend
@@ -48981,7 +49007,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF-0.5 }
+      segment { length = 0 expr = ch(\"../this_frame2/frame\") }
     }
     channel time {
       lefttype = extend
@@ -49022,7 +49048,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	0.5 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	0.5 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
@@ -49247,7 +49273,7 @@ group	[ 0	locks=0 ]	(	""	)
 grouptype	[ 0	locks=0 ]	(	"guess"	)
 encodenames	[ 0	locks=0 ]	(	"off"	)
 numattr	[ 0	locks=0 ]	(	1	)
-enable1	[ 0	locks=0 ]	(	[ enable1	0 ] 	)
+enable1	[ 0	locks=0 ]	(	[ enable1	1 ] 	)
 name1	[ 0	locks=0 ]	(	pscale	)
 existing1	[ 0	locks=0 ]	(	"better"	)
 createvarmap1	[ 0	locks=0 ]	(	"off"	)
@@ -49396,7 +49422,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF-0.5 }
+      segment { length = 0 expr = ch(\"../this_frame2/frame\") }
     }
     channel time {
       lefttype = extend
@@ -49437,7 +49463,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	0.5 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	0.5 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
@@ -49505,7 +49531,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF+0.5 }
+      segment { length = 0 expr = ch(\"../next_frame2/frame\") }
     }
     channel time {
       lefttype = extend
@@ -49614,7 +49640,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF+0.5 }
+      segment { length = 0 expr = ch(\"../next_frame2/frame\") }
     }
     channel time {
       lefttype = extend
@@ -49655,9 +49681,9 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	1.5 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	16.5 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	0 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0.25 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
 frange	[ 8	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
@@ -49756,11 +49782,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	frame_reference 1 1 "input1"
+0 	adjust_w 1 1 "input1"
 }
 inputs
 {
-0 	frame_reference 0 1
+0 	adjust_w 0 1
 }
 stat
 {
@@ -49783,7 +49809,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF-0.5 }
+      segment { length = 0 expr = "$FF - 0.5 * ch(\"../../../inputiscached\")" }
     }
     channel time {
       lefttype = extend
@@ -49824,7 +49850,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	0.5 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	0.5 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
@@ -49865,11 +49891,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	frame_reference 1 1 "input1"
+0 	adjust_w 1 1 "input1"
 }
 inputs
 {
-0 	frame_reference 0 1
+0 	adjust_w 0 1
 }
 stat
 {
@@ -49892,7 +49918,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF+0.5 }
+      segment { length = 0 expr = "$FF + 1.0 - 0.5 * ch(\"../../../inputiscached\")" }
     }
     channel time {
       lefttype = extend
@@ -49933,7 +49959,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	1.5 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	1.5 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
@@ -50001,7 +50027,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = $FF-0.5 }
+      segment { length = 0 expr = ch(\"../this_frame2/frame\") }
     }
     channel time {
       lefttype = extend
@@ -50042,9 +50068,9 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	0.5 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	15.5 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	0 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0.25 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
 frange	[ 8	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
@@ -50272,7 +50298,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = "ch(\"../../../mode\")==0 && detail(-1, \"__packed\", 0)" }
+      segment { length = 0 expr = "ch(\"../../../mode\")==0 && detail(-1, \"__not_poly\", 0)" }
     }
     channel enable2 {
       lefttype = extend
@@ -50301,7 +50327,7 @@ Content-Type: text/plain
 {
 version 0.8
 numerror	[ 0	locks=0 ]	(	4	)
-errormsg1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"Soft-Body Deformation (Soft) mode expects unpacked geometry. One or more packed primitives are found in the input geometry."	)
+errormsg1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"Soft-Body Deformation (Soft) mode expects unpacked polygon primitives. One or more unexpected primitive types are found on the input geometry. Consider using Convert SOP to convert your geometry type to \"Polygon\"."	)
 severity1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"error"	)
 enable1	[ 8	locks=0	autoscope=0	autosel=4294967295 ]	(	[ enable1	0 ] 	)
 spare_input0	[ 0	locks=0 ]	(	../prim_type_to_detail	)
@@ -50445,7 +50471,7 @@ Content-Type: text/plain
 {
 version 0.8
 numerror	[ 0	locks=0 ]	(	4	)
-errormsg1	[ 0	locks=0 ]	(	"Rigid-Body Dynamics (Rigid) mode expects packed geometry. One or more unpacked primitives are found in the input geometry."	)
+errormsg1	[ 0	locks=0 ]	(	"Rigid-Body Dynamics (Rigid) mode expects packed primitives (one primitive per piece). One or more unexpected primitive types are found on the input geometry."	)
 severity1	[ 0	locks=0 ]	(	"error"	)
 enable1	[ 8	locks=0 ]	(	[ enable1	0 ] 	)
 spare_input0	[ 0	locks=0 ]	(	../prim_type_to_detail	)
@@ -50560,7 +50586,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = "ch(\"../../../mode\")==2 && detail(-1, \"__packed\", 0)" }
+      segment { length = 0 expr = "ch(\"../../../mode\")==2 && detail(-1, \"__not_poly\", 0)" }
     }
     channel enable2 {
       lefttype = extend
@@ -50583,7 +50609,7 @@ Content-Type: text/plain
 {
 version 0.8
 numerror	[ 0	locks=0 ]	(	3	)
-errormsg1	[ 0	locks=0 ]	(	"Dynamic Remeshing (Fluid) mode expects unpacked geometry. One or more packed primitives are found in the input geometry."	)
+errormsg1	[ 0	locks=0 ]	(	"Dynamic Remeshing (Fluid) mode expects unpacked polygon primitives. One or more unexpected primitive types are found on the input geometry. Consider using Convert SOP to convert your geometry type to \"Polygon\"."	)
 severity1	[ 0	locks=0 ]	(	"error"	)
 enable1	[ 8	locks=0 ]	(	[ enable1	0 ] 	)
 spare_input0	[ 0	locks=0 ]	(	../prim_type_to_detail	)
@@ -50941,7 +50967,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -50971,7 +50997,7 @@ sopflags sopflags =
 comment ""
 position 5.49875 -2.14845
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 0 "output1"
@@ -51656,7 +51682,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
@@ -51736,7 +51762,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -51763,7 +51789,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment "Contains messages"
-position -0.5 46.85
+position -0.5 45.85
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on displaycomment on
 outputsNamed3
@@ -51851,6 +51877,18 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = "(ch(\"../../../mode\")==1 || ch(\"../../../mode\")==3) && ch(\"../../../override_pa\") && strmatch(\"pscale\", chs(\"../../../attrib_to_replace_pa\"))" }
     }
+    channel enable10 {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = !ch(\"../../../inputiscached\") }
+    }
+    channel enable11 {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = "ch(\"../../../mode\")==1 && ch(\"../../../rigidsmoothtrajectory\") && ch(\"../../../normalizedata\")==1" }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -51859,7 +51897,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-numerror	[ 0	locks=0 ]	(	9	)
+numerror	[ 0	locks=0 ]	(	11	)
 errormsg1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"The custom attribute in Position Texture Alpha can have any non-negative values, including values above 1.0, even when using non-HDR texture formats. But in order to support this, negative values are not allowed."	)
 severity1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"message"	)
 enable1	[ 8	locks=0	autoscope=0	autosel=4294967295 ]	(	[ enable1	0 ] 	)
@@ -51887,6 +51925,12 @@ enable8	[ 8	locks=0	autoscope=0	autosel=4294967295 ]	(	[ enable8	0 ] 	)
 errormsg9	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"The attribute \"Cd2\" must be a vector attribute."	)
 severity9	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"error"	)
 enable9	[ 8	locks=0	autoscope=0	autosel=4294967295 ]	(	[ enable9	0 ] 	)
+errormsg10	[ 0	locks=0 ]	(	"It is recommended that the input geometry is cached to integer frames and loaded from disk as it shortens this node's render time. Do not use any Time Blend SOP downstream from the node that loads the cache."	)
+severity10	[ 0	locks=0 ]	(	"warn"	)
+enable10	[ 0	locks=0 ]	(	[ enable10	0 ] 	)
+errormsg11	[ 0	locks=0 ]	(	"Support Smoothly Interpolated Trajectories is turned on but Texture Format is not set to \"HDR\"."	)
+severity11	[ 0	locks=0 ]	(	"error"	)
+enable11	[ 8	locks=0 ]	(	[ enable11	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -52918,7 +52962,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -53310,7 +53354,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -53971,7 +54015,7 @@ ridefault	[ 0	locks=0 ]	(	"off"	)
 updatevar	[ 0	locks=0 ]	(	"on"	)
 overwrite	[ 0	locks=0 ]	(	"on"	)
 encodenames	[ 0	locks=0 ]	(	"off"	)
-frompt0	[ 0	locks=0 ]	(	[ frompt0	v ] 	)
+frompt0	[ 0	locks=0 ]	(	[ frompt0	accel ] 	)
 topt0	[ 0	locks=0 ]	(	Cd	)
 frompt1	[ 0	locks=0 ]	(	""	)
 topt1	[ 0	locks=0 ]	(	""	)
@@ -54261,7 +54305,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -54440,11 +54484,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	4.958333333333333 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 0	locks=0 ]	(	[ frange1	120 ] 	[ frange2	240 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
 }
 
@@ -55310,7 +55354,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -55415,7 +55459,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -55807,7 +55851,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -56060,11 +56104,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	4.958333333333333 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 0	locks=0 ]	(	[ frange1	120 ] 	[ frange2	240 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
 }
 
@@ -56231,7 +56275,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -56623,7 +56667,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -56807,11 +56851,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	4.958333333333333 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 0	locks=0 ]	(	[ frange1	120 ] 	[ frange2	240 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
 }
 
@@ -56887,7 +56931,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -57327,7 +57371,7 @@ version 0.8
 group	[ 0	locks=0 ]	(	""	)
 keep	[ 0	locks=0 ]	(	"off"	)
 ptsperpt	[ 0	locks=0 ]	(	"off"	)
-npts	[ 0	locks=0 ]	(	[ npts	301303 ] 	)
+npts	[ 0	locks=0 ]	(	[ npts	0 ] 	)
 nptsperpt	[ 0	locks=0 ]	(	10	)
 doattrib	[ 0	locks=0 ]	(	"off"	)
 attrib	[ 0	locks=0 ]	(	""	)
@@ -57520,7 +57564,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -57912,7 +57956,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -58292,7 +58336,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
@@ -58372,7 +58416,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -58477,7 +58521,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -60114,11 +60158,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	121 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	2 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	4.958333333333333 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"last"	)
-frange	[ 0	locks=0 ]	(	[ frange1	120 ] 	[ frange2	240 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
 }
 
@@ -60202,7 +60246,7 @@ version 0.8
 resimulate	[ 0	locks=0 ]	(	[ resimulate	0 ] 	)
 useinitialsop	[ 0	locks=0 ]	(	"off"	)
 initialsop	[ 0	locks=0 ]	(	""	)
-startframe	[ 0	locks=0 ]	(	[ startframe	120 ] 	)
+startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 substep	[ 0	locks=0 ]	(	1	)
 cacheenabled	[ 0	locks=0 ]	(	"off"	)
 cachetodisk	[ 0	locks=0 ]	(	"off"	)
@@ -60392,7 +60436,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -60784,7 +60828,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -62493,7 +62537,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 0	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -62651,116 +62695,6 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/first_frame3.init"
-Content-Type: text/plain
-
-type = timeshift
-matchesdef = 0
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/first_frame3.def"
-Content-Type: text/plain
-
-sopflags sopflags = 
-comment ""
-position 2.5 45.85
-connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
-outputsNamed3
-{
-1 "output1"
-}
-inputsNamed3
-{
-0 	msg_ui_and_all_modes 0 1 "input1"
-}
-inputs
-{
-0 	msg_ui_and_all_modes 0 1
-}
-stat
-{
-  create -1
-  modify -1
-  author maia@truro
-  access 0777
-}
-color UT_Color RGB 0.8 0.8 0.8 
-delscript ""
-exprlanguage hscript
-end
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/first_frame3.chn"
-Content-Type: text/plain
-
-{
-    channel frame {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = ch(\"../../../f1\") }
-    }
-    channel time {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = $T }
-    }
-    channel frange1 {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = $FSTART }
-    }
-    channel frange2 {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = $FEND }
-    }
-    channel trange1 {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = $TSTART }
-    }
-    channel trange2 {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = $TEND }
-    }
-  }
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/first_frame3.parm"
-Content-Type: text/plain
-
-{
-version 0.8
-method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	120 ] 	)
-integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	0 ] 	)
-rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
-trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/first_frame3.userdata"
-Content-Type: text/plain
-
-{
-	"___Version___":{
-		"type":"string",
-		"value":"___EXTERNAL___"
-	}
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE/prim_type_to_detail.init"
 Content-Type: text/plain
 
@@ -62806,7 +62740,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-inname	[ 0	locks=0 ]	(	"__not_packed __packed"	)
+inname	[ 0	locks=0 ]	(	"__not_packed __not_poly"	)
 inclass	[ 0	locks=0 ]	(	"primitive"	)
 outclass	[ 0	locks=0 ]	(	"detail"	)
 usepieceattrib	[ 0	locks=0 ]	(	"off"	)
@@ -62959,7 +62893,7 @@ severity1	[ 0	locks=0 ]	(	"error"	)
 enable1	[ 8	locks=0 ]	(	[ enable1	0 ] 	)
 errormsg2	[ 0	locks=0 ]	(	"Multiple Shape Variants with Shape ID Attributes requires the input geometry (the particles, not the custom card shapes) to have the point attribute \"id\". Without \"id\", shape-to-particle assignments cannot stay consistent."	)
 severity2	[ 0	locks=0 ]	(	"error"	)
-enable2	[ 8	locks=0 ]	(	[ enable2	0 ] 	)
+enable2	[ 0	locks=0 ]	(	[ enable2	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -63139,7 +63073,7 @@ adddopobjectid	[ 0	locks=0	autoscope=0 ]	(	"off"	)
 addtoexistingvel	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 deleteabandoned	[ 0	locks=0	autoscope=0 ]	(	"on"	)
 pointvels	[ 0	locks=0	autoscope=0 ]	(	"none"	)
-integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.041666666666666664 ] 	)
+integrateovertime	[ 0	locks=0	autoscope=0 ]	(	[ integrateovertime	0.016666666666666666 ] 	)
 donotsim	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -63838,11 +63772,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	200 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	4.958333333333333 ] 	)
+time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 0	locks=0 ]	(	[ frange1	120 ] 	[ frange2	240 ] 	)
+frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	200 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	3.3166666666666669 ] 	)
 }
 
@@ -64052,7 +63986,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -64217,7 +64151,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	120 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	1 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	0 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
@@ -65752,7 +65686,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -65853,7 +65787,7 @@ Content-Type: text/plain
 Content-Disposition: attachment; filename="hdaroot/objects/TEXTURE.order"
 Content-Type: text/plain
 
-173
+172
 original_sop_geo
 scale
 OUT
@@ -65880,7 +65814,7 @@ DEBUG_SLERP
 this_frame2
 next_frame2
 preprocess_slerp_edge_case
-frame_reference
+adjust_w
 this_frame3
 redefine_orient_pivot
 embed_data_to_bounds_msg
@@ -65987,7 +65921,6 @@ u_in_position_alpha
 switch_soft1
 P_texture_relative
 clean1
-first_frame3
 check_prim_type
 prim_type_to_detail
 OUT_BOUNDS_IN_ENGINE
@@ -67563,7 +67496,7 @@ maskplane	[ 0	locks=0 ]	(	A	)
 maskresize	[ 0	locks=0 ]	(	"off"	)
 maskinvert	[ 0	locks=0 ]	(	"off"	)
 overridesize	[ 0	locks=0 ]	(	"on"	)
-size	[ 8	locks=0 ]	(	[ size1	8192 ] 	[ size2	4477 ] 	)
+size	[ 8	locks=0 ]	(	[ size1	110 ] 	[ size2	200 ] 	)
 sizemenu	[ 0	locks=0 ]	(	0	)
 overrideaspect	[ 0	locks=0 ]	(	"off"	)
 aspect	[ 0	locks=0 ]	(	[ aspect	1 ] 	)
@@ -67586,12 +67519,12 @@ preextend	[ 0	locks=0 ]	(	"black"	)
 prehold	[ 0	locks=0 ]	(	0	)
 postextend	[ 0	locks=0 ]	(	"black"	)
 posthold	[ 0	locks=0 ]	(	0	)
-m	[ 0	locks=0 ]	(	[ m	3 ] 	)
-s	[ 8	locks=0 ]	(	[ s1	8192 ] 	[ s2	2057 ] 	)
-r	[ 8	locks=0 ]	(	[ r1	8192 ] 	[ r2	2057 ] 	)
+m	[ 0	locks=0 ]	(	[ m	1 ] 	)
+s	[ 8	locks=0 ]	(	[ s1	110 ] 	[ s2	200 ] 	)
+r	[ 8	locks=0 ]	(	[ r1	110 ] 	[ r2	200 ] 	)
 f	[ 8	locks=0 ]	(	[ f1	0 ] 	[ f2	0 ] 	)
-p	[ 8	locks=0 ]	(	[ p1	8192 ] 	[ p2	4477 ] 	)
-pow2size	[ 8	locks=0 ]	(	[ pow2sizex	8192 ] 	[ pow2sizey	8192 ] 	)
+p	[ 8	locks=0 ]	(	[ p1	0 ] 	[ p2	0 ] 	)
+pow2size	[ 8	locks=0 ]	(	[ pow2sizex	128 ] 	[ pow2sizey	256 ] 	)
 stdswitcher5	[ 0	locks=0 ]	(	2	2	2	2	)
 }
 
@@ -75921,8 +75854,8 @@ version 0.8
 type	[ 0	locks=0 ]	(	"poly"	)
 surftype	[ 0	locks=0 ]	(	"quads"	)
 orient	[ 0	locks=0 ]	(	"zx"	)
-size	[ 8	locks=0 ]	(	[ sizex	253.5 ] 	[ sizey	253.5 ] 	)
-t	[ 8	locks=0 ]	(	[ tx	-35 ] 	[ ty	3574.9500484466553 ] 	[ tz	-796.5 ] 	)
+size	[ 8	locks=0 ]	(	[ sizex	35.004998779296876 ] 	[ sizey	35.004998779296876 ] 	)
+t	[ 8	locks=0 ]	(	[ tx	92.8365478515625 ] 	[ ty	309.94998931884766 ] 	[ tz	-31.5 ] 	)
 r	[ 0	locks=0 ]	(	90	0	0	)
 rows	[ 0	locks=0 ]	(	2	)
 cols	[ 0	locks=0 ]	(	2	)
@@ -78541,7 +78474,7 @@ Content-Type: text/plain
 version 0.8
 execute	[ 0	locks=0 ]	(	0	)
 renderdialog	[ 0	locks=0 ]	(	0	)
-index	[ 0	locks=0 ]	(	[ index	0 ] 	)
+index	[ 0	locks=0 ]	(	[ index	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -79288,7 +79221,7 @@ take	[ 0	locks=0 ]	(	`chs(\"../../take\")`	)
 copswitcher	[ 0	locks=0 ]	(	0	0	0	0	0	)
 coppath	[ 0	locks=0 ]	(	../../textures/POSITION_AND_PACKED_PSCALE/XYZW	)
 tres	[ 0	locks=0 ]	(	"natural"	)
-res	[ 0	locks=0 ]	(	1024	1024	)
+res	[ 0	locks=0 ]	(	110	200	)
 resmenu	[ 0	locks=0 ]	(	0	)
 copoutput	[ 0	locks=0 ]	(	`chs(\"../../path_pos\")`	)
 mkpath	[ 0	locks=0 ]	(	"on"	)
@@ -79303,7 +79236,7 @@ batchmode	[ 0	locks=0 ]	(	"off"	)
 batchsize	[ 0	locks=0 ]	(	2	)
 reloadfiles	[ 0	locks=0 ]	(	"off"	)
 outputarea	[ 0	locks=0 ]	(	"frame"	)
-pixelcrop	[ 0	locks=0 ]	(	0	0	1023	1023	)
+pixelcrop	[ 0	locks=0 ]	(	0	0	109	199	)
 uvcrop	[ 0	locks=0 ]	(	0	0	1	1	)
 limitcanvaspixels	[ 0	locks=0 ]	(	"on"	)
 canvaspixels	[ 0	locks=0 ]	(	64	)
@@ -84883,7 +84816,7 @@ take	[ 0	locks=0 ]	(	`chs(\"../../take\")`	)
 copswitcher	[ 0	locks=0 ]	(	0	0	0	0	0	)
 coppath	[ 0	locks=0 ]	(	../../textures/ORIENT/XYZW	)
 tres	[ 0	locks=0 ]	(	"natural"	)
-res	[ 0	locks=0 ]	(	1024	1024	)
+res	[ 0	locks=0 ]	(	110	200	)
 resmenu	[ 0	locks=0 ]	(	0	)
 copoutput	[ 0	locks=0 ]	(	`chs(\"../../path_rot\")`	)
 mkpath	[ 0	locks=0 ]	(	"on"	)
@@ -84898,7 +84831,7 @@ batchmode	[ 0	locks=0 ]	(	"off"	)
 batchsize	[ 0	locks=0 ]	(	2	)
 reloadfiles	[ 0	locks=0 ]	(	"off"	)
 outputarea	[ 0	locks=0 ]	(	"frame"	)
-pixelcrop	[ 0	locks=0 ]	(	0	0	1023	1023	)
+pixelcrop	[ 0	locks=0 ]	(	0	0	109	199	)
 uvcrop	[ 0	locks=0 ]	(	0	0	1	1	)
 limitcanvaspixels	[ 0	locks=0 ]	(	"on"	)
 canvaspixels	[ 0	locks=0 ]	(	64	)
@@ -88335,9 +88268,9 @@ take	[ 0	locks=0 ]	(	`chs(\"../../take\")`	)
 copswitcher	[ 0	locks=0 ]	(	0	0	0	0	0	)
 coppath	[ 0	locks=0 ]	(	../../textures/COLOR/XYZW	)
 tres	[ 0	locks=0 ]	(	"natural"	)
-res	[ 0	locks=0 ]	(	1024	1024	)
+res	[ 0	locks=0 ]	(	110	200	)
 resmenu	[ 0	locks=0 ]	(	0	)
-copoutput	[ 8	locks=0 ]	(	[ copoutput	"D:/AM/Development/FX/VAT Sprite/Demo/export/VAT Sprite Demo/tex/Particles_col.exr" ] 	)
+copoutput	[ 8	locks=0 ]	(	[ copoutput	"D:/AM/Development/FX/VAT Rigid/export/VAT Rigid/tex/VAT3.0_col.exr" ] 	)
 mkpath	[ 0	locks=0 ]	(	"on"	)
 color	[ 0	locks=0 ]	(	C	)
 alpha	[ 0	locks=0 ]	(	A	)
@@ -88350,7 +88283,7 @@ batchmode	[ 0	locks=0 ]	(	"off"	)
 batchsize	[ 0	locks=0 ]	(	2	)
 reloadfiles	[ 0	locks=0 ]	(	"off"	)
 outputarea	[ 0	locks=0 ]	(	"frame"	)
-pixelcrop	[ 0	locks=0 ]	(	0	0	1023	1023	)
+pixelcrop	[ 0	locks=0 ]	(	0	0	109	199	)
 uvcrop	[ 0	locks=0 ]	(	0	0	1	1	)
 limitcanvaspixels	[ 0	locks=0 ]	(	"on"	)
 canvaspixels	[ 0	locks=0 ]	(	64	)
@@ -88693,7 +88626,7 @@ Content-Type: text/plain
 version 0.8
 execute	[ 0	locks=0 ]	(	0	)
 renderdialog	[ 0	locks=0 ]	(	0	)
-index	[ 8	locks=0 ]	(	[ index	1 ] 	)
+index	[ 8	locks=0 ]	(	[ index	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -92491,9 +92424,9 @@ take	[ 0	locks=0 ]	(	`chs(\"../../take\")`	)
 copswitcher	[ 0	locks=0 ]	(	0	0	0	0	0	)
 coppath	[ 0	locks=0 ]	(	../../textures/SPARE_COLOR/XYZW	)
 tres	[ 0	locks=0 ]	(	"natural"	)
-res	[ 0	locks=0 ]	(	1024	2048	)
+res	[ 0	locks=0 ]	(	110	200	)
 resmenu	[ 0	locks=0 ]	(	0	)
-copoutput	[ 8	locks=0 ]	(	[ copoutput	"D:/AM/Development/FX/VAT Sprite/Demo/export/VAT Sprite Demo/tex/Particles_col2.exr" ] 	)
+copoutput	[ 8	locks=0 ]	(	[ copoutput	"D:/AM/Development/FX/VAT Rigid/export/VAT Rigid/tex/VAT3.0_col2.exr" ] 	)
 mkpath	[ 0	locks=0 ]	(	"on"	)
 color	[ 0	locks=0 ]	(	C	)
 alpha	[ 0	locks=0 ]	(	A	)
@@ -92506,7 +92439,7 @@ batchmode	[ 0	locks=0 ]	(	"off"	)
 batchsize	[ 0	locks=0 ]	(	2	)
 reloadfiles	[ 0	locks=0 ]	(	"off"	)
 outputarea	[ 0	locks=0 ]	(	"frame"	)
-pixelcrop	[ 0	locks=0 ]	(	0	0	1023	2047	)
+pixelcrop	[ 0	locks=0 ]	(	0	0	109	199	)
 uvcrop	[ 0	locks=0 ]	(	0	0	1	1	)
 limitcanvaspixels	[ 0	locks=0 ]	(	"on"	)
 canvaspixels	[ 0	locks=0 ]	(	64	)

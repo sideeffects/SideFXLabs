@@ -160,6 +160,14 @@
                 hidewhen "{ slerpmode == 1 }"
 
                 parm {
+                    name    "maxrpf"
+                    label   "Max RPF Allowed"
+                    type    float
+                    default { "50" }
+                    range   { 1! 100 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
                     name    "slerpedgecaseoffset"
                     label   "Slerp Edge Case Offset"
                     type    float
@@ -376,6 +384,13 @@
             label   "All Modes"
             grouptag { "group_type" "simple" }
 
+            parm {
+                name    "inputiscached"
+                label   "Input Geometry Is Cached to Integer Frames"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
             parm {
                 name    "normalizedata"
                 label   "Texture Format"
@@ -903,42 +918,6 @@
 
         }
 
-        groupsimple {
-            name    "fd_inputtips"
-            label   "Tips"
-
-            parm {
-                name    "lb_inputhelp"
-                label   "lb_inputhelp"
-                type    label
-                nolabel
-                default { "Position Alpha automatically exports \"pscale\" by default." }
-                hidewhen "{ mode == 0 } { mode == 2 }"
-            }
-            parm {
-                name    "lb_inputhelp2"
-                label   "lb_inputhelp"
-                type    label
-                nolabel
-                default { "If Position Alpha exports a custom attribute, the shader assumes \"pscale\" is 1." }
-                hidewhen "{ mode == 0 } { mode == 2 }"
-            }
-            parm {
-                name    "lb_inputhelp3"
-                label   "lb_inputhelp"
-                type    label
-                nolabel
-                default { "Caching the animation and loading it from disk shortens this node's render time." }
-            }
-            parm {
-                name    "lb_inputhelp4"
-                label   "lb_inputhelp"
-                type    label
-                nolabel
-                default { "Some errors and warnings will only be cleared after a successful render." }
-            }
-        }
-
         groupcollapsible {
             name    "fd_attribautogen"
             label   "Attribute Auto Generation"
@@ -1000,6 +979,28 @@
             default { "`ch(objects/MESH/sprite/force_cook_errors/empty_parm)`" }
             hidewhen "{ mode != 3 } { customshapepath == \"\" }"
         }
+        groupcollapsible {
+            name    "fd_pscale"
+            label   "Pscale Attribute"
+            hidewhentab "{ mode == 0 } { mode == 2 }"
+            hidewhen "{ mode == 0 } { mode == 2 }"
+
+            parm {
+                name    "lb_inputhelp"
+                label   "lb_inputhelp"
+                type    label
+                nolabel
+                default { "Position Alpha automatically exports \"pscale\" when it does not to export a custom attribute." }
+            }
+            parm {
+                name    "lb_inputhelp2"
+                label   "lb_inputhelp"
+                type    label
+                nolabel
+                default { "If Position Alpha exports a custom attribute, the shader can assume \"pscale\" is 1." }
+            }
+        }
+
     }
 
     group {
