@@ -16,6 +16,7 @@ def switchMode():
     node = hou.pwd()
     node.setParms({"override_pa": 0, "override_c": 0, "override_a": 0, "exportvtxcol": 0})
     node.setParms({"packnorm_soft": 0, "packnorm_fluid": 0, "fluiduvinalphas": 0})
+    node.setParms({"fluiduvinalphas": 0, "fluiduvinrg": 0})
     node.parm("resetinclude").pressButton()
     
     if node.evalParm("mode") == 2:
@@ -107,6 +108,25 @@ def geoFileNameAppend():
 
     else:
         node.parm("geosuffix").set("")
+
+    return
+
+
+def setSubDirectories():
+
+    node = hou.pwd()
+
+    if hou.evalParm("addsubdir") == 0:
+
+        node.setParms({"subdir_geo": '', "subdir_tex": '',
+                       "subdir_data": '', "subdir_unity": ''})
+
+    else:
+
+        node.parm("subdir_geo").revertToDefaults()
+        node.parm("subdir_tex").revertToDefaults()
+        node.parm("subdir_data").revertToDefaults()
+        node.parm("subdir_unity").revertToDefaults()
 
     return
 
@@ -232,12 +252,11 @@ def setEnginePreset():
         node.parm("debugplane").set(1)
 
     elif engine == 'unity':
-
-        # Temporary
-        print ('Unity implementation is coming before July 10th, 2021.')
-
+       
+        print ("Unity implementation is coming by July 20th, 2021.")
+        
         node.parm("coordsys").set(2)
-        node.parm("scale").set(100)
+        node.parm("scale").set(1)
         node.parm("coord_pos").set(0)
         node.parm("coord_flip").set(1)
         node.parm("coord_rot").set(8)
