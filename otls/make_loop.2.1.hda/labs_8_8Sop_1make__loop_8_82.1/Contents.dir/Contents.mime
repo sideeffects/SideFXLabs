@@ -32,20 +32,19 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 1 -5.15
-connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+position -2.92054 -3.02897
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
-1 "output1"
 }
 inputsNamed3
 {
-0 	pyro_sim_lowres 1 1 "input1"
+0 	popnet 1 1 "input1"
 }
 inputs
 {
-0 	pyro_sim_lowres 0 1
+0 	popnet 0 1
 }
 stat
 {
@@ -190,7 +189,7 @@ Content-Type: text/plain
 version 0.8
 folder0	[ 0	locks=0 ]	(	0	)
 evalmode	[ 0	locks=0 ]	(	"frame"	)
-frame	[ 0	locks=0 ]	(	[ frame	64 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	121 ] 	)
 time	[ 0	locks=0 ]	(	[ time	15.666666666666666 ] 	)
 startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
 speed	[ 0	locks=0 ]	(	1	)
@@ -198,7 +197,7 @@ shiftframe	[ 0	locks=0 ]	(	1	)
 outputrange	[ 0	locks=0 ]	(	[ outputrangex	1 ] 	[ outputrangey	400 ] 	)
 opreb	[ 0	locks=0 ]	(	"cycle"	)
 opostb	[ 0	locks=0 ]	(	"cycle"	)
-inputrange	[ 0	locks=0 ]	(	[ inputrangex	1 ] 	[ inputrangey	128 ] 	)
+inputrange	[ 0	locks=0 ]	(	[ inputrangex	1 ] 	[ inputrangey	240 ] 	)
 ipreb	[ 0	locks=0 ]	(	"cycle"	)
 ipostb	[ 0	locks=0 ]	(	"cycle"	)
 _	[ 0	locks=0 ]	(	""	)
@@ -326,6 +325,29 @@ Content-Type: text/plain
             label   "First Loop End"
             type    integer
             default { "0" }
+            help    "This depends on the number of double-loops."
+            range   { 0 10 }
+        }
+        parm {
+            name    "bornbeforestartmode"
+            label   "Born Before Loop Start"
+            type    ordinal
+            default { "1" }
+            menu {
+                "0" "Remove Particle"
+                "1" "Restart Particle Original Age at Loop Start"
+            }
+            range   { 0 10 }
+        }
+        parm {
+            name    "deadafterendmode"
+            label   "Dead After Loop End"
+            type    ordinal
+            default { "1" }
+            menu {
+                "0" "Remove Particle"
+                "1" "Clamp Particle Original Life to Loop End"
+            }
             range   { 0 10 }
         }
         parm {
@@ -523,6 +545,20 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../fadeoutduration\") }
     }
+    channel bornbeforestartmode {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../bornbeforestartmode\") }
+    }
+    channel deadafterendmode {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../deadafterendmode\") }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -546,8 +582,34 @@ range_end = @TimeInc * (chi(\"end\") - 1);
 birth_time = @Time - @age;
 death_time = birth_time + @life;
 
-if (birth_time < range_start || death_time > range_end) {
-    removepoint(0 , @ptnum);
+
+// Clamps birth to 'range_start'
+if (birth_time < range_start) {
+
+    if (chi(\"bornbeforestartmode\") == 0) {
+
+        removepoint(0, @ptnum);
+        return;
+
+    } else {
+
+        @age = @Time - range_start;
+        birth_time = range_start;
+    }
+}
+
+// Clamps death to 'range_end'
+if (death_time > range_end) {
+
+    if (chi(\"deadafterendmode\") == 0) {
+
+        removepoint(0, @ptnum);
+        return;
+
+    } else {
+
+        @life = range_end - birth_time;
+    }
 }
 
 
@@ -556,7 +618,7 @@ if (chi(\"fade_in\")) {
     float duration = chf(\"fadein_duration\");
 
     if (@age <= duration) {
-    
+
         @pscale *= @age / duration;
         @pscale = max(0, @pscale);
     }
@@ -568,7 +630,7 @@ if (chi(\"fade_out\")) {
     float duration = chf(\"fadeout_duration\");
 
     if (@life - @age <= duration) {
-    
+
         @pscale *= (@life - @age) / duration;
         @pscale = max(0, @pscale);
     }
@@ -588,10 +650,12 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 start	[ 0	locks=0 ]	(	[ start	1 ] 	)
-end	[ 0	locks=0 ]	(	[ end	128 ] 	)
-fade_in	[ 0	locks=0 ]	(	[ fade_in	0 ] 	)
+end	[ 0	locks=0 ]	(	[ end	240 ] 	)
+bornbeforestartmode	[ 0	locks=0 ]	(	[ bornbeforestartmode	1 ] 	)
+deadafterendmode	[ 0	locks=0 ]	(	[ deadafterendmode	1 ] 	)
+fade_in	[ 0	locks=0 ]	(	[ fade_in	1 ] 	)
 fadein_duration	[ 0	locks=0 ]	(	[ fadein_duration	0.20000000000000001 ] 	)
-fade_out	[ 8	locks=0 ]	(	[ fade_out	0 ] 	)
+fade_out	[ 8	locks=0 ]	(	[ fade_out	1 ] 	)
 fadeout_duration	[ 0	locks=0 ]	(	[ fadeout_duration	0.20000000000000001 ] 	)
 }
 
@@ -1633,10 +1697,10 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 startframe	[ 0	locks=0 ]	(	[ startframe	1 ] 	)
-looplength	[ 0	locks=0 ]	(	[ looplength	128 ] 	)
-shiftlength	[ 0	locks=0 ]	(	[ shiftlength	64 ] 	)
+looplength	[ 0	locks=0 ]	(	[ looplength	240 ] 	)
+shiftlength	[ 0	locks=0 ]	(	[ shiftlength	120 ] 	)
 basebranchloops	[ 0	locks=0 ]	(	[ basebranchloops	1 ] 	)
-dieandrespawn	[ 0	locks=0 ]	(	[ dieandrespawn	0 ] 	)
+dieandrespawn	[ 0	locks=0 ]	(	[ dieandrespawn	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -2508,7 +2572,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-endframe	[ 0	locks=0 ]	(	[ endframe	128 ] 	)
+endframe	[ 0	locks=0 ]	(	[ endframe	240 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -2616,7 +2680,7 @@ sopflags sopflags =
 comment ""
 position 2.497 -5.151
 connectornextid 4
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 1 "output1"
@@ -3724,7 +3788,7 @@ sopflags sopflags =
 comment ""
 position -8 -3.15
 connectornextid 3
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 2 "output1"
@@ -3781,7 +3845,7 @@ group	[ 0	locks=0 ]	(	""	)
 mixgrp	[ 0	locks=0 ]	(	""	)
 mixmethod	[ 0	locks=0 ]	(	"blend"	)
 range	[ 0	locks=0 ]	(	0	1	)
-blend	[ 0	locks=0	autoscope=1 ]	(	[ blend	0.021529832133895584 ] 	)
+blend	[ 0	locks=0	autoscope=1 ]	(	[ blend	0.67918397477265025 ] 	)
 expr	[ 0	locks=0 ]	(	[ expr	0 ] 	)
 dstpreadd	[ 0	locks=0 ]	(	0	)
 dstpremul	[ 0	locks=0 ]	(	1	)
@@ -3897,11 +3961,11 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	59 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	121 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	2.7083333333333335 ] 	)
+time	[ 0	locks=0 ]	(	[ time	4.083333333333333 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
-frange	[ 8	locks=0 ]	(	[ frange1	1 ] 	[ frange2	128 ] 	)
+frange	[ 8	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	5.291666666666667 ] 	)
 }
 
@@ -4008,7 +4072,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	123 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	2.7083333333333335 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
@@ -4103,7 +4167,7 @@ morph	[ 0	locks=0 ]	(	"off"	)
 updatechannels	[ 0	locks=0 ]	(	0	)
 nblends	[ 0	locks=0 ]	(	2	)
 blend0	[ 0	locks=0 ]	(	1	)
-blend1	[ 0	locks=0 ]	(	[ blend1	0.00024671981713419847 ] 	)
+blend1	[ 0	locks=0 ]	(	[ blend1	0.67918397477265025 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -4236,8 +4300,8 @@ Content-Type: text/plain
 version 0.8
 copyinput	[ 0	locks=0 ]	(	"on"	)
 cacheinput	[ 0	locks=0 ]	(	"off"	)
-loop_length	[ 0	locks=0 ]	(	[ loop_length	128 ] 	)
-shiftlength	[ 0	locks=0 ]	(	[ shiftlength	64 ] 	)
+loop_length	[ 0	locks=0 ]	(	[ loop_length	240 ] 	)
+shiftlength	[ 0	locks=0 ]	(	[ shiftlength	120 ] 	)
 newparameter	[ 0	locks=0 ]	(	[ newparameter	0 ] 	)
 }
 
@@ -4538,9 +4602,9 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 0	locks=0 ]	(	[ frame	128 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	2 ] 	)
+time	[ 0	locks=0 ]	(	[ time	9.125 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
 frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	16.625 ] 	)
@@ -4671,9 +4735,9 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	[ method	0 ] 	)
-frame	[ 0	locks=0 ]	(	[ frame	64 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	121 ] 	)
 integerframe	[ 0	locks=0 ]	(	[ integerframe	1 ] 	)
-time	[ 0	locks=0 ]	(	[ time	0 ] 	)
+time	[ 0	locks=0 ]	(	[ time	4.083333333333333 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	[ rangeclamp	0 ] 	)
 frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	16.625 ] 	)
@@ -4808,7 +4872,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	[ method	0 ] 	)
-frame	[ 0	locks=0 ]	(	[ frame	49 ] 	)
+frame	[ 0	locks=0 ]	(	[ frame	240 ] 	)
 integerframe	[ 0	locks=0 ]	(	[ integerframe	1 ] 	)
 time	[ 0	locks=0 ]	(	[ time	5.708333333333333 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	[ rangeclamp	0 ] 	)
@@ -5111,7 +5175,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 0	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -5216,9 +5280,9 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	128 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	240 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	0 ] 	)
+time	[ 0	locks=0 ]	(	[ time	3.0833333333333335 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
 frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	16.625 ] 	)
@@ -5703,7 +5767,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 0	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -5914,7 +5978,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 0	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -5991,7 +6055,7 @@ version 0.8
 numerror	[ 0	locks=0 ]	(	1	)
 errormsg1	[ 0	locks=0 ]	(	"Turn off Output Preview Geometry for the final output."	)
 severity1	[ 0	locks=0 ]	(	"warn"	)
-enable1	[ 0	locks=0 ]	(	[ enable1	0 ] 	)
+enable1	[ 0	locks=0 ]	(	[ enable1	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -6068,7 +6132,7 @@ surftype	[ 0	locks=0 ]	(	"quads"	)
 rad	[ 0	locks=0 ]	(	1	1	1	)
 t	[ 0	locks=0 ]	(	0	0	0	)
 r	[ 0	locks=0 ]	(	0	0	0	)
-scale	[ 0	locks=0 ]	(	[ scale	0.20000000000000001 ] 	)
+scale	[ 0	locks=0 ]	(	[ scale	0.11 ] 	)
 orient	[ 0	locks=0 ]	(	"y"	)
 freq	[ 0	locks=0 ]	(	2	)
 rows	[ 0	locks=0 ]	(	13	)
@@ -6579,7 +6643,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	1 ] 	)
+input	[ 8	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -6654,7 +6718,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 8	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -6758,7 +6822,7 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	400 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	240 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
 time	[ 0	locks=0 ]	(	[ time	3.125 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"none"	)
@@ -6867,9 +6931,9 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	50 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	33 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	2 ] 	)
+time	[ 0	locks=0 ]	(	[ time	4.958333333333333 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
 frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	0 ] 	)
@@ -7126,9 +7190,9 @@ Content-Type: text/plain
 {
 version 0.8
 method	[ 0	locks=0 ]	(	"byframe"	)
-frame	[ 8	locks=0 ]	(	[ frame	48 ] 	)
+frame	[ 8	locks=0 ]	(	[ frame	239 ] 	)
 integerframe	[ 0	locks=0 ]	(	"on"	)
-time	[ 0	locks=0 ]	(	[ time	2 ] 	)
+time	[ 0	locks=0 ]	(	[ time	4.958333333333333 ] 	)
 rangeclamp	[ 0	locks=0 ]	(	"both"	)
 frange	[ 0	locks=0 ]	(	[ frange1	1 ] 	[ frange2	240 ] 	)
 trange	[ 0	locks=0 ]	(	[ trange1	0 ] 	[ trange2	0 ] 	)
