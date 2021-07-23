@@ -33,8 +33,6 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
     Input Geometry:
         The path to the geometry node that you want to render.
     ==Settings: Soft-Body Deformation==
-    Validate Point Count Consistency:
-        Checks if the input point count is consistent. If it is not, displays an error message. If you know your input geometry has consistent point count, you can turn this off to slightly reduce the cooking time.
     Export Compressed Normals in Position Alpha:
         Compresses the normals from the vector type to the float type and stores them in Position Texture's alpha channel. This is a lossy compression resulting in medium-quality normals. If you do not plan to apply regular (tangent-space) surface normal maps to your real-time asset, this is a more memory-efficient alternative as it bypasses the cost of sampling Rotation Texture. But if you want to apply regular normal maps, turn this off and use Rotation Texture instead. Turning this on also precludes you from exporting a custom attribute through Position Texture's alpha channel.
     ==Settings: Rigid-Body Dynamics==
@@ -58,13 +56,11 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
     ==Settings: Dynamic Remeshing==
     Fuse Distance:
         Fuses together points within this distance to one another in the input geometry. This helps to remove tiny triangles that are a waste of resources and potentially problematic.
-    Smooth Normals:
-        Averages vertex normals to points, which produces smoother normals. Turn this off to keep the original vertex normals, which helps you preserve hard edges.
     Export Compressed Normals in Position Alpha:
         Compresses the normals from the vector type to the float type and stores them in Position Texture's alpha channel. This is a lossy compression resulting in medium-quality normals. If you do not plan to apply regular (tangent-space) surface normal maps to your real-time asset, this is a more memory-efficient alternative as it bypasses the cost of sampling Rotation Texture. But if you want to apply regular normal maps, turn this off and use Rotation Texture instead. Turning this on also precludes you from exporting a custom attribute through Position Texture's alpha channel.
-    Export Fluid UVs in Position Alpha and Color Alpha:
+    Export Surface UVs in Position Alpha and Color Alpha:
         Exports the animated UV attributes through Position Texture's alpha channel and Color Texture's alpha channel. Dynamic Remeshing (Fluid) mode can support UV maps, but since the topology is dynamic, the input geometry has to be UV unwrapped on every frame. You can either UV unwrap the input geometry yourself (recommended) or rely on the auto UV generation method specified on the Input tab.
-    Export Fluid UVs in Color Red and Green:
+    Export Surface UVs in Color Red and Green:
         Exports the animated UV attributes through Color Texture's red and green channels. Dynamic Remeshing (Fluid) mode can support UV maps, but since the topology is dynamic, the input geometry has to be UV unwrapped on every frame. You can either UV unwrap the input geometry yourself (recommended) or rely on the auto UV generation method specified on the Input tab.
     ==Settings: Particle Sprites==
     Support Particle Interframe Interpolation:
@@ -115,7 +111,7 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
     Preview Texture Size (Slow):
         Turn this on to interactively preview the output texture size. It is somewhat slow because every time you toggle this on or some upstream parameter updates, the node will need to recheck the input geometry on every frame of the export frame range. But once it is turned on, updating Target Texture Width will have instant feedback.
     Pad Texture Size to Powers of Two:
-        You normally do not need to pad animation data textures to powers of two in dimensions, because as data textures, they should not be streamed. But if the target engine or hardware only accepts powers of two textures, turn this on. In Unreal Engine, always use the HDR compression setting with any power-of-two textures that have data in their alpha channels, even if you exported those textures in non-HDR formats.
+        You normally do not need to pad animation data textures to powers of two in dimensions, because as data textures, they should not be streamed. But if the target engine or hardware only accepts powers of two textures, turn this on. In Unreal Engine, sometimes there are issues with power-of-two textures that have data in their alpha channels, in which case, consider using the HDR compression setting in engine even if you exported those textures in non-HDR formats in Houdini.
     ==Input==
     NOTE:
         Follow the input requirement checklist, which is specific to the current mode and target engine. Expand Help to see more information.

@@ -49,6 +49,7 @@
         type    integer
         joinnext
         default { "1" }
+        disablewhen "{ mode == 2 fluidpass == 1 }"
         menu {
             "0" "Soft-Body Deformation (Soft)"
             "1" "Rigid-Body Dynamics (Rigid)"
@@ -65,6 +66,7 @@
         type    string
         nolabel
         default { "unreal" }
+        disablewhen "{ mode == 2 fluidpass == 1 }"
         menu {
             "unreal"    "Unreal Engine"
             "unity"     "Unity"
@@ -79,6 +81,7 @@
         type    integer
         size    2
         default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] }
+        disablewhen "{ mode == 2 fluidpass == 1 }"
         range   { 0 10 }
     }
     parm {
@@ -86,6 +89,7 @@
         label   "Input Geometry"
         type    oppath
         default { "" }
+        disablewhen "{ mode == 2 fluidpass == 1 }"
         parmtag { "opfilter" "!!SOP!!" }
         parmtag { "oprelative" "." }
     }
@@ -98,13 +102,6 @@
             label   "Soft-Body Deformation"
             hidewhentab "{ mode != 0 }"
 
-            parm {
-                name    "checkconstnumpt"
-                label   "Validate Point Count Consistency"
-                type    toggle
-                default { "1" }
-                parmtag { "script_callback_language" "python" }
-            }
             parm {
                 name    "packnorm_soft"
                 label   "Export Compressed Normals in Position Alpha"
@@ -194,18 +191,49 @@
             hidewhentab "{ mode != 2 }"
 
             parm {
+                name    "fluidpass"
+                label   "Render Pass"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "First Pass (Geometry, Lookup Table, Data/Material)"
+                    "1" "Second Pass (Animation Data Textures)"
+                }
+                parmtag { "script_callback" "hou.pwd().setParms({\"enable_lookup\": 1 - hou.pwd().evalParm(\"fluidpass\")}) " }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fusegroup"
+                label   "Fuse Point Group"
+                type    string
+                default { "" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
+                menutoggle {
+                    [ "r = []" ]
+                    [ "node = hou.node(hou.parm(\"soppath\").evalAsString())" ]
+                    [ "inputs = node.inputs()" ]
+                    [ "if inputs and inputs[0]:" ]
+                    [ "    geo = inputs[0].geometry()" ]
+                    [ "    if geo:" ]
+                    [ "        c = 'point'" ]
+                    [ "        if c == 'point':" ]
+                    [ "            groups = geo.pointGroups()" ]
+                    [ "            " ]
+                    [ "        for g in groups:" ]
+                    [ "            r.extend([g.name(), g.name()])" ]
+                    [ "            " ]
+                    [ "return r" ]
+                    language python
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
                 name    "fusedist"
                 label   "Fuse Distance"
                 type    float
                 default { "0.01" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
                 range   { 0 10 }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "fluidsmoothnormals"
-                label   "Smooth Normals"
-                type    toggle
-                default { "1" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -213,24 +241,25 @@
                 label   "Export Compressed Normals in Position Alpha"
                 type    toggle
                 default { "0" }
-                disablewhen "{ fluiduvinalphas == 1 }"
+                disablewhen "{ fluiduvinalphas == 1 } { mode == 2 fluidpass == 1 }"
                 parmtag { "script_callback" "if hou.pwd().evalParm(\"packnorm_fluid\") == 1 : hou.pwd().setParms({\"fluiduvinalphas\": 0, \"override_pa\" : 0})" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
                 name    "fluiduvinalphas"
-                label   "Export Fluid UVs in Position Alpha and Color Alpha"
+                label   "Export Surface UVs in Position Alpha and Color Alpha"
                 type    toggle
                 default { "0" }
-                disablewhen "{ packnorm_fluid == 1 }"
+                disablewhen "{ packnorm_fluid == 1 } { mode == 2 fluidpass == 1 }"
                 parmtag { "script_callback" "if hou.pwd().evalParm(\"fluiduvinalphas\") == 1 : hou.pwd().setParms({\"packnorm_fluid\": 0, \"override_pa\": 0, \"override_a\": 0})" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
                 name    "fluiduvinrg"
-                label   "Export Fluid UVs in Color Red and Green"
+                label   "Export Surface UVs in Color Red and Green"
                 type    toggle
                 default { "0" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
                 parmtag { "script_callback" "if hou.pwd().evalParm(\"fluiduvinrg\") == 1 : hou.pwd().setParms({\"override_c\": 0})" }
                 parmtag { "script_callback_language" "python" }
             }
@@ -389,6 +418,38 @@
                 label   "Input Geometry Is Cached to Integer Frames"
                 type    toggle
                 default { "1" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "lookupdataformat"
+                label   "Lookup Table Format"
+                type    ordinal
+                joinnext
+                default { "1" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
+                hidewhen "{ mode != 2 }"
+                menu {
+                    "0" "HDR (EXR/TIFF as RGBA 16/32 in Engine)"
+                    "1" "Non-HDR (Any Format as RGBA 8 in Engine)"
+                }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "imageformat_lookup"
+                label   "Lookup Image Format"
+                type    ordinal
+                nolabel
+                default { "png" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
+                hidewhen "{ mode != 2 }"
+                menu {
+                    "exr"   ".exr"
+                    "tiff"  ".tiff"
+                    "png"   ".png"
+                    "tga"   ".tga"
+                }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -397,6 +458,7 @@
                 type    ordinal
                 joinnext
                 default { "0" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
                 menu {
                     "0" "HDR (EXR/TIFF as RGBA 16/32 in Engine)"
                     "1" "Non-HDR (Any Format as RGBA 8 in Engine)"
@@ -410,6 +472,7 @@
                 type    ordinal
                 nolabel
                 default { "exr" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
                 menu {
                     "exr"   ".exr"
                     "tiff"  ".tiff"
@@ -423,7 +486,7 @@
                 label   "Split Positions into Two Textures"
                 type    toggle
                 default { "0" }
-                disablewhen "{ normalizedata == 0 allowhdrsplitpos == 0 }"
+                disablewhen "{ mode == 2 fluidpass == 1 }"
                 hidewhen "{ normalizedata == 0 allowhdrsplitpos == 0 }"
                 parmtag { "script_callback" "hou.pwd().setParms({\"enable_pos2\" : hou.pwd().parm(\"splitpos\").evalAsInt()})" }
                 parmtag { "script_callback_language" "python" }
@@ -433,6 +496,7 @@
                 label   "Export Spare Color Texture"
                 type    toggle
                 default { "0" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
                 parmtag { "script_callback" "hou.pwd().setParms({\"enable_col2\": hou.pwd().evalParm(\"addsparecol\")})" }
                 parmtag { "script_callback_language" "python" }
             }
@@ -449,7 +513,7 @@
                 label   "Include Hidden Debug Plane in Geometry"
                 type    toggle
                 default { "1" }
-                disablewhen "{ engine != unreal }"
+                disablewhen "{ engine != unreal } { mode == 2 fluidpass == 1 }"
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -461,6 +525,7 @@
             groupcollapsible {
                 name    "fd_replace"
                 label   "Export Custom Attributes"
+                disablewhentab "{ mode == 2 fluidpass == 1 }"
 
                 parm {
                     name    "override_pa"
@@ -643,10 +708,30 @@
                 hidewhen "{ enablecooking == 0 previewtexsize == 0 }"
             }
             parm {
-                name    "target_texture_size"
+                name    "targettexsize_lookup"
+                label   "Lookup Table Width"
+                type    string
+                default { "1024" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
+                hidewhen "{ mode != 2 }"
+                menureplace {
+                    "32"    "32"
+                    "64"    "64"
+                    "128"   "128"
+                    "256"   "256"
+                    "512"   "512"
+                    "1024"  "1024"
+                    "2048"  "2048"
+                    "4096"  "4096"
+                    "8192"  "8192"
+                }
+            }
+            parm {
+                name    "targettexsize"
                 label   "Target Texture Width"
                 type    string
                 default { "1024" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
                 menureplace {
                     "32"    "32"
                     "64"    "64"
@@ -672,6 +757,7 @@
                 label   "Pad Texture Size to Powers of Two"
                 type    toggle
                 default { "0" }
+                disablewhen "{ mode == 2 fluidpass == 1 }"
             }
         }
 
@@ -680,6 +766,7 @@
     group {
         name    "fd_settings_1_1_1"
         label   "Input"
+        disablewhentab "{ mode == 2 fluidpass == 1 }"
 
         groupsimple {
             name    "fd_inputrequirements"
@@ -935,6 +1022,7 @@
                 label   "UV Generation"
                 type    ordinal
                 default { "1" }
+                hidewhen "{ mode == 2 fluiduvinalphas == 0 fluiduvinrg == 0 }"
                 menu {
                     "0" "Compute Missing UVs using UV Unwrap"
                     "1" "Compute Missing UVs using UV Autoseam and Flatten"
@@ -1012,6 +1100,7 @@
     group {
         name    "fd_settings_1_1_2"
         label   "Export"
+        disablewhentab "{ mode == 2 fluidpass == 1 }"
         grouptag { "group_type" "simple" }
 
         parm {
@@ -1088,7 +1177,7 @@
             type    button
             invisible
             default { "0" }
-            parmtag { "script_callback" "hou.pwd().hm().setExportComponents()" }
+            parmtag { "script_callback" "hou.pwd().hm().resetInclude()" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -1129,7 +1218,7 @@
             name    "path_pos"
             label   "Position / Position 1"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos.`chs(imageformat)`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos.`chs(\"imageformat\")`" }
             disablewhen "{ enable_pos == 0 }"
             hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
         }
@@ -1147,7 +1236,7 @@
             name    "path_pos2"
             label   "Position 2"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos2.`chs(imageformat)`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos2.`chs(\"imageformat\")`" }
             disablewhen "{ enable_pos2 == 0 }"
             hidewhen "{ enable_pos == 0 } { splitpos == 0 } { normalizedata == 0 allowhdrsplitpos == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
         }
@@ -1164,7 +1253,7 @@
             name    "path_rot"
             label   "Rotation"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_rot.`chs(imageformat)`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_rot.`chs(\"imageformat\")`" }
             disablewhen "{ enable_rot == 0 }"
             hidewhen "{ mode == 3 } { include != custom }"
         }
@@ -1181,7 +1270,7 @@
             name    "path_col"
             label   "Color"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col.`chs(imageformat)`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col.`chs(\"imageformat\")`" }
             disablewhen "{ enable_col == 0 }"
             hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
         }
@@ -1199,9 +1288,27 @@
             name    "path_col2"
             label   "Spare Color"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col2.`chs(imageformat)`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col2.`chs(\"imageformat\")`" }
             disablewhen "{ enable_col2 == 0 }"
             hidewhen "{ enable_col == 0 } { addsparecol == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
+        }
+        parm {
+            name    "enable_lookup"
+            label   "Enable Lookup"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            disablewhen "{ fluidpass == 0 } { fluidpass == 1 }"
+            hidewhen "{ mode != 2 }"
+        }
+        parm {
+            name    "path_lookup"
+            label   "Lookup Table"
+            type    image
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_lookup.`chs(\"imageformat_lookup\")`" }
+            disablewhen "{ enable_lookup == 0 }"
+            hidewhen "{ mode != 2 }"
         }
         parm {
             name    "enable_unitymat"
@@ -1282,6 +1389,7 @@
     group {
         name    "fd_settings_1_1_3"
         label   "Advanced"
+        disablewhentab "{ mode == 2 fluidpass == 1 }"
 
         parm {
             name    "enablecooking"
@@ -1490,6 +1598,7 @@
     group {
         name    "fd_settings_1_1_4"
         label   "Target Engine"
+        disablewhentab "{ mode == 2 fluidpass == 1 }"
 
         parm {
             name    "coordsys"

@@ -15,12 +15,9 @@ def switchMode():
 
     node = hou.pwd()
     node.setParms({"override_pa": 0, "override_c": 0, "override_a": 0, "exportvtxcol": 0})
-    node.setParms({"packnorm_soft": 0, "packnorm_fluid": 0, "fluiduvinalphas": 0})
-    node.setParms({"fluiduvinalphas": 0, "fluiduvinrg": 0})
+    node.setParms({"packnorm_soft": 0, "packnorm_fluid": 0})
+    node.setParms({"fluidpass": 0, "fluiduvinalphas": 0, "fluiduvinrg": 0, "enable_lookup": 1})
     node.parm("resetinclude").pressButton()
-    
-    if node.evalParm("mode") == 2:
-        node.setParms({"exportvtxcol": 0})
 
     return 
     
@@ -131,7 +128,7 @@ def setSubDirectories():
     return
 
 
-def setExportComponents():
+def resetInclude():
     
     node = hou.pwd()
 
@@ -176,7 +173,10 @@ def setExportComponents():
 
         else:
 
-            pass
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(1)
+            node.parm("enable_col").set(1)
 
     else:
 
@@ -205,8 +205,10 @@ def setExportComponents():
 
         else:
 
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
             node.parm("enable_rot").set(0)
-            pass
+            node.parm("enable_col").set(1)
     
     return
 
@@ -252,8 +254,6 @@ def setEnginePreset():
         node.parm("debugplane").set(1)
 
     elif engine == 'unity':
-       
-        print ("Unity implementation is coming by July 20th, 2021.")
         
         node.parm("coordsys").set(2)
         node.parm("scale").set(1)
