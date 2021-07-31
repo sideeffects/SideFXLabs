@@ -105,7 +105,7 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
     In Color:
         A custom vector attribute you want to export through Color Texture's RGB channels. This attribute does not undergo any transform, conversion, or normalization. If the attribute has values outside the 0-1 range, set Texture Format to "HDR". If you have to use a non-HDR texture, you can pre-normalize the attributes in the input geometry and manually reverse the normalization in the real-time shader.
     In Color Alpha:
-        A custom float attribute you want to export through Color Texture's alpha channels. This attribute does not undergo any transform, conversion, or normalization. If the attribute has values outside the 0-1 range, set Texture Format to "HDR". If you have to use a non-HDR texture, you can pre-normalize the attributes in the input geometry and manually reverse the normalization in the real-time shader.
+        A custom float attribute you want to export through Color Texture's alpha channel. This attribute does not undergo any transform, conversion, or normalization. If the attribute has values outside the 0-1 range, set Texture Format to "HDR". If you have to use a non-HDR texture, you can pre-normalize the attributes in the input geometry and manually reverse the normalization in the real-time shader.
     Target Texture Width:
         The target width of the output textures. If there are less data points per frame than this width, the output textures use the number of data points as their widths. The number of data points by mode: Soft-Body Deformation (Soft), the point count; Rigid-Body Dynamics (Rigid), the packed piece count; Dynamic Remeshing (Fluid), three times the maximum triangle count; Particle Sprites (Sprite), the maximum particle count.
     Preview Texture Size (Slow):
@@ -113,8 +113,9 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
     Pad Texture Size to Powers of Two:
         You normally do not need to pad animation data textures to powers of two in dimensions, because as data textures, they should not be streamed. But if the target engine or hardware only accepts powers of two textures, turn this on. In Unreal Engine, sometimes there are issues with power-of-two textures that have data in their alpha channels, in which case, consider using the HDR compression setting in engine even if you exported those textures in non-HDR formats in Houdini.
     ==Input==
-    NOTE:
-        Follow the input requirement checklist, which is specific to the current mode and target engine. Expand Help to see more information.
+    TIP:
+        Follow the input requirement checklist, which is specific to the current mode and target engine. Expand Legend to see more information.
+    ==Input: Attribute Auto Generation==
     UV Generation:
         Even though the vertex attribute "uv" is listed as an optional attribute, it is required implicitly. The node simply auto-computes UVs if they are missing from the input geometry. When they are not missing, you still have the option to have this node recompute them for you, but that is a less transparent workflow. Consider using Labs Auto UV SOP when preparing the input geometry.
         <p>*UV Unwrap*: faster; many more disjoint UV islands; fewer rotated islands in the UV layout.</p>
@@ -124,7 +125,7 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
         <p>*Vertex Angle*: sets the internal Normal SOP to run on vertices with a Cusp Angle of 60 and a Weighting Method of "By Vertex Angle".</p>
         <p>*Face Area*: sets the internal Normal SOP to run on vertices with a Cusp Angle of 60 and a Weighting Method of "By Face Area".</p>
     Tangent Generation:
-        It is recommended to let the node recompute the tangent attribute "tangentu" for you using the MikkT method. The bi-tangent attribute "tangentv" is always recomputed to ensure consistency.
+        It is recommended to let the node recompute the tangent attribute "tangentu" for you using the MikkT method. The binormal attribute "tangentv" is always recomputed to ensure consistency.
     ==Export==
     Export Path:
         The directory in which to export the files.
@@ -158,9 +159,9 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
     Allow Splitting Positions into Two HDR Textures:
         Normally it is a waste of resources to use two HDR Position Textures, so the access to Split Position into Two Textures is restricted when Texture Format is set to "HDR". You can override that restriction with this parameter.
     Allow Exporting Real-Time Data JSON File (Legacy):
-        Starting with Vertex Animation Textures 3.0, the default workflow does not require you to export any real-time data file. The long list of parameters used to be written to the data file in the older versions are now embedded in the bounds of the static mesh and automatically derived at runtime. However, you may still want to work with the legacy parameters in at least two situations:
+        Starting with Vertex Animation Textures 3.0, the default workflow does not require you to export any real-time data file. The long list of parameters written to the data file in the older versions are now embedded in the bounds of the static mesh and are automatically derived at runtime. However, you may still want to work with the legacy parameters in at least two situations:
         <p>1. you need to support real-time instancing; the instance transforms may corrupted the embedded data;</p>
-        <p>2. you need to change the object's bound scale in engine, which may corrupt the embedded data; however, you should rarely have any reason to change the bound scale, because unlike prior versions, the bounds now encompass the full visible area of the animation, i.e., the mesh will not be incorrectly culled when you move the camera. In Unreal Engine, changing the actor/component scale is totally safe.</p>
+        <p>2. you need to change the object's bound scale in engine, which may corrupt the embedded data; however, you should rarely have any reason to change the bound scale, because unlike prior versions, the bounds now encompass the full visible area of the animation, i.e., the mesh will not be incorrectly culled when you move the camera. However, changing the actor/component/object scale is totally safe.</p>
     Support Real-Time Instancing:
         Turn this on if you need to support real-time instancing of your vertex-animated mesh.
     ==Advanced: Scripts==

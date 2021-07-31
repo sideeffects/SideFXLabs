@@ -11,9 +11,8 @@ def ReportResult(hda_node, file, tag=None):
     return
 
     
-def switchMode():
+def switchMode(node):
 
-    node = hou.pwd()
     node.setParms({"override_pa": 0, "override_c": 0, "override_a": 0, "exportvtxcol": 0})
     node.setParms({"packnorm_soft": 0, "packnorm_fluid": 0})
     node.setParms({"fluidpass": 0, "fluiduvinalphas": 0, "fluiduvinrg": 0, "enable_lookup": 1})
@@ -22,9 +21,8 @@ def switchMode():
     return 
     
 
-def toggleCustomShapes():
+def toggleCustomShapes(node):
 
-    node = hou.pwd()
     custom_shapes = node.evalParm("customshapes")
     multi_shapes = node.evalParm("multishapes")
     
@@ -37,9 +35,8 @@ def toggleCustomShapes():
     return
     
     
-def cookAndRender():
+def cookAndRender(node):
 
-    node = hou.pwd()
     node.setParms({"enablecooking": 1})
     node.parm("resetsims").pressButton()
     node.parm("execute").pressButton()
@@ -47,9 +44,8 @@ def cookAndRender():
     return
 
 
-def enableCooking():
+def enableCooking(node):
 
-    node = hou.pwd()
     node.parm("resetsims").pressButton()
     
     if node.evalParm("enablecooking") == 0:
@@ -58,9 +54,8 @@ def enableCooking():
     return
 
 
-def setCoordSystem():
+def setCoordSystem(node):
 
-    node = hou.pwd()
     system = node.parm("coordsys").evalAsInt()
 
     if system == 0:
@@ -78,9 +73,8 @@ def setCoordSystem():
     return
 
 
-def geoFileNameAppend():
+def geoFileNameAppend(node):
 
-    node = hou.pwd()
     append_mode = node.evalParm("geosuffixmode")
 
     if append_mode == 1:
@@ -109,9 +103,7 @@ def geoFileNameAppend():
     return
 
 
-def setSubDirectories():
-
-    node = hou.pwd()
+def setSubDirectories(node):
 
     if hou.evalParm("addsubdir") == 0:
 
@@ -128,9 +120,7 @@ def setSubDirectories():
     return
 
 
-def resetInclude():
-    
-    node = hou.pwd()
+def resetInclude(node):
 
     if hou.evalParm("mode") != 3:
 
@@ -213,7 +203,7 @@ def resetInclude():
     return
 
 
-def postRender():
+def postRender(node):
 
     node = hou.pwd().parent()
     pad = node.evalParm("padpowtwo")
@@ -238,9 +228,8 @@ def postRender():
     return
 
 
-def setEnginePreset():
+def setEnginePreset(node):
 
-    node = hou.pwd()
     engine = node.evalParm("engine")
 
     if engine == 'unreal':
@@ -251,7 +240,10 @@ def setEnginePreset():
         node.parm("coord_flip").set(0)
         node.parm("coord_rot").set(8)
         node.parm("shaderengine").set('unreal')
+
         node.parm("debugplane").set(1)
+        node.parm("autobinormalmode").set(0)
+        node.parm("pivotencoding").set(1)
 
     elif engine == 'unity':
         
@@ -262,11 +254,17 @@ def setEnginePreset():
         node.parm("coord_rot").set(8)
         node.parm("enable_unitymat").set(1)
         node.parm("shaderengine").set('unity')
+
         node.parm("debugplane").set(0)
+        node.parm("autobinormalmode").set(0)
+        node.parm("pivotencoding").set(2)
 
     elif engine == 'custom':
         
         node.parm("debugplane").set(0)
+        node.parm("autobinormalmode").set(0)
+        node.parm("pivotencoding").set(0)
+        
         pass
 
     return
