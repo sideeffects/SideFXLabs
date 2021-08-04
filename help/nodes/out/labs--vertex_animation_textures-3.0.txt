@@ -55,7 +55,7 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
         A global random seed that contributes to (but not solely responsible for) generating random degrees by which to rotate edge-case pieces (see the tooltip of Slerp Edge Case Offset). It is extremely unlikely that you will need to change this parameter. Only change it if the node displays an error message that asks you to do so.
     ==Settings: Dynamic Remeshing==
     Render Pass:
-        Dynamic Remeshing (Fluid) mode requires you to render output files in two separate passes in order to reduce texture memory consumption. Leave this at "First Pass" when you are configuring the node's settings, and then press *Render All*. After the first pass is complete, change this to "Second Pass" and press *Render All* again. (Almost all other parameters are locked during the second pass, because you are not allowed to change setting between the two passes.) If *Preview Texture Size* is turned on, this parameter decides which pass's texture size to preview.
+        Dynamic Remeshing (Fluid) mode requires you to render output files in two separate passes in order to reduce the texture memory consumption. Leave this at "First Pass" when you are configuring the node's settings, and then press *Render All*. After the first pass is complete, change this to "Second Pass" and press *Render All* again. (Almost all other parameters are locked during the second pass, because you are not allowed to change setting between the two passes.) If *Preview Texture Size* is turned on, this parameter decides which pass's texture size to preview.
         <p>*First Pass*: renders Geometry, Lookup Table Texture, and optionally the Real-Time Data JSON file / the Unity Material file. </p>
         <p>*Second Pass*: renders the animation data textures (i.e. Position Texture, Rotation Texture, Color Texture, etc.), which are much smaller in size than Lookup Table Texture.</p>
     Fuse Point Group:
@@ -183,18 +183,19 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
         <p>1. you need to support real-time instancing; the instance transforms may corrupted the embedded data;</p>
         <p>2. you need to change the object's bound scale in engine, which may corrupt the embedded data; however, you should rarely have any reason to change the bound scale, because unlike prior versions, the bounds now encompass the full visible area of the animation, i.e., the mesh will not be incorrectly culled when you move the camera. However, changing the actor/component/object scale is totally safe.</p>
     Support Real-Time Instancing:
-        Turn this on to support real-time instancing of your vertex-animated mesh. Currently this parameter only makes a difference if *Target Engine* is "Unreal Engine". In Unreal Engine, instanced meshes' local-space tangents are not directly accessible, so the tangents have to come from the vertex attributes "uv5" and "uv6".
+        Turn this on to support real-time instancing of your vertex-animated mesh. Currently this parameter only makes a difference if *Target Engine* is set to "Unreal Engine". In Unreal Engine, instanced meshes' local-space tangents are not directly accessible, so the tangents have to come from the vertex attributes "uv5" and "uv6".
     ==Advanced: LODs==
     Export LODs:
-        To export LODs, the input geometry must meet the following requirements:
-        <p>1. all LODs should have the integer point attribute "lod0_ptnum". This attribute maps all the points in every non-zero LODs to a subset of points in LOD0, thus enabling subsequent LODs to share the point data exported with LOD0.</p>
-        <p>2. the points in each LOD should be assigned to the respective point group "lod#" with "#" being the LOD number starting with 0.</p>
+        Exports a single FBX containing multiple LODs and a single set of textures compatible with all the LODs. All non-zero LODs simply share LOD0's textures through point-mapping (described below in requirement 1), so increasing LOD count does not increase the texture memory consumption.
+        <p>The input geometry must meet the following requirements:</p>
+        <p>1. all LODs should have the integer point attribute "lod0_ptnum". This attribute maps all the points in every non-zero LODs to a subset of points in LOD0, enabling subsequent LODs to share the point data exported with LOD0. In Rigid-Body Dynamics (Rigid) mode, this attribute should be on packed points.</p>
+        <p>2. the points in each LOD should be assigned to the respective point group "lod#" with "#" being the LOD number starting with 0. In Rigid-Body Dynamics (Rigid) mode, this group should be on packed points.</p>
         <p>3. all input LODs should already have correct UVs and normals on vertices; this node cannot reliably auto-generate missing UVs and normals that are consistent across all LODs; therefore, it will not attempt to do so.</p>
     Number of LODs:
         The number of LODs to export. At least this number of LODs must be present in the input geometry.
     ==Advanced: Scripts==
     Initialize Simulation OPs:
-        Force all simulation OPs to be reset before Pre-Render Script is executed. This is the safest way to render out a simulation, because it starts the simulation from scratch and discards any partial simulations you might have done with different parameters. However, throwing away an already-cooked simulation can be expensive, especially for relatively slow solvers such as fluids.
+        Forces all simulation OPs to be reset before Pre-Render Script is executed. This is the safest way to render out a simulation, because it starts the simulation from scratch and discards any partial simulations you might have done with different parameters. However, throwing away an already-cooked simulation can be expensive, especially for relatively slow solvers such as fluids.
     Pre-Render Script:
         This script is executed before any rendering.
     Post-Render Script:
