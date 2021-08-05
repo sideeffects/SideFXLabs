@@ -124,9 +124,18 @@ def set_external_editor():
 
     return None
 
+def which_executable(pgm):
+    if not pgm:
+        return
+    path = os.getenv('PATH')
+    for p in path.split(os.path.pathsep):
+        p = os.path.join(p,pgm)
+        if os.path.exists(p) and os.access(p,os.X_OK):
+            return p
+
 def get_external_editor():
 
-    editor = os.environ.get("EDITOR")
+    editor = which_executable(os.environ.get("EDITOR"))
     if not editor or not os.path.exists(editor):
 
         cfg = get_config_file()
