@@ -8,22 +8,22 @@
 
 """ The Vertex Animation Textures ROP will export a mesh and a set of textures to be used with a shader for complex real-time effects, such as: soft-body deformation, rigid-body dynamics, dynamically remeshed geometries, and particle sprites. """
 
-Vertex Animation Textures (VAT) is an efficient and powerful method to recreate complex and non-traditional animations in real time. Because VAT only uses shaders and textures to achieve the visuals, it has a much lighter performance impact on the CPU, compared to traditional skeletal mesh animations. This also makes VAT a good candidate to individually animate a large number of instanced meshes.
+Vertex Animation Textures (VAT) is an efficient and powerful solution to recreate complex and non-traditional animations in real time. Because VAT only uses textures and shaders to achieve the visuals on the GPU, it has a much lighter performance impact on the CPU, compared to traditional skeletal mesh animations. This also makes VAT a good candidate to animate a large number of instanced meshes with per-instance variations.
 
-Furthermore, VAT comes in handy when a skeletal animation rig is too complicated to be imported to the real-time engine or used as it is. You can import the rig into Houdini and directly export the animated geometry through VAT, because all VAT needs is the points/vertices and the data on them on each frame.
+Furthermore, VAT comes in handy when a skeletal animation rig is too complicated to be imported to the real-time engine. You can import the rig into Houdini and directly export the animated geometry through VAT, because all VAT needs is the points/vertices and the data on them on each frame.
 
-Vertex animations encoded in textures do not have to be played in complete loops. You can start and stop at any frame because you directly control which frame to display at any given moment.
+Vertex animations encoded in textures do not have to be played in complete loops or at a constant speed. You can start/stop at any frame or art direct the playback speed.
 
 The limitations of VAT include: texture memory budget on lower-end hardwares, the lack of animated collisions, and relatively limited real-time interactability.
 
-VAT 3.0 offers more streamlined workflows, additional advanced features, and a lot more customizability.
+Compared to previous versions, VAT 3.0 offers more streamlined workflows, additional advanced features, and a lot more customizability.
 
 
 @parameters
     Render All:
-        Cooks all dependent networks and renders all the assets specified on the *Export* tab. In Dynamic Remeshing (Fluid) mode, this cooks all the assets pertaining to a single render pass, and that mode has two render passes.
+        Cooks all dependent networks and renders all the assets specified on the *Export* tab. In Dynamic Remeshing (Fluid) mode, there are two render passes and this cooks all the assets pertaining to the currently selected render pass.
     Mode / Target Engine:
-        *Mode* depends on what kind of animation you want to export. *Target Engine* affects the coordinate system, the scale, and potentially some other engine specific parameters. See the information on the *Input* tab for how to prepare your input geometry for a specific mode-and-engine combination.
+        *Mode* depends on what kind of animation you want to export. *Target Engine* affects the coordinate system, the scale, and potentially some other engine-specific parameters. See the information on the *Input* tab for how to prepare your input geometry for a specific mode-and-engine combination.
         <p>*Soft-Body Deformation (Soft)*: the surfaces have consistent topologies; they simply deform.</p>
         <p>*Rigid-Body Dynamics (Rigid)*: packed pieces with RBD simulation data.</p>
         <p>*Dynamic Remeshing (Fluid)*: the surfaces are potentially remeshed every frame with dynamic topologies.</p>
@@ -34,10 +34,10 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
         The path to the geometry node that you want to render.
     ==Settings: Soft-Body Deformation==
     Export Compressed Normals in Position Alpha:
-        Compresses the normals from the vector type to the float type and stores them in Position Texture's alpha channel. This is a lossy compression resulting in medium-quality normals. If you do not plan to apply regular (tangent-space) surface normal maps to your real-time asset, this is a more memory-efficient alternative as it bypasses the cost of sampling Rotation Texture. But if you want to apply regular normal maps, turn this off and use Rotation Texture instead. Turning this on also precludes you from exporting a custom attribute through Position Texture's alpha channel.
+        Compresses the normals from the vector type to the float type and stores them in Position Texture's alpha channel. This is a lossy compression resulting in medium-quality normals. If you do not plan to apply (tangent-space) surface normal maps to your real-time asset, this is a more memory-efficient alternative as it bypasses the cost of sampling Rotation Texture. But if you want to apply surface normal maps, turn this off and use Rotation Texture instead. Turning this on also precludes you from exporting a custom attribute through Position Texture's alpha channel.
     ==Settings: Rigid-Body Dynamics==
     Pivot Accuracy:
-        The vertices on every rigid-body piece are transformed relative to the piece's pivot. Therefore the accuracy of the pivot encoding determines the accuracy of piece translations and rotations throughout the animation.
+        The vertices on every rigid-body piece are transformed relative to the piece's pivot. Therefore, the accuracy of the pivot encoding determines the accuracy of piece translations and rotations throughout the animation.
         <p>*High*: select this if your vertex shader is a performance bottleneck; uses two 16-bit UV channels to store unencoded pivots; the overall cheapest option.</p> 
         <p>*Very High*: recommended; uses two 16-bit UV channels to store encoded pivots; deploys two split-encoding formats and dynamically pick the better format for each piece, producing an accuracy very close to that of "Maximum" at only half of the latter's memory footprint; costs more vertex shader instructions.</p>
         <p>*Maximum*: select this only if you absolutely need the highest possible accuracy; uses two 32-bit UV channels to store unencoded pivots; in Unreal Engine, you have to turn on *Use Full Precision UVs* in Mesh Editor, otherwise the actual accuracy is slightly worse than "High". Because Rigid-Body Dynamics (Rigid) mode requires 4-6 UV channels on the exported mesh, turning on Use Full Precision UVs doubles the memory footprints for all of them.</p>
@@ -116,10 +116,10 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
         A custom float attribute you want to export through Color Texture's alpha channel. This attribute does not undergo any transform, conversion, or normalization. If the attribute has values outside the 0-1 range, set Texture Format to "HDR". If you have to use a non-HDR texture, you can pre-normalize the attributes in the input geometry and manually reverse the normalization in the real-time shader.
     Lookup Table Width:
         The target width of Lookup Table Texture. In Dynamic Remeshing (Fluid) mode, *Target Texture Width* can generally be less than half of this value, as Lookup Table Texture tends to be many times larger than the animation data textures.  
-        <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is approaching 8192, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
+        <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is much larger than 4096, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
     Target Texture Width:
         The target width of the output textures. If there are fewer data points per frame than this value, the output textures use the number of data points as their widths.
-        <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is approaching 8192 and the animation has glitches, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
+        <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is much larger than 4096 and the animation has glitches, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
     Preview Texture Size (Slow):
         Turn this on to interactively preview the output texture size. It is somewhat slow because every time you toggle this on or some upstream parameter updates, the node will need to recheck the input geometry on every frame of the export frame range. But once it is turned on, updating Target Texture Width will have instant feedback. In Dynamic Remeshing (Fluid) mode, the two passes have two different texture sizes, so which preview size is displayed depends on *Render Pass*.
     Pad Texture Size to Powers of Two:
@@ -186,7 +186,7 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
         Turn this on to support real-time instancing of your vertex-animated mesh. Currently this parameter only makes a difference if *Target Engine* is set to "Unreal Engine". In Unreal Engine, instanced meshes' local-space tangents are not directly accessible, so the tangents have to come from the vertex attributes "uv5" and "uv6".
     ==Advanced: LODs==
     Export LODs:
-        Exports a single FBX containing multiple LODs and a single set of textures compatible with all the LODs. All non-zero LODs simply share LOD0's textures through point-mapping (described below in requirement 1), so increasing LOD count does not increase the texture memory consumption.
+        Exports a single FBX containing multiple LODs and a single set of textures compatible with all the LODs. All non-zero LODs simply share LOD0's textures through point-mapping (described below in requirement 1), so adding more LODs does not increase the texture memory consumption.
         <p>The input geometry must meet the following requirements:</p>
         <p>1. all LODs should have the integer point attribute "lod0_ptnum". This attribute maps all the points in every non-zero LODs to a subset of points in LOD0, enabling subsequent LODs to share the point data exported with LOD0. In Rigid-Body Dynamics (Rigid) mode, this attribute should be on packed points.</p>
         <p>2. the points in each LOD should be assigned to the respective point group "lod#" with "#" being the LOD number starting with 0. In Rigid-Body Dynamics (Rigid) mode, this group should be on packed points.</p>
@@ -235,4 +235,4 @@ VAT 3.0 offers more streamlined workflows, additional advanced features, and a l
     Unity Package and Guides:
         Press this button to go to the directory of SideFX Labs Vertex Animation Textures package for Unity. Click on the "URP_VAT3" folder. Follow the guides inside.
     Last Render's Embedded Data:
-        Displays the data embedded in the bounds of the geometry. You can use this list to check if the decoded data in your real-time shader are correct. The list is ordered according to the data display order in the target engine. Currently only Unreal Engine supports debugging embedded data.
+        Displays the data embedded in the bounds of the geometry. You can use this list to verify if the decoded data in your real-time shader are correct. The list is ordered according to the data display order in the target engine. Currently only Unreal Engine supports debugging embedded data.
