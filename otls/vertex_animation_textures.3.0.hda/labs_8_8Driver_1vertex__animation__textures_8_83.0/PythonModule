@@ -220,40 +220,47 @@ def postRender(node):
         node.parm("finaltexsizex").set(size1)
         node.parm("finaltexsizey").set(size2)    
 
-    if node.evalParm("engine") == 'unreal':
-
-        geo = node.node("objects/TEXTURE/embed_data_to_bounds_msg").geometry()
-
-        embedded_data = ''
-
-        embedded_data += geo.attribValue("__max_z_data") + '\n'
-        decoded = geo.attribValue("__bound_decoded")[2]
-        embedded_data += "{:.6f}".format(decoded) + ' (X) \n \n'
-
-        embedded_data += geo.attribValue("__max_y_data") + '\n'
-        decoded = geo.attribValue("__bound_decoded")[1]
-        embedded_data += "{:.6f}".format(decoded) + ' (Y) \n \n'
-
-        embedded_data += geo.attribValue("__max_x_data") + '\n'
-        decoded = geo.attribValue("__bound_decoded")[0]
-        embedded_data += "{:.6f}".format(decoded) + ' (Z) \n \n'
-
-        embedded_data += geo.attribValue("__min_z_data") + '\n'
-        decoded = geo.attribValue("__bound_decoded")[5]
-        embedded_data += "{:.6f}".format(decoded) + ' (R) \n \n'
-
-        embedded_data += geo.attribValue("__min_x_data") + '\n'
-        decoded = geo.attribValue("__bound_decoded")[3]
-        embedded_data += "{:.6f}".format(decoded) + ' (G) \n \n'
-
-        embedded_data += 'Animation Frame Count' + '\n'
-        decoded = size2 / geo.attribValue("__bound_decoded")[4]
-        embedded_data += "{:.6f}".format(decoded) + ' (B) \n \n'
-        node.parm("embeddeddata").set(embedded_data)
-
+    if node.evalParm("mode") == 2 and node.evalParm("fluidpass") == 1:
+        pass
+        
     else:
+        if node.evalParm("engine") == 'unreal':
 
-        node.parm("embeddeddata").set('')
+            geo = node.node("objects/TEXTURE/embed_data_to_bounds_msg").geometry()
+
+            embedded_data = ''
+
+            embedded_data += geo.attribValue("__max_z_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[2]
+            embedded_data += "{:.6f}".format(decoded) + ' [X] \n \n'
+
+            embedded_data += geo.attribValue("__max_y_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[1]
+            embedded_data += "{:.6f}".format(decoded) + ' [Y] \n \n'
+
+            embedded_data += geo.attribValue("__max_x_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[0]
+            embedded_data += "{:.6f}".format(decoded) + ' [Z] \n \n'
+
+            embedded_data += geo.attribValue("__min_z_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[5]
+            embedded_data += "{:.6f}".format(decoded) + ' [R] \n \n'
+
+            embedded_data += geo.attribValue("__min_x_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[3]
+            embedded_data += "{:.6f}".format(decoded) + ' [G] \n \n'
+
+            embedded_data += 'Animation Frame Count / Data UV Point Row Count' + '\n'
+            decoded = size2 / geo.attribValue("__bound_decoded")[4]
+            embedded_data += "{:.6f}".format(decoded) + ' [B]'
+            decoded = geo.attribValue("__bound_decoded")[4]
+            embedded_data += ' / ' + "{:.0f}".format(decoded) + ' Row(s)'
+            
+            node.parm("embeddeddata").set(embedded_data)
+
+        else:
+
+            node.parm("embeddeddata").set('')
 
 
     if node.evalParm("persistliveupdate") == 0:

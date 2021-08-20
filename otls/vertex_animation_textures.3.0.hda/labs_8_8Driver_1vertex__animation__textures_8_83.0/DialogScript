@@ -201,7 +201,16 @@
                     "0" "First Pass (Geometry, Lookup Table, Data/Material)"
                     "1" "Second Pass (Animation Data Textures)"
                 }
-                parmtag { "script_callback" "kwargs[\"node\"].setParms({\"enable_lookup\": 1 - kwargs[\"node\"].evalParm(\"fluidpass\")}) " }
+                parmtag { "script_callback" "kwargs[\"node\"].setParms({\"enable_lookup\": 1 - kwargs[\"node\"].evalParm(\"fluidpass\"), \"croptextofirstframe\": max(0, kwargs[\"node\"].evalParm(\"croptextofirstframe\") - kwargs[\"node\"].evalParm(\"fluidpass\"))})" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "enablefuse"
+                label   "Enable Fuse"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -209,7 +218,7 @@
                 label   "Fuse Point Group"
                 type    string
                 default { "" }
-                disablewhen "{ mode == 2 fluidpass == 1 }"
+                disablewhen "{ mode == 2 fluidpass == 1 } { enablefuse == 0 }"
                 menutoggle {
                     [ "r = []" ]
                     [ "node = hou.node(hou.parm(\"soppath\").evalAsString())" ]
@@ -234,7 +243,7 @@
                 label   "Fuse Distance"
                 type    float
                 default { "0.01" }
-                disablewhen "{ mode == 2 fluidpass == 1 }"
+                disablewhen "{ mode == 2 fluidpass == 1 } { enablefuse == 0 }"
                 range   { 0 10 }
                 parmtag { "script_callback_language" "python" }
             }
@@ -713,7 +722,7 @@
                 name    "targettexsize_lookup"
                 label   "Lookup Table Width"
                 type    string
-                default { "1024" }
+                default { "2048" }
                 disablewhen "{ mode == 2 fluidpass == 1 }"
                 hidewhen "{ mode != 2 }"
                 menureplace {
@@ -1249,7 +1258,7 @@
             name    "path_pos"
             label   "Position / Position 1"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos.`chs(\"imageformat\")`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos`chs(\"cropsuffix\")`.`chs(\"imageformat\")`" }
             disablewhen "{ enable_pos == 0 }"
             hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
         }
@@ -1267,7 +1276,7 @@
             name    "path_pos2"
             label   "Position 2"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos2.`chs(\"imageformat\")`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_pos2`chs(\"cropsuffix\")`.`chs(\"imageformat\")`" }
             disablewhen "{ enable_pos2 == 0 }"
             hidewhen "{ enable_pos == 0 } { splitpos == 0 } { normalizedata == 0 allowhdrsplitpos == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
         }
@@ -1284,7 +1293,7 @@
             name    "path_rot"
             label   "Rotation"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_rot.`chs(\"imageformat\")`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_rot`chs(\"cropsuffix\")`.`chs(\"imageformat\")`" }
             disablewhen "{ enable_rot == 0 }"
             hidewhen "{ mode == 3 } { include != custom }"
         }
@@ -1301,7 +1310,7 @@
             name    "path_col"
             label   "Color"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col.`chs(\"imageformat\")`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col`chs(\"cropsuffix\")`.`chs(\"imageformat\")`" }
             disablewhen "{ enable_col == 0 }"
             hidewhen "{ include != custom mode != 3 } { include_sprite != custom mode == 3 }"
         }
@@ -1319,7 +1328,7 @@
             name    "path_col2"
             label   "Spare Color"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col2.`chs(\"imageformat\")`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_col2`chs(\"cropsuffix\")`.`chs(\"imageformat\")`" }
             disablewhen "{ enable_col2 == 0 }"
             hidewhen "{ enable_col == 0 } { addsparecol == 0 } { include != custom mode != 3 } { include_sprite != custom mode == 3 }"
         }
@@ -1337,7 +1346,7 @@
             name    "path_lookup"
             label   "Lookup Table"
             type    image
-            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_lookup.`chs(\"imageformat_lookup\")`" }
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")``chs(\"assetname\")`_lookup`chs(\"cropsuffix\")`.`chs(\"imageformat_lookup\")`" }
             disablewhen "{ enable_lookup == 0 }"
             hidewhen "{ mode != 2 }"
         }
@@ -1374,6 +1383,15 @@
             default { "`chs(\"exportpath\")`/`chs(\"subdir_data\")``chs(\"assetname\")`_data.json" }
             disablewhen "{ enable_datafile == 0 }"
             hidewhen "{ exportlegacydatafile == 0 supportinstancing == 0 }"
+        }
+        parm {
+            name    "cropsuffix"
+            label   "Crop Suffix"
+            type    string
+            invisible
+            default { "`ifs(ch(\"croptextofirstframe\"), '_f1', '')`" }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "subdir_geo"
@@ -1462,6 +1480,22 @@
             default { "0" }
             hidewhen "{ engine != unreal }"
             parmtag { "script_callback" "if kwargs[\"node\"].evalParm(\"supportinstancing\") == 1: kwargs[\"node\"].setParms({\"exportlegacydatafile\": 1, \"enable_datafile\": 1})" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "croptextofirstframe"
+            label   "Crop Textures to First Frame Only"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rawfloatsinpa"
+            label   "Preserve Raw Float Data in Position Alpha"
+            type    toggle
+            default { "1" }
+            hidewhen "{ croptextofirstframe == 0 }"
             parmtag { "script_callback_language" "python" }
         }
         groupcollapsible {
