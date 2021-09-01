@@ -101,11 +101,11 @@ def get_config_file():
     try:
         return hou.findFile("ExternalEditor.cfg")
     except hou.OperationFailed:
-        return os.path.join(hou.expandString("$HOUDINI_USER_PREF_DIR"), "ExternalEditor.cfg")
+        return os.path.join(hou.text.expandString("$HOUDINI_USER_PREF_DIR"), "ExternalEditor.cfg")
 
 def set_external_editor():
 
-    r = QtWidgets.QFileDialog.getOpenFileName(hou.ui.mainQtWindow(),
+    r = QtWidgets.QFileDialog.getOpenFileName(hou.ui.mainWindow(),
                                                 "Select an external editor program")
     if r[0]:
 
@@ -116,7 +116,7 @@ def set_external_editor():
 
         root, file = os.path.split(r[0])
 
-        QtWidgets.QMessageBox.information(hou.ui.mainQtWindow(),
+        QtWidgets.QMessageBox.information(hou.qt.mainWindow(),
                                           "Editor set",
                                           "External editor set to: " + file)
 
@@ -151,7 +151,7 @@ def get_external_editor():
 
     else:
 
-        r = QtWidgets.QMessageBox.information(hou.ui.mainQtWindow(),
+        r = QtWidgets.QMessageBox.information(hou.qt.mainWindow(),
                                              "Editor not set",
                                              "No external editor set, pick one ?",
                                              QtWidgets.QMessageBox.Yes,
@@ -478,7 +478,7 @@ def add_watcher(selection, type_="parm"):
                                 severity=hou.severityType.Error)
         return
 
-    p = QtCore.QProcess(parent=hou.ui.mainQtWindow())
+    p = QtCore.QProcess(parent=hou.qt.mainWindow())
     p.start(vsc, [file_path])
 
     watcher = get_file_watcher()
@@ -486,7 +486,7 @@ def add_watcher(selection, type_="parm"):
     if not watcher:
 
         watcher = QtCore.QFileSystemWatcher([file_path],
-                                            parent=hou.ui.mainQtWindow())
+                                            parent=hou.qt.mainWindow())
         watcher.fileChanged.connect(filechanged)
         hou.session.FILE_WATCHER = watcher
 
@@ -567,6 +567,6 @@ def remove_file_watched(parm, type_="parm"):
     r = remove_file_from_watcher(file_name)
     if r:
         clean_files()
-        QtWidgets.QMessageBox.information(hou.ui.mainQtWindow(),
+        QtWidgets.QMessageBox.information(hou.qt.mainWindow(),
                                           "Watcher Removed",
                                           "Watcher removed on file: " + file_name)
