@@ -14,7 +14,7 @@ class Tip_Dialog(QDialog):
         self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Quick Tips!")
 
-        self.csvfile = hou.expandString("$SIDEFXLABS/misc/tips/Tip_Data.csv")
+        self.csvfile = hou.text.expandString("$SIDEFXLABS/misc/tips/Tip_Data.csv")
         self.numtips = 0
         self.currenttip = 0
         self.build_ui()
@@ -85,5 +85,5 @@ class Tip_Dialog(QDialog):
 
 
 def ShowQuickTip():
-  dialog = Tip_Dialog(hou.ui.mainQtWindow())
+  dialog = Tip_Dialog(hou.qt.mainWindow())
   dialog.show()
