@@ -21,7 +21,7 @@ class StickerPlacer(QDialog):
     def get_source_dirs(self):
         sticker_dirs = []
         for sourcedir in sticker_source_dirs:
-            _expandeddir = hou.expandString(sourcedir)
+            _expandeddir = hou.text.expandString(sourcedir)
 
             if os.path.isdir(_expandeddir):
                 subdirs = os.listdir(_expandeddir)
@@ -103,12 +103,12 @@ class StickerPlacer(QDialog):
         self.listwidget.clear()
 
         stickers = []
-        active_dir = hou.expandString(self.iconset.currentText())
+        active_dir = hou.text.expandString(self.iconset.currentText())
         if active_dir != "":
             for file in os.listdir(active_dir):
                 if os.path.splitext(file)[-1] in [".png", ".jpg"]:
                     _relpath = os.path.normpath(os.path.join(self.iconset.currentText(), file))
-                    _abspath = hou.expandString(_relpath)
+                    _abspath = hou.text.expandString(_relpath)
 
                     item = QListWidgetItem()
                     icon = QIcon()
