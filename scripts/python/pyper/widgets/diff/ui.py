@@ -13,12 +13,12 @@ License:
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
@@ -27,26 +27,30 @@ License:
 import os
 import logging
 
-from pyper.vendor.Qt import QtGui
-from pyper.vendor.Qt import QtCore
-from pyper.vendor.Qt import QtWidgets
-from pyper.vendor.Qt import _QtUiTools
+from PySide2 import QtGui
+from PySide2 import QtCore
+from PySide2 import QtWidgets
+from PySide2 import QtUiTools
 
 from pyper.widgets import spreadsheet
 
-from imp import reload
+try:
+    from importlib import reload
+except ImportError:
+    from imp import reload
 reload(spreadsheet)
 
-class UiLoader(_QtUiTools.QUiLoader):
+
+class UiLoader(QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
-        _QtUiTools.QUiLoader.__init__(self, baseinstance)
+        QtUiTools.QUiLoader.__init__(self, baseinstance)
         self.baseinstance = baseinstance
 
     def createWidget(self, class_name, parent=None, name=""):
         if parent is None and self.baseinstance:
             return self.baseinstance
         else:
-            widget = _QtUiTools.QUiLoader.createWidget(self, class_name, parent, name)
+            widget = QtUiTools.QUiLoader.createWidget(self, class_name, parent, name)
             if self.baseinstance:
                 setattr(self.baseinstance, name, widget)
             return widget
@@ -97,8 +101,7 @@ class MainWidget(QtWidgets.QWidget):
     def centerWidget(self):
         """ Centers the widget on screen. (source: https://stackoverflow.com/a/20244839) """
         frameGm = self.frameGeometry()
-        screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
-        centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
+        centerPoint = self.parent().geometry().center()
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
 
@@ -145,6 +148,7 @@ class MainWidget(QtWidgets.QWidget):
         self.refresh()
 
     def closeEvent(self, event):
+        """ Redefine closeEvent() function to add some logs and eventually file management before quitting the widget. """
         name = __name__.split(".")[-2].capitalize() # note: [-2] to get the name of the module above .ui
         self._logger.debug("Closing %s..." % (name))
         self.setParent(None)
