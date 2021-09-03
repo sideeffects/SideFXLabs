@@ -66,8 +66,45 @@
             hidewhen "{ inputtype != 1 }"
         }
         parm {
+            name    "bornbeforestartmode"
+            label   "Born Before Loop Start"
+            type    ordinal
+            default { "1" }
+            disablewhen "{ inputtype != 1 }"
+            hidewhen "{ inputtype != 1 }"
+            menu {
+                "0" "Remove Particle"
+                "1" "Restart Particle Original Age at Loop Start"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "deadafterendmode"
+            label   "Dead After Loop End"
+            type    ordinal
+            default { "1" }
+            disablewhen "{ inputtype != 1 }"
+            hidewhen "{ inputtype != 1 }"
+            menu {
+                "0" "Remove Particle"
+                "1" "Clamp Particle Original Life to Loop End"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ inputtype != 1 }"
+        }
+        parm {
             name    "uniqueid"
-            label   "Offset Clashing Particle IDs"
+            label   "Prevent Loops from Repeating Particle IDs"
             type    toggle
             default { "1" }
             disablewhen "{ inputtype != 1 }"
@@ -83,9 +120,9 @@
             disablewhen "{ inputtype != 1 } { uniqueid == 0 }"
             hidewhen "{ inputtype != 1 } { uniqueid == 0 }"
             menu {
-                "0" "Stay Alive from End to Start (Houdini)"
-                "1" "Die at End and Respawn as New Particles at Start (Niagara)"
-                "2" "Spawn at Start, Hide, Then Reappear at End (Niagara)"
+                "0" "Stay Alive from the End to the Start (Houdini)"
+                "1" "Die at the End and Respawn as New Particles at the Start (Niagara)"
+                "2" "Spawn at the Start, Hide, and Reappear near the End (Niagara)"
                 "3" "Never Spawn to Avoid Wrapping"
             }
             parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
@@ -95,8 +132,7 @@
             name    "fadein"
             label   "Fade In Pscale"
             type    toggle
-            default { "0" }
-            disablewhen "{ inputtype != 1 }"
+            default { "1" }
             hidewhen "{ inputtype != 1 }"
             parmtag { "script_callback_language" "python" }
         }
@@ -105,7 +141,7 @@
             label   "Fade-In Duration"
             type    float
             default { "0.2" }
-            disablewhen "{ fadein == 0 } { inputtype != 1 }"
+            disablewhen "{ fadein == 0 }"
             hidewhen "{ inputtype != 1 }"
             range   { 0 1 }
             parmtag { "script_callback_language" "python" }
@@ -116,6 +152,24 @@
             type    button
             invisible
             default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fadeout"
+            label   "Fade Out Pscale"
+            type    toggle
+            default { "1" }
+            hidewhen "{ inputtype != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fadeoutduration"
+            label   "Fade-Out Duration"
+            type    float
+            default { "0.2" }
+            disablewhen "{ fadeout == 0 }"
+            hidewhen "{ inputtype != 1 }"
+            range   { 0 10 }
             parmtag { "script_callback_language" "python" }
         }
     }

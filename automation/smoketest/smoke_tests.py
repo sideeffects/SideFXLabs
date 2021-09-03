@@ -148,7 +148,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     nodes_to_ignore = \
-        ["sop_rc_register_images", "rc_texture_model", "gamedev::sop_substance_material", 
+        ["sop_rc_register_images", "rc_texture_model", "gamedev::sop_substance_material",
          "meshes.hda", "gamedev::sop_instant_meshes", "gamedev::sop_instant_meshes::2.0"]
     if MAJOR_MINOR != "17.5":
         nodes_to_ignore = \

@@ -38,7 +38,7 @@ def compile_plugin(version):
 
     os.makedirs(build_dir)
     version_dic = get_installed_versions_dic()
-    
+
     my_env = os.environ.copy()
     my_env["HFS"] = os.path.join(SideFXDIR, version_dic[version][-1])
 

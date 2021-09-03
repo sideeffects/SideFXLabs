@@ -18,7 +18,7 @@ import hou
 def oncreate(kwargs, node_type=None):
 	node = kwargs["node"]
 	# -----------------------------------------------------------------------------
-	#    Desc: Set studio debug color. 
+	#    Desc: Set studio debug color.
 	# -----------------------------------------------------------------------------
 
 	node.setColor(hou.Color( (0.0, 0.6, 1.0) ) )

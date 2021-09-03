@@ -16,17 +16,17 @@ import hou
 # -----------------------------------------------------------------------------
 
 def node_input(node):
-    inputs      = node.inputs()  
+    inputs      = node.inputs()
     if inputs :
         node    = node.inputs()[0]
     elif node.parm("hq_driver") :
         node_parm = hou.node(node.evalParm("hq_driver"))
         if not node :
-            node = None 
+            node = None
         else:
-            node = node_parm 
+            node = node_parm
     else :
-        node    = None   
+        node    = None
     return node
 
 # -----------------------------------------------------------------------------
@@ -38,9 +38,9 @@ def node_input(node):
 
 def node_valid(node):
     node        = node_input(node)
-    switch      = 0    
+    switch      = 0
     if node :
-         switch = 1    
+         switch = 1
     return switch
 
 # -----------------------------------------------------------------------------
@@ -64,13 +64,13 @@ def node_name(node):
 def node_sim(node):
     switch      = 0
     ntype       = node_input(node).type()
-    name        = ntype.nameComponents()[2]  
+    name        = ntype.nameComponents()[2]
 
-    if name == 'dop' or name == 'geometry' or name == 'VFX_dop' or name == 'VFX_geometry': 
+    if name == 'dop' or name == 'geometry' or name == 'VFX_dop' or name == 'VFX_geometry':
         switch  = 1
 
     return switch
-    
+
 # -----------------------------------------------------------------------------
 #    Name: node_wiredin(node)
 #  Raises: N/A
@@ -80,11 +80,11 @@ def node_sim(node):
 
 def node_wiredin(node):
     inputs      = node.inputs()
-    switch      = 1    
+    switch      = 1
     if not inputs :
          switch = 0
-         
-    return switch   
+
+    return switch
 
 # -----------------------------------------------------------------------------
 #    Name: hq_driver(node)
@@ -98,6 +98,6 @@ def hq_driver(node):
     if node :
         path    = node.path()
     else :
-        path    = ''   
+        path    = ''
     return path
  

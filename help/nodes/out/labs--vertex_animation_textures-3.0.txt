@@ -1,0 +1,245 @@
+= Labs Vertex Animation Textures =
+
+#type: node
+#context: out
+#internal: labs::vertex_animation_textures::3.0
+#icon: vertexanimationtextures
+#tags: sidefxlabs, gamedev 
+
+""" The Vertex Animation Textures ROP will export a mesh and a set of textures to be used with a shader for complex real-time effects, such as: soft-body deformation, rigid-body dynamics, dynamically remeshed geometries, and particle sprites. """
+
+Vertex Animation Textures (VAT) is an efficient and powerful solution to recreate complex and non-traditional animations in real time. Because VAT only uses textures and shaders to achieve the visuals on the GPU, it has a much lighter performance impact on the CPU, compared to traditional skeletal mesh animations. This also makes VAT a good candidate to animate a large number of instanced meshes with per-instance variations.
+
+Furthermore, VAT comes in handy when a skeletal animation rig is too complicated to be imported to the real-time engine. You can import the rig into Houdini and directly export the animated geometry through VAT, because all VAT needs is the points/vertices and the data on them on each frame.
+
+Vertex animations encoded in textures do not have to be played in complete loops or at a constant speed. You can start/stop at any frame or art direct the playback speed.
+
+The limitations of VAT include: texture memory budget on lower-end hardwares, the lack of animated collisions, and relatively limited real-time interactability.
+
+Compared to previous versions, VAT 3.0 offers more streamlined workflows, additional advanced features, and a lot more customizability.
+
+
+@parameters
+    Render All:
+        Cooks all dependent networks and renders all the assets specified on the *Export* tab. In Dynamic Remeshing (Fluid) mode, there are two render passes and this cooks all the assets pertaining to the currently selected render pass.
+    Mode / Target Engine:
+        *Mode* depends on what kind of animation you want to export. *Target Engine* affects the coordinate system, the scale, and potentially some other engine-specific parameters. See the information on the *Input* tab for how to prepare your input geometry for a specific mode-and-engine combination.
+        <p>*Soft-Body Deformation (Soft)*: the surfaces have consistent topologies; they simply deform.</p>
+        <p>*Rigid-Body Dynamics (Rigid)*: packed pieces with RBD simulation data.</p>
+        <p>*Dynamic Remeshing (Fluid)*: the surfaces are potentially remeshed every frame with dynamic topologies.</p>
+        <p>*Particle Sprites (Sprite)*: points with particle simulation data.</p>
+    Start/End:
+        The first frame and last frame of the animation to export. Both ends are inclusive.
+    Input Geometry:
+        The path to the geometry node that you want to render.
+    ==Settings: Soft-Body Deformation==
+    Export Compressed Normals in Position Alpha:
+        Compresses the normals from the vector type to the float type and stores them in Position Texture's alpha channel. This is a lossy compression resulting in medium-quality normals. If you do not plan to apply (tangent-space) surface normal maps to your real-time asset, this is a more memory-efficient alternative as it bypasses the cost of sampling Rotation Texture. But if you want to apply surface normal maps, turn this off and use Rotation Texture instead. Turning this on also precludes you from exporting a custom attribute through Position Texture's alpha channel.
+    ==Settings: Rigid-Body Dynamics==
+    Pivot Accuracy:
+        The vertices on every rigid-body piece are transformed relative to the piece's pivot. Therefore, the accuracy of the pivot encoding determines the accuracy of piece translations and rotations throughout the animation.
+        <p>*High*: select this if your vertex shader is a performance bottleneck; uses two 16-bit UV channels to store unencoded pivots; the overall cheapest option.</p> 
+        <p>*Very High*: recommended; uses two 16-bit UV channels to store encoded pivots; deploys two split-encoding formats and dynamically pick the better format for each piece, producing an accuracy very close to that of "Maximum" at only half of the latter's memory footprint; costs more vertex shader instructions.</p>
+        <p>*Maximum*: select this only if you absolutely need the highest possible accuracy; uses two 32-bit UV channels to store unencoded pivots; in Unreal Engine, you have to turn on *Use Full Precision UVs* in Mesh Editor, otherwise the actual accuracy is slightly worse than "High". Because Rigid-Body Dynamics (Rigid) mode requires 4-6 UV channels on the exported mesh, turning on Use Full Precision UVs doubles the memory footprints for all of them.</p>
+    Rotation Interpolation:
+        Select "Accurate Multi-RPF Slerp with Angular Velocity" unless your input geometry cannot provide the angular velocity attribute "w". If your input geometry comes from a RBD simulation, angular velocity is directly available. Simply make sure the attribute is included in the simulation output attributes and that it is transferred to points.
+        <p>*Accurate Multi-RPF Slerp with Angular Velocity*: uses an angular-velocity-assisted spherical linear interpolation (slerp) algorithm to fairly accurately interpolate rotations of fast-spinning pieces; capable of interpolating pieces that spin much faster than 360 degrees per integer frame (multi-revolutions per frame); also capable of handling the edge case where a piece rotates to the exact same orientation as that of the previous frame; allows you to freely dilate time in real-time playbacks.</p>
+        <p>*Basic Short-Path Slerp without Angular Velocity*: uses the standard short-path spherical linear interpolation (slerp) algorithm that does not require the input angular velocity; this limits accurate rotation interpolations to pieces that spin less than 180 degrees per inter frame; when any piece spins faster than that, its interpolation will be incorrect.</p>
+    Support Smoothly Interpolated Trajectories:
+        This requires you to export Color Texture and set Texture Format to "HDR". It recomputes accelerations and exports them through the RGB channels of Color Texture. Using accelerations, the shader can reconstruct curved interframe trajectories in a more realistic way which take velocites into account, instead of constructing straight paths to connect adjacent-frame positions.
+    Max RPF Allowed:
+        If the maximum RPF (revolutions per frame) ever reached in the animation by any piece is too high, it may affect the accuracy of the rotation interpolation for all pieces due to floating point precision limitations. Set this parameter to a reasonably high number prevents extremely fast-spinning outlier pieces from causing that problem.
+    Slerp Edge Case Offset:
+        Helps to resolve the edge case where a piece rotates to the exact same orientation as that of the previous frame. The slerp function is not defined for rotations that are exact multiples of 360 degrees. The solution is therefore to slightly rotate any edge-case piece towards or away from its next frame's orientation. On even frames, it will rotate forward in time by a random degree between 50% and 150% the value of this parameter; on odd frames, it will rotate backward in time by a random degree between -50% and -150% the value of this parameter. Do not set this value too low, or the real-time shader may suffer from numerical errors.
+    Slerp Edge Case Seed:
+        A global random seed that contributes to (but not solely responsible for) generating random degrees by which to rotate edge-case pieces (see the tooltip of Slerp Edge Case Offset). It is extremely unlikely that you will need to change this parameter. Only change it if the node displays an error message that asks you to do so.
+    ==Settings: Dynamic Remeshing==
+    Render Pass:
+        Dynamic Remeshing (Fluid) mode requires you to render output files in two separate passes in order to reduce the texture memory consumption. Leave this at "First Pass" when you are configuring the node's settings, and then press *Render All*. After the first pass is complete, change this to "Second Pass" and press *Render All* again. (Almost all other parameters are locked during the second pass, because you are not allowed to change setting between the two passes.) If *Preview Texture Size* is on, this parameter decides which pass's texture size to preview.
+        <p>*First Pass*: renders Geometry, Lookup Table Texture, and optionally the Real-Time Data JSON file / the Unity Material file. </p>
+        <p>*Second Pass*: renders the animation data textures (i.e. Position Texture, Rotation Texture, Color Texture, etc.), which are much smaller in size than Lookup Table Texture.</p>
+    Enable Fuse:
+        Turn this off if you do not want to fuse any points.
+    Fuse Point Group:
+        The point group that will be affected by fusing. Points will be fused together if they are within the distance threshold set by *Fuse Distance*. You can also use the "!group_name" or "* ^group_a_name ^group_b_name" syntax to exclude certain groups. When this parameter is blank, all points will be affected.
+    Fuse Distance:
+        Fuses together points within this distance to one another in the input geometry. This helps to remove tiny triangles that are a waste of resources and potentially problematic.
+    Export Compressed Normals in Position Alpha:
+        Compresses the normals from the vector type to the float type and stores them in Position Texture's alpha channel. This is a lossy compression resulting in medium-quality normals. If you do not plan to apply regular (tangent-space) surface normal maps to your real-time asset, this is a more memory-efficient alternative as it bypasses the cost of sampling Rotation Texture. But if you want to apply regular normal maps, turn this off and use Rotation Texture instead. Turning this on also precludes you from exporting a custom attribute through Position Texture's alpha channel.
+    Export Surface UVs in Position Alpha and Color Alpha:
+        Exports the animated UV attributes through Position Texture's alpha channel and Color Texture's alpha channel. Dynamic Remeshing (Fluid) mode can support UV maps, but since the topology is dynamic, the input geometry has to be UV unwrapped on every frame. You can either UV unwrap the input geometry yourself (recommended) or rely on the auto UV generation method specified on the *Input* tab.
+    Export Surface UVs in Color Red and Green:
+        Exports the animated UV attributes through Color Texture's red and green channels. Dynamic Remeshing (Fluid) mode can support UV maps, but since the topology is dynamic, the input geometry has to be UV unwrapped on every frame. You can either UV unwrap the input geometry yourself (recommended) or rely on the auto UV generation method specified on the *Input* tab.
+    ==Settings: Particle Sprites==
+    Support Particle Interframe Interpolation:
+        Changes how the data are arranged on the output textures to make it possible to interpolate particle attributes in real time. This requires the input geometry to have the point attribute "id".
+    Card Shape:
+        Set the shape of the particle card geometry. Different shapes have slightly different performance impacts. But all shapes share the same centre in UV space.
+    Square Orientation:
+        How the square particle cards will be oriented in UV space and real-time view space.
+    Triangle Orientation:
+        How the triangular particle cards will be oriented in UV space and real-time view space.
+    Hexagon Orientation:
+        How the hexagonal particle cards will be oriented in UV space and real-time view space.
+    Custom ZX Shapes:
+        Replaces the default shape options with your own designs. The custom shape geometry has to be flat on the ZX plane. You can merge multiple shape variants together and point this parameter to the path of the combined geometry. See the tooltip of Multiple Shape Variants with Shape ID Attribute.
+    Shape Input Type:
+        The custom shapes can either be filled polygons or simply outlines defined by closed curves with no interiors. The hollow outlines will be automatically filled. For performance reasons, consider using a Fuse SOP to reduce the number of points used to define the input custom shapes.
+    Multiple Shape Variants with Shape ID Attribute:
+        When you merge multiple shape variants together (because Custom ZX Shapes only accepts one geometry path), they can still be uniquely identified if you assign each shape a unique shape ID value.
+    Shape ID Attribute:
+        A point or primitive integer attribute to distinguish different shape variants.
+    Shape Weight Attribute:
+        A point or primitive float attribute to determine the distribution of the shape variants. Each variant's likelihood of adoption by a particle is this variant's weight divided by the aggregate weight of all variants.
+    Preserve Relative Scales of Different Shapes:
+        Preserves the relative scale differences between multiple variants. Turn this off if you want to scale (the width-to-height ratio will be locked) different shape variants to have the same bounding square size.
+    Reverse Custom Card Normals:
+        Turn this on only if the particle cards have the wrong normals in your real-time engine, in which case, they may appear to be invisible but if you select the object, you can see the outlines. This is unlikely to happen, however.
+    ==Settings: All Modes==
+    Input Geometry Is Cached to Integer Frames:
+        Set this according to whether or not the input geometry is cached to integer frames and loaded from disk. Caching the input geometry is the recommended workflow as it shortens this node's render time, especially if the input depends on expensive simulations or nodes that are slow to recook.
+    Lookup Table Format:
+        Typically it is sufficient to select "Non-HDR" and ".png" / ".tga" for Lookup Table Texture to keep the memory consumption low. In Unreal Engine, if your Dynamic Remeshing (Fluid) mode animation has glitches, the first thing is to do is to restart Unreal Editor. (This is known to fix glitches that occur after newly imported files.) If the glitches persist, consider turning on *Use Full Precision UVs* in Mesh Editor. Only change this to "HDR" and ".exr" / ".tiff" if your second pass texture size is huge and all other solutions have failed to get rid of the glitches.
+    Texture Format:
+        Select "HDR" if your performance budget can afford it, because it offers better precision for all the data you are exporting. Only EXR and TIFF extensions can support HDR, but all extensions can support non-HDR. If your animation spans a huge area, the data precision will be pushed to its limit and non-HDR formats may result in noticeable issues; consider switching to HDR formats or dividing the animation into several smaller local parts. In your real-time engine, match the texture compression setting with this setting (see the tooltip of Pad Texture Size to Powers of Two for an exception).
+    Split Positions into Two Textures:
+        Uses two 8-bit textures for better precision when the target engine does not support 16/32-bit HDR textures. You must use both textures when this is on. The node automatically prevents you from accessing this option if you want to use a HDR Position Texture, but you can override this restriction in the *Advanced* tab.
+    Export Spare Color Texture:
+        Spare Color Texture exports the point vector attribute "Cd2" and the point float attribute "Alpha2" on the input geometry. It is useful when you want to export a second set of animated colors. You can also use it to export the actual colors when Color Texture is occupied by non-color data. Color Texture is designed to be a multi-purpose texture whereas Spare Color Texture is more of a pure color texture. But of course, you can still write non-color data into "Cd2" and "Alpha2".
+    Export Static Mesh Vertex Colors:
+        To export vertex colors, create the attributes "Cd_v" and "Alpha_v" on vertices as opposed to points. This is to clearly differentiate between animated point/piece/particle colors, which are exported through the textures, and unchanging vertex colors, which are exported through the static mesh. Vertex colors can be used for masking and other purposes. Dynamic Remeshing (Fluid) mode does not have the concept of static vertex colors, since there is no consistent topology. Particle Sprites (Sprite) mode only exports static vertex colors if they exist on the geometry from Custom ZX Shapes.
+    Include Hidden Debug Plane in Geometry:
+        It is recommended to turn this on. When the real-time shader is not in the debug mode, the plane is not rendered and incurs next to no cost. Turning it off makes it harder to debug the real-time shader. (This feature is currently only supported with Unreal Engine.)
+        <p>Prior to Vertex Animation Textures ROP 3.0, you needed to set a list of parameter values in the real-time shader. Those data are now embedded in the bounds of the static mesh and automatically derived at runtime. Turn this on to include a simple square in the exported static mesh to display the embedded data when the shader is in the debug mode.</p>
+    In Position Alpha:
+        A custom float attribute you want to export through Position Texture's alpha channel. This attribute can have any non-negative values, including values above 1.0, even when using non-HDR texture formats. But in order to support this, negative values are not allowed.
+    In Color:
+        A custom vector attribute you want to export through Color Texture's RGB channels. This attribute does not undergo any transform, conversion, or normalization. If the attribute has values outside the 0-1 range, set Texture Format to "HDR". If you have to use a non-HDR texture, you can pre-normalize the attributes in the input geometry and manually reverse the normalization in the real-time shader.
+    In Color Alpha:
+        A custom float attribute you want to export through Color Texture's alpha channel. This attribute does not undergo any transform, conversion, or normalization. If the attribute has values outside the 0-1 range, set Texture Format to "HDR". If you have to use a non-HDR texture, you can pre-normalize the attributes in the input geometry and manually reverse the normalization in the real-time shader.
+    Lookup Table Width:
+        The target width of Lookup Table Texture. In Dynamic Remeshing (Fluid) mode, *Target Texture Width* can generally be less than half of this value, as Lookup Table Texture tends to be many times larger than the animation data textures.  
+        <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is much larger than 4096, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
+    Target Texture Width:
+        The target width of the output textures. If there are fewer data points per frame than this value, the output textures use the number of data points as their widths.
+        <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is much larger than 4096 and the animation has glitches, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
+    Preview Texture Size (Slow):
+        Turn this on to interactively preview the output texture size. It is somewhat slow because every time you toggle this on or some upstream parameter updates, the node will need to recheck the input geometry on every frame of the export frame range. But once it is on, updating Target Texture Width will have instant feedback. In Dynamic Remeshing (Fluid) mode, the two passes have two different texture sizes, so which preview size is displayed depends on *Render Pass*.
+    Pad Texture Size to Powers of Two:
+        You normally do not need to pad animation data textures to powers of two in dimensions, because as data textures, they should not be streamed. But if the target engine or hardware only accepts powers of two textures, turn this on. In Unreal Engine, sometimes there are issues with power-of-two textures that have data in their alpha channels, in which case, consider using the HDR compression setting in engine even if you exported those textures in non-HDR formats in Houdini.
+    ==Input==
+    TIP:
+        Follow the input requirement checklist, which is specific to the current mode and target engine. Expand Legend to see more information.
+    ==Input: Attribute Auto Generation==
+    UV Generation:
+        Even though the vertex attribute "uv" is listed as an optional attribute, it is required implicitly. The node simply auto-computes UVs if they are missing from the input geometry. When they are not missing, you still have the option to have this node recompute them for you, but that is a less transparent workflow. Consider using Labs Auto UV SOP when preparing the input geometry.
+        <p>*UV Unwrap*: faster; many more disjoint UV islands; fewer rotated islands in the UV layout.</p>
+        <p>*UV Autoseam and Flatten*: slower but generally better quality; fewer disjoint UV islands; more rotated islands in the UV layout.</p>
+    Normal Generation:
+        Even though the vertex attribute "N" is listed as an optional attribute, it is required implicitly. The node simply auto-computes normals if they are missing from the input geometry. When they are not missing, you still have the option to have this node recompute them for you, but that is a less transparent workflow.
+        <p>*Vertex Angle*: sets the internal Normal SOP to run on vertices with a Cusp Angle of 60 and a Weighting Method of "By Vertex Angle".</p>
+        <p>*Face Area*: sets the internal Normal SOP to run on vertices with a Cusp Angle of 60 and a Weighting Method of "By Face Area".</p>
+    Tangent Generation:
+        It is recommended to let the node recompute the tangent attribute "tangentu" for you using the MikkT method.
+    Binormal Generation:
+        The binormal attribute "tangentv" is always recomputed to ensure consistency. How binormals are computed depends on *Target Engine*.
+        <p>*Right-Hand Rule*: the binormal is computed from the cross product of the normal and the tangent.</p>
+        <p>*Left-Hand Rule*: the binormal is computed from the cross product of the tangent and the normal.</p>
+    ==Export==
+    Export Path:
+        The directory in which to export the files.
+    Asset Name:
+        The overall name of this art asset. The names of all exported files will begin with this string.
+    Geometry Name Suffix:
+        Appends a suffix to the static mesh's file name right before the extension. Starting with Vertex Animation Textures ROP 3.0, the default workflow does not require you to export any real-time data file that contains the frame count and the FPS. The frame count is embedded and automatically derived by the real-time shader. The FPS should not change very often, so it is assumed that it is easier for you to simply remember the FPS than to export it every time. But in case you prefer to keep a copy of those numbers somewhere, this gives you an option to append them to the geometry file name. An alternative option available in Unreal Engine is to enter the debug mode to see the frame count (see the tooltip of Include Hidden Debug Plane in Geometry).
+    Include:
+        Selects which of the following sets of files to render and export. Starting with Vertex Animation Textures ROP 3.0, Normal Texture is deprecated and replaced by Rotation Texture which describes both normals and tangents. Position Texture 2 and Spare Color Texture are not directly enabled/disabled here. They depend on parameters in the *Settings* tab. But you cannot export Position Texture 2 without Position Texture 1, and you cannot export Spare Color Texture without Color Texture.
+    Geometry:
+        The export path of the static mesh file.
+    Position / Position 1:
+        The export path of Position Texture.
+    Position 2:
+        The export path of Position Texture 2.
+    Rotation:
+        The export path of Rotation Texture.
+    Color:
+        The export path of Color Texture.
+    Spare Color:
+        The export path of Spare Color Texture.
+    Lookup Table:
+        The export path of Lookup Table Texture.
+    Unity Material:
+        The export path of Unity Material.
+    Real-Time Data:
+        The export path of Real-Time Data JSON file.
+    Group Files into Subdirectories:
+        By default, output files are grouped into subdirectories by type. Turn this off to save all output files in the same folder.
+    ==Advanced==
+    Live Update (Slow):
+        Only useful when debugging or modifying this node. When this is on, any update to the input geometry, the node parameters, or internal networks may trigger a partial or full recook, depending on where the change is made.
+    Do Not Reset Live Update After Render:
+         Only useful when debugging or modifying this node. When you press Render All, the node automatically turns on Live Update to enable a full recook of the internal networks. After the renders are complete, the node automatically turns Live Update off, which you can prevent with this parameter. It is useful so you can keep debugging after the renders.
+    Allow Splitting Positions into Two HDR Textures:
+        Normally it is a waste of resources to use two HDR Position Textures, so the access to Split Position into Two Textures is restricted when Texture Format is set to "HDR". You can override that restriction with this parameter.
+    Allow Exporting Real-Time Data JSON File (Legacy):
+        Starting with Vertex Animation Textures 3.0, the default workflow does not require you to export any real-time data file. The long list of parameters written to the data file in the older versions are now embedded in the bounds of the static mesh and are automatically derived at runtime. However, you may still want to work with the legacy parameters in at least two situations:
+        <p>1. you need to support real-time instancing; the instance transforms may corrupted the embedded data;</p>
+        <p>2. you need to change the object's bound scale in engine, which may corrupt the embedded data; however, you should rarely have any reason to change the bound scale, because unlike prior versions, the bounds now encompass the full visible area of the animation, i.e., the mesh will not be incorrectly culled when you move the camera. However, changing the actor/component/object scale is totally safe.</p>
+    Support Real-Time Instancing:
+        Turn this on to support real-time instancing of your vertex-animated mesh. Currently this parameter only makes a difference if *Target Engine* is set to "Unreal Engine". In Unreal Engine, instanced meshes' local-space tangents are not directly accessible, so when *Mode* is set to "Rigid-Body Dynamics (Rigid)", the tangents have to come from the vertex attributes "uv5" and "uv6".
+    Crop Textures to First Frame Only:
+        Crops the output textures so that they only contain the first frame's data. (When this is on, *Pad Texture Size to Powers of Two* is ignored.)  This is useful in the real-time shader when you want to use a small texture to look up certain first-frame data regardless of the current animation progress. In Dynamic Remeshing (Fluid) mode, only Lookup Table Texture will be cropped, as the rest of the textures in this mode are not generated in a way that the first-frame data can be easily isolated.
+    Preserve Raw Float Data in Position Alpha:
+        Only applicable when *Crop Textures to First Frame Only* is on. The point attribute "pscale" or any custom float attribute in Position Texture's alpha channel, by default, is encoded in a special way to allow the packing of additional information. Turn this on to disable the special encoding and to store the raw input float data in this channel. This way, when you access Position Texture's alpha channel in the real-time shader using a custom setup, you do not need to know how to decode the data. (This parameter has no effect on compressed normals, as they are not float data.)
+    ==Advanced: LODs==
+    Export LODs:
+        Exports a single FBX containing multiple LODs and a single set of textures compatible with all the LODs. All non-zero LODs simply share LOD0's textures through point-mapping (described below in requirement 1), so adding more LODs does not increase the texture memory consumption.
+        <p>The input geometry must meet the following requirements:</p>
+        <p>1. all LODs must have the integer point attribute "lod0_ptnum". This attribute maps all the points in every non-zero LOD to a subset of points in LOD0, enabling subsequent LODs to share the point data exported with LOD0. In Rigid-Body Dynamics (Rigid) mode, this attribute should be on packed points.</p>
+        <p>2. in each LOD, all the points must be assigned to the respective point group "lod#" with "#" being the LOD number starting with 0. In Rigid-Body Dynamics (Rigid) mode, this group should be on packed points instead of points.</p>
+        <p>3. all LODs must already have the desired UVs and normals on vertices; this node cannot reliably auto-generate missing UVs and normals that are consistent across all LODs; therefore, it will not attempt to do so.</p>
+    Number of LODs:
+        The number of LODs to export. At least this number of LODs must be present in the input geometry.
+    ==Advanced: Scripts==
+    Initialize Simulation OPs:
+        Forces all simulation OPs to be reset before Pre-Render Script is executed. This is the safest way to render out a simulation, because it starts the simulation from scratch and discards any partial simulations you might have done with different parameters. However, throwing away an already-cooked simulation can be expensive, especially for relatively slow solvers such as fluids.
+    Pre-Render Script:
+        This script is executed before any rendering.
+    Post-Render Script:
+        This script is executed after all rendering.
+    PDG Log Output:
+        Prints output file paths with optional tags.
+    ==Advanced: Developer Options==
+    Convert to Image Format Colorspace:
+        Image data in COPs is always linear. When writing to image formats that are not linear (sRGB, for example), this will convert the colorspace to preserve the look of the image. An 8-bit format that has an unspecified colorspace is assumed to be sRGB.
+    Raster Depth:
+        The byte format of the image. Higher bit depths provide better color resolution and range at the expense of memory.
+        <p>*8 Bit Integer*: lowest bit depth; banding can occasionally be seen; suitable for video.</p>
+        <p>*16 Bit Integer*: intermediate bit depth; no banding can be seen, though clipping can still occur below and above the black and white points.</p>
+        <p>*32 Bit Integer*: generally not used for color, 32-bit integer values are used to store object IDs, counts, and other integer values with a large range.</p>
+        <p>*16 Bit Floating Point*: high bit depth; no banding can be seen, and no clipping occurs at white and black; uses less memory than 32-bit float, however processing time for this format is slightly higher as it is not a native CPU data format; this format supports values in the range -65504 to +65504.</p>
+        <p>*32 Bit Floating Point*: high bit depth; no banding can be seen, and no clipping occurs at white and black; uses 4 times as much memory as 8 bit, which is this format’s main drawback.</p>
+    Black/White Points:
+        The integer formats (8, 16 and 32 bit) can specify the raw values that the black and white points occur at. The white point must always be higher than the black point. The minimum and maximum values for the black and white points for each format are:
+        <p>*8 bit*   :   0 - 255</p>
+        <p>*16 bit*  :   0 - 65535</p>
+        <p>*32 bit*  :   0 - 2,147,483,647</p>
+        <p>Floating point formats always have their black point at 0 and their white point at 1.</p>
+    BC 4-Channel Split:
+        Renders the channels separately for different data formats.
+    Render With Take:
+        You can optionally turn this on if you are working with takes.
+    ==Target Engine==
+    Coordinate System:
+        Set this to match the coordinate system of your custom engine. You first need to determine your engine's coordinate system. To use the clockwise rule, orient the axes so that all three positive directions are facing towards you; start from the up axis and count clockwise. To use the right/left-hand rule, take out the respective hand, extend the thumb and the index finger, and keep the middle finger perpendicular to the palm; the index finger points to +X, the middle finger +Y, and the thumb +Z.
+    1 Metre in Engine Units:
+        How many target engine units equal one real-world metre. This is used to determine the export conversion scale.
+    ==Real-Time Shaders==
+    Find Shaders For:
+        Displays the shader resources for the selected engine.
+    Unreal Engine Content Plugin and Guides:
+        Press this button to go to the directory of SideFX Labs content plugin for Unreal Engine. Click on the folder matching the Unreal Engine version you need. Follow the guides inside. 
+    Unity Package and Guides:
+        Press this button to go to the directory of SideFX Labs Vertex Animation Textures package for Unity. Click on the "URP_VAT3" folder. Follow the guides inside.
+    Last Render's Embedded Data:
+        Displays the data embedded in the bounds of the geometry. You can use this list to verify if the decoded data in your real-time shader are correct. The list is ordered according to the data display order in the target engine. Currently only Unreal Engine supports debugging embedded data.

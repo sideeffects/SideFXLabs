@@ -46,7 +46,7 @@ class MyDelegate(QtWidgets.QItemDelegate):
 
 
 class Model(QtCore.QAbstractTableModel):
-    
+
     def __init__(self, appModel, headerNames, nodePath="", parent=None):
         QtCore.QAbstractTableModel.__init__(self, parent)
         self._logger = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class Model(QtCore.QAbstractTableModel):
         # get row and column values from the index
         row = index.row()
         column = index.column()
-        
+
         if role == QtCore.Qt.DisplayRole:
             return self._displayList[row][column]
 
@@ -152,7 +152,7 @@ class Model(QtCore.QAbstractTableModel):
             if self._displayList[row][2] != FLAGS.NA:
                 res = res | QtCore.Qt.ItemIsEnabled
 
-            # allow changes of values 
+            # allow changes of values
             if column is 2:
                 res = res | QtCore.Qt.ItemIsEditable
 
@@ -161,7 +161,7 @@ class Model(QtCore.QAbstractTableModel):
     def nodePath():
         """ Path to the node we want to display the parameters. """
         def fget(self): return self._nodePath
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Refreshing nodePath with node \"%s\"." % value)
             self._nodePath = value
             self.buildNodeDict()
@@ -175,7 +175,7 @@ class Model(QtCore.QAbstractTableModel):
     nodeDict = property(**nodeDict())
 
     def buildNodeDict(self):
-        """ Builds a dictionary with node's parameters name, value, flag and path. 
+        """ Builds a dictionary with node's parameters name, value, flag and path.
         The dictionnary is built as follow:
             {parameter name 1: {dictionnary with name, label, value, path},
              parameter name 2: {dictionnary with name, label, value, path},
@@ -202,7 +202,7 @@ class Model(QtCore.QAbstractTableModel):
 
     def buildDisplayList(self):
         """ Defines the list of parameters to display in the spreadsheet.
-        Note: this list can be different from the node's full parameter list. 
+        Note: this list can be different from the node's full parameter list.
         It can contain extra parameters that are not available on the node itself.
         For instance if this spreadsheet is used by the Diff widget, then the display
         list could contain spare parameters from one of the other nodes it is compared to.
@@ -213,7 +213,7 @@ class Model(QtCore.QAbstractTableModel):
         #  ...
         #  parameter name n: {dictionnary with name, label, value, path},
         # }
-        
+
         # create an empty list
         parmlist = []
         for x in self._nodeDict.values():
@@ -227,12 +227,12 @@ class Model(QtCore.QAbstractTableModel):
         return parmlist
 
     def setDisplayList(self, parmlist):
-        """ Set the display list to the parm list passed as parameter. 
+        """ Set the display list to the parm list passed as parameter.
         This is needed in case we want the parent to define the display list."""
         self._displayList = copy.deepcopy(parmlist)
 
     def fillDisplayList(self):
-        """ This function fills the display list with the parameters from the current node. 
+        """ This function fills the display list with the parameters from the current node.
         Note: remember that the display list could be different from the node's full parameter list.
         It could contain extra parameters that are not available on the node itself.
         For instance if this spreadsheet is used by the Diff widget, then the display

@@ -1,0 +1,51 @@
+I. FBX Import Settings
+
+First: 
+Turn every toggle off.
+
+Then:
+Vertex Color Import Option: Replace.
+Transform Vertex to Absolute: On.
+Import Mesh LODs: On or Off, depending on if Export LODs is turned on in Houdini on the VAT ROP.
+Normal Import Method: Import Normals and Tangents.
+Import Uniform Scale: 1.0.
+Convert Scene: On.
+Override Full Name: On.
+Material Import Method: Do Not Create Material.
+Reorder Material to Fbx Order: On.
+
+
+II. Texture Settings
+
+1. In Content Browser, select multiple textures.
+2. Rght-click on any selected textures and go to Scripted Asset Actions.
+3. Select either "SideFX VAT Set HDR Textures" or "SideFX VAT Set Non HDR Textures" 
+to match what is selected on VAT ROP > Settings > All Modes > Texture Format.
+4. Hit Ctrl+S on selected textures to confirm. You can quickly verify that the correct 
+settings have been applied by hovering your cursor above a texture and see if Filter
+has been set to "Nearest". If it has, then everything else will have been set correctly too.
+5. In Unreal Engine, sometimes there are issues with power-of-two textures that have 
+data in their alpha channels, in which case, consider using "SideFX VAT Set HDR Textures" 
+even if you exported those textures in non-HDR formats in Houdini.
+
+
+III. Real-Time Data File
+
+VAT 3.0 normally does not require exporting the Real-Time Data file.
+That is now a legacy workflow, but you may still use that workflow if you want to.
+
+You definitely have to use the legacy workflow in order to apply VAT materials to 
+instanced meshes (ISM/HISM) or mesh particles.
+
+You probably should use the legacy workflow if your animation spans a huge area.
+
+1. On the VAT ROP, go to Advanced, turn on Support Real-Time Instancing.
+2. Render your assets.
+3. In the UE Material Instance, turn on Support Legacy Parameters and Instancing.
+4. Enable all six parameters now appearing below Support Legacy Parameters and Instancing.
+5. Follow their tooltip to batch-set their values (all six bound parameters share the same tooltip).
+
+
+Notes:
+1. VAT stands for Vertex Animation Textures. 
+2. ROP stands for a Houdini Render Operator, found in the /out network or any ROP Network node.

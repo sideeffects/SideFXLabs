@@ -34,7 +34,7 @@ sopflags sopflags =
 comment ""
 position -6.85374 -1.5018
 connectornextid 1
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
@@ -89,9 +89,9 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.003 -1.25236
+position -1.52548 -0.982052
 connectornextid 2
-flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -385,7 +385,9 @@ while(maxpoints-- && curveprogress < perimeter) {
      _newpt = addpoint(0, _pos);
     
     setpointattrib(0, controller, _newpt, _scale, \"set\");
-    setpointattrib(0, \"progress\", _newpt, curveprogress, \"set\");
+    setpointattrib(0, \"__progress\", _newpt, curveprogress, \"set\");
+    setpointattrib(0, \"__prim\", _newpt, @primnum, \"set\");
+    setpointattrib(0, \"__primuv\", _newpt, set(primuv,0,0), \"set\");
     addvertex(0, polyline, _newpt);
     
     curveprogress += max(_scale * resolutionscalar, minlength);
@@ -397,6 +399,8 @@ int endpoint = nearpoint(0, endpos, 0.0001);
 if (endpoint != -1 && distance(lastpos, endpos) > 0) {
     _newpt = addpoint(0, vector(point(0, \"P\", endpoint)));
     setpointattrib(0, controller, _newpt, float(point(0, controller, endpoint)), \"set\");
+    setpointattrib(0, \"__prim\", _newpt, @primnum, \"set\");
+    setpointattrib(0, \"__primuv\", _newpt, set(1,0,0), \"set\");
     addvertex(0, polyline, _newpt);
     
 }
@@ -417,7 +421,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-resolutionscale	[ 0	locks=0 ]	(	[ resolutionscale	0.218 ] 	)
+resolutionscale	[ 0	locks=0 ]	(	[ resolutionscale	1 ] 	)
 maxpoints	[ 0	locks=0 ]	(	[ maxpoints	10000 ] 	)
 controller	[ 0	locks=0 ]	(	`chs(\"../ptdel\")`	)
 minclamp	[ 0	locks=0 ]	(	[ minclamp	1.0000000000000001e-05 ] 	)
@@ -858,9 +862,9 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -4.32987e-15 -5.37596
+position -4.44089e-15 -5.84557
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
@@ -917,7 +921,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.00345 -4.37596
+position -0.00345 -4.84557
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -953,7 +957,7 @@ version 0.8
 usereference	[ 0	locks=0 ]	(	"off"	)
 negate	[ 0	locks=0 ]	(	"off"	)
 doptdel	[ 0	locks=0 ]	(	"on"	)
-ptdel	[ 0	locks=0 ]	(	"__tangent progress"	)
+ptdel	[ 0	locks=0 ]	(	"__tangent __progress __prim __primuv"	)
 dovtxdel	[ 0	locks=0 ]	(	"on"	)
 vtxdel	[ 0	locks=0 ]	(	""	)
 doprimdel	[ 0	locks=0 ]	(	"on"	)
@@ -1412,7 +1416,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 0.00160001 -3.33666
+position 0.00160001 -3.80627
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -1552,7 +1556,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -4.27436e-15 -2.29026
+position -4.44089e-15 -2.75987
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -1561,11 +1565,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	attribwrangle1 1 1 "input1"
+0 	attribinterpolate1 2 1 "input1"
 }
 inputs
 {
-0 	attribwrangle1 0 1
+0 	attribinterpolate1 0 1
 }
 stat
 {
@@ -1911,10 +1915,84 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribinterpolate1.init"
+Content-Type: text/plain
+
+type = attribinterpolate
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribinterpolate1.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position -0.00345 -1.75987
+connectornextid 3
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	attribwrangle1 1 1 "input1"
+1 	ends1 1 1 "input2"
+}
+inputs
+{
+0 	attribwrangle1 0 1
+1 	ends1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author prisms@threadripper1
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribinterpolate1.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+group	[ 0	locks=0 ]	(	""	)
+totype	[ 0	locks=0 ]	(	"points"	)
+interpby	[ 0	locks=0 ]	(	"primuvw"	)
+numberattrib	[ 0	locks=0 ]	(	__prim	)
+weightsattrib	[ 0	locks=0 ]	(	__primuv	)
+pointattribs	[ 0	locks=0 ]	(	"* ^P"	)
+vertattribs	[ 0	locks=0 ]	(	*	)
+primattribs	[ 0	locks=0 ]	(	*	)
+detailattribs	[ 0	locks=0 ]	(	*	)
+computeweights	[ 0	locks=0 ]	(	"off"	)
+computenumberstype	[ 0	locks=0 ]	(	"numbertypevertex"	)
+computednumbersattrib	[ 0	locks=0 ]	(	sourcevtxnums	)
+computedweightsattrib	[ 0	locks=0 ]	(	sourcevtxweights	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/attribinterpolate1.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.order"
 Content-Type: text/plain
 
-17
+18
 attribwrangle1
 null1
 resample2
@@ -1932,6 +2010,7 @@ fuse1
 resample3
 measure1
 ends1
+attribinterpolate1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.net"
