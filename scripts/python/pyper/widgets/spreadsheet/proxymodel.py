@@ -26,7 +26,7 @@ License:
 
 import logging
 
-from pyper.vendor.Qt import QtCore
+from PySide2 import QtCore
 
 from .model import FLAGS
 

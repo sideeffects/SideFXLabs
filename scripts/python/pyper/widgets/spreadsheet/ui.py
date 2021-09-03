@@ -13,12 +13,12 @@ License:
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
@@ -28,10 +28,10 @@ from __future__ import absolute_import
 import os
 import logging
 
-from pyper.vendor.Qt import QtGui
-from pyper.vendor.Qt import QtCore
-from pyper.vendor.Qt import QtWidgets
-from pyper.vendor.Qt import _QtUiTools
+from PySide2 import QtGui
+from PySide2 import QtCore
+from PySide2 import QtWidgets
+from PySide2 import QtUiTools
 
 try:
     from . import model
@@ -43,7 +43,10 @@ except Exception as e:
     except (ImportError):
         pass
 
-from imp import reload
+try:
+    from importlib import reload
+except ImportError:
+    from imp import reload
 reload(model)
 reload(proxymodel)
 
@@ -59,21 +62,21 @@ class CustomLineEdit(QtWidgets.QLineEdit):
             e.accept()
         else:
             e.ignore()
-    
+
     def dropEvent(self, e):
         self.setText(e.mimeData().text())
 
 
-class UiLoader(_QtUiTools.QUiLoader):
+class UiLoader(QtUiTools.QUiLoader):
     def __init__(self, baseinstance):
-        _QtUiTools.QUiLoader.__init__(self, baseinstance)
+        QtUiTools.QUiLoader.__init__(self, baseinstance)
         self.baseinstance = baseinstance
 
     def createWidget(self, class_name, parent=None, name=''):
         if parent is None and self.baseinstance:
             return self.baseinstance
         else:
-            widget = _QtUiTools.QUiLoader.createWidget(self, class_name, parent, name)
+            widget = QtUiTools.QUiLoader.createWidget(self, class_name, parent, name)
             if self.baseinstance:
                 setattr(self.baseinstance, name, widget)
             return widget
@@ -132,7 +135,7 @@ class MainWidget(QtWidgets.QWidget):
     def showname():
         """ """
         def fget(self): return self._showname
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showname to \"%s\"." % value)
             self._showname = value
             self._proxyModel.showname = value # and set the proxymodel's attribute so it's available for filtering
@@ -142,7 +145,7 @@ class MainWidget(QtWidgets.QWidget):
     def showlabel():
         """ """
         def fget(self): return self._showlabel
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showlabel to \"%s\"." % value)
             self._showlabel = value
             self._proxyModel.showlabel = value # and set the proxymodel's attribute so it's available for filtering
@@ -152,7 +155,7 @@ class MainWidget(QtWidgets.QWidget):
     def showdiffonly():
         """ """
         def fget(self): return self._showdiffonly
-        def fset(self, value): 
+        def fset(self, value):
             self._logger.debug("Set showdiffonly to \"%s\"." % value)
             self._showdiffonly = value
             self._proxyModel.showdiffonly = value # and set the proxymodel's attribute so it's available for filtering
@@ -162,8 +165,7 @@ class MainWidget(QtWidgets.QWidget):
     def centerWidget(self):
         """ Centers the widget on screen. (source: https://stackoverflow.com/a/20244839) """
         frameGm = self.frameGeometry()
-        screen = QtWidgets.QApplication.desktop().screenNumber(QtWidgets.QApplication.desktop().cursor().pos())
-        centerPoint = QtWidgets.QApplication.desktop().screenGeometry(screen).center()
+        centerPoint = self.parent().geometry().center()
         frameGm.moveCenter(centerPoint)
         self.move(frameGm.topLeft())
 
@@ -171,13 +173,13 @@ class MainWidget(QtWidgets.QWidget):
         """ """
         # build the ui
         # uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
-        # UiLoader(self).load(uifile)        
+        # UiLoader(self).load(uifile)
         # I could not figure out how to replace a promoted widget in the .ui file with the UiLoader()
         # So I build the entire widget manually
 
         # build the ui
         self.setWindowTitle(__name__.split(".")[-2].capitalize())
-        
+
         # create the widgets
         self.uiLineEdit = CustomLineEdit()
         self.uiTableView = QtWidgets.QTableView()
@@ -215,7 +217,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # define how the proxy model should sort the view
         self._proxyModel.sort(0, QtCore.Qt.AscendingOrder)
-        
+
         # add actions
         # self.uiTableView.addAction(self.actionRefresh)
 
@@ -228,7 +230,7 @@ class MainWidget(QtWidgets.QWidget):
             refreshFunction = lambda: self.refresh() # I need to use this lambda form to make sure I don't pass extra arguments from signals
 
         # connect signals
-        self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged 
+        self.uiLineEdit.textChanged.connect(lambda: self.spreadsheetChanged.emit())   # a change in node path fields emits spreadsheetChanged
         self.model.dataChanged.connect(lambda: self.spreadsheetChanged.emit())      # a change in the model emits spreadsheetChanged
         self.spreadsheetChanged.connect(refreshFunction)                              # when spreadsheetChanged is triggered, refresh the spreadsheet
         # self.actionRefresh.triggered.connect(refreshFunction)               # when actionRefresh is triggered, refresh the spreadsheet
@@ -239,6 +241,7 @@ class MainWidget(QtWidgets.QWidget):
         self.showlabel = True
 
     def closeEvent(self, event):
+        """ Redefine closeEvent() function to add some logs and eventually file management before quitting the widget. """
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
         self._logger.debug("Closing %s..." % (name))
         self.setParent(None)
@@ -248,7 +251,7 @@ class MainWidget(QtWidgets.QWidget):
     def refresh(self, parmlist=None):
         """ Refresh the spreadsheet.
         It updates the node path and asks the model to refresh """
-        # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)' 
+        # be careful when connecting this function with signals: use 'lambda: self.refresh(args, you, need)'
         # if not, it could pass some extra, unwanted, arguments.
         # for instance 'uiLineEdit.textChanged' will pass the text in the line edit field as parmlist.
         self._logger.debug("Refreshing spreadsheet %s" % self)

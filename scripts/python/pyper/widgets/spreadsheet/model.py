@@ -27,9 +27,9 @@ License:
 import logging
 import copy
 
-from pyper.vendor.Qt import QtGui
-from pyper.vendor.Qt import QtCore
-from pyper.vendor.Qt import QtWidgets
+from PySide2 import QtGui
+from PySide2 import QtCore
+from PySide2 import QtWidgets
 
 
 def enum(*enumerated):
