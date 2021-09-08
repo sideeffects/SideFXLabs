@@ -99,6 +99,8 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 - Jeffy Mathew Philip
 - Attila Torok
 - Simon Verstraete
+- Steven Burrichter
+
 
 ### SideFX Interns
 - Roahith Raj
