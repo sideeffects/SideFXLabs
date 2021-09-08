@@ -46,8 +46,8 @@ def check_output_node(node):
 
 
 def check_input_names(node):
-    for name in node.inputLabels():
-        if "Sub-Network" in name:
+    for _name in node.inputLabels():
+        if "Sub-Network" in _name:
             return False
 
     return True
@@ -89,57 +89,58 @@ def check_analytics(node):
     if "OnCreated" in sections:
         if "analytics" in sections["OnCreated"].contents():
             return True
+    return False
 
 
 def check_parm_names(node):
     parmTemplates = list(node.type().parmTemplates())
 
     for parmtemplate in parmTemplates:
-        name = parmtemplate.name()
+        _name = parmtemplate.name()
 
-        if name.startswith('newparameter') or name.startswith('parm') or name.startswith('folder'):
+        if _name.startswith('newparameter') or _name.startswith('parm') or _name.startswith('folder'):
             return False
     return True
 
 
 def run_tests(node):
     node_name = node.type().description() + "(" + node.type().name() + ")"
-    ok = True
+    _ok = True
 
     if not check_labs_namespace(node):
         print(node_name + ": __SmoketestError__ : Incorrect Namespace")
-        ok = False
+        _ok = False
 
     if not check_icon(node):
         print(node_name + ": __SmoketestWarning__ : Generic Icon")
-        ok = False
+        _ok = False
 
     if not check_output_node(node):
         print(node_name + ":  __SmoketestWarning__ : Missing Output Node")
-        ok = False
+        _ok = False
 
     if not check_input_names(node):
         print(node_name + ":  __SmoketestWarning__ : Generic Input Name ")
-        ok = False
+        _ok = False
 
     if not check_tab_submenu(node):
         print(node_name + ": __SmoketestError__ : Wrong Tab Menu Entry")
-        ok = False
+        _ok = False
 
     if not check_analytics(node):
         print(node_name + ": __SmoketestWarning__ : No Analytics Code")
-        ok = False
+        _ok = False
 
     # if not check_docs(node):
     #     print(node_name + ": __SmoketestWarning__ : No Documentation")
-    #     ok = False
+    #     _ok = False
 
     if not check_parm_names(node):
         # print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
-        # ok = False
+        # _ok = False
         pass
 
-    return ok
+    return _ok
 
 
 if __name__ == '__main__':

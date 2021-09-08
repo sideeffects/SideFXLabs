@@ -32,7 +32,7 @@ class TestStringMethods(unittest.TestCase):
                             print ("Warning... Node instance is using older definition:", node.path())
                             print ("Using {0} instead of {1}".format(node.type().name(), namespaceOrder[0]))
 
-                except Exception, e:
+                except Exception as e:
                     print (str(e))
                     pass
 

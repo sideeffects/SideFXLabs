@@ -36,6 +36,6 @@ if __name__ == '__main__':
 		else:
 			print ("ERROR, SOMETHING FAILED IN PDG.. NO LOG GENERATED")
 
-	except Exception, e:
+	except Exception as e:
 		print (str(e))
 		pass
