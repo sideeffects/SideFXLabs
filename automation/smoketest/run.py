@@ -35,9 +35,9 @@ my_env["PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", 
 my_env["SIDEFXLABS"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), ".."))
 my_env["HOUDINI_DSO_ERROR"] = "1"
 
-print latest_houdini, os.path.isfile(latest_houdini)
+print (latest_houdini, os.path.isfile(latest_houdini))
 
 if os.path.isfile(latest_houdini):
 	subprocess.call([latest_houdini, os.path.join(local_dir,"smoke_tests.py")], env=my_env)
 else:
-    print "ERROR, No matching Houdini install found"
+    print ("ERROR, No matching Houdini install found")

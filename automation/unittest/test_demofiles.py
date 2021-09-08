@@ -17,10 +17,10 @@ class TestStringMethods(unittest.TestCase):
 
         demo_files = os.listdir(hipdir)
 
-        print "testing %s files!" % len(demo_files)
+        print ("testing %s files!" % len(demo_files))
         for demo_file in demo_files:
             if demo_file.endswith(".hip"):
-                print "opening", demo_file
+                print ("opening", demo_file)
                 try:
                     hou.hipFile.load(os.path.join(hipdir, demo_file).replace("\\", "/"))
 
@@ -29,11 +29,11 @@ class TestStringMethods(unittest.TestCase):
                     for node in LabsNodeInstances:
                         namespaceOrder = [x for x in node.type().namespaceOrder() if "labs::" in x]
                         if node.type().name() != namespaceOrder[0]:
-                            print "Warning... Node instance is using older definition:", node.path()
-                            print "Using {0} instead of {1}".format(node.type().name(), namespaceOrder[0])
+                            print ("Warning... Node instance is using older definition:", node.path())
+                            print ("Using {0} instead of {1}".format(node.type().name(), namespaceOrder[0]))
 
                 except Exception, e:
-                    print str(e)
+                    print (str(e))
                     pass
 
 
