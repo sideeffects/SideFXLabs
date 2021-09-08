@@ -94,14 +94,14 @@ def ConvertAndExportTexture(node, material, textures, ropOutput, fileImport, rop
                 found = None
                 TempFile = TextureExportDir+'/'+HDATextureFile
 
-                for node in hou.node('/').allSubChildren():
-                    for comp in node.type().nameComponents():
+                for _node in hou.node('/').allSubChildren():
+                    for comp in _node.type().nameComponents():
                         if comp == HDADef:
-                            HDAInstance = node
+                            HDAInstance = _node
                             found = True
                             break
                     
-                    if found == True:
+                    if found:
                         break
                                 
                 if HDAInstance.type().definition().hasSection(HDATextureFile):
@@ -165,10 +165,10 @@ def ExtractLOD0Textures(a_Node):
     for MaterialData in Materials:
         for MaterialPath in MaterialData[1]:
             MaterialNode = hou.node(MaterialPath)
-            if MaterialNode != None:
+            if MaterialNode is not None:
                 if MaterialNode.type().name() in ['principledshader::2.0']:
                     TextureDict = GetTexturesInMat(MaterialNode)
-                    if TextureDict != None:
+                    if TextureDict is not None:
                         Texturesets.append([MaterialData[0], MaterialPath, TextureDict])
                 else:
                     print('Texture extraction is not supported for the type of material used by {0}'.format(MaterialNode.path()))
@@ -181,7 +181,7 @@ def ExtractLOD0Textures(a_Node):
 
     # Clean all temporary ROPs
     for nodeobject in TextureROPsList:
-      nodeobject.destroy()
+        nodeobject.destroy()
 
 def Export(a_Node):
 
