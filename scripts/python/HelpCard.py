@@ -1,4 +1,3 @@
-import pprint
 import hou
 
 MULTIPARM_TYPES = [hou.folderType.MultiparmBlock,
@@ -27,9 +26,9 @@ def createHelpCard(node):
     sections = definition.sections()
     ptg = node.parmTemplateGroup()
 
-    help = sections.get("Help", None)
+    helpsection = sections.get("Help", None)
 
-    help_card_descriptions = get_existing_help_card_descriptions(help.contents())
+    help_card_descriptions = get_existing_help_card_descriptions(helpsection.contents())
 
     tooltips = get_existing_help(node)
 
@@ -50,7 +49,7 @@ def createHelpCard(node):
         pt = node.parm("%s" % parmLabels[label]).parmTemplate()
         if pt.type() == hou.parmTemplateType.FolderSet:
             parm_string += "== %s ==\n    " % pt.folderNames()[0]
-        elif pt.isHidden() == False:
+        elif pt.isHidden() is False:
             if label in help_card_descriptions:
                 description = help_card_descriptions[label]
                 if description != "[Needs parameter tooltip]":
@@ -66,7 +65,7 @@ def createHelpCard(node):
 
     node.allowEditingOfContents()
 
-    help.setContents(help_card_template + parm_string)
+    helpsection.setContents(help_card_template + parm_string)
     definition.setParmTemplateGroup(ptg)
 
 def get_existing_help(node):
@@ -87,7 +86,7 @@ def get_existing_help_card_descriptions(help_tab_content):
             parameters_raw = section.split("\n")
 
     existing_help = {}
-    for index in range(len(parameters_raw)):
+    for index, value in enumerate(parameters_raw):
         if parameters_raw[index].endswith(":"):
             existing_help[parameters_raw[index].strip()[:-1]] = parameters_raw[index+1].strip()
 
