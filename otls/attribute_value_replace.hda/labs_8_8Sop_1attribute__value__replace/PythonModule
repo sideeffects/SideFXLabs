@@ -1,4 +1,4 @@
-import json, collections
+import hou
 
 def SetParmValues(kwargs):
     
@@ -9,17 +9,17 @@ def SetParmValues(kwargs):
     customdefault = node.parm("bDefaultInitValue").evalAsInt()
     customdefaultvalue = node.parm("sDefaultInitValue").evalAsString()
     
-    if geo.findPointAttrib(attrname) == None:
+    if geo.findPointAttrib(attrname) is None:
         raise hou.NodeWarning("The attribute specified does either not exist, or is not of type point!")
     
-    attribvals = list(set([x.attribValue(attrname) for x in geo.points()]))
+    attribvals = {x.attribValue(attrname) for x in geo.points()}
     
     node.parm("filters").set(len(attribvals))
     
     for i, x in enumerate(list(attribvals)):
-        node.parm("from_%s" % int(i)).set(str(attribvals[i]))
+        node.parm("from_%s" % int(i)).set(str(x))
         
         if customdefault == 0:
-            node.parm("to_%s" % int(i)).set(str(attribvals[i]))
+            node.parm("to_%s" % int(i)).set(str(x))
         else:
             node.parm("to_%s" % int(i)).set(customdefaultvalue) 

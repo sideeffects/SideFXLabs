@@ -12,16 +12,16 @@ def ImportFBX(kwargs):
         ObjNet = node.node("objnet1")
         ObjNet.deleteItems(ObjNet.children(), disable_safety_checks=False)
 
-        ImportBonesAndSkin = False if node.parm("bImportBoneSkin").evalAsInt() == 0 else True
-        ImportAnimation = False if node.parm("bImportAnimation").evalAsInt() == 0 else True
-        ImportMaterials = False if node.parm("bImportMaterials").evalAsInt() == 0 else True
-        ConvertToYUp = False if node.parm("bConvertYUp").evalAsInt() == 0 else True
-        UnlockGeometry = False if node.parm("bUnlockGeo").evalAsInt() == 0 else True
-        EmbeddedImport = False if node.parm("bEmbeddedImport").evalAsInt() == 0 else True
-        ConvertUnits = False if node.parm("bConvertUnits").evalAsInt() == 0 else True
+        ImportBonesAndSkin = (node.parm("bImportBoneSkin").evalAsInt() == 1)
+        ImportAnimation = (node.parm("bImportAnimation").evalAsInt() == 1)
+        ImportMaterials = (node.parm("bImportMaterials").evalAsInt() == 1)
+        ConvertToYUp = (node.parm("bConvertYUp").evalAsInt() == 1)
+        UnlockGeometry = (node.parm("bUnlockGeo").evalAsInt() == 1)
+        EmbeddedImport = (node.parm("bEmbeddedImport").evalAsInt() == 1)
+        ConvertUnits = (node.parm("bConvertUnits").evalAsInt() == 1)
 
         # Destroying old instance of geometry if not embedded import... For example on reimport
-        if hou.node(node.parm("sImportPath").evalAsString()) != None:
+        if hou.node(node.parm("sImportPath").evalAsString()) is not None:
             hou.node(node.parm("sImportPath").evalAsString()).destroy(disable_safety_checks=False)
 
         FBXFiles = hou.hipFile.importFBX(FileOnDisk, suppress_save_prompt=True, merge_into_scene=True, import_cameras=False, import_joints_and_skin=ImportBonesAndSkin, import_geometry=True, import_lights=False, import_animation=ImportAnimation, import_materials=ImportMaterials, resample_animation=False, resample_interval=1.0, override_framerate=False,framerate=-1, hide_joints_attached_to_skin=True, convert_joints_to_zyx_rotation_order=False, material_mode=MaterialMode, compatibility_mode=hou.fbxCompatibilityMode.Maya, single_precision_vertex_caches=False, triangulate_nurbs=False, triangulate_patches=False, import_global_ambient_light=False, import_blend_deformers_as_blend_sops=False, segment_scale_already_baked_in=True, convert_file_paths_to_relative=True, unlock_geometry=UnlockGeometry, unlock_deformations=False, import_nulls_as_subnets=False, import_into_object_subnet=True, convert_into_y_up_coordinate_system=ConvertToYUp, create_sibling_bones=True, override_scene_frame_range=False, convert_units=ConvertUnits)
