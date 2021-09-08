@@ -6,8 +6,6 @@ import os
 import hou
 import platform
 import subprocess
-from labsopui import labs_path
-from labsopui import labs_log
 
 # =============================================================================
 # FUNCTIONS

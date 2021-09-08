@@ -2,16 +2,14 @@ import hou
 import os
 import csv
 import random
-from hutil.Qt.QtCore import *
-from hutil.Qt.QtGui import *
-from hutil.Qt.QtWidgets import *
 
+from hutil.Qt import QtCore, QtWidgets
 
-class Tip_Dialog(QDialog):
+class Tip_Dialog(QtWidgets.QDialog):
     def __init__(self, parent):
         super(Tip_Dialog, self).__init__(parent)
 
-        self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Quick Tips!")
 
         self.csvfile = hou.text.expandString("$SIDEFXLABS/misc/tips/Tip_Data.csv")
@@ -55,35 +53,35 @@ class Tip_Dialog(QDialog):
 
     def build_ui(self):
 
-      self.setMinimumSize(650, 100)
+        self.setMinimumSize(650, 100)
 
-      layout = QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
 
-      self.tip_label = QLabel("Some Tip")
-      tip_label_layout = QHBoxLayout()
-      tip_label_layout.addWidget(self.tip_label)
-      self.tip_label.setWordWrap(True)
+        self.tip_label = QtWidgets.QLabel("Some Tip")
+        tip_label_layout = QtWidgets.QHBoxLayout()
+        tip_label_layout.addWidget(self.tip_label)
+        self.tip_label.setWordWrap(True)
 
-      Prev_btn = QPushButton("Previous")
-      Prev_btn.clicked.connect(self.PrevTip)
+        Prev_btn = QtWidgets.QPushButton("Previous")
+        Prev_btn.clicked.connect(self.PrevTip)
 
-      Next_btn = QPushButton("Next")
-      Next_btn.clicked.connect(self.NextTip)
+        Next_btn = QtWidgets.QPushButton("Next")
+        Next_btn.clicked.connect(self.NextTip)
 
-      Random_btn = QPushButton("Random")
-      Random_btn.clicked.connect(self.RandomTip)
+        Random_btn = QtWidgets.QPushButton("Random")
+        Random_btn.clicked.connect(self.RandomTip)
 
-      buttons_layout = QHBoxLayout()
-      buttons_layout.addWidget(Prev_btn)
-      buttons_layout.addWidget(Next_btn)
-      buttons_layout.addWidget(Random_btn)
+        buttons_layout = QtWidgets.QHBoxLayout()
+        buttons_layout.addWidget(Prev_btn)
+        buttons_layout.addWidget(Next_btn)
+        buttons_layout.addWidget(Random_btn)
 
-      layout.addLayout(tip_label_layout)
-      layout.addLayout(buttons_layout)
+        layout.addLayout(tip_label_layout)
+        layout.addLayout(buttons_layout)
 
-      self.setLayout(layout)
+        self.setLayout(layout)
 
 
 def ShowQuickTip():
-  dialog = Tip_Dialog(hou.qt.mainWindow())
-  dialog.show()
+    dialog = Tip_Dialog(hou.qt.mainWindow())
+    dialog.show()
