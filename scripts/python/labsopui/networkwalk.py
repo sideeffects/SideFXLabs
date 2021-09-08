@@ -1,4 +1,3 @@
-import toolutils as tu
 import nodegraphview as ngv
 import hou
 ## Declare pivot so it can be used as a global variable
@@ -27,15 +26,15 @@ def add_actions():
     hou.hotkeys.removeAssignment('h.pane.wsheet.down','PageDown')  
     
     # Cycle over directions and add default Hotkey assignments.
-    for dir in dirs:
-        label = 'labs::networkwalk_{}'.format(dir)
-        description = 'Walk {} along the connections in the Network View'.format(dir)
+    for directory in dirs:
+        label = 'labs::networkwalk_{}'.format(directory)
+        description = 'Walk {} along the connections in the Network View'.format(directory)
         
         symbol = 'h.pane.wsheet.tool:'+label
         hou.hotkeys.addCommand(symbol, label, description)
         
         # Assign Action to Hotkey.
-        key = key_dict[dir]
+        key = key_dict[directory]
         re = hou.hotkeys.addAssignment('h.pane.wsheet.tool:'+label, key)
             
     # Save changes
@@ -46,9 +45,8 @@ def add_actions():
 def remove_actions(dirs=('Up','Down','Left','Right'),remove=True):       
     """ Removes Actions, thereby deleting Hotkey assignments.
     """
-    print("remove")
-    for dir in dirs:
-        label = 'labs::networkwalk_{}'.format(dir)
+    for directory in dirs:
+        label = 'labs::networkwalk_{}'.format(directory)
         # Remove hot key if it exists
         symbol = hou.hotkeys.hotkeySymbol('/Houdini/Panes/Network Editor',label)
         if symbol != '':
@@ -66,7 +64,9 @@ def remove_actions(dirs=('Up','Down','Left','Right'),remove=True):
 ##########################################################    
 def walk(step='up',**kwargs):
     """ Walks a around network based on arguement in Network Graph.
-    """    
+    """
+    global pivot
+
     # Get head.
     # Check theres a good node from last to first and use that as the head.
     selNodes = list(hou.selectedItems())    
@@ -90,17 +90,17 @@ def walk(step='up',**kwargs):
             break
     
     # If still no head found return apply.
-    if head == None:
+    if head is None:
         return None
     
     ## Network direction in screne space. Used for flash message. 
     dirStep = step
     
     # Reorient if Vop node.
-    input = None
+    inputconnection = None
     if isinstance(head,hou.NetworkDot):
-        input = head.input()
-    if isinstance(head,hou.VopNode) or isinstance(input,hou.VopNode):
+        inputconnection = head.input()
+    if isinstance(head,hou.VopNode) or isinstance(inputconnection,hou.VopNode):
         isVop = True
         
         # Remap to reorient for Vops.
@@ -109,17 +109,17 @@ def walk(step='up',**kwargs):
     
     # Get editor.    
     editor = get_network_editor(node=head)       
-    if editor==None:
+    if editor is None:
         return None
        
     # Axis of walk.
-    axis = 'x' if step=='left' or step=='right' else 'y'               
+    axis = 'x' if step in ['left', 'right'] else 'y'               
     orient = get_orientation(head=head)
     pivot = orient['pivot']
     rel=orient['rel']        
         
     # Exit if no orientation found.
-    if pivot == None:
+    if pivot is None:
         if axis=='x':
             message = 'No {} '.format(step)
             icon = 'error'
@@ -163,13 +163,13 @@ def walk(step='up',**kwargs):
     # Calling correct method for item types.
     # Prepare feedback data
     icon = dirStep
-    if goTo!=None:
-        if isinstance(head,hou.Node)==True:
+    if goTo is not None:
+        if isinstance(head,hou.Node):
             head.setCurrent(False)
         else:
             head.setSelected(False)
             
-        if isinstance(goTo,hou.Node)==True:
+        if isinstance(goTo,hou.Node):
             goTo.setCurrent(True, clear_all_selected=False)
         else:
             goTo.setSelected(True,clear_all_selected=False)
@@ -203,7 +203,7 @@ def get_walk_list(head=None,step=None,pivot=None,rel=None):
         cons = get_inputs(node=head)
     if step=='down':
         cons = get_outputs(node=head)
-    if step=='left' or step=='right':
+    if step in ['left', 'right']:
         if rel=='OUT':
             cons = get_outputs(node=pivot)
             flow = 'IN'
@@ -232,7 +232,7 @@ def get_orientation(head=None):
     """   
     global pivot
     rel = None
-    if pivot != None:
+    if pivot is not None:
         rel = None
         inputs = get_inputs(node=head)
         if pivot in inputs:
@@ -240,11 +240,11 @@ def get_orientation(head=None):
         else:
             if pivot in get_outputs(node=head):
                 rel = 'IN'               
-        if rel == None:            
+        if rel is None:            
             pivot = None
     
     # If not pivot found infer from first input.
-    if pivot == None:
+    if pivot is None:
         # Get first input and break.
         inputCons = get_inputs(node=head)
         for con in inputCons:
@@ -274,7 +274,7 @@ def get_network_editor(node=None):
                     isUnder = paneTab.isUnderCursor()
                 except:
                     isUnder = False
-                if isUnder == True:
+                if isUnder:
                     editor = paneTab                    
                     return editor
                
