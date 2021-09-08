@@ -23,34 +23,30 @@ def process(cmd, cache, folder, node):
             print("--------")
             print(node.name())
 
-        logfile = open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a')
-        errorlogfile = open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'a')
+        with open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a') as logfile:
+            with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'a') as errorlogfile:
 
-        StartupInfo = None
-        if os.name == 'nt':
-            StartupInfo = subprocess.STARTUPINFO()
-            subprocess.STARTF_USESHOWWINDOW = 1
-            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                StartupInfo = None
+                if os.name == 'nt':
+                    StartupInfo = subprocess.STARTUPINFO()
+                    subprocess.STARTF_USESHOWWINDOW = 1
+                    StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-        clean_env = os.environ.copy()
+                clean_env = os.environ.copy()
 
-        if HDA.parm("enablecustomenv").evalAsInt() == 1:
-            customenv = json.loads(HDA.parm("customenv").eval())
-            clean_env = {str(key): str(value) for key, value in customenv.items()}
+                if HDA.parm("enablecustomenv").evalAsInt() == 1:
+                    customenv = json.loads(HDA.parm("customenv").eval())
+                    clean_env = {str(key): str(value) for key, value in customenv.items()}
 
-        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=clean_env, cwd=workingdir)
+                Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=clean_env, cwd=workingdir)
 
-        # Process is still running
-        while Process.poll() == None:
-            try:
-                Operation.updateProgress(0.0)
-            # User interrupted
-            except hou.OperationInterrupted:
-                Process.kill()
-
-        # Close log file, because Process has ended
-        logfile.close()
-        errorlogfile.close()
+                # Process is still running
+                while Process.poll() is None:
+                    try:
+                        Operation.updateProgress(0.0)
+                    # User interrupted
+                    except hou.OperationInterrupted:
+                        Process.kill()
 
         with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'r') as myfile:
             data = myfile.read()

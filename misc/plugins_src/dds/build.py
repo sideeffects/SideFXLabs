@@ -1,13 +1,12 @@
 import os
 import shutil
 import subprocess
-import fileinput
 
 versions = [  "18.0"]
 
 version_dic = {}
-SideFXDIR = "C:\Program Files\Side Effects Software"
-msbuild = "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/amd64/msbuild.exe"
+SideFXDIR = r"C:\Program Files\Side Effects Software"
+msbuild = r"C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/amd64/msbuild.exe"
 SOLUTION_FILE = "IMG_DDS.sln"
 
 build_dir = os.path.join(os.getenv("APPDATA"), "SideFX")
@@ -31,6 +30,8 @@ def get_installed_versions_dic():
     return version_dic.copy()
 
 def compile_plugin(version):
+    global version_dic, build_dir
+
     build_dir = "build_" + str(version)
 
     if os.path.exists(build_dir):
@@ -47,7 +48,7 @@ def compile_plugin(version):
     else:
         my_env["INSTDIR"] = "D:/work/SideFX/GameDevelopmentToolset/dso/fb"
 
-    if version == "17.0" or version == "17.5" or version == "18.0":
+    if version in ["17.0", "17.5", "18.0"]:
         subprocess.call(["cmake", "-G", "Visual Studio 15 2017 Win64", ".."], cwd=build_dir,
                         env=my_env)
 
