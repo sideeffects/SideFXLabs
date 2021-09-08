@@ -85,3 +85,31 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 1. "SIDEFXLABS_NOINSTALL_MESSAGE = Your message here" - Disables the installing of the toolset on the machine, and shows the text stored in the environment variable.
 2. "SIDEFXLABS_ADMIN_UPDATES = 1" - This prevents users from updating the already installed toolset on their machine. Useful for studios where one version of the toolset is enforced.
 
+## Contributor Credits
+### SideFX Labs Team
+- Luiz Kruel
+- Mike Lyndon
+- Paul Ambrosiussen
+- Mai Ao
+
+### SideFX Staff
+- Bruno Ebe
+- Jeff Lait
+- Michael Buckley
+- Jeffy Mathew Philip
+- Attila Torok
+- Simon Verstraete
+
+### SideFX Interns
+- Roahith Raj
+- Ryan Gold
+- Ciara Cipponeri
+- Danicka Oglesby
+
+### Community Contributors
+- Magnus Larsson
+- Jake Rice
+- Richard C Thomas
+- Matt Estela
+- Guillaume Jobst
+- Baku Hashimoto
