@@ -115,3 +115,4 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 - Matt Estela
 - Guillaume Jobst
 - Baku Hashimoto
+- Shari Solo
