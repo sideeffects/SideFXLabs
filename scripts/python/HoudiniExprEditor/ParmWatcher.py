@@ -25,10 +25,7 @@
 
 import hou
 import os
-import sys
 import time
-import subprocess
-import hdefereval
 import tempfile
 import hashlib
 
@@ -132,6 +129,7 @@ def which_executable(pgm):
         p = os.path.join(p,pgm)
         if os.path.exists(p) and os.access(p,os.X_OK):
             return p
+    return
 
 def get_external_editor():
 
