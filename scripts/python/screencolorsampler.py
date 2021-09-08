@@ -1,6 +1,6 @@
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QWidget
-from PySide2.QtGui import QColor, QPainter, QPen, QCursor
+from PySide2.QtGui import QColor, QPainter, QPen
 import hou
 
 class SampleColor(QWidget):

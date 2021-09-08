@@ -40,7 +40,7 @@ def node_valid(node):
     node        = node_input(node)
     switch      = 0
     if node :
-         switch = 1
+        switch = 1
     return switch
 
 # -----------------------------------------------------------------------------
@@ -51,7 +51,7 @@ def node_valid(node):
 # -----------------------------------------------------------------------------
 
 def node_name(node):
-    name        = str(node_input(node).name())
+    name = str(node_input(node).name())
     return name
 
 # -----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ def node_sim(node):
     ntype       = node_input(node).type()
     name        = ntype.nameComponents()[2]
 
-    if name == 'dop' or name == 'geometry' or name == 'VFX_dop' or name == 'VFX_geometry':
+    if name in ['dop', 'geometry', 'VFX_dop', 'VFX_geometry']:
         switch  = 1
 
     return switch
@@ -82,7 +82,7 @@ def node_wiredin(node):
     inputs      = node.inputs()
     switch      = 1
     if not inputs :
-         switch = 0
+        switch = 0
 
     return switch
 

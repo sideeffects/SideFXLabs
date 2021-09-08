@@ -218,7 +218,7 @@ def project(node):
 
 def hq_job_name(node):
     global hipname
-    process_node = oppath.node_input(node)
+    process_node = labs_oppath.node_input(node)
 
     #print process_node.path()
 
@@ -519,7 +519,5 @@ def file_version(node):
                                      dirs += [dirName, dirName]
 
         return dirs
-    except WindowsError:
-        return ["ElementNotRendered", "ElementNotRendered"]
     except :
         return ["ElementNotRendered", "ElementNotRendered"]
