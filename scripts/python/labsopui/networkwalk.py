@@ -129,7 +129,7 @@ def walk(step='up',**kwargs):
             pivot = head
     
     # Get potential items to walk to.
-    walkDict = get_walk_list(head=head,step=step,pivot=pivot,rel=rel)
+    walkDict = get_walk_list(head=head,step=step,_pivot=pivot,rel=rel)
     
     # Find best spatial match.
     travLength = len(walkDict['nodes'])
