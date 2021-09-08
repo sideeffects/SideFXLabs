@@ -1,152 +1,144 @@
+from past.builtins import xrange
+
 def SetKeyFrame(a_parm, a_frame, a_value):
-        key = hou.Keyframe()
-        key.setFrame(a_frame)
-        key.setValue(a_value)
-        a_parm.setKeyframe(key)
-        return key
+    key = hou.Keyframe()
+    key.setFrame(a_frame)
+    key.setValue(a_value)
+    a_parm.setKeyframe(key)
+    return key
 
 def CreateNewSubnet(a_SourceName, a_NumberBones):
-        return hou.node("/obj").createNode("subnet", "SkinningConversion_{0}_{1}_Bones".format(a_SourceName, a_NumberBones))
+    return hou.node("/obj").createNode("subnet", "SkinningConversion_{0}_{1}_Bones".format(a_SourceName, a_NumberBones))
 
 def GenerateSkeletonAndBake(a_Container, a_Subnet, a_RootBone, a_StartFrame, a_EndFrame, a_CaptureMode, a_CaptureFrame):
         
-        BoneList = []
+    BoneList = []
 
-        print("Generating Skeleton...")
-        Geometry = hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry()
-        HasNameAttr = Geometry.findPointAttrib("name")
-        for point in Geometry.points():
-                CaptureRadius = point.attribValue("BoneRadius")
-                if HasNameAttr != None:
-                    BoneName = point.attribValue("name")
-                    Bone = a_Subnet.createNode("bone", BoneName)
-                else:
-                    Bone = a_Subnet.createNode("bone")
-                Bone.parm("rOrd").set(0)
-                CaptureLength = [0.1, 0.001]
-                Bone.parm("length").set(CaptureLength[a_CaptureMode])
-                Bone.parm("captposelen").set(0.1)
+    print("Generating Skeleton...")
+    Geometry = hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry()
+    HasNameAttr = Geometry.findPointAttrib("name")
+    for point in Geometry.points():
+        CaptureRadius = point.attribValue("BoneRadius")
+        if HasNameAttr != None:
+            BoneName = point.attribValue("name")
+            Bone = a_Subnet.createNode("bone", BoneName)
+        else:
+            Bone = a_Subnet.createNode("bone")
+        Bone.parm("rOrd").set(0)
+        CaptureLength = [0.1, 0.001]
+        Bone.parm("length").set(CaptureLength[a_CaptureMode])
+        Bone.parm("captposelen").set(0.1)
 
-                for parm in ['crtopcapx', 'crtopcapy', 'crtopcapz', 'crbotcapx', 'crbotcapy', 'crbotcapz']:
-                        Bone.parm(parm).set(CaptureRadius)
+        for parm in ['crtopcapx', 'crtopcapy', 'crtopcapz', 'crbotcapx', 'crbotcapy', 'crbotcapz']:
+            Bone.parm(parm).set(CaptureRadius)
 
-                Bone.setNextInput(a_RootBone)
-                Bone.moveToGoodPosition()
-                BoneList.append(Bone)
+        Bone.setNextInput(a_RootBone)
+        Bone.moveToGoodPosition()
+        BoneList.append(Bone)
 
-        print ("Baking Skeleton...")
-        with hou.InterruptableOperation("Keyframing Bones", open_interrupt_dialog=True) as Process:
-                for F in xrange(a_StartFrame, a_EndFrame+1):
-                        hou.setFrame(F)
-                        AnimGeometry = hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry().points()
-                        for i, Bone in enumerate(BoneList):
-                                Translate = AnimGeometry[i].attribValue("P")
-                                RotationX = hou.Quaternion(AnimGeometry[i].attribValue("orient"))
-                                Rotation = RotationX.extractEulerRotates()
-                                for i, parm in enumerate(['tx', 'ty', 'tz']):
-                                        SetKeyFrame(Bone.parm(parm), F, Translate[i])
-                                for i, parm in enumerate(['rx', 'ry', 'rz']):
-                                        SetKeyFrame(Bone.parm(parm), F, Rotation[i])
+    print ("Baking Skeleton...")
+    with hou.InterruptableOperation("Keyframing Bones", open_interrupt_dialog=True) as Process:
+        for F in xrange(a_StartFrame, a_EndFrame+1):
+            hou.setFrame(F)
+            AnimGeometry = hou.node(a_Container.path()+"/OUT_ANIMATEDPOINTS").geometry().points()
+            for i, Bone in enumerate(BoneList):
+                Translate = AnimGeometry[i].attribValue("P")
+                RotationX = hou.Quaternion(AnimGeometry[i].attribValue("orient"))
+                Rotation = RotationX.extractEulerRotates()
+                for j, parm in enumerate(['tx', 'ty', 'tz']):
+                    SetKeyFrame(Bone.parm(parm), F, Translate[j])
+                for k, parm in enumerate(['rx', 'ry', 'rz']):
+                    SetKeyFrame(Bone.parm(parm), F, Rotation[k])
 
-                        Process.updateProgress(float(F) / float(a_EndFrame-a_StartFrame))
+            Process.updateProgress(float(F) / float(a_EndFrame-a_StartFrame))
 
-        hou.setFrame(a_CaptureFrame)
-        hou.hscript("bonealigncapture -c {0}/bone*".format(str(a_Subnet.path())))
-        hou.setFrame(a_StartFrame)
-        return BoneList
+    hou.setFrame(a_CaptureFrame)
+    hou.hscript("bonealigncapture -c {0}/bone*".format(str(a_Subnet.path())))
+    hou.setFrame(a_StartFrame)
+    return BoneList
 
 def MainFunction():
-        print ("Starting Conversion...")
-        
-        ThisNode = hou.pwd()
-        FrameRange = ThisNode.parmTuple('i2FrameRange').eval()
-        CaptureMethod = ThisNode.parm("lCaptureMethod").eval()
-        CaptureFrame = ThisNode.parm("iCaptureFrame").eval()
-        ThisNode.parm("bFastTweaking").set(0)
-        NumberBones = len(hou.node(ThisNode.path()+"/OUT_ANIMATEDPOINTS").geometry().points())
-        ContainerObject = CreateNewSubnet(ThisNode.parent().name(), NumberBones)
+    print ("Starting Conversion...")
+    
+    ThisNode = hou.pwd()
+    FrameRange = ThisNode.parmTuple('i2FrameRange').eval()
+    CaptureMethod = ThisNode.parm("lCaptureMethod").eval()
+    CaptureFrame = ThisNode.parm("iCaptureFrame").eval()
+    ThisNode.parm("bFastTweaking").set(0)
+    NumberBones = len(hou.node(ThisNode.path()+"/OUT_ANIMATEDPOINTS").geometry().points())
+    ContainerObject = CreateNewSubnet(ThisNode.parent().name(), NumberBones)
 
 
-        Root = ContainerObject.createNode("null")
+    Root = ContainerObject.createNode("null")
 
-        #ANIMATED GEOMETRY
-        Geometry = ContainerObject.createNode("geo")
-        Geometry.moveToGoodPosition()
+    #ANIMATED GEOMETRY
+    Geometry = ContainerObject.createNode("geo")
+    Geometry.moveToGoodPosition()
 
-        ObjMerge = Geometry.createNode("object_merge")
-        ObjMerge.parm("objpath1").set(ThisNode.path()+"/IN")
-        ObjMerge.parm("xformtype").set("local")
+    ObjMerge = Geometry.createNode("object_merge")
+    ObjMerge.parm("objpath1").set(ThisNode.path()+"/IN")
+    ObjMerge.parm("xformtype").set("local")
 
-        # STATIC GEOMETRY
-        if ThisNode.parm("sStaticGroup").evalAsString() != "":
-            StaticGeometry = ContainerObject.createNode("geo")
-            StaticGeometry.moveToGoodPosition()
+    # STATIC GEOMETRY
+    if ThisNode.parm("sStaticGroup").evalAsString() != "":
+        StaticGeometry = ContainerObject.createNode("geo")
+        StaticGeometry.moveToGoodPosition()
 
-            StaticObjMerge = StaticGeometry.createNode("object_merge")
-            StaticObjMerge.parm("objpath1").set(ThisNode.path()+"/IN_STATIC")
-            StaticObjMerge.parm("xformtype").set("local")
+        StaticObjMerge = StaticGeometry.createNode("object_merge")
+        StaticObjMerge.parm("objpath1").set(ThisNode.path()+"/IN_STATIC")
+        StaticObjMerge.parm("xformtype").set("local")
 
-            StaticTimeShift = StaticGeometry.createNode("timeshift")
-            StaticTimeShift.parm("frame").deleteAllKeyframes()
-            StaticTimeShift.parm("frame").set(FrameRange[0])
-            StaticTimeShift.setNextInput(StaticObjMerge)
-            StaticTimeShift.moveToGoodPosition()
-            StaticTimeShift.setDisplayFlag(True)
-            StaticTimeShift.setRenderFlag(True)
+        StaticTimeShift = StaticGeometry.createNode("timeshift")
+        StaticTimeShift.parm("frame").deleteAllKeyframes()
+        StaticTimeShift.parm("frame").set(FrameRange[0])
+        StaticTimeShift.setNextInput(StaticObjMerge)
+        StaticTimeShift.moveToGoodPosition()
+        StaticTimeShift.setDisplayFlag(True)
+        StaticTimeShift.setRenderFlag(True)
 
 
-        CaptureNode = None
-        if CaptureMethod == 0:
-                Util = Geometry.createNode("labs::skinningconverter_utility::2.0")
-                Util.parm("rootpath").set(Root.path())
-                Util.parm("startFrame").set(FrameRange[0])
-                Util.parm("endFrame").set(FrameRange[1])
-                Util.parm("bUseConnectivity").set(ThisNode.parm("bUseMeshConnectivity").evalAsInt())
-                Util.setNextInput(ObjMerge)
-                Util.moveToGoodPosition()
-                Deform = Geometry.createNode("bonedeform")
-                Deform.setNextInput(Util)
-                Deform.parm("skelrootpath").set(Root.parent().path())
-                Deform.parm("method").set("dualquat")
-                Deform.moveToGoodPosition()
-                # CaptLines = Geometry.createNode("bonecapturelines")
-                # CaptLines.parm("rootpath").set(Root.path())
-                # SolidEmbed = Geometry.createNode("solidembed::2.0")
-                # SolidEmbed.setInput(0, TimeShift)
-                # SolidEmbed.setInput(1, CaptLines)
-                # CaptureNode = Geometry.createNode("bonecapturebiharmonic")
-                # CaptureNode.setInput(0, TimeShift)
-                # CaptureNode.setInput(1, SolidEmbed)
-                # for node in [CaptLines, SolidEmbed, CaptureNode]:
-                #         node.moveToGoodPosition()
+    CaptureNode = None
+    if CaptureMethod == 0:
+        Util = Geometry.createNode("labs::skinningconverter_utility::2.0")
+        Util.parm("rootpath").set(Root.path())
+        Util.parm("startFrame").set(FrameRange[0])
+        Util.parm("endFrame").set(FrameRange[1])
+        Util.parm("bUseConnectivity").set(ThisNode.parm("bUseMeshConnectivity").evalAsInt())
+        Util.setNextInput(ObjMerge)
+        Util.moveToGoodPosition()
+        Deform = Geometry.createNode("bonedeform")
+        Deform.setNextInput(Util)
+        Deform.parm("skelrootpath").set(Root.parent().path())
+        Deform.parm("method").set("dualquat")
+        Deform.moveToGoodPosition()
 
-        elif CaptureMethod == 1:
+    elif CaptureMethod == 1:
 
-                TimeShift = Geometry.createNode("timeshift")
-                TimeShift.parm("frame").deleteAllKeyframes()
-                TimeShift.parm("frame").set(FrameRange[0])
-                TimeShift.setNextInput(ObjMerge)
-                TimeShift.moveToGoodPosition()
+        TimeShift = Geometry.createNode("timeshift")
+        TimeShift.parm("frame").deleteAllKeyframes()
+        TimeShift.parm("frame").set(FrameRange[0])
+        TimeShift.setNextInput(ObjMerge)
+        TimeShift.moveToGoodPosition()
 
-                CaptureNode = Geometry.createNode("captureproximity")
-                CaptureNode.setNextInput(TimeShift)
-                CaptureNode.parm("rootpath").set(Root.path())
-                CaptureNode.parm("maxinfluences").set(ThisNode.parm("iBoneInfluences").eval())
-                CaptureNode.parm("usecaptpose").set(1)
-                CaptureNode.parm("forcecook").pressButton()
-                CaptureNode.moveToGoodPosition()
+        CaptureNode = Geometry.createNode("captureproximity")
+        CaptureNode.setNextInput(TimeShift)
+        CaptureNode.parm("rootpath").set(Root.path())
+        CaptureNode.parm("maxinfluences").set(ThisNode.parm("iBoneInfluences").eval())
+        CaptureNode.parm("usecaptpose").set(1)
+        CaptureNode.parm("forcecook").pressButton()
+        CaptureNode.moveToGoodPosition()
 
-                Deform = Geometry.createNode("deform")
-                Deform.setNextInput(CaptureNode)
-                Deform.parm("donormal").set(1)
-                Deform.parm("fast").set(1)
-                Deform.moveToGoodPosition()
+        Deform = Geometry.createNode("deform")
+        Deform.setNextInput(CaptureNode)
+        Deform.parm("donormal").set(1)
+        Deform.parm("fast").set(1)
+        Deform.moveToGoodPosition()
 
-        Deform.setDisplayFlag(True)
-        Deform.setRenderFlag(True)
+    Deform.setDisplayFlag(True)
+    Deform.setRenderFlag(True)
 
-        Bones = GenerateSkeletonAndBake(ThisNode, ContainerObject, Root, FrameRange[0], FrameRange[1], CaptureMethod, CaptureFrame)
-        ThisNode.parm("objpath1").set(Geometry.path())
+    Bones = GenerateSkeletonAndBake(ThisNode, ContainerObject, Root, FrameRange[0], FrameRange[1], CaptureMethod, CaptureFrame)
+    ThisNode.parm("objpath1").set(Geometry.path())
 
-        ContainerObject.moveToGoodPosition()
-        print ("Conversion completed! Output at {0}".format(ContainerObject.path()))
+    ContainerObject.moveToGoodPosition()
+    print ("Conversion completed! Output at {0}".format(ContainerObject.path()))
