@@ -195,7 +195,7 @@ def walk(step='up',**kwargs):
     flash_message(editor,icon=icon,message=message)
     return
       
-def get_walk_list(head=None,step=None,pivot=None,rel=None): 
+def get_walk_list(head=None,step=None,_pivot=None,rel=None): 
     """ Gets list on nodes that met relation conditions.
     Sorted from right to left with their positions.
     """
@@ -205,10 +205,10 @@ def get_walk_list(head=None,step=None,pivot=None,rel=None):
         cons = get_outputs(node=head)
     if step in ['left', 'right']:
         if rel=='OUT':
-            cons = get_outputs(node=pivot)
+            cons = get_outputs(node=_pivot)
             flow = 'IN'
         if rel=='IN':
-            cons = get_inputs(node=pivot)
+            cons = get_inputs(node=_pivot)
        
     # Get connections and x position to sort by.    
     travList = list()

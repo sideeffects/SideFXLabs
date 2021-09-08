@@ -1,6 +1,6 @@
-from PySide2.QtCore import Qt, QRect, QEvent, QSize
-from PySide2.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QWidget, QLabel, QGraphicsPixmapItem, QGraphicsItem
-from PySide2.QtGui import QColor, QPainter, QPen, QCursor, QPixmap, QFont
+from PySide2.QtCore import Qt, QRect, QEvent
+from PySide2.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QWidget, QLabel, QGraphicsPixmapItem
+from PySide2.QtGui import QColor, QPainter, QPen, QCursor, QPixmap
 import hou, datetime, os
 
 class NetworkEditorPainter(QWidget):
@@ -18,6 +18,7 @@ class NetworkEditorPainter(QWidget):
         self.brushsize = 8
 
         self.startdragpos = -1
+        self.screenshots = []
         self.configureScene()
         self.updateBrush()
 
