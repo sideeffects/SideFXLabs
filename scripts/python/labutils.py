@@ -1,6 +1,7 @@
 import os
 import hou
 import uuid
+import shutil
 
 try:
     import requests
@@ -33,7 +34,7 @@ def can_send_anonymous_stats():
             break
     f.close()
 
-    override = os.getenv("HOUDINI_ANONYMOUS_STATISTICS", 1)
+    override = os.getenv("HOUDINI_ANONYMOUS_STATISTICS", "1")
     if int(override) == 0:
         can_share = False
 
@@ -97,9 +98,9 @@ def send_on_create_analytics(node):
     if can_send_anonymous_stats() and is_labs_node(node):
         track_event("Node Created", str(node.type().name()), str(node.type().definition().version()))
 
-def empty_directory_recursive(dir):
-    for file in os.listdir(dir):
-        file_path = os.path.join(dir, file)
+def empty_directory_recursive(directory):
+    for file in os.listdir(directory):
+        file_path = os.path.join(directory, file)
         try:
             if os.path.isfile(file_path):
                 os.unlink(file_path)
