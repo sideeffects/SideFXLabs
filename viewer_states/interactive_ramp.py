@@ -15,7 +15,6 @@ Date Created:   October 07, 2020 - 12:53:58
 
 import hou
 import viewerstate.utils as su
-import toolutils
 import math
 
 class State(object):
@@ -41,7 +40,18 @@ class State(object):
         self.circle_gadget = None
         self.point_vis = None
         self.circle_gadget_vis = False
+        self.circle_guide = None
         self.interrupted = False
+        self.viewport = None
+        self.prim = None
+        self.ramp_parm = None
+        self.ramp_name = None
+        self.center = None
+        self.point_handle = None
+        self.point_gadget = None
+        self.point = None
+        self.line_gadget = None
+        self.circle_handle = None
 
         #creates the handle dragger
         self.handle_dragger = hou.ViewerStateDragger("dragger")
@@ -151,7 +161,6 @@ class State(object):
     def show(self, visible):
         """ Display or hide drawables/gadgets.
         """
-        #self.cursor.show(visible)
         self.point_gadget.show(visible)
         self.circle_guide.show(visible)
         self.line_gadget.show(visible)
@@ -181,7 +190,7 @@ class State(object):
         self.createCircles()
         self.createLineGadget()
         self.show(True)
-        if self.circle_gadget != None and self.circle_gadget_vis == True:
+        if self.circle_gadget is not None and self.circle_gadget_vis is True:
             self.createCircle(self.id)
             self.createVisPoint(self.id)
             self.circle_gadget.show(True)
@@ -191,7 +200,7 @@ class State(object):
 
     def onInterrupt(self,kwargs):
         self.show(False)
-        if self.circle_gadget != None:
+        if self.circle_gadget is not None:
             self.circle_gadget.show(False)
             self.point_vis.show(False)
             self.interrupted = True
@@ -206,7 +215,6 @@ class State(object):
         reason = ui_event.reason()
         device = ui_event.device()
         origin, direction = ui_event.ray()
-        #_geo_intersect = self.node.node('CURVE_GEO').geometry()
 
         gadget_name = self.state_context.gadget()
 
@@ -218,14 +226,13 @@ class State(object):
             position = gi.position
             norm = gi.normal
             uvw = gi.uvw
-            #hit, position, norm, uvw = su.sopGeometryIntersection(self.geometry, origin, direction)
 
             if reason == hou.uiEventReason.Start:
                 self.scene_viewer.beginStateUndo("Edit Ramp")
 
             if hit != -1 and gadget_name == "line_gadget":
-                #self.log(reason)
-                if reason == hou.uiEventReason.Start or reason == hou.uiEventReason.Picked:
+
+                if reason in [hou.uiEventReason.Start, hou.uiEventReason.Picked]:
                     self.prim = self.geometry.prim(hit)
                     self.createLineGadget()
                     self.createPoints()
@@ -238,7 +245,6 @@ class State(object):
             # Show ramp key values at cursor
             if gadget_name == "point_gadget":
                 c1 = self.state_context.component1()
-                #if c1 == self.id:
                 self.cursor.setParams(kwargs)
                 u_label = self.node.parm('{}{}pos'.format(self.ramp_name, c1+1)).eval()
                 self.cursor.setLabel('Position: {}'.format(round(u_label, 3)))
@@ -267,7 +273,7 @@ class State(object):
             # Create circle handle at selected point
             if gadget_name == "point_gadget":
                 if not device.isCtrlKey():
-                    if reason == hou.uiEventReason.Start or reason == hou.uiEventReason.Picked:
+                    if reason in [hou.uiEventReason.Start, hou.uiEventReason.Picked]:
                         self.id = self.state_context.component1()
                         if self.id != self.prev_id:
                             self.createCircle(self.id)
@@ -276,19 +282,11 @@ class State(object):
                             self.point_vis.show(True)
                             self.circle_gadget_vis = True
                             self.prev_id = self.id
-                        #elif self.id == self.prev_id:
-                            #self.circle_gadget.show(False)
-                            #self.point_vis.show(False)
-                            #self.circle_gadget_vis = False
-                            #self.prev_id = -1
 
-            #if self.geometry:
-                #hit, position, norm, uvw = su.sopGeometryIntersection(self.geometry, origin, direction)
             if hit != -1:
                 # Add points to ramp
                 if device.isShiftKey():
-                    if reason == hou.uiEventReason.Start or reason == hou.uiEventReason.Picked:
-                        #self.scene_viewer.beginStateUndo("Add Point")
+                    if reason in [hou.uiEventReason.Start, hou.uiEventReason.Picked]:
 
                         u = uvw[0]
                         val = self.prim.attribValueAt("attrib", u)
@@ -312,8 +310,6 @@ class State(object):
                         self.createPoints()
                         self.createCircles()
 
-                        #self.id = self.state_context.component1()
-
                         self.createCircle(self.id)
                         self.createVisPoint(self.id)
                         self.circle_gadget.show(True)
@@ -321,14 +317,11 @@ class State(object):
                         self.circle_gadget_vis = True
                         self.prev_id = self.id
 
-                    #if reason == hou.uiEventReason.Changed:
-                        #self.scene_viewer.endStateUndo()
 
             # Remove points from ramp
             if gadget_name == "point_gadget":
                 if device.isCtrlKey():
-                    if reason == hou.uiEventReason.Start or reason == hou.uiEventReason.Picked:
-                        #self.scene_viewer.beginStateUndo("Delete Point")
+                    if reason in [hou.uiEventReason.Start, hou.uiEventReason.Picked]:
 
                         self.id = self.state_context.component1()
                         u = self.node.parm('{}{}pos'.format(self.ramp_name, self.id+1)).eval()
@@ -365,19 +358,12 @@ class State(object):
 
             # Move points along line
             if gadget_name == "point_gadget":
-            #if self.geometry:
-                #hit, position, norm, uvw = su.sopGeometryIntersection(self.geometry, origin, direction)
                 if hit != -1:
                     if reason == hou.uiEventReason.Start:
-                        #self.scene_viewer.beginStateUndo("Move Point")
                         self.id = self.state_context.component1()
-
-                    #if reason == hou.uiEventReason.Changed:
-                        #self.scene_viewer.endStateUndo()
 
                     if reason == hou.uiEventReason.Active:
                         u = uvw[0]
-                        #u = _geo_intersect.iterPrims()[hit].floatAttribValue("gradient")
                         self.node.parm('{}{}pos'.format(self.ramp_name, self.id+1)).set(u)
 
                         self.createPoints()
@@ -392,7 +378,6 @@ class State(object):
             # Scale circle handle
             if gadget_name == "circle_gadget":
                 if reason == hou.uiEventReason.Start:
-                    #self.scene_viewer.beginStateUndo("Change Value")
 
                     hit, position, norm, uvw = su.sopGeometryIntersection(self.circle_handle, origin, direction)
 
@@ -402,7 +387,7 @@ class State(object):
                     self.handle_dragger.startDrag(ui_event, self.center)
 
                 elif reason == hou.uiEventReason.Active:
-                    if self.handle_dragger.valid() == True:
+                    if self.handle_dragger.valid():
                         drag_values = self.handle_dragger.drag(ui_event)
                         pos = drag_values["position"]
 
@@ -411,11 +396,7 @@ class State(object):
                         dist = math.sqrt( (pos[0] - self.center[0])**2 + (pos[1] - self.center[1])**2 + (pos[2] - self.center[2])**2 )
                         scale = self.node.parm('{}{}value'.format(self.ramp_name, self.id+1)).eval()
 
-                        #dist = dist - scale
-
                         u = self.node.parm('{}{}pos'.format(self.ramp_name, self.id+1)).eval()
-
-                        #val_prev = self.node.parm('{}{}value'.format(self.ramp_name, self.id+1)).eval()
 
                         if self.node.parm('scale_clamp').eval() == 1:
                             dist = self.clamp(dist, 0, 1)
@@ -435,21 +416,10 @@ class State(object):
         handle = kwargs["draw_handle"]
 
         gadget_name = self.state_context.gadget()
-        #if gadget_name == "point_gadget":
-            # Draw the located point only
-            #c1 = self.state_context.component1()
-            #self.point_gadget.setParams({"indices":[c1]})
-            #if c1 != self.id and self.circle_gadget != None:
-                #self.circle_gadget.show(False)
-        #else:
-            #self.point_gadget.setParams({"indices":[]})
-            #if self.circle_gadget != None and self.circle_gadget_vis == True and self.interrupted == False:
-                #self.circle_gadget.show(True)
 
         self.cursor.draw(handle)
         self.line_gadget.draw(handle)
         self.point_gadget.draw(handle)
-        #self.circle_guide.draw(handle)
-        if self.circle_gadget != None:
+        if self.circle_gadget is not None:
             self.point_vis.draw(handle)
             self.circle_gadget.draw(handle)
