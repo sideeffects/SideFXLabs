@@ -8,7 +8,7 @@ Date Created:   March 24, 2020 - 11:28:31
 
 import hou
 import viewerstate.utils as su
-import math as m
+import math as mt
 
 from stateutils import ancestorObject
 
@@ -85,7 +85,7 @@ class DiskMaker(object):
 
     def makePoints(self, geo, r, divs, arcs, color, gamma):
         self.createAttribs(geo)
-        pi = m.pi
+        pi = mt.pi
         arc_len = 2 * pi / arcs
         div_len = r / float(divs)
 
@@ -96,7 +96,7 @@ class DiskMaker(object):
             alpha = pow(1 - (float(i) / divs), gamma)
             for j in range(arcs):
                 point = hou.Geometry.createPoint(geo)
-                pos = hou.Vector3(m.cos(j * arc_len), m.sin(j * arc_len), 0.0) * i * div_len
+                pos = hou.Vector3(mt.cos(j * arc_len), mt.sin(j * arc_len), 0.0) * i * div_len
                 hou.Point.setPosition(point, pos)
                 hou.Point.setAttribValue(point, "Cd", color)
                 hou.Point.setAttribValue(point, "Alpha", alpha)
@@ -259,9 +259,9 @@ class Measurement(object):
         self.tail_spot_drawable.show(visible)
         self.head_spot_drawable.show(visible)
         self.line_drawable.show(visible)
-        if self.tail_disk_drawable != None:
+        if self.tail_disk_drawable is not None:
             self.tail_disk_drawable.show(visible)
-        if self.head_disk_drawable != None:
+        if self.head_disk_drawable is not None:
             self.head_disk_drawable.show(visible)
 
     def setText(self, measurement):
@@ -287,9 +287,9 @@ class Measurement(object):
     def draw( self, handle ):
         """ This callback is used for rendering the drawables
         """
-        if self.tail_disk_drawable != None:
+        if self.tail_disk_drawable is not None:
             hou.GeometryDrawable.draw(self.tail_disk_drawable, handle)
-        if self.head_disk_drawable != None:
+        if self.head_disk_drawable is not None:
             hou.GeometryDrawable.draw(self.head_disk_drawable, handle)
         hou.GeometryDrawable.draw(self.line_drawable, handle, self.line_params)
         hou.GeometryDrawable.draw(self.tail_spot_drawable, handle, self.spot_params)
@@ -299,9 +299,9 @@ class Measurement(object):
     def drawInterrupt(self, handle, geometry_viewport):
         screen_pos = hou.GeometryViewport.mapToScreen(geometry_viewport, self.head_pos)
         self.setTextPos(screen_pos[0], screen_pos[1])
-        if self.tail_disk_drawable != None:
+        if self.tail_disk_drawable is not None:
             hou.GeometryDrawable.draw(self.tail_disk_drawable, handle)
-        if self.head_disk_drawable != None:
+        if self.head_disk_drawable is not None:
             hou.GeometryDrawable.draw(self.head_disk_drawable, handle)
         hou.GeometryDrawable.draw(self.line_drawable, handle, self.line_params)
         hou.GeometryDrawable.draw(self.tail_spot_drawable, handle, self.spot_params)
@@ -388,7 +388,7 @@ class Measurement(object):
     def update(self, intersection, screen_pos, model_to_camera, camera_to_ndc, scene_viewer):
         self.updateHeadPos(intersection.pos)
         self.updateText(screen_pos)
-        if (intersection.plane != None):
+        if (intersection.plane is not None):
             self.updateDrawables(model_to_camera, camera_to_ndc, self.curPlane, scene_viewer)
         else:
             self.updateDrawables(model_to_camera, camera_to_ndc, None, scene_viewer)
@@ -436,7 +436,7 @@ class MeasurementContainer(object):
         self.measurements[-1].show(False)
 
     def removeMeasurement(self):
-        if self.count() < 1: return
+        if self.count() < 1: return 0
         self.current().show(False)
         m = self.measurements.pop()
         hou.GeometryViewport.draw(self.viewport)
@@ -472,7 +472,7 @@ class Intersection():
         #else:
         #    self.pos = pos * g_WorldXform
         self.pos = pos * g_WorldXform
-        self.has_plane = (plane != None)
+        self.has_plane = (plane is not None)
         self.plane = plane
 
 class Mode:
@@ -497,7 +497,6 @@ class State(object):
     Click and drag on the geometry to measure it.
     Press the '{}' key to copy the last measurement to clip board.
     Press the '{}' key to copy to clip and remove last measurement.
-    Hold down the Ctrl key to turn on angle snapping.
     """.format(hou.hotkeys.assignments(Key.copy_to_clip)[0], hou.hotkeys.assignments(Key.pop_copy)[0])
 
     planes = (hou.Vector3(1, 0, 0), hou.Vector3(0, 1, 0), hou.Vector3(0, 0, 1))
@@ -613,42 +612,8 @@ class State(object):
         else:
             return self.intersectWithPlane(origin, ray)
 
-    # TODO: modify this to check ALL intersections, and then choose the closest one to this initial intersection
-    def getIntersectionAngleSnap(self, ui_event):
-        origin, ray = hou.ViewerEvent.ray(ui_event)
-        init_pos = self.getIntersectionRegular(ui_event).pos
-        measurement_vec = init_pos - self.measurements.current().getTailPos()
-        measurement_vec[self.curPlane] = 0 #project onto plane
-        plane_normal = State.planes[self.curPlane]
-        rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)
-        plane_vec = State.plane_to_next[self.curPlane]
-        plane_vec = plane_vec
-        angle = hou.Vector3.angleTo(measurement_vec, plane_vec)
-        assert angle >= 0
-        below_15 = (int(angle) / 15) * 15
-        above_15 = below_15 + 15
-        closest_angle = below_15 if angle - below_15 < 7.5 else above_15
-
-        if hou.Vector3.cross(plane_vec, measurement_vec).dot(plane_normal) < 0:
-            closest_angle = 360 - closest_angle
-        self.cur_angle = closest_angle
-
-        rot = hou.hmath.buildRotateAboutAxis(plane_normal, closest_angle)
-        vec = plane_vec * rot
-        vec *= measurement_vec.length()
-        vec += self.measurements.current().getTailPos()
-        vec[self.curPlane] = origin[self.curPlane]
-        direction = plane_normal if hou.Vector3.dot(plane_normal, origin) < 0 else plane_normal * -1
-        if self.geo_intersector.intersect(vec, direction):
-            return Intersection(self.geo_intersector.position, None)
-        else:
-            return self.intersectWithPlane(vec, direction)
-
     def getIntersection(self, ui_event):
-        if self.angle_snapping:
-            return self.getIntersectionAngleSnap(ui_event)
-        else:
-            return self.getIntersectionRegular(ui_event)
+        return self.getIntersectionRegular(ui_event)
 
     def setMeasurementPlane(self, ui_event):
         snapping_dict = hou.ViewerEvent.snappingRay(ui_event)
@@ -656,11 +621,11 @@ class State(object):
         cur_viewport = hou.SceneViewer.curViewport(self.scene_viewer)
         vt = hou.GeometryViewport.type(cur_viewport)
         if snap_mode == hou.snappingMode.Grid:
-            if vt == hou.geometryViewportType.Perspective or vt == hou.geometryViewportType.Top or vt == hou.geometryViewportType.Bottom:
+            if vt in (hou.geometryViewportType.Perspective, hou.geometryViewportType.Top, hou.geometryViewportType.Bottom):
                 plane = Plane.Y
-            if vt == hou.geometryViewportType.Front or vt == hou.geometryViewportType.Back:
+            if vt in (hou.geometryViewportType.Front, hou.geometryViewportType.Back):
                 plane = Plane.Z
-            if vt == hou.geometryViewportType.Left or vt == hou.geometryViewportType.Right:
+            if vt in (hou.geometryViewportType.Left, hou.geometryViewportType.Right):
                 plane = Plane.X
         else:
             ray = snapping_dict["direction"]
@@ -740,7 +705,7 @@ class State(object):
         self.setAngleTextPos(ui_event)
         intersection = self.getIntersection(ui_event)
         self.measurements.current().setTailPos(intersection.pos)
-        if intersection.plane != None:
+        if intersection.plane is not None:
             self.measurements.current().setTailDisk(intersection.plane, self.scene_viewer, self.getModelToCamera(), self.getCameraToNDC())
 
     def onMouseEvent(self, kwargs):
@@ -770,31 +735,23 @@ class State(object):
         device = ui_event.device()
         if device.isKeyPressed():
             if hou.hotkeys.isKeyMatch(device.keyString(), Key.copy_to_clip):
-                if self.measurements.count() < 1: return
+                if self.measurements.count() < 1: return False
                 m = self.measurements.current().getLength()
                 hou.ui.copyTextToClipboard(str(m))
                 return True
             if hou.hotkeys.isKeyMatch(device.keyString(), Key.pop_copy):
-                if self.measurements.count() < 1: return
+                if self.measurements.count() < 1: return False
                 m = self.measurements.current().getLength()
                 hou.ui.copyTextToClipboard(str(m))
                 self.measurements.removeMeasurement()
                 return True
         return False
 
-    def onKeyTransitEvent(self, kwargs):
-        ui_event = kwargs['ui_event']
-        dev = ui_event.device()
-        if dev.isKeyDown() and dev.isCtrlKey() and self.mode != Mode.idle:
-            self.angleSnapping(True)
-        if dev.isKeyUp() and self.angle_snapping:
-            self.angleSnapping(False)
-
     def onParmChangeEvent(self, kwargs):
         parm_name = kwargs["parm_name"]
         parm_value = kwargs["parm_value"]
         if parm_name == "show_text":
-            if parm_value == True:
+            if parm_value is True:
                 self.measurements.showText(True)
             else:
                 self.measurements.showText(False)
