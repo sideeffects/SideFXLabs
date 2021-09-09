@@ -108,3 +108,10 @@ def empty_directory_recursive(directory):
                 shutil.rmtree(file_path)
         except:
             pass
+
+def extract_section_file(section, savelocation, writemode="wb"):
+    with open(savelocation, writemode) as SectionFile:
+        try:
+            SectionFile.write(section.contents())
+        except:
+            SectionFile.write(section.binaryContents())
