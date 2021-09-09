@@ -11,15 +11,15 @@ def get_material():
     render_node = hou.pwd().parm("node_to_render").eval()
     # if the render node field is empty return nothing
     if not render_node:
-        material_path = "";
-        return hou.pwd().parm("node_material").set(material_path);
+        material_path = ""
+        return hou.pwd().parm("node_material").set(material_path)
     # try getting the material path from the parent object
     # otherwise get the material from the render node path
     try:
         material_path = hou.node(render_node).parent().parm("shop_materialpath").eval()
     except AttributeError:
         material_path = hou.node(render_node).parm("shop_materialpath").eval()
-    hou.pwd().parm("node_material").set(material_path);
+    hou.pwd().parm("node_material").set(material_path)
     
 def init_mantra_setup(hda=""):
     if hda:
@@ -30,20 +30,9 @@ def init_mantra_setup(hda=""):
         render_sequence_path = hou.pwd().parm('render_sequence').path()
         render_button.setExpression("ch(\"%s\")" % render_sequence_path)
         hou.pwd().parm("camera").set(mantra_node.parm('camera').eval())
-#        output_string = mantra_node.parm('vm_picture').unexpandedString()
-#        hou.pwd().parm("image_sequence2").set('%s' % output_string)
-#        f1 = mantra_node.parm('f1').eval()
-#        f2 = mantra_node.parm('f2').eval()
-#        f3 = mantra_node.parm('f3').eval()
-#        hou.pwd().parm("frames4").set("%d  /  %d  /  %d" % (f1, f2, f3))
-    else:
-        pass
-#        hou.pwd().parm("camera").set("")
-#        hou.pwd().parm("image_sequence2").set("")
-#        hou.pwd().parm("frames4").set("")
+
         
 def override_camera_resolution():
-    import math
     hda = hou.pwd()
     camera = hou.node(hou.pwd().parm("camera_internal").eval())
     mantra = hou.node(hou.pwd().parm("mantra_external").eval())
@@ -53,22 +42,11 @@ def override_camera_resolution():
             mantra.parm('res_fraction').set('specific')
             mantra.parm('res_overridex').setExpression("int(ch(\"../%s/resolutionx\")/ch(\"../%s/numperline\"))" % (hda.name(),hda.name()))
             mantra.parm('res_overridey').setExpression("int(ch(\"../%s/resolutiony\")/((ch(\"../%s/internal_frames2\")-ch(\"../%s/internal_frames1\")+1)/ch(\"../%s/numperline\")))" % (hda.name(),hda.name(),hda.name(),hda.name()))
-            
-        #hda.parm('cam_res_savex').set(camera.parm('resx').eval())
-        #hda.parm('cam_res_savey').set(camera.parm('resy').eval())
-        #f1 = hda.parm('internal_frames1').eval()
-        #f2 = hda.parm('internal_frames2').eval()
-        #f3 = hda.parm('internal_frames3').eval()
-        #`ch("resolutionx")/sqrt((ch("frames2")-ch("frames1")+1)/ch("frames3"))`
-        #resx = hda.parm("resolutionx").eval()/math.sqrt(f2-f1+1)/f3
-        #resy = hda.parm("resolutiony").eval()/math.sqrt(f2-f1+1)/f3
-        #camera.parm('resx').set(int(resx))
-        #camera.parm('resy').set(int(resy))
+
     else:
         if mantra:
             mantra.parm('override_camerares').set(0)
-        #camera.parm('resx').set(hda.parm('cam_res_savex').eval())
-        #camera.parm('resy').set(hda.parm('cam_res_savey').eval())
+
     
 def add_volume_normal():
     render_node = hou.node(hou.pwd().parm("node_to_render").eval())
@@ -100,8 +78,6 @@ def add_volume_normal():
         shading_normal = mantra_node.parm("vm_quickplane_N")
         shading_normal.setExpression("ch(\"%s\")" % export_normal_path)
     
-                                    
-#ch("../../out/texture_sheets4/export_normal")
 def add_direct_emission_plane():
     
     mantra_node = hou.node(hou.pwd().parm("mantra").eval())
@@ -111,7 +87,7 @@ def add_direct_emission_plane():
         values = []
         for inst in instances:
             values.append(inst.eval())
-        if not ("direct_emission" in values):
+        if "direct_emission" not in values:
             print ("adding direct emission image plane")
             image_plane_multi_parm = mantra_node.parm("vm_numaux")
             image_plane_multi_parm.insertMultiParmInstance(0)
@@ -302,9 +278,6 @@ def create_rgb_light_rig():
         rgb_lightrig = hou.node('/obj/RGB_LIGHTRIG')
         if rgb_lightrig:
             rgb_lightrig.destroy()
-    
-    #add direct image plane to separate the rgb lights in comp
-    #add_direct_image_plane()
     
 def set_composite_view():
     hda = hou.pwd()

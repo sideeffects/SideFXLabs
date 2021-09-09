@@ -1,6 +1,5 @@
 import io
 import struct
-import ctypes
 import os
 
 def renderFile():
@@ -34,36 +33,34 @@ def renderFGA():
     if not os.path.isdir(os.path.dirname(fgaFile)):
         os.mkdir(os.path.dirname(fgaFile)) 
 
-    file = open(fgaFile, "w")
-    with hou.InterruptableOperation("Saving FGA", long_operation_name ="Saving vector field", open_interrupt_dialog = True) as operation:
-        try:
-            file.write(fgaText)
+    with open(fgaFile, "w") as file:
+        with hou.InterruptableOperation("Saving FGA", long_operation_name ="Saving vector field", open_interrupt_dialog = True) as operation:
+            try:
+                file.write(fgaText)
 
-            outlist = []
-            written_this_block = 0
-            total_to_write=resolution[0]*resolution[1]*resolution[2]
-            total_written=0
-            for y in range(resolution[1]):
-                for z in range(resolution[2]):
-                    for x in range(resolution[0]):
-                        outlist.append("%f,%f,%f,\n" % (velx.voxel((x,y,z)), velz.voxel((x,y,z)), vely.voxel((x,y,z))))
-                        written_this_block += 1
-                        total_written += 1
-                        if written_this_block > 1000000:
-                            file.write("".join(outlist))
-                            outlist = []
-                            written_this_block = 0
-                            percent = float(total_written) / float(total_to_write)
-                            operation.updateProgress(percent)
+                outlist = []
+                written_this_block = 0
+                total_to_write=resolution[0]*resolution[1]*resolution[2]
+                total_written=0
+                for y in range(resolution[1]):
+                    for z in range(resolution[2]):
+                        for x in range(resolution[0]):
+                            outlist.append("%f,%f,%f,\n" % (velx.voxel((x,y,z)), velz.voxel((x,y,z)), vely.voxel((x,y,z))))
+                            written_this_block += 1
+                            total_written += 1
+                            if written_this_block > 1000000:
+                                file.write("".join(outlist))
+                                outlist = []
+                                written_this_block = 0
+                                percent = float(total_written) / float(total_to_write)
+                                operation.updateProgress(percent)
 
-            if written_this_block > 0:
-                file.write("".join(outlist))
-        except hou.OperationInterrupted:
-            print ("User cancelled vector file save")
-        except:
-            print ("exception thrown while saving vector file")
-        finally:
-            file.close()
+                if written_this_block > 0:
+                    file.write("".join(outlist))
+            except hou.OperationInterrupted:
+                print ("User cancelled vector file save")
+            except:
+                print ("exception thrown while saving vector file")
 
 
 def renderFGB():
@@ -91,9 +88,9 @@ def renderFGB():
     out_stream = io.open(fgaFile,'wb')
     out_stream.write(header)
 
-    format = struct.Struct('3f')
+    dataformat = struct.Struct('3f')
     bufferLength=10000
-    buffer = bytearray(format.size * bufferLength)
+    buffer = bytearray(dataformat.size * bufferLength)
     with hou.InterruptableOperation("Saving FGB 2", long_operation_name="Saving vector field",
                                     open_interrupt_dialog=True) as operation:
         try:
@@ -103,7 +100,7 @@ def renderFGB():
             for y in range(resolution[1]):
                 for z in range(resolution[2]):
                     for x in range(resolution[0]):
-                        format.pack_into(buffer,total_in_buffer * format.size, vel_x.voxel((x, y, z)), vel_z.voxel((x, y, z)), vel_y.voxel((x, y, z)))
+                        dataformat.pack_into(buffer,total_in_buffer * dataformat.size, vel_x.voxel((x, y, z)), vel_z.voxel((x, y, z)), vel_y.voxel((x, y, z)))
                         total_written += 1
                         total_in_buffer += 1
                         if total_in_buffer == bufferLength:
@@ -114,7 +111,7 @@ def renderFGB():
                             operation.updateProgress(percent)
 
             if total_in_buffer > 0:
-                chunk = buffer[0:((total_in_buffer+1)* format.size)]
+                chunk = buffer[0:((total_in_buffer+1)* dataformat.size)]
                 out_stream.write(chunk)
         except hou.OperationInterrupted:
             print ("User cancelled vector file save")
