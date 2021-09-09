@@ -379,7 +379,7 @@ class Measurement(object):
         self.setSpotTransform(self.tail_spot_drawable, model_to_camera, camera_to_ndc)
         self.setSpotTransform(self.head_spot_drawable, model_to_camera, camera_to_ndc)
         self.setLineTransform(self.line_drawable)
-        if (plane == None):
+        if plane is None:
             self.head_disk_drawable = None
             return
         self.setHeadDisk(plane, scene_viewer)
@@ -550,7 +550,7 @@ class State(object):
     def drawAngle(self, angle_snapping_on, handle):
         if not angle_snapping_on:
             return
-        if (self.curPlane == None):
+        if self.curPlane is None:
             return
         plane_vec = State.planes[self.curPlane]
         #rot = hou.Matrix4.extractRotationMatrix3(g_WorldXform)

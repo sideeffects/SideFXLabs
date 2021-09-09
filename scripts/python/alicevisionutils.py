@@ -38,15 +38,14 @@ def process(cmd, cache, folder, node):
                     customenv = json.loads(HDA.parm("customenv").eval())
                     clean_env = {str(key): str(value) for key, value in customenv.items()}
 
-                Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=clean_env, cwd=workingdir)
-
-                # Process is still running
-                while Process.poll() is None:
-                    try:
-                        Operation.updateProgress(0.0)
-                    # User interrupted
-                    except hou.OperationInterrupted:
-                        Process.kill()
+                with subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo, env=clean_env, cwd=workingdir) as Process:
+                    # Process is still running
+                    while Process.poll() is None:
+                        try:
+                            Operation.updateProgress(0.0)
+                        # User interrupted
+                        except hou.OperationInterrupted:
+                            Process.kill()
 
         with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'r') as myfile:
             data = myfile.read()

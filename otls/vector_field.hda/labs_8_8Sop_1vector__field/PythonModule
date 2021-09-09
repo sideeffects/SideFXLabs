@@ -85,37 +85,35 @@ def renderFGB():
     if not os.path.isdir(os.path.dirname(fgaFile)):
         os.mkdir(os.path.dirname(fgaFile)) 
 
-    out_stream = io.open(fgaFile,'wb')
-    out_stream.write(header)
+    with io.open(fgaFile,'wb') as out_stream:
+        out_stream.write(header)
 
-    dataformat = struct.Struct('3f')
-    bufferLength=10000
-    buffer = bytearray(dataformat.size * bufferLength)
-    with hou.InterruptableOperation("Saving FGB 2", long_operation_name="Saving vector field",
-                                    open_interrupt_dialog=True) as operation:
-        try:
-            total_to_write = resolution[0] * resolution[1] * resolution[2]
-            total_written = 0
-            total_in_buffer = 0
-            for y in range(resolution[1]):
-                for z in range(resolution[2]):
-                    for x in range(resolution[0]):
-                        dataformat.pack_into(buffer,total_in_buffer * dataformat.size, vel_x.voxel((x, y, z)), vel_z.voxel((x, y, z)), vel_y.voxel((x, y, z)))
-                        total_written += 1
-                        total_in_buffer += 1
-                        if total_in_buffer == bufferLength:
-                            out_stream.write(buffer)
-                            total_in_buffer = 0
-                            percent = float(total_written) / float(total_to_write)
-                            print("percent complete = " + str(int(percent*100)))
-                            operation.updateProgress(percent)
+        dataformat = struct.Struct('3f')
+        bufferLength=10000
+        buffer = bytearray(dataformat.size * bufferLength)
+        with hou.InterruptableOperation("Saving FGB 2", long_operation_name="Saving vector field",
+                                        open_interrupt_dialog=True) as operation:
+            try:
+                total_to_write = resolution[0] * resolution[1] * resolution[2]
+                total_written = 0
+                total_in_buffer = 0
+                for y in range(resolution[1]):
+                    for z in range(resolution[2]):
+                        for x in range(resolution[0]):
+                            dataformat.pack_into(buffer,total_in_buffer * dataformat.size, vel_x.voxel((x, y, z)), vel_z.voxel((x, y, z)), vel_y.voxel((x, y, z)))
+                            total_written += 1
+                            total_in_buffer += 1
+                            if total_in_buffer == bufferLength:
+                                out_stream.write(buffer)
+                                total_in_buffer = 0
+                                percent = float(total_written) / float(total_to_write)
+                                print("percent complete = " + str(int(percent*100)))
+                                operation.updateProgress(percent)
 
-            if total_in_buffer > 0:
-                chunk = buffer[0:((total_in_buffer+1)* dataformat.size)]
-                out_stream.write(chunk)
-        except hou.OperationInterrupted:
-            print ("User cancelled vector file save")
-        except:
-            print ("exception thrown while saving vector file")
-        finally:
-            out_stream.close()
+                if total_in_buffer > 0:
+                    chunk = buffer[0:((total_in_buffer+1)* dataformat.size)]
+                    out_stream.write(chunk)
+            except hou.OperationInterrupted:
+                print ("User cancelled vector file save")
+            except:
+                print ("exception thrown while saving vector file")
