@@ -3,7 +3,7 @@
    It handles normalization of maps and cleanup of unecessary files.
 
 """
-import os, socket, uuid
+import os, uuid
 
 unique_id = None 
 
@@ -25,7 +25,7 @@ def set_current_mesh(node):
 def multi_render(node):
     override_node = hou.node(node.parm("overridenode").eval())
     multi_bake = hou.node("%s/multi_bake" % node.path())
-    uuid = override_node.parm("uuid").eval()
+    uuidval = override_node.parm("uuid").eval()
     temp_dir = node.parm("tempdirectory").eval()
     temp_exr_path = override_node.parm("tempexrpath")
     current_low_mesh = override_node.parm("current_low_mesh")
@@ -37,14 +37,14 @@ def multi_render(node):
         #node.parm("udimpostprocess").set("borderfill")
         for i in range(mesh_count-1):
             init_switch.set(0)
-            temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuid, i+2))
+            temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuidval, i+2))
             current_low_mesh.set(node.node(node.parm("target_mesh_%s" % (i+2)).eval()).path())
             current_high_mesh.set(node.node(node.parm("source_mesh_%s" % (i+2)).eval()).path())
             multi_bake.render()
             
             
     #node.parm("udimpostprocess").set("diffusefill")
-    temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuid, 1))
+    temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuidval, 1))
     current_low_mesh.set(node.node(node.parm("target_mesh_%s" % 1).eval()).path())
     current_high_mesh.set(node.node(node.parm("source_mesh_%s" % 1).eval()).path())
     #init_switch.set(1)
@@ -52,7 +52,7 @@ def multi_render(node):
 def custom_multi_render(node):
     override_node = hou.node(node.parm("overridenode").eval())
     custom_multi_bake = hou.node("%s/custom_multi_bake" % node.path())
-    uuid = override_node.parm("uuid").eval()
+    uuidval = override_node.parm("uuid").eval()
     temp_dir = node.parm("tempdirectory").eval()
     temp_exr_path = override_node.parm("tempexrpath")
     current_low_mesh = override_node.parm("current_low_mesh")
@@ -66,13 +66,13 @@ def custom_multi_render(node):
         #node.parm("udimpostprocess").set("borderfill")
         for i in range(mesh_count-1):
             init_switch.set(0)
-            temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuid, i+2))
+            temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuidval, i+2))
             current_low_mesh.set(node.node(node.parm("target_mesh_%s" % (i+2)).eval()).path())
             current_high_mesh.set(node.node(node.parm("source_mesh_%s" % (i+2)).eval()).path())
             custom_multi_bake.render()
             
     #node.parm("udimpostprocess").set("diffusefill")
-    temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuid, 1))
+    temp_exr_path.set("%s/%s_tmp_exr_path%s.exr" % (temp_dir, uuidval, 1))
     current_low_mesh.set(node.node(node.parm("target_mesh_%s" % 1).eval()).path())
     current_high_mesh.set(node.node(node.parm("source_mesh_%s" % 1).eval()).path())
     
@@ -109,7 +109,7 @@ def extract_planes(node):
     for bake_parm in bake_parms:
         should_bake = node.parm(bake_parm).eval()
         if should_bake:
-            channel_name = bake_parm.split("_")[-1]
+            channel_name = bake_parm.rsplit('_', maxsplit=1)[-1]
             override_node.parm("currentplane").set(channel_name)
             suffix = node.parm(channel_name + "_suffix").eval()
 
@@ -239,7 +239,7 @@ def pre_bake(node):
     for bake_parm in bake_parms:
         should_bake = node.parm(bake_parm).eval()
         if should_bake:
-            channel_name = bake_parm.split("_")[-1]
+            channel_name = bake_parm.rsplit('_', maxsplit=1)[-1]
             singles_rop.parm("color").set(channel_name)
             suffix = node.parm(channel_name + "_suffix").eval()
 
@@ -470,7 +470,7 @@ def setplane(node):
     for bake_parm in bake_parms:
         should_bake = node.parm(bake_parm).eval()
         if should_bake:
-            channel_name = bake_parm.split("_")[-1]
+            channel_name = bake_parm.rsplit('_', maxsplit=1)[-1]
             no_standard_bakes = 0
             return channel_name
     if no_standard_bakes:
