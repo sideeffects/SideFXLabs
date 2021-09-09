@@ -20,7 +20,7 @@ def ProcessTor(a_node):
     if automation_file == "":
         raise hou.Error("Missing Automation Tor File.")
 
-    if a_node.parm("generated_gaeaparms") == None:
+    if a_node.parm("generated_gaeaparms") is None:
         LoadXML(a_node)
 
     # Export All Maps
@@ -89,22 +89,22 @@ def RunGaea(a_node, cmd, gaea_dir):
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
             
     with hou.InterruptableOperation(a_node.name(), open_interrupt_dialog=True) as Operation:
-        Process = subprocess.Popen(" ".join(cmd), startupinfo=si, cwd=gaea_dir)
-        
-        # Process is still running
-        while Process.poll() == None:
-            try:
-                Operation.updateProgress(0.0)
-            # User interrupted
-            except hou.OperationInterrupted:
-                Process.kill()
+        with subprocess.Popen(" ".join(cmd), startupinfo=si, cwd=gaea_dir) as Process:
+            
+            # Process is still running
+            while Process.poll() is None:
+                try:
+                    Operation.updateProgress(0.0)
+                # User interrupted
+                except hou.OperationInterrupted:
+                    Process.kill()
 
 
 # Resets entire interface with Gaea Parms
 def ResetInterface(a_node):
     ParmGroup = a_node.parmTemplateGroup()
 
-    if a_node.parm("generated_gaeaparms") != None:
+    if a_node.parm("generated_gaeaparms") is not None:
         for spareparm in ParmGroup.find("generated_gaeaparms").parmTemplates():
             ParmGroup.remove(spareparm.name())
         ParmGroup.remove("generated_gaeaparms")
@@ -142,7 +142,7 @@ def LoadXML(a_node):
     ParmGroup = a_node.parmTemplateGroup()
     FolderGroup = a_node.parm("generated_gaeaparms")
 
-    if FolderGroup == None:
+    if FolderGroup is None:
         FolderGroup = hou.FolderParmTemplate("generated_gaeaparms", "Gaea Controls", folder_type=hou.folderType.Simple, ends_tab_group=True)
         ParmGroup.insertAfter(ParmGroup.findIndices("sepparm"), FolderGroup)
 
@@ -162,32 +162,32 @@ def LoadXML(a_node):
             
             name = LineEntry['Variable']
             label = LineEntry['Name']
-            type = LineEntry['Type']
+            parmtype = LineEntry['Type']
             default = LineEntry['Default']
 
 
             # If these parms don't exist yet.. Create them
-            if a_node.parm(name) == None:
+            if a_node.parm(name) is None:
                 SpareParm = None
 
-                if type == "int":
+                if parmtype == "int":
                     SpareParm = hou.IntParmTemplate(name, label, 1, default_value=(int(default),), min=int(LineEntry['Min']), max=int(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
 
-                elif type == "double":
+                elif parmtype == "double":
                     SpareParm = hou.FloatParmTemplate(name, label, 1, default_value=(float(default),), min=float(LineEntry['Min']), max=float(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
 
-                elif type == "bool":
+                elif parmtype == "bool":
                     SpareParm = hou.ToggleParmTemplate(name, label, default_value=eval(default), script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
 
-                elif type == "choice":
+                elif parmtype == "choice":
                     MenuValues = tuple(LineEntry['Choices'].split(','))
                     SpareParm = hou.MenuParmTemplate(name, label, menu_items=MenuValues, default_value=int(default), menu_type=hou.menuType.Normal, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.insertBefore(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
 
-                elif type == "in":
+                elif parmtype == "in":
                     SpareParm = hou.StringParmTemplate(name, label, 1, default_value=(default,), string_type=hou.stringParmType.Regular, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     SpareParm.setMenuType(hou.menuType.StringReplace)
                     SpareParm.setItemGeneratorScript("import hou\nAllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))\nModulePairs = [[x, x] for x in AllModuleNames]\nreturn sum(ModulePairs, [])")
@@ -195,7 +195,7 @@ def LoadXML(a_node):
 
                     ParmGroup.appendToFolder(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
 
-                elif type == "out":
+                elif parmtype == "out":
                     SpareParm = hou.StringParmTemplate(name, label, 1, default_value=(default,), string_type=hou.stringParmType.Regular, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     SpareParm.setItemGeneratorScript("import hou\nAllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))\nModulePairs = [[x, x] for x in AllModuleNames]\nreturn sum(ModulePairs, [])")
                     SpareParm.setItemGeneratorScriptLanguage(hou.scriptLanguage.Python)
@@ -204,6 +204,6 @@ def LoadXML(a_node):
                     ParmGroup.appendToFolder(ParmGroup.find("generated_houdiniinputfolder"), SpareParm)
 
                 else:
-                    raise hou.Error("%s %s %s %s cannot be processed." % (name, label, type, default))
+                    raise hou.Error("%s %s %s %s cannot be processed." % (name, label, parmtype, default))
 
     a_node.setParmTemplateGroup(ParmGroup)

@@ -8,7 +8,7 @@ def createAnimationCOPNetwork(hda, frames):
     cop = hda.node("animation_cop")
     
     prevComp = []
-    for slice in range(frames):
+    for still in range(frames):
         read = cop.createNode('file')
         mosaic = read.createOutputNode('mosaic')
         crop = mosaic.createOutputNode('crop')
@@ -19,7 +19,7 @@ def createAnimationCOPNetwork(hda, frames):
         unexpandedPath = hda.parm('anim_output_sequence').unexpandedString()
         #filePath = unexpandedPath.replace('$HIP', hou.expandString('$HIP'))
         filePath = unexpandedPath.replace('${OS}', hda.name())
-        rot = (360.0/(frames - 1)) * slice
+        rot = (360.0/(frames - 1)) * still
         rot = '%.6f' % rot
         wedge = '_wedge_rotation_%s' % rot
         filePath = filePath.replace('${WEDGE}', wedge)
@@ -31,19 +31,18 @@ def createAnimationCOPNetwork(hda, frames):
         mosaic.parm('imagelimit').set(totalFrames)
         
         #crop node changes
-        crop.parm('hcrop2').set(slice + 1)
+        crop.parm('hcrop2').set(still + 1)
         
         #xform node changes
         xform.parm('units').set(1)
         resx = int(hda.parm('sprite_resx').eval())
-        xform.parm('tx').set(resx * slice)
+        xform.parm('tx').set(resx * still)
         
         if prevComp:
             prevComp.setInput(1, xform)
             composite.setInput(0, prevComp)
-        #prevComp = composite
         
-        if (slice == frames - 1):
+        if (still == frames - 1):
             composite.destroy()
         else:
             prevComp = composite
