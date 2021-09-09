@@ -78,7 +78,7 @@ def path_create(dirlist,filelist=None):
 #    Desc: Figures out Load and Write Frame
 # -----------------------------------------------------------------------------
 
-def file_type(node, file_type):
+def file_type(node, _file_type):
     #default extension
     if   _file_type == 'geo':
         ext         = '.bgeo.sc'

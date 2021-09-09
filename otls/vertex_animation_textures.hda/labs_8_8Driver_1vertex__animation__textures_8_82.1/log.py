@@ -3,11 +3,8 @@
 # =============================================================================
 
 import hou
-import os
-import sys
 import json
 from subprocess import Popen, PIPE, STDOUT
-from itertools import izip
 
 # =============================================================================
 # FUNCTIONS
