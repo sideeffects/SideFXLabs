@@ -65,8 +65,7 @@ def path_create(dirlist,filelist=None):
         dirpath     = os.path.join(*dirlist)
         dirpath     = os.path.normpath(dirpath)
     if filelist :
-        file        = ''.join(filelist)
-        path        = dirpath + file
+        path        = dirpath + ''.join(filelist)
     else :
         path        = dirpath
     path            = os.path.normpath(path) #.replace("\\",'/')
@@ -81,9 +80,9 @@ def path_create(dirlist,filelist=None):
 
 def file_type(node, file_type):
     #default extension
-    if   file_type == 'geo':
+    if   _file_type == 'geo':
         ext         = '.bgeo.sc'
-    elif file_type == 'img':
+    elif _file_type == 'img':
         ext         = '.exr'
     if node.parm("file_type") :
         ext         = node.evalParm("file_type")
@@ -143,11 +142,8 @@ def asset(node):
         name        = node.evalParm("asset")
         enable      = node.evalParm("asset_enable")
 
-        if enable == 1 and name != "" :
-            name    = name
-        else :
+        if enable != 1 or name == "" :
             name    = default
-
         name        = re.sub('[. ]','',name)
 
     return name
@@ -166,11 +162,8 @@ def component(node):
         name        = node.evalParm("component")
         enable      = node.evalParm("component_enable")
 
-        if enable == 1 and name != "" :
-            name    = name
-        else :
+        if enable != 1 or name != "" :
             name    = default
-
         name        = re.sub('[. ]','',name)
 
     return name
@@ -336,7 +329,7 @@ def vm_tmplocalstorage(node):
 
 def vm_picture(node):
     ext = file_type(node, 'img')
-    if ext == 'md' or ext == 'ip' :
+    if ext in ['md', 'ip']:
         path = ext
     else :
         dirlist     =[hq_project_path(node),'render']
@@ -370,7 +363,7 @@ def vm_filename_plane(node,parm):
 
 def picture(node):
     ext = file_type(node, 'img')
-    if ext == 'md' or ext == 'ip' :
+    if ext in ['md', 'ip']:
         path = ext
     else :
         dirlist     =[hq_project_path(node),'flip']
@@ -388,7 +381,7 @@ def picture(node):
 
 def copoutput(node):
     ext = file_type(node, 'img')
-    if ext == 'md' or ext == 'ip' :
+    if ext in ['md', 'ip']:
         path = ext
     else :
         dirlist     =[hq_project_path(node),'comp']
@@ -408,7 +401,7 @@ def copaux(node,parm):
     i           =re.match('.*?([0-9]+)$', parm).group(1)
     channel     =str("copaux"+i)
     ext = file_type(node, 'img')
-    if ext == 'md' or ext == 'ip' :
+    if ext in ['md', 'ip']:
         path = ext
     else :
         dirlist     =[hq_project_path(node),channel]
@@ -514,9 +507,9 @@ def file_version(node):
         dirList     = os.listdir(path)
         dirs        = []
         for dirName in dirList:
-                      fullPath = os.path.normpath(os.path.join(path, dirName))
-                      if os.path.isdir(fullPath):
-                                     dirs += [dirName, dirName]
+            fullPath = os.path.normpath(os.path.join(path, dirName))
+            if os.path.isdir(fullPath):
+                dirs += [dirName, dirName]
 
         return dirs
     except :

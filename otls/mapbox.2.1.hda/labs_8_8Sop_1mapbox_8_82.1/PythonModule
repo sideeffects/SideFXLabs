@@ -2,7 +2,6 @@ import os
 import time 
 import platform
 import ssl
-import sys
 
 from hutil.Qt import QtWidgets, QtWebEngineWidgets
 from math import sin, cos, sqrt, atan2, radians, pi
@@ -95,7 +94,7 @@ def refresh(node, force=True):
     cache_offset_lat = node.parm("cache_offsetsy").eval()
     cache_mapstyle = node.parm("mapstyle").evalAsString()
     cached_attribution = "true" if node.parm("attribution").evalAsInt() == 1 else "false"
-    download_osm = True if node.parm("downloadosm").evalAsInt() == 1 else False
+    download_osm = node.parm("downloadosm").evalAsInt() == 1
     
     lat_step = degree_per_tile(lat, zoom)/2
     lon_step = 360 / 2**zoom * 2
@@ -125,7 +124,7 @@ def refresh(node, force=True):
     #print("terrain url: %s" % terrain_url)
     
     if cache_mapstyle != "custom":
-            mapstyle = "mapbox/" + cache_mapstyle
+        mapstyle = "mapbox/" + cache_mapstyle
     else:
         customstyle = node.parm("customstyle").evalAsString()
         customstyle = customstyle.replace("mapbox://styles/", "")
