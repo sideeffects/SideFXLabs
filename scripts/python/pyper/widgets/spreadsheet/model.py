@@ -13,12 +13,12 @@ License:
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
@@ -37,7 +37,7 @@ def enum(*enumerated):
     enums["names"] = enumerated
     return type('enum', (), enums)
 
-FLAGS   = enum("NORMAL", "HIGHLIGHT", "NA")
+FLAGS = enum("NORMAL", "HIGHLIGHT", "NA")
 
 
 class MyDelegate(QtWidgets.QItemDelegate):
@@ -71,11 +71,15 @@ class Model(QtCore.QAbstractTableModel):
     def headerData(self, section, orientation, role):
         if role == QtCore.Qt.DisplayRole and orientation == QtCore.Qt.Horizontal:
             return self._headerNames[section]
+        else:
+            return None
 
     def getData(self, row, column):
         return self._displayList[row][column]
 
     def data(self, index, role):
+        res = None
+
         if not index.isValid():
             return None
 
@@ -84,31 +88,33 @@ class Model(QtCore.QAbstractTableModel):
         column = index.column()
 
         if role == QtCore.Qt.DisplayRole:
-            return self._displayList[row][column]
+            res = self._displayList[row][column]
 
         if role == QtCore.Qt.EditRole:
             if self._displayList[row][3] != FLAGS.NA:
-                return self._displayList[row][column]
+                res = self._displayList[row][column]
 
         if role == QtCore.Qt.TextAlignmentRole:
             if column == 2:
-                return (QtCore.Qt.AlignCenter)
+                res = (QtCore.Qt.AlignCenter)
             # else:
-            #     return QtCore.Qt.AlignVCenter
+            #     res = QtCore.Qt.AlignVCenter
 
         if role == QtCore.Qt.ForegroundRole:
             if self._displayList[row][3] == FLAGS.NA:
-                return QtGui.QColor(80, 80, 80, 255)
+                res = QtGui.QColor(80, 80, 80, 255)
 
         if role == QtCore.Qt.BackgroundRole:
             if self._displayList[row][3] == FLAGS.HIGHLIGHT:
-                return QtGui.QColor(253, 103, 33, 100)
+                res = QtGui.QColor(253, 103, 33, 100)
 
         if role == QtCore.Qt.FontRole:
             if self._displayList[row][3] == FLAGS.NA:
                 font = QtGui.QFont()
                 font.setItalic(True)
-                return font
+                res = font
+
+        return res
 
     def setData(self, index, value, role=QtCore.Qt.EditRole, quiet=False):
         if not index.isValid():
@@ -169,7 +175,7 @@ class Model(QtCore.QAbstractTableModel):
     nodePath = property(**nodePath())
 
     def nodeDict():
-        """ """
+        """ Dictionnary for the node we want to display the parameters. """
         def fget(self): return self._nodeDict
         return locals()
     nodeDict = property(**nodeDict())
@@ -254,7 +260,7 @@ class Model(QtCore.QAbstractTableModel):
 
     def refresh(self, parmlist=None):
         """ Refresh the model, defining and then filling the display list. """
-        self._logger.debug("Refreshing model %s" % self)
+        self._logger.debug("Refreshing model %s", self)
 
         self.beginResetModel()
         if not parmlist:

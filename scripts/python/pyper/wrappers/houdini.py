@@ -60,7 +60,7 @@ class Model(standalone.Model):
 
         # if a filename is specified, load this file
         if filename and os.path.isfile(filename):
-            self._logger.info("Loading houdini scene file: %s" % filename)
+            self._logger.info("Loading houdini scene file: %s", filename)
             self._houmodule.hipFile.load(filename)
 
         # define main parent window
@@ -149,7 +149,7 @@ class Model(standalone.Model):
             self._logger.error("No output name specified")
             return
 
-        self._logger.info("Saving playblast to \"%s\"." % outputName)
+        self._logger.info("Saving playblast to \"%s\".", outputName)
 
 
         # get the current viewpath
@@ -188,7 +188,7 @@ class Model(standalone.Model):
         # run the command
         res = self._houmodule.hscript(cmd)
         if res[1]:
-            self._logger.error("Error during playblast: %s" % res[1])
+            self._logger.error("Error during playblast: %s", res[1])
             return False
 
         return True
@@ -209,7 +209,7 @@ class Model(standalone.Model):
             return
 
         for parm in parms:
-            self._logger.info("Setting parameter: %s to %s" % (parm["path"], parm["value"]))
+            self._logger.info("Setting parameter: %s to %s", parm["path"], parm["value"])
             self._houmodule.parm(parm["path"]).set(parm["value"])
 
     def translatePath(self, path):
