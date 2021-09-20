@@ -102,7 +102,7 @@ def get_config_file():
 
 def set_external_editor():
 
-    r = QtWidgets.QFileDialog.getOpenFileName(hou.ui.mainWindow(),
+    r = QtWidgets.QFileDialog.getOpenFileName(hou.qt.mainWindow(),
                                                 "Select an external editor program")
     if r[0]:
 
