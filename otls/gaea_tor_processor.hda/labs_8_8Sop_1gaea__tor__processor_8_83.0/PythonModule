@@ -121,15 +121,15 @@ def RunGaea(a_node, cmd, gaea_dir):
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
     with hou.InterruptableOperation(a_node.name(), open_interrupt_dialog=True) as Operation:
-        with subprocess.Popen(" ".join(cmd), startupinfo=si, cwd=gaea_dir) as Process:
+        Process = subprocess.Popen(" ".join(cmd), startupinfo=si, cwd=gaea_dir)
 
-            # Process is still running
-            while Process.poll() is None:
-                try:
-                    Operation.updateProgress(0.0)
-                # User interrupted
-                except hou.OperationInterrupted:
-                    Process.kill()
+        # Process is still running
+        while Process.poll() is None:
+            try:
+                Operation.updateProgress(0.0)
+            # User interrupted
+            except hou.OperationInterrupted:
+                Process.kill()
 
 
 # Resets entire interface with Gaea Parms
