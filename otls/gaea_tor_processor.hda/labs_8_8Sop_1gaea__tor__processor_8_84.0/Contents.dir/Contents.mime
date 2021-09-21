@@ -2,6 +2,18 @@ MIME-Version: 1.0
 Content-Type: multipart/mixed; boundary="HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY"
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename=".OPfallbacks"
+Content-Type: application/external-reference
+
+.OPfallbacks
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename=".OPdummydefs"
+Content-Type: application/external-reference
+
+.OPdummydefs
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="node_type"
 Content-Type: text/plain
 
@@ -20,7 +32,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -8.12411 -0.520849
+position -7.52259 5.03279
 connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -36,7 +48,7 @@ stat
 {
   create -1
   modify -1
-  author prisms@threadripper1
+  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -1542,7 +1554,7 @@ folder1	[ 0	locks=0 ]	(	0	)
 scale	[ 0	locks=0 ]	(	1	)
 gridscale	[ 0	locks=0 ]	(	1	)
 heightscale	[ 0	locks=0 ]	(	1	)
-heightoffset	[ 8	locks=0 ]	(	[ heightoffset	0.062906548380851746 ] 	)
+heightoffset	[ 8	locks=0 ]	(	[ heightoffset	0.06293545663356781 ] 	)
 folder0	[ 0	locks=0 ]	(	0	)
 orient	[ 0	locks=0 ]	(	"zx"	)
 tx	[ 0	locks=0 ]	(	0	)
@@ -1633,7 +1645,7 @@ folder1	[ 0	locks=0 ]	(	0	)
 scale	[ 0	locks=0 ]	(	1	)
 gridscale	[ 0	locks=0 ]	(	1	)
 heightscale	[ 0	locks=0 ]	(	1	)
-heightoffset	[ 0	locks=0 ]	(	[ heightoffset	-62.961265563964844 ] 	)
+heightoffset	[ 0	locks=0 ]	(	[ heightoffset	-62.935455322265625 ] 	)
 folder0	[ 0	locks=0 ]	(	0	)
 orient	[ 0	locks=0 ]	(	"zx"	)
 tx	[ 0	locks=0 ]	(	0	)
@@ -1888,7 +1900,7 @@ sopflags sopflags =
 comment ""
 position -1.2695 -26.9189
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 }
@@ -2105,7 +2117,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 0	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -3452,7 +3464,7 @@ sopflags sopflags =
 comment ""
 position 2.80634 -12.3334
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template on footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -3524,9 +3536,12 @@ for volume in geo.prims():
         (xres, yres, zres) = volume.resolution()
 
         with open(ExportFile, \"rb\") as file:
-            a = array.array('f')
-            a.fromfile(file, xres*yres*zres)
-            volume.setAllVoxelsFromString(a)  
+            try:
+                a = array.array('f')
+                a.fromfile(file, xres*yres*zres)
+                volume.setAllVoxelsFromString(a)
+            except EOFError:
+                raise hou.NodeWarning(\"The resolution of the heightfield provided as input differs from the previous cook\") 
 "	)
 sImage	[ 0	locks=0 ]	(	""	)
 }
@@ -5100,7 +5115,7 @@ sopflags sopflags =
 comment ""
 position -1.56849 10.3039
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 1 "output1"
@@ -5190,7 +5205,7 @@ version 0.8
 numerror	[ 0	locks=0 ]	(	1	)
 errormsg1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"Gaea only supports power of two resolution terrains! Please change your HF resolution to be a power of 2 number of voxels in in both axis! (ex 512x512, 1024x1024 etc) This tool will still work, but might produce some artefacts in the output."	)
 severity1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	"warn"	)
-enable1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	[ enable1	1 ] 	)
+enable1	[ 0	locks=0	autoscope=0	autosel=4294967295 ]	(	[ enable1	0 ] 	)
 spare_input0	[ 0	locks=0 ]	(	../attribwrangle1	)
 }
 
