@@ -249,6 +249,9 @@ class State(object):
             if intersected >= 0:
 
                 if reason == hou.uiEventReason.Picked and ui_event.device().isMiddleButton():
+                    ComplexCollisionGeo = node.node("OUT_COLLISIONCOMPLEX").geometry()
+                    gi = su.GeometryIntersector(ComplexCollisionGeo, scene_viewer=self.scene_viewer)
+                    gi.intersect(origin, direction)
                     _index = ComplexCollisionGeo.iterPrims()[gi.prim_num].intAttribValue("__MultiParmID")-1
                     if _index >= 0 and _index < self.multiparm.evalAsInt():
                         self.multiparm.removeMultiParmInstance(_index)
