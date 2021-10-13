@@ -9,7 +9,7 @@ import defaulttools
 
 from hutil.Qt.QtCore import QRegExp, QSize, Qt
 from hutil.Qt.QtGui import QRegExpValidator, QStandardItemModel, QStandardItem, QIcon, QFont
-from hutil.Qt.QtWidgets import QWidget, QLayout, QLineEdit, QLabel, QPushButton, QDialog, QListWidgetItem, QFileDialog, QVBoxLayout, QHBoxLayout, QGroupBox, QListWidget, QListView, QCheckBox, QComboBox, QSpacerItem, QSizePolicy, QSpinBox, QTableView, QTableWidget, QAbstractItemView, QTreeView
+from hutil.Qt.QtWidgets import QWidget, QSizePolicy, QLayout, QLineEdit, QLabel, QPushButton, QDialog, QListWidgetItem, QFileDialog, QVBoxLayout, QHBoxLayout, QGroupBox, QListWidget, QListView, QCheckBox, QComboBox, QSpacerItem, QSizePolicy, QSpinBox, QTableView, QTableWidget, QAbstractItemView, QTreeView
 
 
 def getConfigKeys():
@@ -415,8 +415,8 @@ def allVHDAFilesInPath():
     hda_files = []
     hda_path = hou.expandString(getVHDAConfigValue(getConfigKeys()[0]))
 
-    regex = "(([a-zA-Z])\w+\.){1,3}\d+\.\d+\."  + getAssetfileExtenstion()
-    regex_nover = "(([a-zA-Z])\w+\.){1,3}" + getAssetfileExtenstion()
+    regex = r"(([a-zA-Z])\w+\.){1,3}\d+\.\d+\."  + getAssetfileExtenstion()
+    regex_nover = r"(([a-zA-Z])\w+\.){1,3}" + getAssetfileExtenstion()
 
     if os.path.exists(hda_path):
         for hda_file in os.listdir(hda_path):
@@ -629,7 +629,7 @@ def separateVHDAFileNameComponents(file_name):
     major = 0
     minor = 0
 
-    r = re.search("(\d+\.\d+)",base_name)
+    r = re.search(r"(\d+\.\d+)",base_name)
 
     if r is None:
         name_components = os.path.splitext(base_name)[0]
@@ -688,9 +688,9 @@ def constructVHDALabel(label, namespace_branch=None):
         if getVHDAConfigValue(getConfigKeys()[1]):
             return "%s (%s)" % (label,namespace_branch.capitalize())
         else:
-            return "%s" % (re.sub("[\(\[].*?[\)\]]", "", label).rstrip())
+            return "%s" % (re.sub(r"[\(\[].*?[\)\]]", "", label).rstrip())
     else:
-        return re.sub("[\(\[].*?[\)\]]", "", label).rstrip()
+        return re.sub(r"[\(\[].*?[\)\]]", "", label).rstrip()
 
 def getAssetfileExtenstion():
     """ Based on the license type it returns the corresponding hipfile exteinsion
@@ -714,7 +714,7 @@ def constructVHDAFileName(namespace_user, namespace_branch,name,major,minor):
         vhda_name += ".{0}.{1}.{2}".format(major, minor, getAssetfileExtenstion())
     else:
         vhda_name += ".{0}".format(getAssetfileExtenstion())
-    return re.sub("[^0-9a-zA-Z\.:_]+", "", "".join(vhda_name))
+    return re.sub(r"[^0-9a-zA-Z\.:_]+", "", "".join(vhda_name))
 
 def copyToNewVHDA(node):
     """ Creates a versioned copy of an existing versioned/not versioned digital asset.
@@ -1138,7 +1138,7 @@ class NamespaceWidget(QWidget):
 
         self.layout = QHBoxLayout()
         self.layout.setSpacing(0)
-        self.layout.setContentsMargins(5,1,5,1)
+        self.layout.setContentsMargins(hou.ui.scaledSize(5),hou.ui.scaledSize(1),hou.ui.scaledSize(5),hou.ui.scaledSize(1))
 
         self.layout.setSizeConstraint(QLayout.SetMinimumSize)
 
@@ -1151,7 +1151,7 @@ class NamespaceWidget(QWidget):
 
 
         self.namespace_edit  = QLineEdit("")
-        regex = QRegExp("[a-zA-Z_\s]+")
+        regex = QRegExp(r"[a-zA-Z_\s]+")
         validator = QRegExpValidator(regex)
         self.namespace_edit.setValidator(validator)
         self.namespace_edit.textChanged.connect(self.on_LineEditChanged)
@@ -1160,8 +1160,8 @@ class NamespaceWidget(QWidget):
 
         self.remove_btn = QPushButton("")
         self.remove_btn.setIcon(hou.qt.createIcon("BUTTONS_multi_remove"))
-        self.remove_btn.setIconSize(QSize(15, 15))
-        self.remove_btn.setMaximumSize(QSize(23, 23))
+        self.remove_btn.setIconSize(QSize(hou.ui.scaledSize(15), hou.ui.scaledSize(15)))
+        self.remove_btn.setMaximumSize(QSize(hou.ui.scaledSize(23), hou.ui.scaledSize(23)))
         self.remove_btn.clicked.connect(self.on_removedClick)
 
         self.layout.addWidget(self.remove_btn)
@@ -1185,7 +1185,7 @@ class NamespaceWidget(QWidget):
         else:
             icon = hou.qt.createIcon("MISC_checkbox_light_off")
 
-        self.selected_btn.setPixmap(icon.pixmap(QSize(20,20)))
+        self.selected_btn.setPixmap(icon.pixmap(QSize(hou.ui.scaledSize(20),hou.ui.scaledSize(20))))
 
     def setWidgetItem(self, widget_item):
         self.widget_item = widget_item
@@ -1198,7 +1198,7 @@ class NamespaceWidget(QWidget):
         return self.namespace_edit.text()
 
     def sizeHint(self):
-       return QSize(100,25)
+       return QSize(hou.ui.scaledSize(100),hou.ui.scaledSize(25))
 
     def on_removedClick(self):
         my_row = self.list_widget.row(self.widget_item)
@@ -1215,8 +1215,8 @@ class NamespaceWidget(QWidget):
                 if widget:
                     widget.setDisabled(disable)
 
-        height_limit = 26*4
-        current_height = 26 * self.list_widget.count()
+        height_limit = hou.ui.scaledSize(26*4)
+        current_height = hou.ui.scaledSize(26) * self.list_widget.count()
 
         self.list_widget.setFixedHeight(height_limit if current_height > height_limit else current_height)
 
@@ -1293,6 +1293,7 @@ class VHDAPreferencesDialog(QDialog):
     def addNewItem(self, list_widget, label="dev"):
 
         item = QListWidgetItem(list_widget)
+
         list_widget.addItem(item)
 
         my_widget = NamespaceWidget()
@@ -1311,8 +1312,8 @@ class VHDAPreferencesDialog(QDialog):
                     if widget:
                         widget.setDisabled(False)
 
-        height_limit = 26*4
-        current_height = 26 * list_widget.count()
+        height_limit = hou.ui.scaledSize(26*4)
+        current_height = hou.ui.scaledSize(26) * list_widget.count()
 
         list_widget.setFixedHeight(height_limit if current_height > height_limit else current_height)
 
@@ -1389,8 +1390,8 @@ class VHDAPreferencesDialog(QDialog):
 
         self.add_btn = QPushButton("")
         self.add_btn.setIcon(hou.qt.createIcon("BUTTONS_list_add"))
-        self.add_btn.setIconSize(QSize(15, 15))
-        self.add_btn.setMaximumSize(QSize(23, 23))
+        self.add_btn.setIconSize(QSize(hou.ui.scaledSize(15), hou.ui.scaledSize(15)))
+        self.add_btn.setMaximumSize(QSize(hou.ui.scaledSize(23), hou.ui.scaledSize(23)))
         self.add_btn.clicked.connect(self.on_addNewUserItemClicked)
 
         user_items_label_layout.addWidget(self.banch_items_label)
@@ -1421,8 +1422,8 @@ class VHDAPreferencesDialog(QDialog):
 
         self.add_btn = QPushButton("")
         self.add_btn.setIcon(hou.qt.createIcon("BUTTONS_list_add"))
-        self.add_btn.setIconSize(QSize(15, 15))
-        self.add_btn.setMaximumSize(QSize(23, 23))
+        self.add_btn.setIconSize(QSize(hou.ui.scaledSize(15), hou.ui.scaledSize(15)))
+        self.add_btn.setMaximumSize(QSize(hou.ui.scaledSize(23), hou.ui.scaledSize(23)))
         self.add_btn.clicked.connect(self.on_addNewBranchItemClicked)
 
         branch_items_label_layout.addWidget(self.banch_items_label)
@@ -1449,7 +1450,7 @@ class VHDAPreferencesDialog(QDialog):
         name_gb_layout.addLayout(user_layout)
 
         _label2 = QLabel("")
-        _label2.setFixedSize(85, 25)
+        _label2.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(25))
         self.enable_user = QCheckBox("Enable User Namespace")
         self.enable_user.setChecked(getVHDAConfigValue(getConfigKeys()[2]))
 
@@ -1461,7 +1462,7 @@ class VHDAPreferencesDialog(QDialog):
         name_gb_layout.addLayout(branch_layout)
 
         _label2 = QLabel("")
-        _label2.setFixedSize(85, 25)
+        _label2.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(25))
         self.enable_branch = QCheckBox("Enable Branch Namespace")
         self.enable_branch.setChecked(getVHDAConfigValue(getConfigKeys()[3]))
 
@@ -1473,7 +1474,7 @@ class VHDAPreferencesDialog(QDialog):
         name_gb_layout.addLayout(version_layout)
 
         _label2 = QLabel("")
-        _label2.setFixedSize(85, 25)
+        _label2.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(25))
         self.enable_versioning = QCheckBox("Enable Versioning")
         self.enable_versioning.setChecked(getVHDAConfigValue(getConfigKeys()[8]))
 
@@ -1494,7 +1495,7 @@ class VHDAPreferencesDialog(QDialog):
         tabmenu_gb_layout.addLayout(tabmenu_layout)
 
         _label2 = QLabel("")
-        _label2.setFixedSize(85, 25)
+        _label2.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(25))
         self.show_dev_enable = QCheckBox("Display Branch in Label")
         self.show_dev_enable.setChecked(getVHDAConfigValue(getConfigKeys()[1]))
 
@@ -1506,7 +1507,7 @@ class VHDAPreferencesDialog(QDialog):
         tabmenu_gb_layout.addLayout(tabmenu_layout)
 
         tabmenu_label = QLabel("Menu Entry")
-        tabmenu_label.setFixedSize(85, 20)
+        tabmenu_label.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(20))
         self.tabmenu_edit = QComboBox(self)
         self.tabmenu_edit.setEditable(True)
 
@@ -1539,7 +1540,7 @@ class VHDAPreferencesDialog(QDialog):
         path_gb_layout.addLayout(savepath_layout)
 
         _label1 = QLabel("Save Path")
-        _label1.setFixedSize(85, 25)
+        _label1.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(25))
 
         self.pathmode = QComboBox()
         self.pathmode.setEditable(True)
@@ -1549,7 +1550,7 @@ class VHDAPreferencesDialog(QDialog):
 
         self.assetlocation_btn = QPushButton("")
         self.assetlocation_btn.setIcon(hou.qt.createIcon("BUTTONS_folder"))
-        self.assetlocation_btn.setFixedSize(30, 28)
+        self.assetlocation_btn.setFixedSize(hou.ui.scaledSize(30), hou.ui.scaledSize(28))
         self.assetlocation_btn.clicked.connect(self.on_InputFileButtonClicked)
 
         savepath_layout.addWidget(_label1)
@@ -1562,7 +1563,7 @@ class VHDAPreferencesDialog(QDialog):
         path_gb_layout.addLayout(custompath_layout)
 
         pathlabel = QLabel("Preview")
-        pathlabel.setFixedSize(85, 25)
+        pathlabel.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(25))
         custompath_layout.addWidget(pathlabel)
         self.pathlabel_edit = QLabel(os.path.normpath(hou.expandString(getVHDAConfigValue(getConfigKeys()[0]))))
         self.pathlabel_edit.setWordWrap(True)
@@ -1587,7 +1588,7 @@ and set 'Asset Bar' menu to 'Display Menu of All Definitions'.""")
         versioning_layout.addWidget(self.versioning_preview)
 
         # BUTTON SPACER ----------------------------
-        verticalSpacer = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        verticalSpacer = QSpacerItem(hou.ui.scaledSize(20), hou.ui.scaledSize(20), QSizePolicy.Minimum, QSizePolicy.Expanding)
         layout.addItem(verticalSpacer)
 
         # BUTTONS ----------------------------
@@ -1600,13 +1601,13 @@ and set 'Asset Bar' menu to 'Display Menu of All Definitions'.""")
 
         buttons_layout.setAlignment(Qt.AlignRight)
         self.Reset_btn = QPushButton("Restore Factory Defaults")
-        self.Reset_btn.setFixedWidth(180)
-        horizontalSpacer = QSpacerItem(200, 0, QSizePolicy.Maximum, QSizePolicy.Expanding)
+        self.Reset_btn.setFixedWidth(hou.ui.scaledSize(180))
+        horizontalSpacer = QSpacerItem(hou.ui.scaledSize(200), 0, QSizePolicy.Maximum, QSizePolicy.Expanding)
         self.OK_btn = QPushButton("Apply")
-        self.OK_btn.setFixedWidth(100)
+        self.OK_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.OK_btn.setDefault(True)
         self.Cancel_btn = QPushButton("Cancel")
-        self.Cancel_btn.setFixedWidth(100)
+        self.Cancel_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.OK_btn.clicked.connect(self.on_OK)
         self.Cancel_btn.clicked.connect(self.on_Cancel)
         self.Reset_btn.clicked.connect(self.on_Reset)
@@ -1922,14 +1923,14 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         name_gb_layout.addLayout(assetbranch_layout)
 
         assettype_label = QLabel("          Type")
-        assettype_label.setFixedSize(110, 20)
+        assettype_label.setFixedSize(hou.ui.scaledSize(110), hou.ui.scaledSize(20))
         assettype_label.setToolTip(self.assettype_label_tooltip)
 
         self.assettype_edit = QLineEdit(self.defaults[2])
         self.assettype_edit.setToolTip(self.assettype_tooltip)
         self.assettype_edit.textChanged.connect(self.on_AssetTypeChanged)
 
-        regex_type = QRegExp("[a-zA-Z_\s]+")
+        regex_type = QRegExp(r"[a-zA-Z_\s]+")
         validator_type = QRegExpValidator(regex_type)
         self.assettype_edit.setValidator(validator_type)
 
@@ -1952,17 +1953,17 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.user_enable.setChecked(checked)
         self.user_enable.setToolTip(self.user_enable_tooltip)
-        self.user_enable.setFixedSize(19, 20)
+        self.user_enable.setFixedSize(hou.ui.scaledSize(19), hou.ui.scaledSize(20))
 
         user_label = QLabel("User")
         user_label.setToolTip(self.user_enable_tooltip)
-        user_label.setFixedSize(85, 20)
+        user_label.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(20))
 
         self.user_edit = QComboBox(self)
         self.user_edit.setEditable(True)
         self.user_edit.setToolTip(self.user_enable_tooltip)
 
-        regex = QRegExp("[a-zA-Z_\s]+")
+        regex = QRegExp(r"[a-zA-Z_\s]+")
         validator = QRegExpValidator(regex)
         self.user_edit.setValidator(validator)
 
@@ -1987,11 +1988,11 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.branch_enable.setChecked(checked)
         self.branch_enable.setToolTip(self.branch_enable_tooltip)
-        self.branch_enable.setFixedSize(19, 20)
+        self.branch_enable.setFixedSize(hou.ui.scaledSize(19), hou.ui.scaledSize(20))
 
         branch_label = QLabel("Branch")
         branch_label.setToolTip(self.branch_enable_tooltip)
-        branch_label.setFixedSize(85, 20)
+        branch_label.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(20))
 
         self.branch_edit = QComboBox(self)
         self.branch_edit.setEditable(True)
@@ -2009,7 +2010,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         name_gb_layout.addLayout(version_layout)
 
         self.version_enable = QCheckBox()
-        self.version_enable.setFixedSize(19, 20)
+        self.version_enable.setFixedSize(hou.ui.scaledSize(19), hou.ui.scaledSize(20))
 
         self.version_enable.clicked.connect(self.on_LineEditChanged)
 
@@ -2023,20 +2024,20 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.version_enable.setChecked(checked)
 
         version_label = QLabel("Version")
-        version_label.setFixedSize(85, 20)
+        version_label.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(20))
 
         major_label = QLabel("Major")
-        major_label.setFixedSize(100, 20)
+        major_label.setFixedSize(hou.ui.scaledSize(100), hou.ui.scaledSize(20))
 
         minor_label = QLabel("Minor")
-        minor_label.setFixedSize(100, 20)
+        minor_label.setFixedSize(hou.ui.scaledSize(100), hou.ui.scaledSize(20))
 
         self.majorversion_edit = QSpinBox()
         self.minorversion_edit = QSpinBox()
         self.majorversion_edit.setToolTip(self.majorversion_tooltip)
         self.minorversion_edit.setToolTip(self.minorversion_tooltip)
-        self.majorversion_edit.setFixedHeight(21)
-        self.minorversion_edit.setFixedHeight(21)
+        self.majorversion_edit.setFixedHeight(hou.ui.scaledSize(21))
+        self.minorversion_edit.setFixedHeight(hou.ui.scaledSize(21))
 
         self.majorversion_edit.setValue(self.defaults[5] if self.defaults[5] != None else 0)
         self.minorversion_edit.setValue(self.defaults[6] if self.defaults[6] != None else 0)
@@ -2059,7 +2060,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         name_gb_layout.addLayout(assetname_preview_layout)
 
         previewname_label = QLabel("Preview")
-        previewname_label.setFixedSize(110, 20)
+        previewname_label.setFixedSize(hou.ui.scaledSize(110), hou.ui.scaledSize(20))
 
         self.assetname_preview = QLabel()
 
@@ -2081,12 +2082,12 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         assetlabel_label = QLabel("Asset Label")
         assetlabel_label.setToolTip(self.assetlabel_tooltip)
-        assetlabel_label.setFixedSize(85, 20)
+        assetlabel_label.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(20))
         self.assetlabel_edit = QLineEdit(self.defaults[3])
         self.assetlabel_edit.setToolTip(self.assetlabel_tooltip)
         self.assetlabel_edit.textChanged.connect(self.on_AssetLabelChanged)
 
-        regex_label = QRegExp("[a-zA-Z_\s0-9]+")
+        regex_label = QRegExp(r"[a-zA-Z_\s0-9]+")
         validator_label = QRegExpValidator(regex_label)
         self.assetlabel_edit.setValidator(validator_label)
 
@@ -2098,7 +2099,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         tabmenu_gb_layout.addLayout(tabmenu_layout)
 
         tabmenu_label = QLabel("Menu Entry")
-        tabmenu_label.setFixedSize(85, 20)
+        tabmenu_label.setFixedSize(hou.ui.scaledSize(85), hou.ui.scaledSize(20))
         tabmenu_label.setToolTip(self.tabmenu_tooltip)
         self.tabmenu_edit = QComboBox(self)
         self.tabmenu_edit.setEditable(True)
@@ -2138,7 +2139,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         path_gb_layout.addLayout(savepath_layout)
 
         _label1 = QLabel("Save Path")
-        _label1.setFixedSize(110, 25)
+        _label1.setFixedSize(hou.ui.scaledSize(110), hou.ui.scaledSize(25))
         self.pathmode = QComboBox()
         self.pathmode.setEditable(True)
         self.pathmode.addItems(getDefaultInstallLabels())
@@ -2148,7 +2149,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
 
         self.assetlocation_btn = QPushButton("")
         self.assetlocation_btn.setIcon(hou.qt.createIcon("BUTTONS_folder"))
-        self.assetlocation_btn.setFixedSize(30, 28)
+        self.assetlocation_btn.setFixedSize(hou.ui.scaledSize(30), hou.ui.scaledSize(28))
         self.assetlocation_btn.clicked.connect(self.on_InputFileButtonClicked)
 
         savepath_layout.addWidget(_label1)
@@ -2160,7 +2161,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         path_gb_layout.addLayout(custompath_layout)
 
         pathlabel = QLabel("Preview")
-        pathlabel.setFixedSize(110, 25)
+        pathlabel.setFixedSize(hou.ui.scaledSize(110), hou.ui.scaledSize(25))
         custompath_layout.addWidget(pathlabel)
         self.pathlabel_edit = QLabel()
         self.pathlabel_edit.setWordWrap(True)
@@ -2168,7 +2169,7 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         custompath_layout.addWidget(self.pathlabel_edit)
 
         # BUTTON SPACER ----------------------------
-        verticalSpacer = QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        verticalSpacer = QSpacerItem(hou.ui.scaledSize(20), hou.ui.scaledSize(20), QSizePolicy.Minimum, QSizePolicy.Expanding)
         layout.addItem(verticalSpacer)
 
         # BUTTONS ----------------------------
@@ -2179,9 +2180,9 @@ Optionally to place the node in a hierarchy of submenus use '/' character."""
         self.Cancel_btn = QPushButton("Cancel")
         self.OK_btn.clicked.connect(self.on_OK)
         self.OK_btn.setDefault(True)
-        self.OK_btn.setFixedWidth(100)
+        self.OK_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.Cancel_btn.clicked.connect(self.on_Cancel)
-        self.Cancel_btn.setFixedWidth(100)
+        self.Cancel_btn.setFixedWidth(hou.ui.scaledSize(100))
 
         buttons_layout.addWidget(self.OK_btn)
         buttons_layout.addWidget(self.Cancel_btn)
@@ -2227,11 +2228,6 @@ class BumpVersionVHDADialog(QDialog):
 
     def buildUI(self):
 
-        w = 300
-
-        self.setFixedWidth(w)
-        self.setFixedHeight(w)
-
         # BASE LAYOUT ----------------------------
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -2247,13 +2243,9 @@ class BumpVersionVHDADialog(QDialog):
         currentasset_layout = QHBoxLayout()
         path_gb_layout.addLayout(currentasset_layout)
 
-        currentasset_icon = QLabel("")
-        currentasset_icon.setFixedSize(25, 25)
-
-        currentasset_label = QLabel("Current Asset")
-        currentasset_label.setFixedSize(125, 25)
         self.currentasset_edit = QLabel(self.defaults[1])
         self.currentasset_edit.setAlignment(Qt.AlignCenter)
+        self.currentasset_edit.adjustSize()
 
         currentasset_layout.addWidget(self.currentasset_edit)
 
@@ -2263,22 +2255,17 @@ class BumpVersionVHDADialog(QDialog):
 
         self.upversion_btn = QLabel("")
         icon = hou.qt.createIcon("BUTTONS_down")
-        self.upversion_btn.setPixmap(icon.pixmap(QSize(20,20)))
+        self.upversion_btn.setPixmap(icon.pixmap(QSize(hou.ui.scaledSize(20),hou.ui.scaledSize(20))))
         upversion_layout.addWidget(self.upversion_btn)
         self.upversion_btn.setAlignment(Qt.AlignCenter)
 
         # Next Asset Preview
-
         nextasset_layout = QHBoxLayout()
         path_gb_layout.addLayout(nextasset_layout)
 
-        nextasset_icon = QLabel("")
-        nextasset_icon.setFixedSize(25, 25)
-
-        nextasset_label = QLabel("Next Asset")
-        nextasset_label.setFixedSize(125, 25)
         self.nextasset_edit = QLabel(self.defaults[2])
         self.nextasset_edit.setAlignment(Qt.AlignCenter)
+        self.nextasset_edit.adjustSize()
 
         nextasset_layout.addWidget(self.nextasset_edit)
 
@@ -2292,9 +2279,9 @@ class BumpVersionVHDADialog(QDialog):
         self.Cancel_btn = QPushButton("Cancel")
         self.OK_btn.clicked.connect(self.on_OK)
         self.OK_btn.setDefault(True)
-        self.OK_btn.setFixedWidth(100)
+        self.OK_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.Cancel_btn.clicked.connect(self.on_Cancel)
-        self.Cancel_btn.setFixedWidth(100)
+        self.Cancel_btn.setFixedWidth(hou.ui.scaledSize(100))
 
         buttons_layout.addWidget(self.OK_btn)
         buttons_layout.addWidget(self.Cancel_btn)
@@ -2337,9 +2324,6 @@ class DeleteVHDADialog(QDialog):
 
     def buildUI(self):
 
-        self.setFixedWidth(1000)
-        self.setFixedHeight(700)
-
         # BASE LAYOUT ----------------------------
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -2370,7 +2354,7 @@ class DeleteVHDADialog(QDialog):
         self.table_model.setHorizontalHeaderLabels(['Idx', 'User', 'Branch', 'Type', 'Version', 'Last Modified', 'File Path'])
 
 
-        font_size = 6
+        font_size = hou.ui.scaledSize(6)
         idx = 0
         for entry in self.defaults[0]:
 
@@ -2417,11 +2401,11 @@ class DeleteVHDADialog(QDialog):
         self.table_view.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table_view.resizeColumnsToContents()
         self.table_view.resizeRowsToContents()
-        self.table_view.setColumnWidth(1,100)
-        self.table_view.setColumnWidth(2,100)
-        self.table_view.setColumnWidth(3,150)
-        self.table_view.setColumnWidth(4,50)
-        self.table_view.setColumnWidth(5,150)
+        self.table_view.setColumnWidth(1,hou.ui.scaledSize(100))
+        self.table_view.setColumnWidth(2,hou.ui.scaledSize(100))
+        self.table_view.setColumnWidth(3,hou.ui.scaledSize(150))
+        self.table_view.setColumnWidth(4,hou.ui.scaledSize(50))
+        self.table_view.setColumnWidth(5,hou.ui.scaledSize(150))
 
         self.table_view.setSortingEnabled(True)
         self.table_view.setShowGrid(False)
@@ -2444,19 +2428,18 @@ class DeleteVHDADialog(QDialog):
         self.Cancel_btn = QPushButton("Cancel")
         self.OK_btn.clicked.connect(self.on_OK)
 
-        self.OK_btn.setFixedWidth(100)
+        self.OK_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.Cancel_btn.clicked.connect(self.on_Cancel)
-        self.Cancel_btn.setFixedWidth(100)
+        self.Cancel_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.Cancel_btn.setDefault(True)
 
         buttons_layout.addWidget(self.OK_btn)
         buttons_layout.addWidget(self.Cancel_btn)
 
-        height = 115 + self.table_view.horizontalHeader().size().height()
+        height = hou.ui.scaledSize(115) + self.table_view.horizontalHeader().size().height()
+
         for i in range(self.table_model.rowCount()):
             height += self.table_view.rowHeight(i)
-
-        self.setFixedHeight(min(height,900))
 
 
 class DeleteConfirmVHDADialog(QDialog):
@@ -2484,9 +2467,6 @@ class DeleteConfirmVHDADialog(QDialog):
         self.close()
 
     def buildUI(self):
-
-        self.setFixedWidth(400)
-        self.setFixedHeight(300)
 
         # BASE LAYOUT ----------------------------
         layout = QVBoxLayout()
@@ -2546,9 +2526,9 @@ class DeleteConfirmVHDADialog(QDialog):
         self.Cancel_btn = QPushButton("Cancel")
         self.OK_btn.clicked.connect(self.on_OK)
 
-        self.OK_btn.setFixedWidth(100)
+        self.OK_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.Cancel_btn.clicked.connect(self.on_Cancel)
-        self.Cancel_btn.setFixedWidth(100)
+        self.Cancel_btn.setFixedWidth(hou.ui.scaledSize(100))
         self.Cancel_btn.setDefault(True)
 
         buttons_layout.addWidget(self.OK_btn)
@@ -2556,7 +2536,5 @@ class DeleteConfirmVHDADialog(QDialog):
 
         self.tree_view.setHeaderHidden(True)
         self.tree_view.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
-        height = 50 + (rownum * 20)
 
         self.setFixedHeight(self.sizeHint().height())
