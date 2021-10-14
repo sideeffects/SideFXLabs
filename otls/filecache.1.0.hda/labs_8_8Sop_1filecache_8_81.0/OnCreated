@@ -1,0 +1,34 @@
+# track creation usage. For more info, including how to disable this please see
+# https://www.sidefx.com/legal/houdini-anonymous-usage-statistics/
+
+try:
+    import labutils 
+    labutils.send_on_create_analytics(kwargs["node"])
+except:
+    pass
+    
+
+import toolutils
+
+node = kwargs['node']
+
+node.parm('numlogicalcores').lock(1)
+
+#hou.hscript("setenv -l -s %s=%d"%("wedgeindex", 0))
+
+def onSelectItem(event_type, **kwargs): 
+    node.hdaModule().initState(kwargs) 
+    '''
+    network = kwargs['node']   
+    item_id = network.getSelectedWorkItem()    # Get the selected item ID from the network
+    if (item_id):
+        context = network.getPDGGraphContext()   # 
+        work_item = context.graph.workItemById(item_id)
+        if (work_item):
+            wedge_attrib = work_item.attrib("wedgeindex")            
+            if wedge_attrib:
+                wedge_index = wedge_attrib.asNumber()
+    '''                             
+
+#network = node.node("topnet_display")  
+#network.addEventCallback([hou.nodeEventType.WorkItemSelectionChanged], onSelectItem)

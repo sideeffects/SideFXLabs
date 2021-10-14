@@ -1,0 +1,763 @@
+# Dialog script for labs::ropkarma::1.0 automatically generated
+
+{
+    name	labs::ropkarma::1.0
+    script	ati::dev::ropmantraversioned::1.0
+    label	"Labs Karma Render"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+    inputlabel	2	"Input 2"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+
+    group {
+        name    "folder1"
+        label   "ROP Karma"
+
+        parm {
+            name    "filemethod"
+            label   "File Method"
+            type    ordinal
+            joinnext
+            default { "constructed" }
+            menu {
+                "constructed"   "Constructed"
+                "explicit"      "Explicit"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "timedependent"
+            label   "Time Dependent Render"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "basename"
+            label   "Base Name"
+            type    string
+            joinnext
+            default { "$OS" }
+            hidewhen "{ filemethod != constructed }"
+            menureplace {
+                "`opname(\".\")`"                               "Node Name"
+                "$HIPNAME.`opname(\".\")`"                      "File + Node Name"
+                "`strreplace(opfullpath(\".\"),\"/\",\"_\")`"   "Unique Node Name"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filetype"
+            label   "File Type"
+            type    ordinal
+            nolabel
+            default { "exr" }
+            hidewhen "{ filemethod != constructed }"
+            menu {
+                ".exr"  "exr"
+                ".png"  "png"
+                ".tiff" "tiff"
+                ".jpeg" "jpeg"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "file"
+            label   "Image File"
+            type    geometry
+            joinnext
+            default { "$HIP/render/$OS/$HIPNAME.$OS.$F4.exr" }
+            hidewhen "{ filemethod != explicit }"
+            menureplace {
+                [ "opmenu -l -a ../topfilecacheversioned1 file" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "openfiledir"
+            label   "Open Directory"
+            type    button
+            nolabel
+            default { "0" }
+            hidewhen "{ filemethod != explicit }"
+            parmtag { "button_icon" "BUTTONS_folder" }
+            parmtag { "script_callback" "hou.phm().openPath(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "basedir"
+            label   "Base Folder"
+            type    directory
+            joinnext
+            default { "$HIP/render" }
+            hidewhen "{ filemethod != constructed }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "openbasedir"
+            label   "Open Directory"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ filemethod != constructed }"
+            parmtag { "button_icon" "BUTTONS_folder" }
+            parmtag { "script_callback" "hou.phm().openPath(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "opensequence"
+            label   "Open Sequence"
+            type    button
+            nolabel
+            default { "0" }
+            hidewhen "{ filemethod != constructed }"
+            parmtag { "button_icon" "DESKTOP_image_sequence" }
+            parmtag { "script_callback" "hou.phm().loadRender(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "enableversion"
+            label   "Enable Version"
+            type    toggle
+            nolabel
+            joinnext
+            default { "on" }
+            hidewhen "{ filemethod != constructed }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "version"
+            label   "Version"
+            type    integer
+            joinnext
+            default { "1" }
+            disablewhen "{ enableversion != 1 }"
+            hidewhen "{ filemethod != constructed }"
+            range   { 1! 25 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "versiondown"
+            label   "Down Version"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            disablewhen "{ enableversion != 1 }"
+            hidewhen "{ filemethod != constructed }"
+            parmtag { "button_icon" "BUTTONS_minus" }
+            parmtag { "script_callback" "hou.phm().versionBump(kwargs,'down')" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "versionup"
+            label   "Up Version"
+            type    button
+            nolabel
+            joinnext
+            default { "0" }
+            disablewhen "{ enableversion != 1 }"
+            hidewhen "{ filemethod != constructed }"
+            parmtag { "button_icon" "BUTTONS_add" }
+            parmtag { "script_callback" "hou.phm().versionBump(kwargs,'up')" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cleanversion"
+            label   "Clean Version"
+            type    button
+            nolabel
+            default { "0" }
+            disablewhen "{ enableversion != 1 }"
+            hidewhen "{ filemethod != constructed }"
+            parmtag { "button_icon" "BUTTONS_clear" }
+            parmtag { "script_callback" "hou.phm().deleteVersions(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        group {
+            name    "folder0"
+            label   "Caching"
+
+            groupcollapsible {
+                name    "folder2"
+                label   "Karma"
+                grouptag { "group_default" "1" }
+                grouptag { "sidefx::header_parm" "loppath" }
+
+                parm {
+                    name    "loppath"
+                    label   "LOP Path"
+                    type    oppath
+                    default { "" }
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder4"
+                label   "Sequence"
+                hidewhentab "{ timedependent != 1 }"
+                grouptag { "group_default" "1" }
+
+                parm {
+                    name    "trange"
+                    label   "Evaluate As"
+                    type    ordinal
+                    default { "range" }
+                    menu {
+                        "single"    "Single Frame"
+                        "range"     "Frame Range"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "f"
+                    label   "Frame Range"
+                    type    float
+                    joinnext
+                    size    3
+                    default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+                    disablewhen "{ cachespecificrange != 0 }"
+                    hidewhen "{ trange != range }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "fmenu"
+                    label   "F Menu"
+                    type    ordinal
+                    default { "fstartend" }
+                    disablewhen "{ cachespecificrange != 0 }"
+                    hidewhen "{ trange != range }"
+                    menumini {
+                        "fstartend"     "Animation Range"
+                        "rfstartend"    "Playbar Range"
+                        "nosubsteps"    "No Substeps"
+                        "substeps2"     "2 Substeps"
+                        "substeps4"     "4 Substeps"
+                        "substeps5"     "5 Substeps"
+                        "every2"        "Every 2nd Frame"
+                        "every5"        "Every 5th Frame"
+                        "every10"       "Every 10th Frame"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback" "hou.phm().setRange(kwargs)" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "useframeoverride"
+                    label   "Override Frame"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    hidewhen "{ trange != single }"
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "frameoverride"
+                    label   "Override Frame"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ useframeoverride == 0 }"
+                    hidewhen "{ trange != single }"
+                    range   { 1 240 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "sidefx::slider" "snap_to_int" }
+                }
+                parm {
+                    name    "cachespecificrange"
+                    label   "Cache Specific Range"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    hidewhen "{ trange != range }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "specificrange"
+                    label   "List of Frames"
+                    type    string
+                    default { "$FSTART-$FEND" }
+                    disablewhen "{ cachespecificrange != 1 }"
+                    hidewhen "{ trange != range }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "disable"
+                    label   "Disable"
+                    type    toggle
+                    invisible
+                    default { "1" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder7"
+                label   "Enable Wedging"
+                grouptag { "sidefx::header_parm" "wedgecount" }
+                grouptag { "sidefx::header_toggle" "enablewedging" }
+
+                parm {
+                    name    "enablewedging"
+                    label   "Enable Wedging"
+                    type    toggle
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "wedgecount"
+                    label   "Wedge Count"
+                    type    integer
+                    default { "1" }
+                    disablewhen "{ enablewedging != 1 }"
+                    range   { 1! 50 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "cachespecificwedges"
+                    label   "Cache Specific Wedges"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    disablewhen "{ enablewedging != 1 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "specificwedges"
+                    label   "List of Wedges"
+                    type    string
+                    default { "0-`chs(\"wedgecount\")-1`" }
+                    disablewhen "{ enablewedging != 1 } { cachespecificwedges != 1 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                multiparm {
+                    name    "nwedgeattribs"
+                    label    "Number of Attributes"
+                    default 0
+                    disablewhen "{ enablewedging != 1 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "autoselect" "0000000000000000" }
+                    parmtag { "multistartoffset" "1" }
+
+                    groupsimple {
+                        name    "folder4_#"
+                        label   "Attribute #"
+
+                        parm {
+                            name    "attrib#"
+                            label   "Attribute Name"
+                            type    string
+                            joinnext
+                            default { "wedgeattribute#" }
+                        }
+                        parm {
+                            name    "wedgetype#"
+                            label   "Wedge Type"
+                            type    ordinal
+                            nolabel
+                            default { "0" }
+                            menu {
+                                "range"     "Custom Range"
+                                "list"      "List of Values"
+                                "attrib"    "Attribute Values"
+                            }
+                        }
+                        parm {
+                            name    "minvalue#"
+                            label   "Min Value"
+                            type    float
+                            default { "0" }
+                            hidewhen "{ wedgetype# != range }"
+                            range   { 0 10 }
+                        }
+                        parm {
+                            name    "maxvalue#"
+                            label   "Max Value"
+                            type    float
+                            default { "1" }
+                            hidewhen "{ wedgetype# != range }"
+                            range   { 0 10 }
+                        }
+                        parm {
+                            name    "randsample#"
+                            label   "Random Sample"
+                            type    toggle
+                            default { "0" }
+                            hidewhen "{ wedgetype# != range }"
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "dobatchsize#"
+                            label   "Do Batch Size"
+                            type    toggle
+                            nolabel
+                            joinnext
+                            default { "0" }
+                            hidewhen "{ wedgetype# != range } { randsample# == 1 }"
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "batchsize#"
+                            label   "Batch Size"
+                            type    integer
+                            default { "1" }
+                            disablewhen "{ dobatchsize# != 1 }"
+                            hidewhen "{ wedgetype# != range } { randsample# == 1 }"
+                            range   { 1! 10 }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "randomseed#"
+                            label   "Seed"
+                            type    integer
+                            default { "#" }
+                            hidewhen "{ wedgetype# != range } { randsample# != 1 }"
+                            range   { 0! 100 }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "values#"
+                            label   "List of Values"
+                            type    string
+                            default { "0-1" }
+                            hidewhen "{ wedgetype# != list }"
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "geopath#"
+                            label   "Geometry Path"
+                            type    oppath
+                            default { "" }
+                            hidewhen "{ wedgetype# != attrib }"
+                            parmtag { "opfilter" "!!SOP!!" }
+                            parmtag { "oprelative" "." }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "valuesdefault#"
+                            label   "Default Value"
+                            type    float
+                            default { "0" }
+                            hidewhen "{ wedgetype# == range }"
+                            range   { 0 10 }
+                        }
+                    }
+
+                }
+
+            }
+
+        }
+
+        group {
+            name    "folder0_1"
+            label   "Settings"
+
+            groupcollapsible {
+                name    "folder12"
+                label   "Path Construction"
+
+                parm {
+                    name    "frame"
+                    label   "Frame"
+                    type    float
+                    default { [ "$FF" hscript-expr ] }
+                    range   { 1 240 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "framestr"
+                    label   "Frame String"
+                    type    string
+                    default { "`ifs(ch(\"timedependent\"),\".\" + padzero(4,floor(ch(\"frame\"))) + ifs(frac(abs(ch(\"frame\"))) > 0, \".\" + substr(ftoa(frac(ch(\"frame\"))) + \"000\", 2, 3),\"\"),\"\")`" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "versionstr"
+                    label   "Version String"
+                    type    string
+                    default { "v`chs(\"version\")`" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "wedgestr"
+                    label   "Wedge String"
+                    type    string
+                    default { "w`pdgattrib(\"wedgeindex\", 0)`" }
+                    hidewhen "{ enablewedging != 1 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sepparm2"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                parm {
+                    name    "cachedir"
+                    label   "Cache Folder"
+                    type    string
+                    default { "`chs(\"basedir\") + \"/\" + chs(\"basename\")``ifs(ch(\"enableversion\"), \"/\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"/\" + chs(\"wedgestr\"),\"\")`" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "cachename"
+                    label   "Cache Name"
+                    type    string
+                    default { "`chs(\"basename\")``ifs(ch(\"enableversion\"), \"_\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"_\" + chs(\"wedgestr\"),\"\")``chs(\"framestr\")``chs(\"filetype\")`" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "picture"
+                    label   "Output File"
+                    type    string
+                    default { [ "ifs(ch('filemethod'),chs('file'),chs('cachedir') + '/' + chs('cachename'))" hscript-expr ] }
+                    hidewhen "{ filemethod != constructed }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "filechooser_mode" "read" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sepparm6"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                parm {
+                    name    "descriptivelabel"
+                    label   "Descriptive Label"
+                    type    geometry
+                    default { [ "ifs(ch(\"filemethod\"),chsraw(\"file\"),strreplace(strreplace(chs(\"cachename\"),chs(\"basename\"),chsraw(\"basename\")),chs(\"framestr\"),\".\" + '$F' + 4))" hscript-expr ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "filechooser_mode" "read" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+    }
+
+    group {
+        name    "folder1_1"
+        label   "ROP Fetch"
+
+        parm {
+            name    "pdg_workitemgeneration"
+            label   "Generate When"
+            type    ordinal
+            default { "2" }
+            menu usetokenvalue {
+                "1" "All Upstream Items are Generated"
+                "3" "All Upstream Items are Cooked"
+                "0" "Each Upstream Item is Cooked"
+                "2" "Automatic"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pdg_cachemode"
+            label   "Cache Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Automatic"
+                "1" "Read Files"
+                "2" "Write Files"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sethip"
+            label   "Reset $HIP On Cook"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "renderalltiles"
+            label   "Render All Tiles"
+            type    toggle
+            default { "off" }
+            disablewhen "{ vm_tile_render == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "framesperbatch"
+            label   "Frames per Batch"
+            type    integer
+            default { "1" }
+            hidewhen "{ cachetype == static }"
+            range   { 0! 25 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupcollapsible {
+            name    "debugging3"
+            label   "Debugging"
+
+            parm {
+                name    "savedebughip"
+                label   "Save Debug .hip File"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "debughip"
+                label   "Save Debug .hip File"
+                type    string
+                default { "$HIP/$OS.debug.$F.hip" }
+                disablewhen "{ savedebughip == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder1_2"
+        label   "Schedulers"
+
+        parm {
+            name    "topscheduler"
+            label   "TOP Scheduler Override"
+            type    oppath
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!TOP/SCHEDULER!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pdg_workitemlabel"
+            label   "Work Item Label"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "0" "No Label"
+                "1" "Inherit from Upstream Item"
+                "2" "Custom Expression"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pdg_workitemlabelexpr"
+            label   "Label Expression"
+            type    string
+            nolabel
+            default { "" }
+            disablewhen "{ pdg_workitemlabel != 2 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pdg_workitempriority"
+            label   "Work Item Priority"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "0" "Inherit from Upstream Item"
+                "1" "Custom Expression"
+                "2" "Node Defines Priority"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pdg_workitempriorityexpr"
+            label   "Priority Expression"
+            type    integer
+            nolabel
+            default { "2" }
+            disablewhen "{ pdg_workitempriority != 1 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_3"
+        label   "Service"
+
+        parm {
+            name    "enablepdgservice"
+            label   "Use ROP Fetch Service"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pdgservicename"
+            label   "Service Name"
+            type    string
+            default { "ropfetch" }
+            menureplace {
+                [ "opmenu -l -a ropmantra1 pdgservicename" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

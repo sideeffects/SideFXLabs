@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
     This file defines the menu items in the Houdini Network View pane.
     Files named the same (ie. NetworkViewMenu.xml) can exist in
@@ -12,27 +11,28 @@
     use ids that begin with playbar. when adding new items.
     For scriptItem elements, a 'kwargs' python dictionary is provided with the
     following values:
-	'parms'	    :	A list of hou.Parm objects which the script was invoked
-			upon.
-	'toolname'  :	The menu item's hotkey id 
-	'altclick'  :	True if the Alt key was also pressed, False otherwise
-	'ctrlclick'  :	True if the Ctrl key was also pressed, False otherwise
-	'shiftclick'  :	True if the Shift key was also pressed, False otherwise
-	'cmdclick'  :	True if the Option key was also pressed, False
-			otherwise. Note that this can only be true on OSX.
+    'parms'     :   A list of hou.Parm objects which the script was invoked
+            upon.
+    'toolname'  :   The menu item's hotkey id 
+    'altclick'  :   True if the Alt key was also pressed, False otherwise
+    'ctrlclick'  :  True if the Ctrl key was also pressed, False otherwise
+    'shiftclick'  : True if the Shift key was also pressed, False otherwise
+    'cmdclick'  :   True if the Option key was also pressed, False
+            otherwise. Note that this can only be true on OSX.
 -->
-
 <mainMenu>
     <menuBar>
-
-
-    <subMenu id = "labs_network_view_menu">
-        <modifyItem><insertBefore>help_menu</insertBefore></modifyItem>
-        <label>Labs</label>
+        <subMenu id="labs_network_view_menu">
+            <modifyItem>
+                <insertBefore>help_menu</insertBefore>
+            </modifyItem>
+            <label>Labs</label>
+            
 
             <scriptItem id="labs_paint">
                 <label>Paint</label>
-                <scriptCode><![CDATA[
+                <scriptCode>
+                    <![CDATA[
 from labsopui import networkeditordrawing
 
 try:
@@ -42,13 +42,34 @@ except NameError:
   reload(networkeditordrawing)
 
 
-networkeditordrawing.paint(kwargs['editor'])
-                ]]></scriptCode>
+networkeditordrawing.paint_in_editor(kwargs['editor'])
+                ]]>
+                </scriptCode>
             </scriptItem>
+
+            <scriptItem id="labs_screenshot">
+                <label>Capture and Embed</label>
+                <scriptCode>
+                    <![CDATA[
+from labsopui import screensampling
+
+try:
+  reload(screensampling)
+except NameError:
+  from importlib import reload
+  reload(screensampling)
+
+
+screensampling.capture_and_embed(kwargs['editor'])
+                ]]>
+                </scriptCode>
+            </scriptItem>
+
 
             <scriptItem id="labs_sticker">
                 <label>Sticker Placer</label>
-                <scriptCode><![CDATA[
+                <scriptCode>
+                    <![CDATA[
 from labsopui import stickerplacer
 
 try:
@@ -60,10 +81,12 @@ except NameError:
 
 dialog = stickerplacer.StickerPlacer(hou.qt.mainWindow())
 dialog.show()
-                ]]></scriptCode>
+                ]]>
+                </scriptCode>
             </scriptItem>
 
-        </subMenu>
 
+
+        </subMenu>
     </menuBar>
 </mainMenu>

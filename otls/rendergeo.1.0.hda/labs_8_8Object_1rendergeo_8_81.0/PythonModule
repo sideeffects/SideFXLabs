@@ -1,0 +1,293 @@
+def setLoadType(kwargs):
+
+    #setLOD(kwargs)
+    setMotionSamples(kwargs)
+    
+def setMotionSamples(kwargs):
+
+    node = kwargs['node'] 
+    if node.evalParm("loadtype") == 2:
+        node.parm("geo_motionsamples").set(2)
+        node.parm("geo_velocityblur").set(0)
+    else:
+        node.parm("geo_motionsamples").set(1) 
+        node.parm("geo_velocityblur").set(1)
+        
+    if node.evalParm("sourcetype"):
+        node.parm("geo_motionsamples").set(1) 
+        node.parm("geo_velocityblur").set(1)
+  
+def decoupleParm(node, parmname):
+    value = node.parm(parmname).eval()
+    node.parm(parmname).deleteAllKeyframes()        
+    node.parm(parmname).set(value)    
+
+def decouple(kwargs):
+
+    node = kwargs['node']
+    parm = kwargs['parm']
+    
+    if parm.eval() == 1:
+        node.parm('sourcenode').revertToDefaults() 
+        node.parm('filemethod').revertToDefaults()
+        node.parm('timedependent').revertToDefaults()
+        node.parm('basename').revertToDefaults() 
+        node.parm('filetype').revertToDefaults()
+        node.parm('basedir').revertToDefaults()
+        node.parm('file').revertToDefaults()
+        node.parm('enableversion').revertToDefaults()
+        node.parm('version').revertToDefaults()  
+        node.parm('decoupled_version').revertToDefaults() 
+
+        node.parm('f1').revertToDefaults()
+        node.parm('f2').revertToDefaults()
+        node.parm('f3').revertToDefaults()
+        node.parm('substeps').revertToDefaults()        
+        node.parm('doclampfirst').revertToDefaults()
+        node.parm('clampfirst').revertToDefaults()
+        node.parm('doclamplast').revertToDefaults()
+        node.parm('clamplast').revertToDefaults()
+
+        node.parm('enablewedging').revertToDefaults()        
+        node.parm('wedgecount').revertToDefaults()
+        node.parm('wedgestr').revertToDefaults()
+        
+        # File Construction  
+        node.parm('frame').revertToDefaults()
+        node.parm('framestr').revertToDefaults()
+        node.parm('versionstr').revertToDefaults()
+        node.parm('cachedir').revertToDefaults()
+        node.parm('cachename').revertToDefaults()
+        node.parm('descriptivelabel').revertToDefaults()         
+        
+    else: 
+        decoupleParm(node, 'sourcenode')
+        decoupleParm(node, 'filemethod')
+        decoupleParm(node, 'timedependent')
+        decoupleParm(node, 'basename')
+        decoupleParm(node, 'filetype')
+        decoupleParm(node, 'basedir')
+        decoupleParm(node, 'file')
+        decoupleParm(node, 'enableversion')
+        decoupleParm(node, 'version')
+        
+        decoupleParm(node, 'f1')
+        decoupleParm(node, 'f2')
+        decoupleParm(node, 'f3')
+        decoupleParm(node, 'substeps')
+        decoupleParm(node, 'doclampfirst')
+        decoupleParm(node, 'clampfirst')
+        decoupleParm(node, 'doclamplast')
+        decoupleParm(node, 'clamplast')
+        
+        decoupleParm(node, 'enablewedging')       
+        decoupleParm(node, 'wedgecount')        
+        decoupleParm(node, 'wedgestr')
+        
+        # File Construstion
+        decoupleParm(node, 'frame')
+        decoupleParm(node, 'framestr')
+        decoupleParm(node, 'versionstr')
+        decoupleParm(node, 'cachedir')
+        decoupleParm(node, 'cachename')        
+        decoupleParm(node, 'descriptivelabel')
+        
+        # Overrides
+        
+        node.parm('decoupled_version').set(node.evalParm('version')) 
+        node.parm('version').setExpression('ch("decoupled_version")')
+             
+        source_type = 1-node.evalParm("sourcetype")
+        source_node = hou.node(node.evalParm("sourcenode"))
+
+        node.parm('f1').setExpression('if(ch("inherit_frange"),{},ch("custom_frange1"))'.format(source_node.evalParm('f1')))
+        node.parm('f2').setExpression('if(ch("inherit_frange"),{},ch("custom_frange2"))'.format(source_node.evalParm('f2')))
+        node.parm('doclampfirst').setExpression('if(ch("inherit_frange"),{},ch("custom_doclampfirst"))'.format(source_node.evalParm('doclampfirst')))
+        node.parm('clampfirst').setExpression('if(ch("inherit_frange"),{},ch("custom_clampfirst"))'.format(source_node.evalParm('clampfirst')))
+        node.parm('doclamplast').setExpression('if(ch("inherit_frange"),{},ch("custom_doclamplast"))'.format(source_node.evalParm('doclamplast')))
+        node.parm('clamplast').setExpression('if(ch("inherit_frange"),{},ch("custom_clamplast"))'.format(source_node.evalParm('clamplast')))
+        
+        node.parm('frame').setExpression('''{
+    if(ch("doclampfirst") && ch("doclamplast")) return clamp($FF,ch("clampfirst"),ch("clamplast"));
+    if(ch("doclampfirst")) return max(ch("clampfirst"),$FF);
+    if(ch("doclamplast")) return min(ch("clamplast"),$FF);
+    return $FF;
+}''')       
+       
+        node.parm('framestr').set('`' + 'ifs(ch("timedependent"),"." + padzero(4,floor(ch("frame"))) + ifs(frac(abs(ch("frame"))) > 0, "." + substr(ftoa(frac(ch("frame"))) + "000", 2, 3),""),"")' + '`')
+        node.parm("cachename").set('`' + 'chs("basename")``ifs(ch("enableversion"), "_" + chs("versionstr"),"")``ifs(ch("enablewedging"), "_" + chs("wedgestr"),"")``chs("framestr")``chs("filetype")' + '`')
+        
+        node.parm("descriptivelabel").set('`' + 'ifs(ch("filemethod"),chsraw("file"),strreplace(strreplace(chs("cachename"),chs("basename"),chsraw("basename")),chs("framestr"),chs("frameprefix")' + "'$F'" + 'ch("framepadding")))'  + '`')
+        
+def setExpressionParm(_parm_from,_parm_to):
+
+    #print(_parm_from)
+    node_from = _parm_from.node()
+    node_to   = _parm_to.node()
+    
+    relative_path = node_to.relativePathTo(node_from)
+    
+    parm_template = _parm_from.parmTemplate()
+    
+    chref = "ch"
+    if (parm_template.type() == hou.parmTemplateType.String):
+        chref = "chs"
+    
+    expression = '%s("%s/%s")' % (chref,relative_path,_parm_from.name())
+    _parm_to.setExpression(expression)
+    
+def setRelativePath(_node_from,_parm_to):
+
+    node_to   = _parm_to.node()
+    relative_path = node_to.relativePathTo(_node_from)   
+    
+    _parm_to.set(relative_path)  
+    
+def createTOPMantra(kwargs):   
+    node = kwargs['node']
+    
+    name = node.name()
+    file_name = node.parm("filename").eval()
+    path = node.parm("topmantrapath").eval()    
+    topnet = hou.node(path)
+    
+    if not topnet:
+        import os
+        root = hou.node(os.path.dirname(path))
+        topnet = root.createNode('topnet', os.path.basename(path))        
+    
+    if topnet:
+        rop_node = topnet.createNode("ropmantraversioned",name)
+                
+        parm_names = []
+        #parm_names.append("basedir")
+        parm_names.append("filename")
+        #parm_names.append("filemethod")
+        #parm_names.append("file")
+        #parm_names.append("filetype")
+        parm_names.append("enablever")
+        parm_names.append("ver")
+        parm_names.append("enablesubver")
+        parm_names.append("subver")
+        parm_names.append("enablewedging")
+        parm_names.append("wedgeidx")
+        parm_names.append("cachetype")       
+        parm_names.append("f1")
+        parm_names.append("f2")
+        parm_names.append("f3")       
+        #parm_names.append("framesperbatch")
+        
+        #parm_names.append("cachewedges")
+        #parm_names.append("cachewedgeidxrangemin")
+        #parm_names.append("cachewedgeidxrangemax")
+        #parm_names.append("cachewedgeidx")
+        
+        parm_names.append("docollectframes")
+        parm_names.append("collectframes")
+        parm_names.append("collectframenum")
+        parm_names.append("collectframerangemin")
+        parm_names.append("collectframerangemax")
+        parm_names.append("docollectwedges")
+        parm_names.append("collectwedges")
+        parm_names.append("customwedgeidx")
+        parm_names.append("wedgeidxrangemin")
+        parm_names.append("wedgeidxrangemax")
+         
+        parm_names.append("wedgecount")
+        
+        '''
+        parm_names.append("alfprogress")  
+        parm_names.append("saveretry")
+        parm_names.append("enablepdgservice")
+        parm_names.append("pdgservicename")        
+        parm_names.append("enableperfmon")
+        parm_names.append("savebackuphip")        
+        
+        #parm_names.append("selected_wedge_index")
+        #parm_names.append("execute_wedges")
+        #parm_names.append("execute_wedge_rangex")
+        #parm_names.append("execute_wedge_rangey")
+        #parm_names.append("execute_single_wedge")
+        
+        #parm_names.append("localscheduler_override_toggle") 
+        parm_names.append("local_single") 
+        parm_names.append("local_is_CPU_number_set") 
+        parm_names.append("local_CPUs_to_use") 
+        parm_names.append("local_usehoudinimaxthreads") 
+        parm_names.append("local_houdinimaxthreads")
+        
+         
+        parm_names.append("nwedgeattribs")
+        
+        parm_names.append("tprerender")
+        parm_names.append("prerender")
+        parm_names.append("lprerender")
+       
+        parm_names.append("tpreframe")
+        parm_names.append("preframe")
+        parm_names.append("lpreframe")
+        
+        parm_names.append("tpostframe")
+        parm_names.append("postframe")
+        parm_names.append("lpostframe")
+        
+        parm_names.append("tpostwrite")
+        parm_names.append("postwrite")
+        parm_names.append("lpostwrite")
+        
+        parm_names.append("tpostrender")
+        parm_names.append("postrender")
+        parm_names.append("lpostrender")
+        
+        ''' 
+        
+        for parm_name in parm_names:       
+            setExpressionParm(node.parm(parm_name),rop_node.parm(parm_name))
+        '''   
+        setRelativePath(hou.node(node.path() + "/CACHE_INPUT"),rop_node.parm("soppath"))
+        
+        rop_node.parm("hqueue_is_CPU_number_set").setExpression('ch("local_is_CPU_number_set")')
+        rop_node.parm("hqueue_CPUs_to_use").setExpression('ch("local_CPUs_to_use")')
+        rop_node.parm("hqueue_usehoudinimaxthreads").setExpression('ch("local_usehoudinimaxthreads")')
+        rop_node.parm("hqueue_houdinimaxthreads").setExpression('ch("local_houdinimaxthreads")')
+        
+        
+        for idx in range(0,node.evalParm("nwedgeattribs")):
+            multiparm_names = []    
+            sidx = str(idx+1)
+            multiparm_names.append("attrib" + sidx) 
+            multiparm_names.append("rangetype" + sidx) 
+            multiparm_names.append("patterntype" + sidx) 
+            multiparm_names.append("floatrangemin" + sidx) 
+            multiparm_names.append("floatrangemax" + sidx)
+            multiparm_names.append("batchsize" + sidx) 
+            multiparm_names.append("randomseed" + sidx)
+            #multiparm_names.append("randomseedmode" + sidx)
+            #multiparm_names.append("randomfloatseed" + sidx)
+            multiparm_names.append("geopath" + sidx)
+            multiparm_names.append("nvalues" + sidx)            
+            
+            for multiparm_name in multiparm_names:       
+                setExpressionParm(node.parm(multiparm_name),rop_node.parm(multiparm_name))
+                
+            for specificidx in range(0,node.evalParm("nvalues" + sidx)):
+                specific_multiparm_names = []   
+                specific_multiparm_names.append("floatvalue" + sidx + "_" + str(specificidx + 1))   
+                
+                for specific_multiparm_name in specific_multiparm_names:       
+                    setExpressionParm(node.parm(specific_multiparm_name),rop_node.parm(specific_multiparm_name)) 
+            
+        setMultiParm(node,rop_node,"attrib#")
+        setMultiParm(node,rop_node,"rangetype#")
+        setMultiParm(node,rop_node,"patterntype#")
+        setMultiParm(node,rop_node,"floatrangemin#")
+        setMultiParm(node,rop_node,"floatrangemax#")
+        setMultiParm(node,rop_node,"batchsize#")
+        setMultiParm(node,rop_node,"randomseed#")
+        #setMultiParm(node,rop_node,"randomseedmode#")
+        #setMultiParm(node,rop_node,"randomfloatseed#")
+        setMultiParm(node,rop_node,"geopath#")
+        setMultiParm(node,rop_node,"nvalues#")
+        setMultiParm(node,rop_node,"floatvalue#_#")
+        
+        '''
