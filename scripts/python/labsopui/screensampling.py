@@ -19,7 +19,6 @@ class ScreensCapture(QWidget):
         self.configureScenes()
 
     def configureScenes(self):
-
         # Take fullscreen screenshot
         self._screenshots = [x.grabWindow(0) for x in QApplication.screens()]
         self._relscreenrect = [x.geometry() for x in QApplication.screens()]
@@ -95,7 +94,6 @@ class SampleColor(ScreensCapture):
         self.oldMouseY = self.mouseY
 
     def populateRampAndExit(self, event):
-
         ramp = self.colorparms[0].eval()
         bases = [hou.rampBasis.Linear] * len(self.samplepositions)
         keys = [i/float(len(self.samplepositions)) for i, x in enumerate(self.samplepositions)]
@@ -128,6 +126,14 @@ class CaptureAndEmbed(ScreensCapture):
             view.mouseMoveEvent = self.drawCaptureRegionRect
             self.originalscreenshots.append(self._screenshots[i].copy())
 
+    def getSortedScreenRect(self, pos1, pos2):
+        xmin = min(pos1.x(), pos2.x())
+        xmax = max(pos1.x(), pos2.x())
+        ymin = min(pos1.y(), pos2.y())
+        ymax = max(pos1.y(), pos2.y())
+        return QRect(QPoint(xmin, ymin), QPoint(xmax, ymax))
+
+
     def drawCaptureRegionRect(self, event):
         self.getMousePos(event)
 
@@ -135,7 +141,7 @@ class CaptureAndEmbed(ScreensCapture):
             self.captureregionstartpos = QPoint(self.mouseX[1], self.mouseY[1])
             self.startedcropregion = True
 
-        self.captureregion = QRect(self.captureregionstartpos, QPoint(self.mouseX[1], self.mouseY[1]))
+        self.captureregion = self.getSortedScreenRect(self.captureregionstartpos, QPoint(self.mouseX[1], self.mouseY[1]))
 
         pixmap = self.originalscreenshots[self.mouseX[0]].copy()
         painter = QPainter(pixmap)
@@ -154,9 +160,7 @@ class CaptureAndEmbed(ScreensCapture):
 
 
     def captureRegion(self, event):
-
         pixmap = self.originalscreenshots[self.mouseX[0]].copy(self.captureregion)
-
         filename = hou.text.expandString("$HIP/captures/capture_{}.png".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
         if not os.path.isdir(hou.text.expandString("$HIP/captures/")):
             os.makedirs(hou.text.expandString("$HIP/captures/"))
