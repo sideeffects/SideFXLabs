@@ -2,17 +2,15 @@ import io
 import struct
 import os
 
-def renderFile():
-    node = hou.pwd()
+def renderFile(node):
     file_name = node.parm("outputFile").eval()
     if file_name.endswith("fga"):
-        renderFGA()
+        renderFGA(node)
     else:
-        renderFGB()
+        renderFGB(node)
 
 
-def renderFGA():
-    node = hou.pwd()
+def renderFGA(node):
     OUT = hou.node("%s/OUT" % node.path())
     geo = OUT.geometry()
     fgaFile = node.parm("outputFile").eval()
@@ -63,8 +61,7 @@ def renderFGA():
                 print ("exception thrown while saving vector file")
 
 
-def renderFGB():
-    node = hou.pwd()
+def renderFGB(node):
     OUT = hou.node("%s/OUT" % node.path())
     geo = OUT.geometry()
     fgaFile = node.parm("outputFile").eval()
