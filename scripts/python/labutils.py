@@ -2,7 +2,6 @@ import os
 import hou
 import uuid
 import shutil
-import nodegraphutils
 
 try:
     import requests
@@ -117,6 +116,31 @@ def extract_section_file(section, savelocation, writemode="wb"):
         except:
             SectionFile.write(section.binaryContents())
 
+def saveBackgroundImages(node, images):
+    result = []
+    for image in images:
+        image_dict = {
+            'path' : image.path(),
+            'rect' : [
+                image.rect().min().x(),
+                image.rect().min().y(),
+                image.rect().max().x(),
+                image.rect().max().y()
+            ]
+        }
+        if image.relativeToPath():
+            image_dict['relativetopath'] = image.relativeToPath()
+        if image.brightness() != 1.0:
+            image_dict['brightness'] = image.brightness()
+        result.append(image_dict)
+
+    with hou.undos.group('Edit Background Images'):
+        if result:
+            node.setUserData(theBackgroundImagesKey, json.dumps(result))
+        else:
+            node.destroyUserData(theBackgroundImagesKey)
+
+
 def add_network_image(network_editor, image_path, scale=0.4, embedded=False):
 
         image = hou.NetworkImage()
@@ -137,4 +161,4 @@ def add_network_image(network_editor, image_path, scale=0.4, embedded=False):
 
         background_images = network_editor.backgroundImages() + (image,)
         network_editor.setBackgroundImages(background_images)
-        nodegraphutils.saveBackgroundImages(hou.node("/obj/"), background_images)
+        saveBackgroundImages(hou.node("/obj/"), background_images)
