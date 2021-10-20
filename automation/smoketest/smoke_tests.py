@@ -10,7 +10,7 @@ import sys
 import logging
 import hou
 
-HOUDINI_VERSION = ["17.5", "18.0", "18.5"]
+HOUDINI_VERSION = ["17.5", "18.0", "18.5", "19.0"]
 MAJOR_MINOR = "%s.%s" % hou.applicationVersion()[:2]
 
 logging.basicConfig(level=logging.DEBUG)
