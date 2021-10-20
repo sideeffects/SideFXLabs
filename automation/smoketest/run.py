@@ -16,11 +16,11 @@ def get_latest_houdini_version():
 
         for possible_dir in version_list:
             if HOUDINI_VERSION in possible_dir and not "Reality Capture" in possible_dir:
-                return os.path.join(sidefx_path, possible_dir, "bin", "hython2.7.exe")
+                return os.path.join(sidefx_path, possible_dir, "bin", "hython3.7.exe")
 
     elif machineos == "Linux":
         sidefx_path = "/opt/hfs{0}/".format(HOUDINI_VERSION)
-        return os.path.join(sidefx_path, "bin", "hython2.7")
+        return os.path.join(sidefx_path, "bin", "hython3.7")
 
 
 latest_houdini = get_latest_houdini_version()
