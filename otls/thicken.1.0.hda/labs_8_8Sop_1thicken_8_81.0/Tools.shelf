@@ -14,7 +14,17 @@
     </toolMenuContext>
     <toolSubmenu>Labs/Geo</toolSubmenu>
     <script scriptType="python"><![CDATA[import soptoolutils
+import stateutils
 
-soptoolutils.genericTool(kwargs, '$HDA_NAME')]]></script>
+scene_viewer = stateutils.findSceneViewer()
+selection = scene_viewer.currentGeometrySelection()
+
+node = soptoolutils.genericTool(kwargs, '$HDA_NAME')
+
+if selection:
+    selection.setGeometryType(hou.geometryType.Primitives)
+    node.parm("group").set(str(selection))
+
+]]></script>
   </tool>
 </shelfDocument>
