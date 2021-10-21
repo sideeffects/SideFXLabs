@@ -1,0 +1,48 @@
+# Dialog script for labs::material_to_override::1.0 automatically generated
+
+{
+    name	labs::material_to_override::1.0
+    script	labs::material_to_override::1.0
+    label	"Labs Material to Override"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "srcgroup"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a attribcopy1 srcgroup" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sop_input" "1" }
+    }
+    parm {
+        name    "snippet"
+        label   "Overrides"
+        type    string
+        default { "// Allows you to set optional material parameter overrides by setting dictionary values like so:\n// material[\"basecolor_texture\"] = \"path/to/texture/on/disk\";" }
+        menureplace {
+            [ "opmenu -l -a attribwrangle1 snippet" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "editor" "1" }
+        parmtag { "editorlang" "VEX" }
+        parmtag { "editorlines" "8-30" }
+        parmtag { "script_action" "import vexpressionmenu\n\nnode = kwargs['node']\nparmname = 'snippet'\n\nvexpressionmenu.createSpareParmsFromChCalls(node, parmname)" }
+        parmtag { "script_action_help" "Creates spare parameters for each unique call of ch() " }
+        parmtag { "script_action_icon" "BUTTONS_create_parm_from_ch" }
+    }
+}
