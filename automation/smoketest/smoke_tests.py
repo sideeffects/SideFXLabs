@@ -68,21 +68,12 @@ def check_tab_submenu(node):
 
     return True
 
-
-def check_version(node):
-    version = node.type().definition().version()
-    if version != "":
-        return True
-    return False
-
 def check_docs(node):
     nodetype = node.type()
     pages = api.get_pages()
     helppath = api.nodetype_to_path(nodetype)
     sourcepath = pages.source_path(helppath)
     return pages.store.exists(sourcepath)
-
-
 
 def check_analytics(node):
     sections = node.type().definition().sections()
@@ -145,7 +136,7 @@ def run_tests(node):
 
 if __name__ == '__main__':
     if MAJOR_MINOR not in HOUDINI_VERSION:
-        print("Houdini %s is not supported. Please use Houdini 17.5-18.5" % MAJOR_MINOR)
+        print("Houdini %s is not supported. Please use Houdini 17.5-19.0. (Or add support in smoke_tests.py)" % MAJOR_MINOR)
         sys.exit(1)
 
     nodes_to_ignore = \
@@ -174,6 +165,7 @@ if __name__ == '__main__':
     rop_node = hou.node("/out")
     shop_node = hou.node("/shop")
     top_node = hou.node("/obj").createNode("topnet")
+    lop_node = hou.node("/stage")
 
     categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node,
                   "Sop": sop_node, "Shop": shop_node}
@@ -181,7 +173,7 @@ if __name__ == '__main__':
         categories["Dop"] = dop_node
         categories["Vop"] = vop_node
         categories["Top"] = top_node
-
+        categories["Lop"] = lop_node
 
     num_nodes = 0
     num_skipped = 0
@@ -195,7 +187,7 @@ if __name__ == '__main__':
         for definition in definitions:
             name = definition.nodeType().name()
 
-            num_nodes = num_nodes + 1
+            num_nodes += 1
 
             if name not in nodes_to_ignore:
                 print("Attempting to Create Node : " + name)
@@ -206,14 +198,14 @@ if __name__ == '__main__':
                     ok = run_tests(new_node)
                     new_node.destroy()
                     if not ok:
-                        num_failed = num_failed + 1
+                        num_failed += 1
                 except Exception as e:
                     print(e)
                     ok = False
-                    num_failed = num_failed + 1
+                    num_failed += 1
                 print("Tests", "passed" if ok else "FAILED", "on :", name)
             else:
-                num_skipped = num_skipped + 1
+                num_skipped += 1
 
     print("Completed", num_nodes, "tests")
     print("Skipped", num_skipped)
