@@ -2,6 +2,7 @@ import os
 import hou
 import uuid
 import shutil
+import json
 
 try:
     import requests
@@ -93,10 +94,14 @@ def is_labs_node(node):
     else:
         return False
 
-
 def send_on_create_analytics(node):
     if can_send_anonymous_stats() and is_labs_node(node):
         track_event("Node Created", str(node.type().name()), str(node.type().definition().version()))
+
+def create_directory_if_not_exists(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
 
 def empty_directory_recursive(directory):
     for file in os.listdir(directory):
@@ -162,3 +167,37 @@ def add_network_image(network_editor, image_path, scale=0.4, embedded=False):
         background_images = network_editor.backgroundImages() + (image,)
         network_editor.setBackgroundImages(background_images)
         saveBackgroundImages(hou.node("/obj/"), background_images)
+
+def remap_material_override(material_type, material_override, mapping_file):
+        CleanDict = {}
+
+        with open(mapping_file) as f:
+            data = json.load(f)
+            
+            Lookup = data["materials"][material_type]
+
+            for x in data["supported"]:
+                if x in Lookup.keys():
+                    enabled = Lookup[x][0]
+                    
+                    # if not isinstance(enabled, int):
+                    #     enabled = MaterialNode.parm(enabled).evalAsInt() 
+                        
+                    if enabled == 1:
+                        CleanDict[x] = material_override[Lookup[x][1]] 
+                            
+        return CleanDict 
+
+def extract_embedded_image(path, destination):
+    # Likely a COP
+    if path.startswith("op:"):
+        node = hou.node(path)
+
+        if node != None:
+            if node.type().category().name() == "Cop2":
+                node.saveImage(destination)
+
+    # Deal with HDA Stored "Textures"
+    elif path.startswith("opdef:"):
+        with open(destination, "w") as f:
+            f.write(hou.readFile(path))
