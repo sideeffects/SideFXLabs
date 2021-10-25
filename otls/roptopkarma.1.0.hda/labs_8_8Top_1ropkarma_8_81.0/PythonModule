@@ -231,19 +231,28 @@ def setRange(kwargs):
     elif parm.evalAsString() == "every10":
         r3.deleteAllKeyframes()
         r3.set(10)
-def verBump(kwargs, operation='add'):  
-    node = kwargs['node']
-   
-    if 'add' in operation:
-        node.parm("ver").set(node.evalParm("ver") + 1)
-    else:
-        node.parm("ver").set(max(node.evalParm("ver") - 1,1))
         
-def subverBump(kwargs, operation='add'):
+def versionBump(kwargs, operation='up'):  
     node = kwargs['node']
    
-    if 'add' in operation:
-        node.parm("subver").set(node.evalParm("subver") + 1)
-    else:  
-        node.parm("subver").set(max(node.evalParm("subver") - 1,0))    
+    if 'up' in operation:
+        node.parm("version").set(node.evalParm("version") + 1)
+    else:
+        node.parm("version").set(max(node.evalParm("version") - 1,1))    
                 
+def openPath(kwargs):
+    import os
+    
+    node = kwargs['node']     
+    
+    dir = node.evalParm("basedir") 
+    if node.evalParm("filemethod"):
+        dir = os.path.dirname(node.evalParm("file"))
+    
+    if os.path.exists(dir):
+        if dir[-1] is not '/':
+            dir += '/'
+        hou.ui.showInFileBrowser(dir)
+    else:
+        hou.ui.displayMessage(text="Could not open directory:\n{dir}.".format(dir=dir),
+                              severity=hou.severityType.ImportantMessage)

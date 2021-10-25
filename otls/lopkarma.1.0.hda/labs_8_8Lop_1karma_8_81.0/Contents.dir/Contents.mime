@@ -31,23 +31,26 @@ Content-Disposition: attachment; filename="hdaroot.def"
 Content-Type: text/plain
 
 comment ""
-position -1.02684 0.5093
-connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on debug off
+position -2.5 -6.1504
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display on render off highlight off unload off savedata off compress on colordefault on exposed on debug off
 outputsNamed3
 {
+1 "output1"
 }
 inputsNamed3
 {
+0 	camera1 1 1 "input1"
 }
 inputs
 {
+0 	camera1 0 1
 }
 stat
 {
   create -1
   modify -1
-  author Paul_Ambrosiussen@LAPTOP-P8R7FBPF
+  author ati@pop-os.localdomain
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -88,7 +91,7 @@ Content-Type: text/plain
 comment ""
 position 1.5 6.85
 connectornextid 3
-flags =  lock off model off template off footprint off xray off bypass off display off render on highlight off unload off savedata off compress on colordefault on exposed on debug off
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on debug off
 outputsNamed3
 {
 1 "output1"
@@ -641,7 +644,7 @@ Content-Type: text/plain
       righttype = extend
       defaultString = \"off\"
       flags = 0
-      segment { length = 0 expr = chs(\"../denoiser\") }
+      segment { length = 0 expr = ifs(ch(\"../enable_denoiser\"),chs(\"../denoiser\"),\"off\") }
     }
     channel denoise_usealbedo {
       lefttype = extend
@@ -848,7 +851,7 @@ Content-Type: text/plain
       righttype = extend
       default = 60
       flags = 0
-      segment { length = 0 value = 60 60 expr = ch(\"../savefrequency\") }
+      segment { length = 0 value = 60 60 expr = "ch(\"../savefrequency\") * 60" }
     }
     channel resume {
       lefttype = extend
@@ -1373,7 +1376,7 @@ usedicingcamera	[ 0	locks=0 ]	(	[ usedicingcamera	0 ] 	)
 dicingcamera	[ 0	locks=0 ]	(	[ dicingcamera	"" ] 	)
 offscreenquality	[ 0	locks=0 ]	(	[ offscreenquality	0.10000000000000001 ] 	)
 dicingqualityscale	[ 0	locks=0 ]	(	[ dicingqualityscale	1 ] 	)
-__imageoutput	[ 0	locks=0 ]	(	3	3	3	3	3	)
+__imageoutput	[ 0	locks=0 ]	(	0	0	0	0	0	)
 importsecondaryinputvars	[ 0	locks=0 ]	(	[ importsecondaryinputvars	0 ] 	)
 importsecondaryproducts	[ 0	locks=0 ]	(	[ importsecondaryproducts	0 ] 	)
 pixelfilter	[ 0	locks=0 ]	(	[ pixelfilter	gauss ] 	)
@@ -1624,7 +1627,7 @@ dcm	[ 0	locks=0 ]	(	[ dcm	0 ] 	)
 folder8	[ 0	locks=0 ]	(	1	)
 dcmfilename	[ 0	locks=0 ]	(	[ dcmfilename	$HIP/render/$HIPNAME.$OS.dcm.$F4.exr ] 	)
 dcmvars	[ 0	locks=0 ]	(	[ dcmvars	/Render/Products/Vars/* ] 	)
-rendering8	[ 0	locks=0 ]	(	4	4	4	4	4	4	)
+rendering8	[ 0	locks=0 ]	(	1	1	1	1	1	1	)
 varianceaa_thresh	[ 0	locks=0 ]	(	[ varianceaa_thresh	0.01 ] 	)
 guiding_enable	[ 0	locks=0 ]	(	[ guiding_enable	0 ] 	)
 guiding_samples	[ 0	locks=0 ]	(	[ guiding_samples	64 ] 	)
@@ -1701,7 +1704,7 @@ stat
   author nobody@nowhere
   access 0777
 }
-color UT_Color RGB 0.65 0.4 0.5 
+color UT_Color RGB 0.8 0.8 0.8 
 delscript ""
 exprlanguage hscript
 end
@@ -1738,13 +1741,6 @@ Content-Type: text/plain
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../execute\") }
-    }
-    channel take {
-      lefttype = extend
-      righttype = extend
-      defaultString = \"_current_\"
-      flags = 0
-      segment { length = 0 expr = chs(\"../take\") }
     }
     channel optioncount {
       lefttype = extend
@@ -2015,12 +2011,12 @@ trange	[ 0	locks=0 ]	(	[ trange	0 ] 	)
 f	[ 0	locks=0 ]	(	[ f1	1 ] 	[ f2	240 ] 	[ f3	1 ] 	)
 foffset	[ 0	locks=0 ]	(	0	0	1	)
 allframesatonce	[ 0	locks=0 ]	(	"off"	)
-take	[ 0	locks=0 ]	(	[ take	_current_ ] 	)
+take	[ 0	locks=0 ]	(	_current_	)
 renderer	[ 0	locks=0 ]	(	BRAY_HdKarma	)
 loppath	[ 0	locks=0 ]	(	../karmarenderproperties	)
 rendersettings	[ 0	locks=0 ]	(	[ rendersettings	"" ] 	)
 outputimage	[ 0	locks=0 ]	(	`chs(\"../picture\")`	)
-_tabs	[ 0	locks=0 ]	(	0	0	0	0	)
+_tabs	[ 0	locks=0 ]	(	2	2	2	2	)
 _husk_tabs	[ 0	locks=0 ]	(	0	0	0	0	0	)
 husk_instantshutter	[ 0	locks=0 ]	(	[ husk_instantshutter	0 ] 	)
 husk_purpose	[ 0	locks=0 ]	(	`pythonexprs(\"','.join(hou.pwd().evalParm('../purpose').split())\")`	)
@@ -2112,7 +2108,7 @@ Content-Type: text/plain
 comment ""
 position 4.16334e-17 4.41305
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display on render off highlight off unload off savedata off compress on colordefault on exposed on debug off
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on debug off
 outputsNamed3
 {
 }
@@ -2191,7 +2187,7 @@ stat
   author nobody@nowhere
   access 0777
 }
-color UT_Color RGB 0.6 0.7 0.77 
+color UT_Color RGB 0.8 0.8 0.8 
 delscript ""
 exprlanguage hscript
 end
@@ -2270,6 +2266,9 @@ taskgraphautosave	[ 0	locks=0 ]	(	"off"	)
 taskgraphsaverate	[ 0	locks=0 ]	(	10	)
 schedulersection	[ 0	locks=0 ]	(	0	)
 topscheduler	[ 0	locks=0 ]	(	localscheduler	)
+usedefaultlabel	[ 0	locks=0 ]	(	"off"	)
+defaultlabel	[ 0	locks=0 ]	(	$OS.`@pdg_index`	)
+sep1	[ 0	locks=0 ]	(	)
 regenerationtype	[ 0	locks=0 ]	(	"0"	)
 evaluationtime	[ 0	locks=0 ]	(	"0"	)
 customtime	[ 0	locks=0 ]	(	0	)
@@ -2317,7 +2316,7 @@ stat
   author ati@pop-os.localdomain
   access 0777
 }
-color UT_Color RGB 0.478 0.478 0.478 
+color UT_Color RGB 0.8 0.8 0.8 
 delscript ""
 exprlanguage hscript
 end

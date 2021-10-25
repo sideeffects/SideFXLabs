@@ -3,7 +3,7 @@
 {
     name	labs::karma::1.0
     script	karma
-    label	"Karma (Labs)"
+    label	"Labs Karma"
 
     help {
 	""
@@ -19,7 +19,6 @@
         name    "primpath"
         label   "Primitive Path"
         type    string
-        joinnext
         default { "/Render/rendersettings" }
         menureplace {
             [ "opmenu -l -a karmarenderproperties primpath" ]
@@ -29,16 +28,6 @@
         parmtag { "script_action_help" "Select a primitive in the Scene Viewer or Scene Graph Tree pane. Ctrl-click to select using the primitive picker dialog." }
         parmtag { "script_action_icon" "BUTTONS_reselect" }
         parmtag { "sidefx::usdpathtype" "prim" }
-    }
-    parm {
-        name    "createtopfilecache"
-        label   "Create TOP File Cache"
-        type    button
-        nolabel
-        default { "0" }
-        parmtag { "button_icon" "NETWORKS_top" }
-        parmtag { "script_callback" "hou.phm().createTOPKarma(kwargs)" }
-        parmtag { "script_callback_language" "python" }
     }
     parm {
         name    "filemethod"
@@ -57,7 +46,26 @@
         name    "timedependent"
         label   "Time Dependent Render"
         type    toggle
+        joinnext
         default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "labelparm41"
+        label   "Label"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "createtopfilecache"
+        label   "Create TOP File Cache"
+        type    button
+        nolabel
+        default { "0" }
+        parmtag { "button_icon" "NETWORKS_top" }
+        parmtag { "script_callback" "hou.phm().createTOPKarma(kwargs)" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
@@ -779,6 +787,41 @@
         }
 
         groupcollapsible {
+            name    "folder27"
+            label   "Render Mode"
+            grouptag { "sidefx::header_parm" "imagemode" }
+
+            parm {
+                name    "imagemode"
+                label   "Image Mode"
+                type    string
+                default { "Progressive" }
+                hidewhen "{ engine == xpu }"
+                menu {
+                    [ "opmenu -a -l karmarenderproperties imagemode" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "progressivepasses"
+                label   "Progressive Passes"
+                type    integer
+                default { "0" }
+                disablewhen "{ imagemode != Bucket }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "int" }
+            }
+        }
+
+        groupcollapsible {
             name    "folder15"
             label   "Sampling"
             grouptag { "group_default" "0" }
@@ -1430,27 +1473,11 @@
         name    "main_1_1_3"
         label   "Image Output"
 
-        group {
-            name    "__imageoutput"
-            label   "AOVs (Render Vars)"
+        groupcollapsible {
+            name    "folder0"
+            label   "Pixel Filter"
+            grouptag { "sidefx::header_parm" "pixelfilter" }
 
-            parm {
-                name    "importsecondaryinputvars"
-                label   "Import Render Vars From Second Input"
-                type    toggle
-                default { "off" }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "importsecondaryproducts"
-                label   "Import Render Products From Second Input"
-                type    toggle
-                default { "off" }
-                disablewhen "{ importsecondaryinputvars == 0 }"
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "script_callback_language" "python" }
-            }
             parm {
                 name    "pixelfilter"
                 label   "Pixel Filter"
@@ -1480,648 +1507,719 @@
                 parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
                 parmtag { "usdvaluetype" "float" }
             }
+        }
+
+        groupcollapsible {
+            name    "folder3"
+            label   "Denoiser"
+            grouptag { "sidefx::header_parm" "denoiser" }
+            grouptag { "sidefx::header_toggle" "enable_denoiser" }
+
+            parm {
+                name    "enable_denoiser"
+                label   "Denoiser"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoiser"
+                label   "Denoiser"
+                type    string
+                default { "optix" }
+                disablewhen "{ enable_denoiser != 1 }"
+                menu {
+                    "optix" "nVidia Optix Denoiser"
+                    "oidn"  "Intel OIDN"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_usealbedo"
+                label   "Use Albedo"
+                type    toggle
+                default { "on" }
+                disablewhen "{ enable_denoiser != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_useN"
+                label   "Use N Input"
+                type    toggle
+                default { "on" }
+                disablewhen "{ enable_denoiser != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_useGl"
+                label   "Use Gl Output"
+                type    toggle
+                default { "off" }
+                disablewhen "{ enable_denoiser != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_aovs"
+                label   "AOVs"
+                type    string
+                default { "C" }
+                disablewhen "{ enable_denoiser != 1 }"
+                menutoggle {
+                    [ "opmenu -l -a karmarenderproperties denoise_aovs" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder8"
+            label   "Deep Camera Map"
+            grouptag { "sidefx::header_toggle" "dcm" }
+
+            parm {
+                name    "dcm"
+                label   "Ouput Deep Camera Map"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "dcmfile"
+                label   "DCM File"
+                type    file
+                default { "$HIP/render/$HIPNAME.$OS.dcm.$F4.exr" }
+                disablewhen "{ dcm == 0 }"
+                hidewhen "{ filemethod == constructed }"
+                menureplace {
+                    [ "opmenu -l -a karmarenderproperties dcmfilename" ]
+                }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "write" }
+            }
+            parm {
+                name    "dcmvars"
+                label   "DCM Render Vars"
+                type    string
+                default { "/Render/Products/Vars/*" }
+                disablewhen "{ dcm == 0 }"
+                menutoggle {
+                    [ "opmenu -l -a karmarenderproperties dcmvars" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, False)" }
+                parmtag { "script_action_help" "Select a primitive in the Scene Viewer or Scene Graph Tree pane. Ctrl-click to select using the primitive picker dialog." }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+                parmtag { "sidefx::usdpathtype" "prim" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__imageoutput"
+            label   "AOVs"
+
             groupcollapsible {
-                name    "__lpe"
-                label   "Component Level Output"
+                name    "folder1"
+                label   "Beauty"
                 grouptag { "group_default" "1" }
 
                 parm {
-                    name    "lpeaovlimit"
-                    label   "LPE Tag AOV Limit"
-                    type    integer
-                    default { "100" }
-                    disablewhen "{ beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
-                    range   { 0 1000 }
+                    name    "beauty"
+                    label   "Beauty"
+                    type    toggle
+                    joinnext
+                    default { "on" }
                     parmtag { "autoscope" "0000000000000000" }
                     parmtag { "script_callback_language" "python" }
                 }
                 parm {
-                    name    "doomitlpes"
-                    label   "Omit LPE Tags"
-                    type    toggle
+                    name    "labelparm"
+                    label   "labelparm"
+                    type    label
                     nolabel
                     joinnext
-                    default { "off" }
-                    disablewhen "{ beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "omitlpes"
-                    label   "Omit LPE Tags"
-                    type    string
-                    default { "Untagged_Lights" }
-                    disablewhen "{ doomitlpes == 0 } { beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
-                    menutoggle {
-                        [ "opmenu -l -a karmarenderproperties omitlpes" ]
-                    }
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "sepparm"
-                    label   "Separator"
-                    type    separator
                     default { "" }
                 }
-                groupcollapsible {
-                    name    "folder1"
-                    label   "Beauty"
-                    grouptag { "group_default" "1" }
-
-                    parm {
-                        name    "beauty"
-                        label   "Beauty"
-                        type    toggle
-                        joinnext
-                        default { "on" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm"
-                        label   "labelparm"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "beautyperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ beauty == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "beautyunshadowed"
-                        label   "Beauty Unshadowed"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm2"
-                        label   "labelparm2"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "beautyunshadowedperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ beautyunshadowed == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
+                parm {
+                    name    "beautyperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ beauty == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
                 }
-
-                groupcollapsible {
-                    name    "folder2"
-                    label   "Diffuse"
-
-                    parm {
-                        name    "combineddiffuse"
-                        label   "Combined Diffuse"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm3"
-                        label   "labelparm3"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "combineddiffuseperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ combineddiffuse == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "directdiffuse"
-                        label   "Direct Diffuse"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm4"
-                        label   "labelparm4"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "directdiffuseperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ directdiffuse == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "indirectdiffuse"
-                        label   "Indirect Diffuse"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm5"
-                        label   "labelparm5"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "indirectdiffuseperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ indirectdiffuse == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "combineddiffuseunshadowed"
-                        label   "Combined Diffuse Unshadowed"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm6"
-                        label   "labelparm6"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "combineddiffuseunshadowedperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ combineddiffuseunshadowed == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "directdiffuseunshadowed"
-                        label   "Direct Diffuse Unshadowed"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm7"
-                        label   "labelparm7"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "directdiffuseunshadowedperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ directdiffuseunshadowed == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "indirectdiffuseunshadowed"
-                        label   "Indirect Diffuse Unshadowed"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm8"
-                        label   "labelparm8"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "indirectdiffuseunshadowedperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ indirectdiffuseunshadowed == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
+                parm {
+                    name    "beautyunshadowed"
+                    label   "Beauty Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
                 }
-
-                groupcollapsible {
-                    name    "folder5"
-                    label   "Reflections and Refractions"
-
-                    parm {
-                        name    "combinedglossyreflection"
-                        label   "Combined Glossy Reflection"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm9"
-                        label   "labelparm9"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "combinedglossyreflectionperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ combinedglossyreflection == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "directglossyreflection"
-                        label   "Direct Glossy Reflection"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm10"
-                        label   "labelparm10"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "directglossyreflectionperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ directglossyreflection == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "indirectglossyreflection"
-                        label   "Indirect Glossy Reflection"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm11"
-                        label   "labelparm11"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "indirectglossyreflectionperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ indirectglossyreflection == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "glossytransmission"
-                        label   "Glossy Transmission"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm12"
-                        label   "labelparm12"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "glossytransmissionperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ glossytransmission == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "coat"
-                        label   "BSDF Labelled 'coat'"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm13"
-                        label   "labelparm13"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "coatperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ coat == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
+                parm {
+                    name    "labelparm2"
+                    label   "labelparm2"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
                 }
-
-                groupcollapsible {
-                    name    "folder6"
-                    label   "Lights and Emission"
-
-                    parm {
-                        name    "combinedemission"
-                        label   "Combined Emission"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm14"
-                        label   "labelparm14"
-                        type    label
-                        nolabel
-                        default { "" }
-                    }
-                    parm {
-                        name    "directemission"
-                        label   "Direct Emission"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm15"
-                        label   "labelparm15"
-                        type    label
-                        nolabel
-                        default { "" }
-                    }
-                    parm {
-                        name    "indirectemission"
-                        label   "Indirect Emission"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm16"
-                        label   "labelparm16"
-                        type    label
-                        nolabel
-                        default { "" }
-                    }
-                    parm {
-                        name    "visiblelights"
-                        label   "Visible Lights"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm17"
-                        label   "labelparm17"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "visiblelightsperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ visiblelights == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
+                parm {
+                    name    "beautyunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ beautyunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
                 }
+            }
 
-                groupcollapsible {
-                    name    "folder7"
-                    label   "Volume"
+            groupcollapsible {
+                name    "folder2"
+                label   "Diffuse"
 
-                    parm {
-                        name    "combinedvolume"
-                        label   "Combined Volume"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm18"
-                        label   "labelparm18"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "combinedvolumeperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ combinedvolume == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "directvolume"
-                        label   "Direct Volume"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm19"
-                        label   "labelparm19"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "directvolumeperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ directvolume == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "indirectvolume"
-                        label   "Indirect Volume"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm20"
-                        label   "labelparm20"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "indirectvolumeperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ indirectvolume == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
+                parm {
+                    name    "combineddiffuse"
+                    label   "Combined Diffuse"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
                 }
-
-                groupcollapsible {
-                    name    "folder9"
-                    label   "SSS"
-
-                    parm {
-                        name    "sss"
-                        label   "BSDF Labelled 'sss'"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm21"
-                        label   "labelparm21"
-                        type    label
-                        nolabel
-                        joinnext
-                        default { "" }
-                    }
-                    parm {
-                        name    "sssperlpe"
-                        label   "Split per LPE Tag"
-                        type    toggle
-                        default { "off" }
-                        disablewhen "{ sss == 0 }"
-                        range   { 0! 10 }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
+                parm {
+                    name    "labelparm3"
+                    label   "labelparm3"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
                 }
+                parm {
+                    name    "combineddiffuseperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combineddiffuse == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directdiffuse"
+                    label   "Direct Diffuse"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm4"
+                    label   "labelparm4"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directdiffuseperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directdiffuse == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectdiffuse"
+                    label   "Indirect Diffuse"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm5"
+                    label   "labelparm5"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectdiffuseperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectdiffuse == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "combineddiffuseunshadowed"
+                    label   "Combined Diffuse Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm6"
+                    label   "labelparm6"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "combineddiffuseunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combineddiffuseunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directdiffuseunshadowed"
+                    label   "Direct Diffuse Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm7"
+                    label   "labelparm7"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directdiffuseunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directdiffuseunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectdiffuseunshadowed"
+                    label   "Indirect Diffuse Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm8"
+                    label   "labelparm8"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectdiffuseunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectdiffuseunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
 
-                groupcollapsible {
-                    name    "folder10"
+            groupcollapsible {
+                name    "folder5"
+                label   "Reflections and Refractions"
+
+                parm {
+                    name    "combinedglossyreflection"
+                    label   "Combined Glossy Reflection"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm9"
+                    label   "labelparm9"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "combinedglossyreflectionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combinedglossyreflection == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directglossyreflection"
+                    label   "Direct Glossy Reflection"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm10"
+                    label   "labelparm10"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directglossyreflectionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directglossyreflection == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectglossyreflection"
+                    label   "Indirect Glossy Reflection"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm11"
+                    label   "labelparm11"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectglossyreflectionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectglossyreflection == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "glossytransmission"
+                    label   "Glossy Transmission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm12"
+                    label   "labelparm12"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "glossytransmissionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ glossytransmission == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "coat"
+                    label   "BSDF Labelled 'coat'"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm13"
+                    label   "labelparm13"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "coatperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ coat == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder6"
+                label   "Lights and Emission"
+
+                parm {
+                    name    "combinedemission"
+                    label   "Combined Emission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm14"
+                    label   "labelparm14"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "directemission"
+                    label   "Direct Emission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm15"
+                    label   "labelparm15"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "indirectemission"
+                    label   "Indirect Emission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm16"
+                    label   "labelparm16"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "visiblelights"
+                    label   "Visible Lights"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm17"
+                    label   "labelparm17"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "visiblelightsperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ visiblelights == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder7"
+                label   "Volume"
+
+                parm {
+                    name    "combinedvolume"
+                    label   "Combined Volume"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm18"
+                    label   "labelparm18"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "combinedvolumeperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combinedvolume == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directvolume"
+                    label   "Direct Volume"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm19"
+                    label   "labelparm19"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directvolumeperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directvolume == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectvolume"
+                    label   "Indirect Volume"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm20"
+                    label   "labelparm20"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectvolumeperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectvolume == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder9"
+                label   "SSS"
+
+                parm {
+                    name    "sss"
+                    label   "BSDF Labelled 'sss'"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm21"
+                    label   "labelparm21"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "sssperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ sss == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder10"
+                label   "Albedo"
+
+                parm {
+                    name    "albedo"
                     label   "Albedo"
-
-                    parm {
-                        name    "albedo"
-                        label   "Albedo"
-                        type    toggle
-                        joinnext
-                        default { "off" }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "labelparm22"
-                        label   "labelparm22"
-                        type    label
-                        nolabel
-                        default { "" }
-                    }
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
                 }
-
+                parm {
+                    name    "labelparm22"
+                    label   "labelparm22"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
             }
 
             groupcollapsible {
                 name    "__ray"
-                label   "Ray Level Output"
+                label   "Ray Level"
 
                 parm {
                     name    "P"
@@ -2414,27 +2512,28 @@
             }
 
             groupcollapsible {
-                name    "__extrarendervars"
-                label   "Extra Render Vars"
+                name    "__lpe_1"
+                label   "Extra AOVs"
 
                 multiparm {
                     name    "extrarendervars"
-                    label    "Render Vars"
+                    label    "Number of AOVs"
                     default 0
                     parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "autoselect" "1000000000000000" }
 
-                    parm {
-                        name    "enable#"
-                        label   "Enable"
-                        type    toggle
-                        default { "1" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    groupsimple {
+                    groupcollapsible {
                         name    "folder0_#"
-                        label   "Render Var"
-                        disablewhen "{ enable# == 0 }"
+                        label   "Render Variable #"
+                        grouptag { "sidefx::header_parm" "name#" }
+                        grouptag { "sidefx::header_toggle" "enable#" }
 
+                        parm {
+                            name    "enable#"
+                            label   "Enable"
+                            type    toggle
+                            default { "1" }
+                        }
                         parm {
                             name    "name#"
                             label   "Name"
@@ -2576,69 +2675,83 @@
 
         }
 
-        group {
-            name    "__imageoutput_1"
-            label   "Filters"
+        groupcollapsible {
+            name    "folder24"
+            label   "Imports"
 
-            groupsimple {
-                name    "folder3"
-                label   "Image Filters"
+            parm {
+                name    "importsecondaryinputvars"
+                label   "Import Render Vars From Second Input"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "importsecondaryproducts"
+                label   "Import Render Products From Second Input"
+                type    toggle
+                default { "off" }
+                disablewhen "{ importsecondaryinputvars == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
 
-                parm {
-                    name    "denoiser"
-                    label   "Denoiser"
-                    type    string
-                    default { "off" }
-                    menu {
-                        [ "opmenu -l -a karmarenderproperties denoiser" ]
-                    }
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
+        groupcollapsible {
+            name    "folder23"
+            label   "LPE tags"
+
+            parm {
+                name    "lpeaovlimit"
+                label   "LPE Tag AOV Limit"
+                type    integer
+                default { "100" }
+                disablewhen "{ beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
+                range   { 0 1000 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "doomitlpes"
+                label   "Omit LPE Tags"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                disablewhen "{ beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "omitlpes"
+                label   "Omit LPE Tags"
+                type    string
+                default { "Untagged_Lights" }
+                disablewhen "{ doomitlpes == 0 } { beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
+                menutoggle {
+                    [ "opmenu -l -a karmarenderproperties omitlpes" ]
                 }
-                parm {
-                    name    "denoise_usealbedo"
-                    label   "Use Albedo"
-                    type    toggle
-                    default { "on" }
-                    disablewhen "{ denoiser == off }"
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "denoise_useN"
-                    label   "Use N Input"
-                    type    toggle
-                    default { "on" }
-                    disablewhen "{ denoiser == off }"
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "denoise_useGl"
-                    label   "Use Gl Output"
-                    type    toggle
-                    default { "off" }
-                    disablewhen "{ denoiser == off }"
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "denoise_aovs"
-                    label   "AOVs"
-                    type    string
-                    default { "C" }
-                    disablewhen "{ denoiser == off }"
-                    menutoggle {
-                        [ "opmenu -l -a karmarenderproperties denoise_aovs" ]
-                    }
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                multiswitcher {
-                    name    "ocio"
-                    label    "OCIO"
-                    default 0
-                    parmtag { "autoscope" "0000000000000000" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder11"
+            label   "Color Management"
+
+            multiparm {
+                name    "ocio"
+                label    "Number of Planes"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+
+                groupcollapsible {
+                    name    "folder25_#"
+                    label   "Plane #"
+                    grouptag { "sidefx::header_parm" "ocio_planes#" }
+                    grouptag { "sidefx::header_toggle" "ocio_enable#" }
 
                     parm {
                         name    "ocio_enable#"
@@ -2662,10 +2775,10 @@
                         parmtag { "script_callback_language" "python" }
                     }
                     parm {
-                        name    "ocio_outputspace#"
-                        label   "Output Space"
+                        name    "ocio_inputspace#"
+                        label   "Input Space"
                         type    string
-                        default { "" }
+                        default { "data" }
                         disablewhen "{ ocio_enable# == 0 }"
                         menureplace {
                             [ "echo `pythonexprs(\"__import__('toolutils').ocioColorSpaceMenu()\")`" ]
@@ -2673,10 +2786,10 @@
                         parmtag { "script_callback_language" "python" }
                     }
                     parm {
-                        name    "ocio_inputspace#"
-                        label   "Input Space"
+                        name    "ocio_outputspace#"
+                        label   "Output Space"
                         type    string
-                        default { "data" }
+                        default { "" }
                         disablewhen "{ ocio_enable# == 0 }"
                         menureplace {
                             [ "echo `pythonexprs(\"__import__('toolutils').ocioColorSpaceMenu()\")`" ]
@@ -2695,15 +2808,23 @@
 
             }
 
-            groupsimple {
-                name    "folder4"
-                label   "Sample Filters"
+        }
 
-                multiswitcher {
-                    name    "colorlimits"
-                    label    "Color Limits"
-                    default 0
-                    parmtag { "autoscope" "0000000000000000" }
+        groupcollapsible {
+            name    "folder4"
+            label   "Color Limits"
+
+            multiparm {
+                name    "colorlimits"
+                label    "Number of Limits"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+
+                groupcollapsible {
+                    name    "folder25_#_2"
+                    label   "Plane #"
+                    grouptag { "sidefx::header_parm" "colorlimit_planes#" }
+                    grouptag { "sidefx::header_toggle" "colorlimit_enable#" }
 
                     parm {
                         name    "colorlimit_enable#"
@@ -2741,13 +2862,13 @@
 
         }
 
-        group {
+        groupcollapsible {
             name    "__imageoutput_2"
             label   "Aspect Ratio"
 
             parm {
                 name    "aspectRatioConformPolicy"
-                label   "Aspect Ratio Conform Policy"
+                label   "Conform Policy"
                 type    string
                 default { "expandAperture" }
                 menu {
@@ -2777,34 +2898,11 @@
             }
         }
 
-        group {
-            name    "__imageoutput_3"
-            label   "Meta Data"
+        groupcollapsible {
+            name    "folder25"
+            label   "EXR Image"
+            disablewhen "{ filetype != .exr }"
 
-            parm {
-                name    "image_artist"
-                label   "Artist"
-                type    string
-                default { "" }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "usdvaluetype" "string" }
-            }
-            parm {
-                name    "image_comment"
-                label   "Comment"
-                type    string
-                default { "" }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "usdvaluetype" "string" }
-            }
-            parm {
-                name    "image_hostname"
-                label   "Hostname"
-                type    string
-                default { "" }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "usdvaluetype" "string" }
-            }
             parm {
                 name    "image_exr_compression"
                 label   "EXR Compression"
@@ -2828,59 +2926,40 @@
             }
         }
 
+        groupcollapsible {
+            name    "__imageoutput_3"
+            label   "Meta Data"
+
+            parm {
+                name    "image_artist"
+                label   "Artist"
+                type    string
+                default { "$USER" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "image_comment"
+                label   "Comment"
+                type    string
+                default { "" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "image_hostname"
+                label   "Hostname"
+                type    string
+                default { "" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "string" }
+            }
+        }
+
     }
 
     group {
         name    "main_1_1_4"
-        label   "Deep Output"
-
-        parm {
-            name    "dcm"
-            label   "DCM"
-            type    toggle
-            default { "off" }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "script_callback_language" "python" }
-        }
-        groupsimple {
-            name    "folder8"
-            label   "Deep Camera Map"
-            disablewhen "{ dcm == 0 }"
-            grouptag { "sidefx::header_toggle" "dcm" }
-
-            parm {
-                name    "dcmfilename"
-                label   "DCM Filename"
-                type    file
-                default { "$HIP/render/$HIPNAME.$OS.dcm.$F4.exr" }
-                disablewhen "{ dcm == 0 }"
-                menureplace {
-                    [ "opmenu -l -a karmarenderproperties dcmfilename" ]
-                }
-                range   { 0 1 }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "filechooser_mode" "write" }
-            }
-            parm {
-                name    "dcmvars"
-                label   "DCM Render Vars"
-                type    string
-                default { "/Render/Products/Vars/*" }
-                menutoggle {
-                    [ "opmenu -l -a karmarenderproperties dcmvars" ]
-                }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, False)" }
-                parmtag { "script_action_help" "Select a primitive in the Scene Viewer or Scene Graph Tree pane. Ctrl-click to select using the primitive picker dialog." }
-                parmtag { "script_action_icon" "BUTTONS_reselect" }
-                parmtag { "sidefx::usdpathtype" "prim" }
-            }
-        }
-
-    }
-
-    group {
-        name    "main_1_1_5"
         label   "Advanced"
 
         groupcollapsible {
@@ -3102,14 +3181,14 @@
             }
             parm {
                 name    "cachedir"
-                label   "Cache Folder"
+                label   "Image Folder"
                 type    string
                 default { "`chs(\"basedir\") + \"/\" + chs(\"basename\")``ifs(ch(\"enableversion\"), \"/\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"/\" + chs(\"wedgestr\"),\"\")`" }
                 parmtag { "autoscope" "0000000000000000" }
             }
             parm {
                 name    "cachename"
-                label   "Cache Name"
+                label   "Image Name"
                 type    string
                 default { "`chs(\"basename\")``ifs(ch(\"enableversion\"), \"_\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"_\" + chs(\"wedgestr\"),\"\")``chs(\"framestr\")``chs(\"filetype\")`" }
                 parmtag { "autoscope" "0000000000000000" }
@@ -3125,16 +3204,70 @@
             }
             parm {
                 name    "picture"
-                label   "Output File"
+                label   "Output Image"
                 type    string
                 default { [ "{\n    if(ch('filemethod'))\n    {\n        return chs('file');\n    }\n    else\n    {\n        return chs('cachedir') + '/' + chs('cachename');\n    }\n}" hscript-expr ] }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "filechooser_mode" "read" }
                 parmtag { "script_callback_language" "python" }
             }
+            parm {
+                name    "sepparm"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "checkpointname"
+                label   "Checkpoint Name"
+                type    string
+                default { "`chs(\"basename\")``ifs(ch(\"enableversion\"), \"_\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"_\" + chs(\"wedgestr\"),\"\")``chs(\"framestr\")`.checkpoint" }
+                disablewhen "{ outputcheckpoint == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "productName"
+                label   "Output Checkpoint"
+                type    string
+                default { [ "{\n    if(ch('filemethod'))\n    {\n        return chs('checkpoint');\n    }\n    else\n    {\n        return chs('cachedir') + '/' + chs('checkpointname');\n    }\n}" hscript-expr ] }
+                disablewhen "{ outputcheckpoint == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "dcmname"
+                label   "DCM Name"
+                type    string
+                default { "`chs(\"basename\")``ifs(ch(\"enableversion\"), \"_\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"_\" + chs(\"wedgestr\"),\"\")`.dcm`chs(\"framestr\")``chs(\"filetype\")`" }
+                disablewhen "{ dcm == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "dcmfilename"
+                label   "Output DCM"
+                type    file
+                default { [ "{\n    if(ch('filemethod'))\n    {\n        return chs('dcmfile');\n    }\n    else\n    {\n        return chs('cachedir') + '/' + chs('dcmname');\n    }\n}\n" hscript-expr ] }
+                disablewhen "{ dcm == 0 }"
+                menureplace {
+                    [ "opmenu -l -a karmarenderproperties dcmfilename" ]
+                }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "write" }
+            }
         }
 
-        group {
+        groupcollapsible {
             name    "__advanced"
             label   "Sampling"
             hidewhentab "{ engine == xpu }"
@@ -3156,6 +3289,8 @@
                 name    "guiding_enable"
                 label   "Enable Indirect Guiding"
                 type    toggle
+                nolabel
+                joinnext
                 default { "off" }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "spare_category" "Rendering" }
@@ -3165,7 +3300,7 @@
             }
             parm {
                 name    "guiding_samples"
-                label   "Indirect Training Samples"
+                label   "Indirect Samples"
                 type    integer
                 default { "64" }
                 disablewhen "{ guiding_enable == 0 }"
@@ -3176,10 +3311,10 @@
                 parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
                 parmtag { "usdvaluetype" "int" }
             }
-            groupsimple {
+            groupcollapsible {
                 name    "__variance"
                 label   "Pixel Oracle"
-                grouptag { "group_default" "1" }
+                grouptag { "sidefx::header_parm" "oracle" }
 
                 parm {
                     name    "oracle"
@@ -3288,10 +3423,19 @@
 
         }
 
-        group {
+        groupcollapsible {
             name    "__advanced_1"
             label   "Checkpointing"
+            grouptag { "sidefx::header_toggle" "outputcheckpoint" }
 
+            parm {
+                name    "checkpoint"
+                label   "Checkpoint File"
+                type    string
+                default { "$HIP/render/$HIPNAME.$OS.$F4.checkpoint" }
+                hidewhen "{ filemethod == constructed }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
             parm {
                 name    "outputcheckpoint"
                 label   "Output Checkpoint Files"
@@ -3301,22 +3445,14 @@
                 parmtag { "script_callback_language" "python" }
             }
             parm {
-                name    "productName"
-                label   "Checkpoint File"
-                type    string
-                default { "$HIP/render/$HIPNAME.$OS.$F4.checkpoint" }
-                disablewhen "{ outputcheckpoint == 0 }"
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "usdvaluetype" "token" }
-            }
-            parm {
                 name    "savefrequency"
                 label   "Save Frequency"
                 type    float
-                default { "60" }
+                default { "1" }
                 disablewhen "{ outputcheckpoint == 0 }"
-                range   { -1! 300 }
+                range   { -1! 10 }
                 parmtag { "autoscope" "0000000000000000" }
+                parmtag { "sidefx::slider" "snap_to_int" }
                 parmtag { "usdvaluetype" "float" }
             }
             parm {
@@ -3330,7 +3466,7 @@
             }
         }
 
-        group {
+        groupcollapsible {
             name    "__advanced_2"
             label   "Tiles and Caching"
 
@@ -3444,148 +3580,103 @@
             }
         }
 
-        group {
-            name    "__advanced_3"
-            label   "Options"
+        groupcollapsible {
+            name    "__usdoptions"
+            label   "USD"
 
             parm {
-                name    "take"
-                label   "Render with Take"
+                name    "complexity"
+                label   "Complexity"
                 type    string
-                default { "_current_" }
+                default { "veryhigh" }
                 menu {
-                    [ "opmenu -l -a rop_usdrender take" ]
+                    [ "opmenu -l -a rop_usdrender husk_complexity" ]
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "purpose"
+                label   "Purpose"
+                type    string
+                default { "geometry render" }
+                menutoggle {
+                    "geometry"  "Geometry"
+                    "guide"     "Guide"
+                    "proxy"     "Proxy"
+                    "render"    "Render"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resolvercontext"
+                label   "Resolver Context Asset Path"
+                type    string
+                default { "`chs(strcat(opcreator(chsop(\"rop_usdrender/loppath\")), \"/resolvercontextassetpath\"))`" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "savetodirectory"
+                label   "USD Output Directory"
+                type    file
+                default { "$HOUDINI_TEMP_DIR/usd_renders/$RENDERID" }
+                menureplace {
+                    [ "opmenu -l -a rop_usdrender savetodirectory_directory" ]
                 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
             }
-            groupsimple {
-                name    "__usdoptions"
-                label   "USD Options"
+        }
+
+        groupcollapsible {
+            name    "folder26"
+            label   "Context"
+
+            multiparm {
+                name    "optioncount"
+                label    "Number of Options"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
 
                 parm {
-                    name    "savetodirectory"
-                    label   "USD Output Directory"
-                    type    file
-                    default { "$HOUDINI_TEMP_DIR/usd_renders/$RENDERID" }
-                    menureplace {
-                        [ "opmenu -l -a rop_usdrender savetodirectory_directory" ]
-                    }
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "purpose"
-                    label   "Purpose"
+                    name    "optiontype#"
+                    label   "Option Type"
                     type    string
-                    default { "geometry render" }
-                    menutoggle {
-                        "geometry"  "Geometry"
-                        "guide"     "Guide"
-                        "proxy"     "Proxy"
-                        "render"    "Render"
-                    }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "complexity"
-                    label   "Complexity"
-                    type    string
-                    default { "veryhigh" }
+                    default { "string" }
                     menu {
-                        [ "opmenu -l -a rop_usdrender husk_complexity" ]
+                        "string"    "String"
+                        "float"     "Number"
                     }
-                    parmtag { "script_callback_language" "python" }
                 }
                 parm {
-                    name    "resolvercontext"
-                    label   "Resolver Context Asset Path"
+                    name    "optionname#"
+                    label   "Option Name"
                     type    string
-                    default { "`chs(strcat(opcreator(chsop(\"rop_usdrender/loppath\")), \"/resolvercontextassetpath\"))`" }
-                    parmtag { "autoscope" "0000000000000000" }
-                    parmtag { "script_callback_language" "python" }
+                    default { "" }
                 }
-            }
-
-            groupsimple {
-                name    "__contextoptions"
-                label   "Context Options"
-
-                multiparm {
-                    name    "optioncount"
-                    label    "Number of Options"
-                    default 0
-                    parmtag { "autoscope" "0000000000000000" }
-
-                    parm {
-                        name    "optionname#"
-                        label   "Option Name"
-                        type    string
-                        default { "" }
-                    }
-                    parm {
-                        name    "optiontype#"
-                        label   "Option Type"
-                        type    string
-                        default { "string" }
-                        menu {
-                            "string"    "String"
-                            "float"     "Number"
-                        }
-                    }
-                    parm {
-                        name    "optionstrvalue#"
-                        label   "Option Value"
-                        type    string
-                        default { "" }
-                        hidewhen "{ optiontype# != string }"
-                    }
-                    parm {
-                        name    "optionfloatvalue#"
-                        label   "Option Value"
-                        type    float
-                        default { "0" }
-                        hidewhen "{ optiontype# != float }"
-                        range   { 0 10 }
-                    }
+                parm {
+                    name    "optionstrvalue#"
+                    label   "Option Value"
+                    type    string
+                    default { "" }
+                    hidewhen "{ optiontype# != string }"
                 }
-
+                parm {
+                    name    "optionfloatvalue#"
+                    label   "Option Value"
+                    type    float
+                    default { "0" }
+                    hidewhen "{ optiontype# != float }"
+                    range   { 0 10 }
+                }
             }
 
         }
 
-        group {
+        groupcollapsible {
             name    "__advanced_4"
             label   "Driver"
 
-            parm {
-                name    "imagemode"
-                label   "Image Mode"
-                type    string
-                default { "Progressive" }
-                hidewhen "{ engine == xpu }"
-                menu {
-                    [ "opmenu -a -l karmarenderproperties imagemode" ]
-                }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "spare_category" "Rendering" }
-                parmtag { "uiscope" "None" }
-                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
-                parmtag { "usdvaluetype" "token" }
-            }
-            parm {
-                name    "progressivepasses"
-                label   "Progressive Passes"
-                type    integer
-                default { "0" }
-                disablewhen "{ imagemode != Bucket }"
-                range   { 0 10 }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "spare_category" "Rendering" }
-                parmtag { "uiscope" "viewport" }
-                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
-                parmtag { "usdvaluetype" "int" }
-            }
             parm {
                 name    "abortmissingtexture"
                 label   "Cancel Render if Missing Texture is Discovered"
@@ -3647,9 +3738,10 @@
             }
         }
 
-        group {
+        groupcollapsible {
             name    "__advanced_5"
             label   "Profiling"
+            grouptag { "sidefx::header_parm" "verbose" }
 
             parm {
                 name    "verbose"
@@ -3754,8 +3846,8 @@
             }
         }
 
-        group {
-            name    "__advanced_6"
+        groupcollapsible {
+            name    "__advanced_7"
             label   "Component Labels"
             hidewhentab "{ force_headlight == 1 }"
 
@@ -3815,8 +3907,8 @@
             }
         }
 
-        group {
-            name    "__advanced_7"
+        groupcollapsible {
+            name    "__advanced_8"
             label   "MPlay"
 
             parm {

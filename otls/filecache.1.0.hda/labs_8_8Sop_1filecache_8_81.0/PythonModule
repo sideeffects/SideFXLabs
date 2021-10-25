@@ -434,7 +434,7 @@ def deleteWedges(kwargs):
             if len(os.listdir(basedir)) == 0:
                 deleteDirectory(basedir)                    
                        
-def setExpressionParm(_parm_from,_parm_to):
+def setExpressionParm(_parm_from,_parm_to, chref="ch"):
     
     node_from = _parm_from.node()
     node_to   = _parm_to.node()
@@ -443,9 +443,9 @@ def setExpressionParm(_parm_from,_parm_to):
     
     parm_template = _parm_from.parmTemplate()
     
-    chref = "ch"
-    if (parm_template.type() == hou.parmTemplateType.String):
-        chref = "chs"
+    if chref is not "chsop":
+        if (parm_template.type() == hou.parmTemplateType.String):
+            chref = "chs"
     
     expression = '%s("%s/%s")' % (chref,relative_path,_parm_from.name())
     _parm_to.setExpression(expression)
@@ -661,8 +661,11 @@ def createTOPFileCache(kwargs):
             multiparm_names.append("values" + sidx)
             multiparm_names.append("valuesdefault" + sidx)
             
-            for multiparm_name in multiparm_names:       
-                setExpressionParm(node.parm(multiparm_name),rop_node.parm(multiparm_name))
+            for multiparm_name in multiparm_names:    
+                if "geopath" in multiparm_name:
+                    setExpressionParm(node.parm(multiparm_name),rop_node.parm(multiparm_name),'chsop')
+                else:
+                    setExpressionParm(node.parm(multiparm_name),rop_node.parm(multiparm_name))
             
             '''
             for specificidx in range(0,node.evalParm("nvalues" + sidx)):
