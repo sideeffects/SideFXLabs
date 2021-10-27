@@ -1,64 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
 
 -->
-
 <menuDocument>
-    <!-- menuDocument can only contain 1 menu element, whose id is 
+  <!-- menuDocument can only contain 1 menu element, whose id is 
          implicitly "root_menu"
       -->
-    <menu>
-
-          <scriptItem id="samplescreencolor">
+  <menu>
+    <scriptItem id="samplescreencolor">
       <label>Sample Screen Colors</label>
-
-              <context>
-          <expression>
-            <![CDATA[
+      <context>
+        <expression>
+          <![CDATA[
 if len(kwargs["parms"]) == 0:
   return False
 parm = kwargs["parms"][0]
 return parm.parmTemplate().type() == hou.parmTemplateType.Ramp]]>
-          </expression>
-        </context>
-
+        </expression>
+      </context>
       <scriptCode>
         <![CDATA[
-import screencolorsampler
+from labsopui import screensampling
 
 try:
-  reload(screencolorsampler)
+  reload(screensampling)
 except NameError:
   from importlib import reload
-  reload(screencolorsampler)
+  reload(screensampling)
 
 
-screencolorsampler.sample_single_color(kwargs["parms"])
+screensampling.sample_ramp_color(kwargs["parms"])
 ]]>
       </scriptCode>
-
     </scriptItem>
-
-
-
-      <!-- External Editor -->
-      
-      <addScriptItem id="open_external_editor">
-        <label>Edit in External Editor</label>
-        <parent>expression_menu</parent>
-<!--         <insertAfter>edit_expression</insertAfter> -->
-        <context>
-          <expression>
-  <![CDATA[
+    <!-- External Editor -->
+    <addScriptItem id="open_external_editor">
+      <label>Edit in External Editor</label>
+      <parent>expression_menu</parent>
+      <!--         <insertAfter>edit_expression</insertAfter>-->
+      <context>
+        <expression>
+          <![CDATA[
 try:
   from HoudiniExprEditor import ParmWatcher
   return ParmWatcher.is_valid_parm(kwargs["parms"][0])
 except:
-  return False]]></expression>
-        </context>
-        <scriptCode>
-          <![CDATA[
+  return False]]>
+        </expression>
+      </context>
+      <scriptCode>
+        <![CDATA[
 from HoudiniExprEditor import ParmWatcher
 try:
   reload(ParmWatcher)
@@ -66,27 +57,25 @@ except NameError:
   from importlib import reload
   reload(ParmWatcher)
 ParmWatcher.add_watcher(kwargs["parms"][0])]]>
-        </scriptCode>
-      </addScriptItem>
-
-      <!-- Remove watcher -->
-
-      <addScriptItem id="remove_file_watcher">
-        <label>Remove File Watcher</label>
-        <parent>expression_menu</parent>
-<!--         <insertAfter>open_external_editor</insertAfter> -->
-        <context>
-          <expression>
-            <![CDATA[
+      </scriptCode>
+    </addScriptItem>
+    <!-- Remove watcher -->
+    <addScriptItem id="remove_file_watcher">
+      <label>Remove File Watcher</label>
+      <parent>expression_menu</parent>
+      <!--         <insertAfter>open_external_editor</insertAfter>-->
+      <context>
+        <expression>
+          <![CDATA[
 try:
   from HoudiniExprEditor import ParmWatcher
   return ParmWatcher.parm_has_watcher(kwargs["parms"][0])
 except:
   return False]]>
-          </expression>
-        </context>
-        <scriptCode>
-          <![CDATA[
+        </expression>
+      </context>
+      <scriptCode>
+        <![CDATA[
 from HoudiniExprEditor import ParmWatcher
 try:
   reload(ParmWatcher)
@@ -94,8 +83,50 @@ except NameError:
   from importlib import reload
   reload(ParmWatcher)
 ParmWatcher.remove_file_watched(kwargs["parms"][0])]]>
-        </scriptCode>
-      </addScriptItem>
+      </scriptCode>
+    </addScriptItem>
+    <subMenu id="expression_menu">
+      <label>Expression</label>
+      <scriptItem id="set_wedgeindex">
+        <label>Set to Wedge Index</label>
+        <insertAfter>use_old_language</insertAfter>
+        <context>
+          <expression>import hou
+from labsopui import wedge_tools
 
-    </menu>
+return wedge_tools.canSetWedgeIndex(kwargs[&quot;parms&quot;][0])
+                </expression>
+        </context>
+        <scriptCode>
+          <![CDATA[
+import hou
+from labsopui import wedge_tools
+
+wedge_tools.setWedgeIndex(kwargs["parms"])
+
+]]>
+        </scriptCode>
+      </scriptItem>
+      <scriptItem id="wedge_value">
+        <label>Wedge Value...</label>
+        <insertAfter>set_wedgeindex</insertAfter>
+        <context>
+          <expression>import hou
+from labsopui import wedge_tools
+
+return wedge_tools.canWedgeValue(kwargs[&quot;parms&quot;][0])
+                </expression>
+        </context>
+        <scriptCode>
+          <![CDATA[
+import hou
+from labsopui import wedge_tools
+
+wedge_tools.wedge(kwargs["parms"])
+
+]]>
+        </scriptCode>
+      </scriptItem>
+    </subMenu>
+  </menu>
 </menuDocument>

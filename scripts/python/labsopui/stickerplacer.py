@@ -1,5 +1,6 @@
 import os
 import hou
+import labutils
 
 from hutil.Qt import QtCore, QtGui, QtWidgets
 
@@ -17,7 +18,6 @@ class StickerPlacer(QtWidgets.QDialog):
     def show_help(self):
         hou.ui.curDesktop().displayHelpPath("/nodes/other/labs--sticker_placer")
 
-
     def get_source_dirs(self):
         sticker_dirs = []
         for sourcedir in sticker_source_dirs:
@@ -32,37 +32,20 @@ class StickerPlacer(QtWidgets.QDialog):
 
         return sticker_dirs
 
-
-
     def create_sticker(self, item):
-
         pane_tab = [t for t in hou.ui.paneTabs() if t.type() == hou.paneTabType.NetworkEditor and t.isCurrentTab()]
 
         if len(pane_tab) > 0 :
             pane_tab = pane_tab[0]
-
-            image = hou.NetworkImage()
-            image.setPath(item.data(QtCore.Qt.UserRole))
-
-            bounds = pane_tab.visibleBounds()
-            bounds.expand((-bounds.size()[0]*0.4, -bounds.size()[1]*0.4))
-            image.setRect(bounds)
-
-            background_images = pane_tab.backgroundImages() + (image,)
-            pane_tab.setBackgroundImages(background_images)
-
-        #self.close()
-
+            labutils.add_network_image(pane_tab, hou.text.expandString(item.data(QtCore.Qt.UserRole)), scale=0.4, embedded=True)
 
     def build_ui(self):
-
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Sticker Placer")
 
         self.listwidget = QtWidgets.QListWidget()
         self.listwidget.setViewMode(QtWidgets.QListView.IconMode)
         self.listwidget.setDragEnabled(False)
-
 
         self.listwidget.setFixedWidth(512)
 
@@ -92,9 +75,7 @@ class StickerPlacer(QtWidgets.QDialog):
         self.setLayout(dialog_box)
         self.setFixedWidth(534)
 
-
     def populate_widget_icons(self):
-
         self.listwidget.clear()
 
         stickers = []

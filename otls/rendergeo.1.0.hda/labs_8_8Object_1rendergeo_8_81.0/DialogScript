@@ -1,0 +1,1439 @@
+# Dialog script for labs::rendergeo::1.0 automatically generated
+
+{
+    name	labs::rendergeo::1.0
+    script	sidefx::render_geometry
+    label	"Labs Render Geometry"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Parent
+
+    group {
+        name    "stdswitcher4"
+        label   "Transform"
+        invisibletab
+
+        parm {
+            name    "xOrd"
+            baseparm
+            label   "Transform Order"
+            joinnext
+            export  none
+        }
+        parm {
+            name    "rOrd"
+            baseparm
+            label   "Rotate Order"
+            nolabel
+            export  none
+        }
+        parm {
+            name    "t"
+            baseparm
+            label   "Translate"
+            export  all
+        }
+        parm {
+            name    "r"
+            baseparm
+            label   "Rotate"
+            export  all
+        }
+        parm {
+            name    "s"
+            baseparm
+            label   "Scale"
+            export  none
+        }
+        parm {
+            name    "p"
+            baseparm
+            label   "Pivot Translate"
+            export  none
+        }
+        parm {
+            name    "pr"
+            baseparm
+            label   "Pivot Rotate"
+            export  none
+        }
+        parm {
+            name    "scale"
+            baseparm
+            label   "Uniform Scale"
+            export  none
+        }
+        parm {
+            name    "pre_xform"
+            baseparm
+            label   "Modify Pre-Transform"
+            export  none
+        }
+        parm {
+            name    "keeppos"
+            baseparm
+            label   "Keep Position When Parenting"
+            export  none
+        }
+        parm {
+            name    "childcomp"
+            baseparm
+            label   "Child Compensation"
+            export  none
+        }
+        parm {
+            name    "constraints_on"
+            baseparm
+            label   "Enable Constraints"
+            export  none
+        }
+        parm {
+            name    "constraints_path"
+            baseparm
+            label   "Constraints"
+            export  none
+        }
+        parm {
+            name    "lookatpath"
+            baseparm
+            label   "Look At"
+            invisible
+            export  none
+        }
+        parm {
+            name    "lookupobjpath"
+            baseparm
+            label   "Look Up Object"
+            invisible
+            export  none
+        }
+        parm {
+            name    "lookup"
+            baseparm
+            label   "Look At Up Vector"
+            invisible
+            export  none
+        }
+        parm {
+            name    "pathobjpath"
+            baseparm
+            label   "Path Object"
+            invisible
+            export  none
+        }
+        parm {
+            name    "roll"
+            baseparm
+            label   "Roll"
+            invisible
+            export  none
+        }
+        parm {
+            name    "pos"
+            baseparm
+            label   "Position"
+            invisible
+            export  none
+        }
+        parm {
+            name    "uparmtype"
+            baseparm
+            label   "Parameterization"
+            invisible
+            export  none
+        }
+        parm {
+            name    "pathorient"
+            baseparm
+            label   "Orient Along Path"
+            invisible
+            export  none
+        }
+        parm {
+            name    "up"
+            baseparm
+            label   "Orient Up Vector"
+            invisible
+            export  none
+        }
+        parm {
+            name    "bank"
+            baseparm
+            label   "Auto-Bank factor"
+            invisible
+            export  none
+        }
+    }
+
+    group {
+        name    "stdswitcher4_1"
+        label   "Cache"
+
+        groupsimple {
+            name    "folder2"
+            label   "Source"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "sourcetype"
+                label   "Source Type"
+                type    ordinal
+                joinnext
+                default { "filecache" }
+                menu {
+                    "filecache" "File Cache"
+                    "sopmerge"  "Sop Merge"
+                }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "reload"
+                label   "Reload Geometry"
+                type    button
+                default { "0" }
+                hidewhen "{ sourcetype == sopmerge }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "createtopmantra"
+                label   "Create TOP Mantra"
+                type    button
+                invisible
+                nolabel
+                default { "0" }
+                parmtag { "button_icon" "ROP_mantra" }
+                parmtag { "script_callback" "hou.phm().createTOPMantra(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fcsoppath"
+                label   "SOP Path"
+                type    oppath
+                default { "" }
+                hidewhen "{ sourcetype != filecache }"
+                parmtag { "opfilter" "!!SOP!!" }
+                parmtag { "oprelative" "." }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "omsoppath"
+                label   "SOP Path"
+                type    oppath
+                default { "" }
+                hidewhen "{ sourcetype != sopmerge }"
+                parmtag { "opfilter" "!!SOP!!" }
+                parmtag { "oprelative" "." }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder4"
+            label   "Display"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "viewportlod"
+                label   "Display As"
+                type    ordinal
+                default { "box" }
+                help    "Choose how the object's geometry should be rendered in the viewport"
+                menu {
+                    "full"      "Full Geometry"
+                    "points"    "Point Cloud"
+                    "box"       "Bounding Box"
+                    "centroid"  "Centroid"
+                    "hidden"    "Hidden"
+                }
+                parmtag { "spare_category" "Render" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder3"
+            label   "Load from File"
+            hidewhentab "{ sourcetype != filecache }"
+            grouptag { "group_default" "1" }
+
+            parm {
+                name    "loadtype"
+                label   "Read As"
+                type    ordinal
+                default { "1" }
+                hidewhen "{ sourcetype != filecache }"
+                menu {
+                    "0" "Unchanged"
+                    "1" "Packed Disk Primitive"
+                    "2" "Packed Disk Sequence"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback" "hou.phm().setLoadType(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm4"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "decoupled_version"
+                label   "Version"
+                type    integer
+                invisible
+                default { "1" }
+                hidewhen "{ enableversion != 1 }"
+                range   { 1! 25 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm3"
+                label   "Spacer"
+                type    separator
+                invisible
+                default { "" }
+                hidewhen "{ enableversion != 1 } { decouple == 1 }"
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "foffset"
+                label   "Frame Offset"
+                type    float
+                default { "0" }
+                disablewhen "{ domergeframes == 1 }"
+                hidewhen "{ timedependent == 0 }"
+                range   { -100 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+                parmtag { "sidefx::slider" "snap_to_int" }
+            }
+            parm {
+                name    "inherit_frange"
+                label   "Inherit Frame Range"
+                type    toggle
+                default { "1" }
+                hidewhen "{ timedependent == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "custom_frange"
+                label   "Frame Range"
+                type    float
+                size    2
+                default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] }
+                hidewhen "{ timedependent == 0 } { inherit_frange != 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "custom_doclampfirst"
+                label   "Clamp First Frame"
+                type    toggle
+                nolabel
+                joinnext
+                default { "on" }
+                hidewhen "{ timedependent == 0 } { inherit_frange != 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "custom_clampfirst"
+                label   "Clamp First Frame"
+                type    float
+                default { [ "ch(\"custom_frange1\")" hscript-expr ] }
+                disablewhen "{ custom_doclampfirst != 1 }"
+                hidewhen "{ timedependent == 0 } { inherit_frange != 0 }"
+                range   { 1 240 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+                parmtag { "sidefx::slider" "snap_to_int" }
+            }
+            parm {
+                name    "custom_doclamplast"
+                label   "Clamp Last Frame"
+                type    toggle
+                nolabel
+                joinnext
+                default { "on" }
+                hidewhen "{ timedependent == 0 } { inherit_frange != 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "custom_clamplast"
+                label   "Clamp Last Frame"
+                type    float
+                default { [ "ch(\"custom_frange2\")" hscript-expr ] }
+                disablewhen "{ custom_doclamplast != 1 }"
+                hidewhen "{ timedependent == 0 } { inherit_frange != 0 }"
+                range   { 1 240 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+                parmtag { "sidefx::slider" "snap_to_int" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                hidewhen "{ timedependent == 0 }"
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "domergeframes"
+                label   "Merge Frames"
+                type    toggle
+                default { "off" }
+                hidewhen "{ timedependent == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergeframes"
+                label   "Frames to Merge"
+                type    ordinal
+                default { "all" }
+                hidewhen "{ timedependent == 0 } { domergeframes != 1 }"
+                menu {
+                    "all"       "All Frames"
+                    "range"     "Custom Range"
+                    "specific"  "List of Frames"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergeframenum"
+                label   "Frame Number"
+                type    integer
+                default { "1" }
+                hidewhen "{ timedependent == 0 } { domergeframes != 1 } { mergeframes != single }"
+                range   { 1 25 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergeframerange"
+                label   "Frame Range"
+                type    float
+                size    3
+                default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+                hidewhen "{ timedependent == 0 } { domergeframes != 1 } { mergeframes != range }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergesubsteps"
+                label   "Substeps"
+                type    integer
+                default { "1" }
+                hidewhen "{ timedependent != 1 } { domergeframes != 1 } { mergeframes != range }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergespecificrange"
+                label   "List of Frames"
+                type    string
+                default { "1-240" }
+                hidewhen "{ timedependent == static } { domergeframes != 1 } { mergeframes != specific }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "domergewedges"
+                label   "Merge Wedges"
+                type    toggle
+                default { "off" }
+                hidewhen "{ enablewedging != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergewedges"
+                label   "Merge Wedges"
+                type    ordinal
+                default { "all" }
+                hidewhen "{ enablewedging != 1 } { domergewedges != 1 }"
+                menu {
+                    "all"       "All Wedges"
+                    "range"     "Custom Range"
+                    "specific"  "List of Wedges"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergewedgeidxrange"
+                label   "Wedge Range"
+                type    int_minmax
+                size    2
+                default { "0" "1" }
+                hidewhen "{ enablewedging != 1 } { mergewedges != range } { domergewedges != 1 }"
+                range   { 0! 100 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mergespecificwedges"
+                label   "List of Wedges"
+                type    string
+                default { "0-1" }
+                hidewhen "{ enablewedging != 1 } { mergewedges != specific } { domergewedges != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "stdswitcher4_2"
+        label   "Render"
+
+        groupcollapsible {
+            name    "folder5"
+            label   "Material"
+            grouptag { "group_default" "1" }
+            grouptag { "sidefx::header_parm" "shop_materialpath" }
+
+            parm {
+                name    "shop_materialpath"
+                baseparm
+                label   "Material"
+                export  none
+            }
+        }
+
+        parm {
+            name    "shop_materialopts"
+            baseparm
+            label   "Options"
+            invisible
+            export  none
+        }
+        groupcollapsible {
+            name    "folder0_3"
+            label   "Geometry"
+
+            parm {
+                name    "vm_rendervisibility"
+                label   "Render Visibility"
+                type    string
+                default { "*" }
+                menureplace {
+                    "*"                             "Visible to all"
+                    "primary"                       "Visible only to primary rays"
+                    "primary|shadow"                "Visible only to primary and shadow rays"
+                    "-primary"                      "Invisible to primary rays (Phantom)"
+                    "-diffuse"                      "Invisible to diffuse rays"
+                    "-diffuse&-reflect&-refract"    "Invisible to secondary rays"
+                    ""                              "Invisible (Unrenderable)"
+                }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "rendervisibility" }
+                parmtag { "spare_category" "Render" }
+            }
+            parm {
+                name    "sepparm5"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "geo_motionsamples"
+                label   "Geo Time Samples"
+                type    integer
+                default { "1" }
+                help    "None"
+                hidewhen "{ allowmotionblur == 0 }"
+                range   { 1 10 }
+                parmtag { "spare_category" "Rendering" }
+            }
+            parm {
+                name    "geo_velocityblur"
+                label   "Geometry Velocity Blur"
+                type    ordinal
+                default { "on" }
+                disablewhen "{ allowmotionblur == 0 }"
+                menu {
+                    "off"       "No Velocity Blur"
+                    "on"        "Velocity Blur"
+                    "accelblur" "Acceleration Blur"
+                }
+            }
+            parm {
+                name    "geo_accelattribute"
+                label   "Acceleration Attribute"
+                type    string
+                default { "accel" }
+                hidewhen "{ geo_velocityblur != accelblur }"
+                parmtag { "spare_category" "Sampling" }
+            }
+            parm {
+                name    "sepparm6"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "vm_renderpoints"
+                label   "Render As Points"
+                type    integer
+                default { "2" }
+                menu {
+                    "0" "No Point Rendering"
+                    "1" "Render Only Points"
+                    "2" "Render Unconnected Points"
+                }
+                range   { 0 10 }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "renderpoints" }
+                parmtag { "spare_category" "Geometry" }
+            }
+            parm {
+                name    "vm_renderpointsas"
+                label   "Render Points As"
+                type    integer
+                default { "0" }
+                disablewhen "{ vm_renderpoints == 0 }"
+                menu {
+                    "0" "Spheres"
+                    "1" "Circles"
+                }
+                range   { 0 10 }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "renderpointsas" }
+                parmtag { "spare_category" "Geometry" }
+            }
+            parm {
+                name    "vm_pointscale"
+                label   "Point Scale"
+                type    float
+                default { "1" }
+                disablewhen "{ vm_renderpoints == 0 }"
+                range   { 0! 10 }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "pointscale" }
+                parmtag { "spare_category" "Geometry" }
+            }
+            parm {
+                name    "vm_rmbackface"
+                label   "Backface Removal"
+                type    toggle
+                default { "0" }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "rmbackface" }
+                parmtag { "spare_category" "Geometry" }
+            }
+            parm {
+                name    "vm_usenforpoints"
+                label   "Use N For Point Rendering"
+                type    toggle
+                default { "0" }
+                disablewhen "{ vm_renderpoints == 0 }"
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "usenforpoints" }
+                parmtag { "spare_category" "Geometry" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder0_3_1"
+            label   "Volume"
+
+            parm {
+                name    "vm_volumefilter"
+                label   "Volume Filter"
+                type    string
+                default { "box" }
+                menu {
+                    "box"       "Box Filter"
+                    "gaussian"  "Gaussian"
+                    "bartlett"  "Bartlett (triangle)"
+                    "catrom"    "Catmull-Rom"
+                    "hanning"   "Hanning"
+                    "blackman"  "Blackman"
+                    "sinc"      "Sinc (sharpening)"
+                }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "filter" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "vm_volumefilterwidth"
+                label   "Volume Filter Width"
+                type    float
+                default { "1" }
+                range   { 0.001 5 }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "filterwidth" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "vm_volumevelocitynames"
+                label   "Volume Velocity Names"
+                type    string
+                default { "v,vel" }
+                help    "Specifies comma separated list of names for the velocity field for volume primitives. (geometry:volumevelocitynames)"
+                parmtag { "mantra_class" "geometry" }
+                parmtag { "mantra_name" "volumevelocitynames" }
+                parmtag { "spare_category" "Geometry" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder0_3_2"
+            label   "Shading"
+
+            parm {
+                name    "categories"
+                label   "Categories"
+                type    string
+                default { "" }
+                help    "A list of tags which can be used to select the object"
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "reflectmask"
+                label   "Reflection Mask"
+                type    oplist
+                default { "*" }
+                help    "Objects that will be reflected on this object."
+                parmtag { "opexpand" "1" }
+                parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
+                parmtag { "oprelative" "/obj" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "refractmask"
+                label   "Refraction Mask"
+                type    oplist
+                default { "*" }
+                help    "Objects that will be refracted on this object."
+                parmtag { "opexpand" "1" }
+                parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
+                parmtag { "oprelative" "/obj" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "lightmask"
+                label   "Light Mask"
+                type    oplist
+                default { "*" }
+                help    "Lights that illuminate this object."
+                parmtag { "opexpand" "1" }
+                parmtag { "opfilter" "!!OBJ/LIGHT!!" }
+                parmtag { "oprelative" "/obj" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "lightcategories"
+                label   "Light Selection"
+                type    string
+                default { "*" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "vm_lpetag"
+                label   "LPE Tag"
+                type    string
+                default { "" }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "lpetag" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "vm_matte"
+                label   "Matte shading"
+                type    toggle
+                default { "0" }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "matte" }
+                parmtag { "spare_category" "Shading" }
+            }
+            parm {
+                name    "vm_rayshade"
+                label   "Raytrace Shading"
+                type    toggle
+                default { "0" }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "rayshade" }
+                parmtag { "spare_category" "Shading" }
+            }
+        }
+
+    }
+
+    group {
+        name    "stdswitcher4_3"
+        label   "Instance"
+
+        groupsimple {
+            name    "folder8"
+            label   "Instance"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "instancemode"
+                label   "Instance Mode"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "none"  "None"
+                    "rbd"   "RBD"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "attrib"
+                label   "Match Attribute"
+                type    string
+                default { "name" }
+                hidewhen "{ instancemode != rbd }"
+                menureplace {
+                    [ "opmenu -l -a transformpieces1 attrib" ]
+                }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "restrbdfile"
+                label   "Rest Geometry File"
+                type    geometry
+                default { "" }
+                hidewhen "{ instancemode != rbd }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read_and_write" }
+            }
+        }
+
+    }
+
+    group {
+        name    "stdswitcher4_4"
+        label   "Advanced"
+
+        parm {
+            name    "decouple"
+            label   "Decouple"
+            type    iconstrip
+            invisible
+            nolabel
+            default { "0" }
+            hidewhen "{ sourcetype == sopmerge }"
+            menutoggle {
+                "BUTTONS_link"  "Decouples the cache from the File Cache"
+            }
+            parmtag { "script_callback" "hou.phm().decouple(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "folder7"
+            label   "Node Generation"
+
+            parm {
+                name    "topmantrapath"
+                label   "Top Mantra In"
+                type    oplist
+                default { "/obj/topnet1" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "opfilter" "!!TOP!!" }
+                parmtag { "oprelative" "/" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder0"
+            label   "Linked Parameters"
+            grouptag { "group_default" "0" }
+
+            groupsimple {
+                name    "folder1"
+                label   "General"
+
+                parm {
+                    name    "sourcenode"
+                    label   "Source Node"
+                    type    string
+                    default { [ "node = hou.pwd()\n\nif node.evalParm(\"sourcetype\"):\n    return hou.node(node.evalParm(\"omsoppath\")).path()\nelse:\n    fcpath = node.evalParm(\"fcsoppath\")\n    if fcpath:\n        fcnode = hou.node(node.evalParm(\"fcsoppath\"))     \n        if 'filecache' in fcnode.type().name():\n            return fcnode.path() \nreturn None" python ] }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "filemethod"
+                    label   "File Method"
+                    type    ordinal
+                    joinnext
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"filemethod\")\n    \nreturn \"\"" python ] }
+                    menu {
+                        "constructed"   "Constructed"
+                        "explicit"      "Explicit"
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "timedependent"
+                    label   "Time Dependent Cache"
+                    type    toggle
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"timedependent\")" python ] }
+                    range   { 0! 1! }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "basename"
+                    label   "Base Name"
+                    type    string
+                    joinnext
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"basename\")\n\nreturn \"\"" python ] }
+                    hidewhen "{ filemethod == explicit }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "filetype"
+                    label   "File Type"
+                    type    ordinal
+                    nolabel
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.parm(\"filetype\").evalAsString()\n    \nreturn \"\"" python ] }
+                    hidewhen "{ filemethod == explicit }"
+                    menu {
+                        ".bgeo.sc"  "bgeo.sc"
+                        ".vdb"      "vdb"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "basedir"
+                    label   "Base Directory"
+                    type    string
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"basedir\")\n    \nreturn \"\"" python ] }
+                    hidewhen "{ filemethod == explicit }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "file"
+                    label   "Geometry File"
+                    type    string
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"file\")\n\nreturn \"\"" python ] }
+                    hidewhen "{ filemethod != explicit }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "enableversion"
+                    label   "Enable Version"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"enableversion\")" python ] }
+                    hidewhen "{ filemethod == explicit }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "version"
+                    label   "Version"
+                    type    integer
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.parm(\"version\").evalAsInt()" python ] }
+                    hidewhen "{ filemethod == explicit }"
+                    range   { 1! 100 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "folder9"
+                label   "Wedging"
+                hidewhentab "{ enablewedging != 1 }"
+
+                parm {
+                    name    "enablewedging"
+                    label   "Enable Wedging"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"enablewedging\")" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "wedgecount"
+                    label   "Wedge Count"
+                    type    integer
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"wedgecount\")" python ] }
+                    range   { 1! 50 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "folder10"
+                label   "Frame Range"
+                hidewhentab "{ timedependent != 1 }"
+
+                parm {
+                    name    "f"
+                    label   "Start/End/Inc"
+                    type    float
+                    size    3
+                    default { [ "node = hou.pwd()\n\nif (not node.evalParm(\"inherit_frange\")):\n    return node.evalParm(\"custom_frange1\")\n    \nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"f1\")" python ] [ "node = hou.pwd()\n\nif (not node.evalParm(\"inherit_frange\")):\n    return node.evalParm(\"custom_frange2\")\n    \nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"f2\")" python ] [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"f3\")" python ] }
+                    hidewhen "{ timedependent == static }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "substeps"
+                    label   "Substeps"
+                    type    integer
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"substeps\")" python ] }
+                    hidewhen "{ timedependent != 1 }"
+                    range   { 1! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "doclampfirst"
+                    label   "Clamp First Frame"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "node = hou.pwd()\n\nif (not node.evalParm(\"inherit_frange\")):\n    return node.evalParm(\"custom_doclampfirst\") \n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"doclampfirst\")" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "clampfirst"
+                    label   "Clamp First Frame"
+                    type    float
+                    default { [ "node = hou.pwd()\n\nif (not node.evalParm(\"inherit_frange\")):\n    return node.evalParm(\"custom_clampfirst\")\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"clampfirst\")" python ] }
+                    range   { 1 240 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                    parmtag { "sidefx::slider" "snap_to_int" }
+                }
+                parm {
+                    name    "doclamplast"
+                    label   "Clamp Last Frame"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { [ "node = hou.pwd()\n\nif (not node.evalParm(\"inherit_frange\")):\n    return node.evalParm(\"custom_doclamplast\") \n    \nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"doclamplast\")" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "clamplast"
+                    label   "Clamp Last Frame"
+                    type    float
+                    default { [ "node = hou.pwd()\n\nif (not node.evalParm(\"inherit_frange\")):\n    return node.evalParm(\"custom_clamplast\")\n    \nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"clamplast\")" python ] }
+                    range   { 1 240 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                    parmtag { "sidefx::slider" "snap_to_int" }
+                }
+            }
+
+            groupsimple {
+                name    "folder11"
+                label   "Path Construction"
+
+                parm {
+                    name    "frame"
+                    label   "Frame"
+                    type    float
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"frame\")\n\nreturn \"\"" python ] }
+                    range   { 1 240 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                    parmtag { "sidefx::slider" "snap_to_int" }
+                }
+                parm {
+                    name    "framestr"
+                    label   "Frame String"
+                    type    string
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"framestr\")\n\nreturn \"\"" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "versionstr"
+                    label   "Version String"
+                    type    string
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"versionstr\")\n\nreturn \"\"" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "wedgestr"
+                    label   "Wedge String"
+                    type    string
+                    default { "w`pdgattrib(\"wedgeindex\", 0)`" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "cachedir"
+                    label   "Cache Folder"
+                    type    string
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"cachedir\")\n\nreturn \"\"" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "cachename"
+                    label   "Cache Name"
+                    type    string
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"cachename\")\n\nreturn \"\"" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "descriptivelabel"
+                    label   "Descriptive Label"
+                    type    geometry
+                    default { [ "node = hou.pwd()\n\nsource_type = 1-node.evalParm(\"sourcetype\")\nsource_node = hou.node(node.evalParm(\"sourcenode\"))\n\nif (source_node and source_type):\n    return source_node.evalParm(\"basename\")\n\nif (source_type == 0):\n    return node.evalParm(\"omsoppath\")\n    \nreturn \"\"" python ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "filechooser_mode" "read" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sopoutput"
+                    label   "Output File"
+                    type    geometry
+                    default { [ "ifs(ch('filemethod'),chs('file'),chs('cachedir') + '/' + chs('cachename'))" hscript-expr ] }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+    }
+
+    group {
+        name    "stdswitcher4_5"
+        label   "Procedural"
+        invisibletab
+
+        parm {
+            name    "shop_geometrypath"
+            label   "Procedural Shader"
+            type    oppath
+            default { "" }
+            parmtag { "opfilter" "!!SHOP/GEOMETRY!!" }
+            parmtag { "oprelative" "." }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_forcegeometry"
+            label   "Force Procedural Geometry Output"
+            type    toggle
+            default { "1" }
+            parmtag { "spare_category" "Geometry" }
+        }
+    }
+
+    group {
+        name    "stdswitcher4_6"
+        label   "TMP"
+        invisibletab
+
+        parm {
+            name    "tdisplay"
+            baseparm
+            label   "Display"
+            joinnext
+            export  none
+        }
+        parm {
+            name    "display"
+            baseparm
+            label   "Display"
+            export  none
+        }
+        parm {
+            name    "vm_rendersubd"
+            label   "Render Polygons As Subdivision (Mantra)"
+            type    toggle
+            default { "0" }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "rendersubd" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_subdstyle"
+            label   "Subdivision Style"
+            type    string
+            default { "mantra_catclark" }
+            hidewhen "{ vm_rendersubd == 0 }"
+            menu {
+                "mantra_catclark"   "Mantra Catmull-Clark"
+                "osd_catclark"      "OpenSubdiv Catmull-Clark"
+            }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "subdstyle" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_subdgroup"
+            label   "Subdivision Group"
+            type    string
+            default { "" }
+            hidewhen "{ vm_rendersubd == 0 }"
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "subdgroup" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_osd_quality"
+            label   "Open Subdiv Quality"
+            type    float
+            default { "1" }
+            hidewhen "{ vm_rendersubd == 0 vm_subdstyle != osd_catclark }"
+            range   { 0 10 }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "osd_quality" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_osd_vtxinterp"
+            label   "OSD Vtx Interp"
+            type    integer
+            default { "2" }
+            hidewhen "{ vm_rendersubd == 0 vm_subdstyle != osd_catclark }"
+            menu {
+                "0" "No vertex interpolation"
+                "1" "Edges only"
+                "2" "Edges and Corners"
+            }
+            range   { 0 10 }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "osd_vtxinterp" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_osd_fvarinterp"
+            label   "OSD FVar Interp"
+            type    integer
+            default { "4" }
+            hidewhen "{ vm_rendersubd == 0 vm_subdstyle != osd_catclark }"
+            menu {
+                "0" "Smooth everywhere"
+                "1" "Sharpen corners only"
+                "2" "Sharpen edges and corners"
+                "3" "Sharpen edges and propagated corners"
+                "4" "Sharpen all boundaries"
+                "5" "Bilinear interpolation"
+            }
+            range   { 0 10 }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "osd_fvarinterp" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_metavolume"
+            label   "Metaballs as Volume"
+            type    toggle
+            default { "0" }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "metavolume" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_coving"
+            label   "Coving"
+            type    integer
+            default { "1" }
+            menu {
+                "0" "Disable Coving"
+                "1" "Coving for displacement/sub-d"
+                "2" "Coving for all primitives"
+            }
+            range   { 0 10 }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "coving" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_materialoverride"
+            label   "Material Override"
+            type    string
+            default { "compact" }
+            menu {
+                "none"      "Disabled"
+                "full"      "Evaluate for Each Primitve/Point"
+                "compact"   "Evaluate Once"
+            }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_overridedetail"
+            label   "Ignore Geometry Attribute Shaders"
+            type    toggle
+            default { "0" }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "overridedetail" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_procuseroottransform"
+            label   "Proc Use Root Transform"
+            type    toggle
+            default { "1" }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "procuseroottransform" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_rendersubdcurves"
+            label   "Render Polygon Curves As Subdivision (Mantra)"
+            type    toggle
+            default { "0" }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "rendersubdcurves" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        parm {
+            name    "vm_pscalediameter"
+            label   "Treat Point Scale as Diameter Instead of Radius"
+            type    toggle
+            default { "0" }
+            parmtag { "mantra_class" "object" }
+            parmtag { "mantra_name" "pscalediameter" }
+            parmtag { "spare_category" "Geometry" }
+        }
+        group {
+            name    "folder0_3_4"
+            label   "Dicing"
+
+            parm {
+                name    "vm_shadingquality"
+                label   "Shading Quality"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "shadingquality" }
+                parmtag { "spare_category" "Dicing" }
+            }
+            parm {
+                name    "vm_flatness"
+                label   "Dicing Flatness"
+                type    float
+                default { "0.05" }
+                range   { 0 1 }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "flatness" }
+                parmtag { "spare_category" "Dicing" }
+            }
+            parm {
+                name    "vm_raypredice"
+                label   "Ray Predicing"
+                type    integer
+                default { "0" }
+                menu {
+                    "0" "Disable Predicing"
+                    "1" "Full Predicing"
+                    "2" "Precompute Bounds"
+                }
+                range   { 0 10 }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "raypredice" }
+                parmtag { "spare_category" "Dicing" }
+            }
+            parm {
+                name    "vm_curvesurface"
+                label   "Shade Curves As Surfaces"
+                type    toggle
+                default { "0" }
+                parmtag { "mantra_class" "object" }
+                parmtag { "mantra_name" "curvesurface" }
+                parmtag { "spare_category" "Dicing" }
+            }
+        }
+
+    }
+
+    group {
+        name    "stdswitcher4_7"
+        label   "Misc"
+        invisibletab
+
+        parm {
+            name    "use_dcolor"
+            baseparm
+            label   "Set Wireframe Color"
+            export  none
+        }
+        parm {
+            name    "dcolor"
+            baseparm
+            label   "Wireframe Color"
+            export  none
+        }
+        parm {
+            name    "picking"
+            baseparm
+            label   "Viewport Selecting Enabled"
+            export  none
+        }
+        parm {
+            name    "pickscript"
+            baseparm
+            label   "Select Script"
+            export  none
+        }
+        parm {
+            name    "caching"
+            baseparm
+            label   "Cache Object Transform"
+            export  none
+        }
+        parm {
+            name    "vport_shadeopen"
+            baseparm
+            label   "Shade Open Curves In Viewport"
+            export  none
+        }
+        parm {
+            name    "vport_displayassubdiv"
+            baseparm
+            label   "Display as Subdivision in Viewport"
+            invisible
+            export  none
+        }
+        parm {
+            name    "vport_onionskin"
+            baseparm
+            label   "Onion Skinning"
+            export  none
+        }
+    }
+
+    parm {
+        name    "renderable"
+        baseparm
+        label   "Renderable"
+        invisible
+        export  none
+    }
+}

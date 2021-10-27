@@ -8,13 +8,15 @@ def ResetViewport():
     for _oldSceneViewer in sceneviewers:
 
 
+
+
         # Get old sceneview name, create new sceneview, and get its name
         _pane = _oldSceneViewer.pane()
         _oldViewportName = _oldSceneViewer.pane().desktop().name() + "." + _oldSceneViewer.name() + ".world" + "." + _oldSceneViewer.curViewport().name()
         _newSceneViewer = _pane.createTab(hou.paneTabType.SceneViewer)
         _newSceneViewerName = _newSceneViewer.pane().desktop().name() + "." + _newSceneViewer.name() + ".world"
         _newViewportName = _newSceneViewer.pane().desktop().name() + "." + _newSceneViewer.name() + ".world" +"." + _newSceneViewer.curViewport().name()
-
+        _viewerType = _oldSceneViewer.viewerType()
 
         # If the old sceneview was looking through a camera, make new scene viewer look through the same camera. Otherwise match perspective
         _sceneViewCamera = _oldSceneViewer.curViewport().camera()
@@ -32,8 +34,6 @@ def ResetViewport():
         # Set the left viewport toolbar to be visible
         hou.hscript("viewerstow -l open {}".format(_newSceneViewerName))
 
-
-
         # Split Views
         _newSceneViewer.setViewportLayout(_oldSceneViewer.viewportLayout())
 
@@ -45,7 +45,10 @@ def ResetViewport():
         _newSceneViewer.setPickingContainedGeometry(_oldSceneViewer.isPickingContainedGeometry())
         _newSceneViewer.setWholeGeometryPicking(_oldSceneViewer.isWholeGeometryPicking())
         _newSceneViewer.setSecureSelection(_oldSceneViewer.isSecureSelection())
-        _newSceneViewer.setPickingCurrentNode(_oldSceneViewer.isPickingCurrentNode())
+
+        if _viewerType != hou.stateViewerType.SceneGraph:
+            _newSceneViewer.setPickingCurrentNode(_oldSceneViewer.isPickingCurrentNode())
+
         _newSceneViewer.setPickGeometryType(_oldSceneViewer.pickGeometryType())
         _newSceneViewer.setPickStyle(_oldSceneViewer.pickStyle())
         _newSceneViewer.setPickModifier(_oldSceneViewer.pickModifier())

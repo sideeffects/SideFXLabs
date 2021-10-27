@@ -1,0 +1,180 @@
+"""
+State:          Sidefx Labs File Cache
+State type:     sidefx_labs_filecache
+Description:    Sidefx Labs File Cache
+Author:         ati
+Date Created:   June 17, 2021 - 10:48:09
+"""
+
+import hou
+import pdg
+import viewerstate.utils as su
+import resourceutils as ru
+import toolutils
+
+cachedir = "cachedir"
+cachename = "cachename"
+cachetype = "cachetype"
+wedgecount = "wedgecount"
+
+class State(object):
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer    
+        
+        template = {
+            "title": "File Cache", "desc": "info", "icon": "SOP_filecache",
+            "rows": [
+                {"id": cachetype, "label": "Cache Type"},
+                {"id": cachedir, "label": "Cache Folder"},      
+                {"id": cachename, "label": "Cache Name"},                
+                {
+                    "type": "group", "id": "wedge_group",
+                    "rows": [
+                        {"id": "modedev", "type": "divider", "label": "Wedging"},
+                        {"id": wedgecount, "label": "Wedge Count"},
+                    ]                    
+                }
+
+            ]
+        }
+        
+        self.scene_viewer.hudInfo(hud_template=template)
+           
+    def updateInfoBox(self, node):
+        """ Updates our info box to reflect the current state settings.
+        """
+        
+        rows = {}
+        self._fillCacheInfo(node,rows)
+        self.scene_viewer.hudInfo(hud_values=rows)
+        
+    def updateParmInfo(self, **kwargs):
+        """Updates info box on the fly as parameters change."""
+        
+        node = kwargs["node"]
+        parmtup = kwargs["parm_tuple"]
+        name = parmtup.name()       
+        rows = {}
+        if name in ("filemethod",
+                    "timedependent",
+                    "basename",
+                    "filetype",                    
+                    "basedir",
+                    "enableversion",
+                    "version",
+                    "enablewedging",
+                    "wedgecount",
+                    "cachesim",
+                    "sopoutput"):
+            
+            self._fillCacheInfo(node,rows)
+            self.scene_viewer.hudInfo(hud_values=rows)     
+
+    def _fillCacheInfo(self, node, rows):
+        """Updates cache path related parms"""
+        
+        on_off = lambda x: "On" if x else "Off"
+        
+        if node.evalParm("filemethod"):
+            import os
+            rows[cachedir], rows[cachename] = os.path.split(node.evalParm("file"))             
+        else:      
+            rows[cachedir] = node.evalParm("cachedir") 
+            rows[cachename] = node.evalParm("cachename")     
+            
+            if node.evalParm("timedependent"):
+                rows[cachename] = rows[cachename].replace(node.evalParm("framestr"), ".$F4")  
+                
+        if node.evalParm("timedependent"):
+            if node.evalParm("cachesim"):
+                rows[cachetype] = "Simulation"
+            else:
+                rows[cachetype] = "Sequence"
+        else:
+            rows[cachetype] = "Time Independent"        
+                
+        rows["wedge_group"] = {"visible": node.evalParm("enablewedging")}
+        rows[wedgecount] = node.parm("wedgecount").evalAsInt()       
+        #rows[wedgeattrib1] = {"label": node.evalParm("attrib1"), "value": self.getWedgeAttribValues(node, 1)}
+            
+    def onEnter(self, kwargs):
+        """ Initializes the info
+        """    
+        
+        node = kwargs['node']
+        node.addEventCallback([hou.nodeEventType.ParmTupleChanged],
+                              self.updateParmInfo)                              
+       
+        self.scene_viewer.hudInfo(show=True)
+        self.updateInfoBox(node)
+        self.scene_viewer.hudInfo(show=True)
+        
+    def onExit(self, kwargs):
+        """ Close the HUD
+        """
+        
+        node = kwargs.get("node")
+        
+        if node:
+            node.removeEventCallback([hou.nodeEventType.ParmTupleChanged],
+                                     self.updateParmInfo)  
+                                     
+    def getWedgeAttribValues(self, node, index):
+            
+        strindex    = str(index) 
+        workitems   = node.node("topnet_display/output0").getPDGNode().workItems
+        attribname  = node.evalParm('attrib' + strindex)    
+        wedgetype   = node.evalParm('wedgetype' + strindex)           
+        wedgeidx    = self.getWedgeIndex(node)    
+        failed = False
+        values = []            
+         
+        if workitems:
+            for workitem in workitems:
+                if workitem.attrib(attribname):
+                    type = workitem.attribType(attribname)
+                    if type == pdg.attribType.Float:
+                        value = workitem.attribValue(attribname)
+                        if value.is_integer():
+                            values.append("{}".format(int(value)))
+                        else:
+                            values.append("{:.2f}".format(workitem.attribValue(attribname)))
+                else:
+                    return ""
+        else:
+            return ""
+            
+        return ", ".join(values)
+        
+        
+    def getWedgeIndex(self, node):    
+        network = node.node("topnet_display")   
+        item_id = network.getSelectedWorkItem()    # Get the selected item ID from the network        
+        if (item_id):
+            context = network.getPDGGraphContext() 
+            work_item = context.graph.workItemById(item_id)            
+            if (work_item):
+                wedge_attrib = work_item.attrib("wedgeindex")               
+                if wedge_attrib:                    
+                    return wedge_attrib.asNumber()          
+        
+# Callback for triggering an info box update.
+def updateInfoBox():
+    sv = toolutils.sceneViewer()
+    if sv.currentState() == 'sidefx_labs_filecache':
+        sv.runStateCommand( 'updateInfoBox' )
+        
+def createViewerStateTemplate():
+    """ Mandatory entry point to create and return the viewer state 
+        template to register. """
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "File Cache"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+    return template

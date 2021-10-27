@@ -1,7 +1,8 @@
-from PySide2.QtCore import Qt, QRect, QEvent
+from PySide2.QtCore import Qt, QRect, QEvent, QPoint
 from PySide2.QtWidgets import QApplication, QGraphicsView, QGraphicsScene, QWidget, QLabel, QGraphicsPixmapItem
-from PySide2.QtGui import QColor, QPainter, QPen, QCursor, QPixmap
-import hou, datetime, os
+from PySide2.QtGui import QColor, QPainter, QPen, QCursor, QPixmap, QGuiApplication
+import hou, datetime, os, labutils
+
 
 class NetworkEditorPainter(QWidget):
     def __init__(self, parent, editor):
@@ -12,50 +13,67 @@ class NetworkEditorPainter(QWidget):
         self.mouseY = [-1,-1, 0]
         self.oldMouseX = [-1,-1, 0]
         self.oldMouseY = [-1, -1, 0]
-        self.colorpickeractive = False
+        self.startdragpos = -1
 
+        self.screens = []
+        self.screenshots = []
+
+        self.networkeditorlocalrect = QRect()
+        self.networkeditorsize = hou.Vector2()
+
+        self.networkeditorbottomleftglobalpos = QPoint()
+        self.networkeditortoprightglobalpos = QPoint()
+
+
+        self.colorpickeractive = False
         self.brushcolor = QColor('#FFCC4D')
         self.brushsize = 8
 
-        self.startdragpos = -1
-        self.screenshots = []
+        self.captureScreenshots()
+        self.calculateNetworkEditorRect()
+
         self.configureScene()
         self.updateBrush()
 
-    def configureScene(self):
-
-        _networkeditorsize = self.networkeditor.sizeToScreen(self.networkeditor.visibleBounds().size())
+    def calculateNetworkEditorRect(self):
+        self.networkeditorsize = self.networkeditor.sizeToScreen(self.networkeditor.visibleBounds().size())
 
         # Get bottom left screen position of network editor
         self.networkeditor.setCursorPosition(hou.Vector2(0, 0))
-        _bottomleftglobalpos = QCursor.pos()
-        _bottomleftlocalpos = self.mapFromGlobal(_bottomleftglobalpos)
+        self.networkeditorbottomleftglobalpos = QCursor.pos()
 
         # Get top right screen position of network editor
-        self.networkeditor.setCursorPosition(hou.Vector2(_networkeditorsize[0], _networkeditorsize[1]))
-        _toprightglobalpos = QCursor.pos()
-        _toprightlocalpos = self.mapFromGlobal(_toprightglobalpos)
+        self.networkeditor.setCursorPosition(hou.Vector2(self.networkeditorsize[0], self.networkeditorsize[1]))
+        self.networkeditortoprightglobalpos = QCursor.pos()
 
-        _networkeditorlocalrect = QRect(_bottomleftlocalpos.x(), _toprightlocalpos.y()-1, _networkeditorsize[0], _networkeditorsize[1])
-        _networkeditorglobalrect = QRect(_bottomleftglobalpos.x()+1, _toprightglobalpos.y()+1, _networkeditorsize[0], _networkeditorsize[1])
+        _bottomleftlocalpos = self.mapFromGlobal(self.networkeditorbottomleftglobalpos)
+        _toprightlocalpos = self.mapFromGlobal(self.networkeditortoprightglobalpos)
 
-        self.setGeometry(_networkeditorlocalrect)
+        self.networkeditorlocalrect = QRect(_bottomleftlocalpos.x(), _toprightlocalpos.y()-1, self.networkeditorsize[0], self.networkeditorsize[1])
+
+    def initializeMouse(self):
+        self.mouseX, self.mouseY, self.oldMouseX, self.oldMouseY = [[-1,-1, 0] for x in range(4)]
+
+    def captureScreenshots(self):
+        self.screens = QApplication.screens()
+        self.screenshots = [x.grabWindow(0) for x in self.screens]
+
+    def configureScene(self):
+        self.setGeometry(self.networkeditorlocalrect)
         self.graphicsview = QGraphicsView(self)
-        self.graphicsview.setSceneRect(0,0,_networkeditorsize[0], _networkeditorsize[1])
+        self.graphicsview.setSceneRect(0,0,self.networkeditorsize[0], self.networkeditorsize[1])
         self.graphicsview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.graphicsview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        self.outputdrawingcanvas = QPixmap(_networkeditorlocalrect.width(), _networkeditorlocalrect.height())
+        self.outputdrawingcanvas = QPixmap(self.networkeditorlocalrect.width(), self.networkeditorlocalrect.height())
         self.outputdrawingcanvas.fill(Qt.transparent)
 
         self.graphicsscene = QGraphicsScene(self)
-        self.screens = QApplication.screens()
 
-        self.screendimensionrects = [x.geometry() for x in self.screens]
-        self.screenshots = [x.grabWindow(0) for x in self.screens]
+        screen = QGuiApplication.screenAt(self.networkeditorbottomleftglobalpos)
+        screenid = self.screens.index(screen)
 
-        screenid = QApplication.desktop().screenNumber(_bottomleftglobalpos)
-        _adjustedcrop = QRect(_bottomleftglobalpos.x()-self.screendimensionrects[screenid].x(),_toprightglobalpos.y()-self.screendimensionrects[screenid].y(), _networkeditorsize[0], _networkeditorsize[1])
+        _adjustedcrop = QRect(self.networkeditorbottomleftglobalpos.x()-screen.geometry().x(),self.networkeditortoprightglobalpos.y()-screen.geometry().y(), self.networkeditorsize[0], self.networkeditorsize[1])
 
         self.graphicsscene.addPixmap(self.screenshots[screenid].copy(_adjustedcrop))
         self.instructiontext = QLabel("Hold LMB to draw. ENTER to store drawing or ESC to cancel\nPress i to enable the color picker, then LMB click canvas to pick color\nScrollwheel changes brush size")
@@ -63,18 +81,18 @@ class NetworkEditorPainter(QWidget):
         self.instructiontext.setFocusPolicy(Qt.NoFocus)
         self.instructiontext.adjustSize()
 
-        self.instructiontext.move((_networkeditorsize[0]/2) - (self.instructiontext.width()/2), 0)
+        self.instructiontext.move((self.networkeditorsize[0]/2) - (self.instructiontext.width()/2), 0)
 
         self.graphicsscene.addWidget(self.instructiontext)
         self.graphicsview.setScene(self.graphicsscene)
         self.graphicsview.viewport().installEventFilter(self)
 
     def eventFilter(self, source, event):
-
         if source == self.graphicsview.viewport():
             try:
-                screenid = QApplication.desktop().screenNumber(event.globalPos())
-                cursorloc = [event.globalPos().x()-self.screendimensionrects[screenid].x(), event.globalPos().y()-self.screendimensionrects[screenid].y()]
+                screen = QGuiApplication.screenAt(event.globalPos())
+                screenid = self.screens.index(screen)
+                cursorloc = [event.globalPos().x()-screen.geometry().x(), event.globalPos().y()-screen.geometry().y()]
             except: pass
 
             # LMB Click
@@ -90,7 +108,7 @@ class NetworkEditorPainter(QWidget):
                         self.pickScreenColorForBrush(screenid)
                         self.colorpickeractive = False
 
-                    self.resetMouse()
+                    self.initializeMouse()
                     return True
 
             # LMB Drag
@@ -105,7 +123,7 @@ class NetworkEditorPainter(QWidget):
 
             # Done painting
             if event.type() == QEvent.MouseButtonRelease:
-                self.resetMouse()
+                self.initializeMouse()
                 self.startdragpos = -1
                 return True
 
@@ -126,7 +144,6 @@ class NetworkEditorPainter(QWidget):
         event.setAccepted(True)
 
     def paintEvent(self, QPaintEvent):
-
         if self.oldMouseX[1] >= 0 and self.mouseX[1] >= 0 and not self.colorpickeractive:
 
             if self.oldMouseX[0] == self.mouseX[0]:
@@ -155,9 +172,6 @@ class NetworkEditorPainter(QWidget):
         self.brushcolor = QColor(self.screenshots[screenid].toImage().pixel(self.mouseX[2], self.mouseY[2]))
         self.updateBrush()
 
-    def resetMouse(self):
-        self.mouseX, self.mouseY, self.oldMouseX, self.oldMouseY = [[-1,-1, 0] for x in range(4)]
-
     def storeScreenColors(self):
         self.graphicsview.setCursor(QCursor(Qt.PointingHandCursor))
         self.screenshots = [x.grabWindow(0) for x in QApplication.screens()]
@@ -179,23 +193,17 @@ class NetworkEditorPainter(QWidget):
 
     def exportPaintingToEditor(self):
 
-        pixmap = [x.pixmap().copy() for x in self.graphicsscene.items() if type(x) == QGraphicsPixmapItem][0]
         pixmap = self.outputdrawingcanvas
+        filename = hou.text.expandString("$HIP/drawings/networkpainting_{}.png".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
+        if not os.path.isdir(hou.text.expandString("$HIP/drawings/")):
+            os.makedirs(hou.text.expandString("$HIP/drawings/"))
 
-        filename = hou.expandString("$HIP/drawings/networkpainting_{}.png".format(datetime.datetime.now().strftime("%Y%m%d-%H%M%S")))
-        if not os.path.isdir(hou.expandString("$HIP/drawings/")):
-            os.makedirs(hou.expandString("$HIP/drawings/"))
         pixmap.save(filename)
 
-        image = hou.NetworkImage()
-        image.setPath(filename)
-        image.setRect(self.networkeditor.visibleBounds())
-
-        background_images = self.networkeditor.backgroundImages() + (image,)
-        self.networkeditor.setBackgroundImages(background_images)
-
+        labutils.add_network_image(self.networkeditor, filename, scale=0.0, embedded=True)
         self.closeWidget()
 
-def paint(editor):
-    win = NetworkEditorPainter(hou.ui.mainQtWindow(), editor)
+
+def paint_in_editor(editor):
+    win = NetworkEditorPainter(hou.qt.mainWindow(), editor)
     win.show()
