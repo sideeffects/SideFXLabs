@@ -122,6 +122,8 @@ def extract_section_file(section, savelocation, writemode="wb"):
             SectionFile.write(section.binaryContents())
 
 def saveBackgroundImages(node, images):
+    theBackgroundImagesKey = 'backgroundimages'
+    
     result = []
     for image in images:
         image_dict = {
