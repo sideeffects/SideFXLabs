@@ -26,7 +26,7 @@ def get_instances(class_type):
 
 
 def get_current_network_editor_pane():
-    editors = [pane for pane in hou.ui.paneTabs() if isinstance(pane, hou.NetworkEditor) and pane.isCurrentTab()]
+    editors = [pane for pane in hou.ui.paneTabs() if isinstance(pane, hou.NetworkEditor.__class__) and pane.isCurrentTab()]
     return editors[-1]
 
 
