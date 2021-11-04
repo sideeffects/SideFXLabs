@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from houdinihelp import api
+from houdinihelp import api, server
 
 import xml.etree.ElementTree as ET
 import glob
@@ -19,6 +19,21 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
+def should_be_checked(node):
+    node_type = node.type()
+    scope, namespace, name, version = node_type.nameComponents()
+      
+    unversioned_name = "{0}/{1}".format(node_type.category().name(), name)
+    if namespace:
+        unversioned_name = namespace + "::" + unversioned_name
+
+    preferred_node = hou.preferredNodeType(unversioned_name)
+    is_old_version = preferred_node is not None and preferred_node != node_type
+
+    if is_old_version:
+        return False
+    else:
+        return True
 
 def check_labs_namespace(node):
     correct_namespace = "gamedev" if MAJOR_MINOR == "17.5" else "labs"
@@ -70,10 +85,9 @@ def check_tab_submenu(node):
 
 def check_docs(node):
     nodetype = node.type()
-    pages = api.get_pages()
-    helppath = api.nodetype_to_path(nodetype)
-    sourcepath = pages.source_path(helppath)
-    return pages.store.exists(sourcepath)
+    app = server.default_houdini_app()
+    pages = api.get_pages(app)
+    return api.nodeHasHelp(pages, nodetype)
 
 def check_analytics(node):
     sections = node.type().definition().sections()
@@ -102,6 +116,9 @@ def run_tests(node):
         print(node_name + ": __SmoketestError__ : Incorrect Namespace")
         _ok = False
 
+    if not should_be_checked(node):  # Do this check after checking namespace, to prevent any nodes without namespace getting accidentally skipped.
+        return _ok
+
     if not check_icon(node):
         print(node_name + ": __SmoketestWarning__ : Generic Icon")
         _ok = False
@@ -122,9 +139,9 @@ def run_tests(node):
         print(node_name + ": __SmoketestWarning__ : No Analytics Code")
         _ok = False
 
-    # if not check_docs(node):
-    #     print(node_name + ": __SmoketestWarning__ : No Documentation")
-    #     _ok = False
+    if not check_docs(node):
+        print(node_name + ": __SmoketestWarning__ : No Documentation")
+        _ok = False
 
     if not check_parm_names(node):
         # print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
@@ -149,11 +166,14 @@ if __name__ == '__main__':
              "labs::substance_material"]
 
     current_folder = os.path.dirname(os.path.abspath(__file__))
-    repo_dir = os.getenv("WORKSPACE", "C:\\Github\\SideFXLabs")
+    repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
     if MAJOR_MINOR != "17.5":
-        repo_dir = os.getenv("WORKSPACE", "C:\\Github\\SideFXLabs")
+        repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
     if len(sys.argv) > 1:
         repo_dir = sys.argv[1] + "/SideFXLabs"
+
+    with open(os.path.join(repo_dir, "automation", "smoketest", "deprecations.txt"), "r") as file:
+        deprecations = [line.rstrip() for line in file.readlines()]
 
     hda_files = glob.glob(os.path.join(repo_dir, "otls/*.hda"))
 
@@ -189,7 +209,7 @@ if __name__ == '__main__':
 
             num_nodes += 1
 
-            if name not in nodes_to_ignore:
+            if name not in nodes_to_ignore and name not in deprecations:
                 print("Attempting to Create Node : " + name)
                 ok = True
                 try:
