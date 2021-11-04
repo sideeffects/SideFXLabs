@@ -30,7 +30,7 @@ def should_be_checked(node):
     preferred_node = hou.preferredNodeType(unversioned_name)
     is_old_version = preferred_node is not None and preferred_node != node_type
 
-    if is_old_version:
+    if is_old_version or node_type.hidden():
         return False
     else:
         return True
