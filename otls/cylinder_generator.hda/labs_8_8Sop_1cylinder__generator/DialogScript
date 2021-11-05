@@ -18,76 +18,222 @@
         name    "settingsfolder"
         label   "Settings"
 
-        parm {
-            name    "capends"
-            label   "Cap Ends"
-            type    toggle
-            default { [ "off" hscript-expr ] }
-            parmtag { "autoscope" "0000000000000000" }
+        groupsimple {
+            name    "defaultCylinder"
+            label   "Default Cylinder"
+            hidewhen "{ hasinput(0) == 1 }"
+
+            parm {
+                name    "length"
+                label   "Length"
+                type    float
+                default { "1" }
+                hidewhen "{ hasinput(0) == 1 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "origin"
+                label   "Origin"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "direction"
+                label   "Direction"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                hidewhen "{ hasinput(0) == 1 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
         }
-        parm {
-            name    "innerradius"
-            label   "Inner Radius"
-            type    float
-            default { "1" }
-            range   { 0 10 }
-            parmtag { "autoscope" "0000000000000000" }
+
+        groupsimple {
+            name    "creationFolder"
+            label   "Creation"
+
+            parm {
+                name    "innerradius"
+                label   "Inner Radius"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "outerradius"
+                label   "Outer Radius"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "arcstart"
+                label   "Arc Start"
+                type    float
+                default { "0" }
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "arcend"
+                label   "Arc End"
+                type    float
+                default { "360" }
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "addtwist"
+                label   "Add Twist"
+                type    toggle
+                default { [ "off" hscript-expr ] }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "twist"
+                label   "Twist"
+                type    float
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "usegments"
+                label   "U Segments"
+                type    integer
+                default { "16" }
+                range   { 2 100 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "vsegments"
+                label   "V Segments"
+                type    integer
+                default { "8" }
+                range   { 1 100 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "normalcuspangle"
+                label   "Normal Cusp Angle"
+                type    float
+                default { "60" }
+                range   { 0 180 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "capends"
+                label   "Cap Ends"
+                type    toggle
+                default { [ "off" hscript-expr ] }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "triangulateCaps"
+                label   "Cap Type"
+                type    ordinal
+                default { "0" }
+                hidewhen "{ capends == 0 }"
+                menu usetokenvalue {
+                    "0" "Single Poly"
+                    "2" "Triangulated"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "softCaps"
+                label   "Soften Cap Normals"
+                type    toggle
+                default { "0" }
+                hidewhen "{ capends == 0 }"
+                parmtag { "export_disable" "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "smoothDist"
+                label   "Smoothing Distance"
+                type    float
+                default { "0" }
+                hidewhen "{ softCaps == 0 } { capends == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "smoothStrength"
+                label   "Smoothing Strength"
+                type    float
+                default { "0" }
+                hidewhen "{ softCaps == 0 } { capends == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupcollapsible {
+                name    "advanced"
+                label   "Advanced"
+
+                parm {
+                    name    "curveResample"
+                    label   "Curvature Resample"
+                    type    toggle
+                    default { "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "minSegLength"
+                    label   "Min Segment Length"
+                    type    float
+                    default { "0.1" }
+                    range   { 0 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "segmentDist"
+                    label   "Segment Distance"
+                    type    float
+                    default { "0.05" }
+                    range   { 0 0.3 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
         }
-        parm {
-            name    "outerradius"
-            label   "Outer Radius"
-            type    float
-            default { "1" }
-            range   { 0 10 }
-            parmtag { "autoscope" "0000000000000000" }
+
+        groupsimple {
+            name    "rampFolder"
+            label   "Ramp"
+
+            parm {
+                name    "rampmult"
+                label   "Ramp Multiplier"
+                type    float
+                default { "1" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "curveramp"
+                label   "Curve Ramp"
+                type    ramp_flt
+                default { "2" }
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0.5 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 0.5 ) 2interp ( linear )" }
+            }
         }
-        parm {
-            name    "arcstart"
-            label   "Arc Start"
-            type    float
-            default { "0" }
-            range   { 0 360 }
-            parmtag { "autoscope" "0000000000000000" }
-        }
-        parm {
-            name    "arcend"
-            label   "Arc End"
-            type    float
-            default { "360" }
-            range   { 0 360 }
-            parmtag { "autoscope" "0000000000000000" }
-        }
-        parm {
-            name    "addtwist"
-            label   "Add Twist"
-            type    toggle
-            default { [ "off" hscript-expr ] }
-            parmtag { "autoscope" "0000000000000000" }
-        }
-        parm {
-            name    "twist"
-            label   "Twist"
-            type    float
-            default { "0" }
-            range   { 0 10 }
-            parmtag { "autoscope" "0000000000000000" }
-        }
-        parm {
-            name    "usegments"
-            label   "U Segments"
-            type    integer
-            default { "16" }
-            range   { 2 100 }
-            parmtag { "autoscope" "0000000000000000" }
-        }
-        parm {
-            name    "vsegments"
-            label   "V Segments"
-            type    integer
-            default { "8" }
-            range   { 1 100 }
-            parmtag { "autoscope" "0000000000000000" }
-        }
+
+    }
+
+    group {
+        name    "settingsfolder_1"
+        label   "UVs"
+
         parm {
             name    "rotateuv"
             label   "Rotate UVs 90"
@@ -130,35 +276,10 @@
             range   { 0 1 }
             parmtag { "autoscope" "0000000000000000" }
         }
-        parm {
-            name    "normalcuspangle"
-            label   "N Cusp Angle"
-            type    float
-            default { "60" }
-            range   { 0 180 }
-            parmtag { "autoscope" "0000000000000000" }
-        }
-        parm {
-            name    "rampmult"
-            label   "Ramp Multiplier"
-            type    float
-            default { "1" }
-            range   { 0 10 }
-            parmtag { "autoscope" "0000000000000000" }
-        }
-        parm {
-            name    "curveramp"
-            label   "Curve Ramp"
-            type    ramp_flt
-            default { "2" }
-            range   { 1! 10 }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0.5 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 0.5 ) 2interp ( linear )" }
-        }
     }
 
     group {
-        name    "settingsfolder_1"
+        name    "settingsfolder_2"
         label   "Noise"
 
         parm {
@@ -236,8 +357,8 @@
     }
 
     group {
-        name    "settingsfolder_2"
-        label   "Vertex Colour"
+        name    "settingsfolder_3"
+        label   "Vertex Color"
 
         parm {
             name    "addcolour"
@@ -248,14 +369,14 @@
         }
         parm {
             name    "vcolourramp"
-            label   "V Colour Ramp"
+            label   "V Color Ramp"
             type    toggle
             default { [ "off" hscript-expr ] }
             parmtag { "autoscope" "0000000000000000" }
         }
         parm {
             name    "colourramp"
-            label   "Colour Ramp"
+            label   "Color Ramp"
             type    ramp_rgb
             default { "2" }
             range   { 1! 10 }
