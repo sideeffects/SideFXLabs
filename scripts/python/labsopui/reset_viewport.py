@@ -7,8 +7,10 @@ def ResetViewport():
     # Attempt to copy all settings for the sceneviewer and make new instances
     for _oldSceneViewer in sceneviewers:
 
+        ResetSpecificViewport(_oldSceneViewer)
 
 
+def ResetSpecificViewport(_oldSceneViewer):
 
         # Get old sceneview name, create new sceneview, and get its name
         _pane = _oldSceneViewer.pane()
