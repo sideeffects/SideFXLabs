@@ -1,74 +1,116 @@
 import hou
 
-def ResetViewport():
+def resetViewport():
 
-    sceneviewers = [_pane for _pane in hou.ui.paneTabs() if _pane.type() == hou.paneTabType.SceneViewer]
+    scene_viewers = [paneTab for paneTab in hou.ui.paneTabs() if paneTab.type() == hou.paneTabType.SceneViewer]
 
-    # Attempt to copy all settings for the sceneviewer and make new instances
-    for _oldSceneViewer in sceneviewers:
-
-        ResetSpecificViewport(_oldSceneViewer)
+    for old_scene_viewer in scene_viewers:
+        resetSpecificViewport(old_scene_viewer)
 
 
-def ResetSpecificViewport(_oldSceneViewer):
+def resetSpecificViewport(old_scene_viewer):
 
-        # Get old sceneview name, create new sceneview, and get its name
-        _pane = _oldSceneViewer.pane()
-        _oldViewportName = _oldSceneViewer.pane().desktop().name() + "." + _oldSceneViewer.name() + ".world" + "." + _oldSceneViewer.curViewport().name()
-        _newSceneViewer = _pane.createTab(hou.paneTabType.SceneViewer)
-        _newSceneViewerName = _newSceneViewer.pane().desktop().name() + "." + _newSceneViewer.name() + ".world"
-        _newViewportName = _newSceneViewer.pane().desktop().name() + "." + _newSceneViewer.name() + ".world" +"." + _newSceneViewer.curViewport().name()
-        _viewerType = _oldSceneViewer.viewerType()
+        desktop = hou.ui.curDesktop()
+        desktop_name = desktop.name()
 
-        # If the old sceneview was looking through a camera, make new scene viewer look through the same camera. Otherwise match perspective
-        _sceneViewCamera = _oldSceneViewer.curViewport().camera()
-        if _sceneViewCamera is None:
-            _viewTransform = hou.hscript("viewtransform -p {}".format(_oldViewportName))[0]
-            _newTransform = _viewTransform.replace(_oldViewportName, _newViewportName)
-            hou.hscript("{}".format(_newTransform))
+        pane = old_scene_viewer.pane()
+
+        if pane is not None:
+            new_scene_viewer = pane.createTab(hou.paneTabType.SceneViewer)
+
         else:
-            _newSceneViewer.curViewport().setCamera(hou.node(_sceneViewCamera.path()))
+            new_scene_viewer = desktop.createFloatingPaneTab(hou.paneTabType.SceneViewer, (0, 100), old_scene_viewer.size(), None, True)
 
-        hou.hscript("viewcopy {0} {1}".format(_oldViewportName, _newViewportName))
+        old_scene_viewer_name = old_scene_viewer.name()
+        new_scene_viewer_name = new_scene_viewer.name()
 
-        # Set the new sceneview to "hide other objects", to prevent unwanted cooking
-        hou.hscript("vieweroption -a 0 {}".format(_newSceneViewerName))
-        # Set the left viewport toolbar to be visible
-        hou.hscript("viewerstow -l open {}".format(_newSceneViewerName))
+        # Sets new Scene Viewer to "Hide Other Objects".
+        # Currently unable to read old Scene Viewer's setting.
+        hou.hscript("vieweroption -a 0 {}".format(desktop_name + "." + new_scene_viewer_name + ".world"))
 
-        # Split Views
-        _newSceneViewer.setViewportLayout(_oldSceneViewer.viewportLayout())
+        # Sets the visibilities of Toolbars
+        new_scene_viewer.showOperationBar(old_scene_viewer.isShowingOperationBar())
+        new_scene_viewer.showSelectionBar(old_scene_viewer.isShowingSelectionBar())
+        new_scene_viewer.showDisplayOptionsBar(old_scene_viewer.isShowingDisplayOptionsBar())
+        new_scene_viewer.setIncludeColorCorrectionBar(old_scene_viewer.includeColorCorrectionBar())
+        new_scene_viewer.setIncludeMemoryBar(old_scene_viewer.includeMemoryBar())
+        new_scene_viewer.showColorCorrectionBar(old_scene_viewer.isShowingColorCorrectionBar())
+        new_scene_viewer.showMemoryBar(old_scene_viewer.isShowingMemoryBar())
 
-        # Snapping
-        _newSceneViewer.setSnappingMode(_oldSceneViewer.snappingMode())
+        # Scene Viewer settings
 
-        # View Options
-        _newSceneViewer.setPickingVisibleGeometry(_oldSceneViewer.isPickingVisibleGeometry())
-        _newSceneViewer.setPickingContainedGeometry(_oldSceneViewer.isPickingContainedGeometry())
-        _newSceneViewer.setWholeGeometryPicking(_oldSceneViewer.isWholeGeometryPicking())
-        _newSceneViewer.setSecureSelection(_oldSceneViewer.isSecureSelection())
+        # Currently doesn't seem to work on Floating Pane Tabs
+        new_scene_viewer.referencePlane().setIsVisible(old_scene_viewer.referencePlane().isVisible())
 
-        if _viewerType != hou.stateViewerType.SceneGraph:
-            _newSceneViewer.setPickingCurrentNode(_oldSceneViewer.isPickingCurrentNode())
-
-        _newSceneViewer.setPickGeometryType(_oldSceneViewer.pickGeometryType())
-        _newSceneViewer.setPickStyle(_oldSceneViewer.pickStyle())
-        _newSceneViewer.setPickModifier(_oldSceneViewer.pickModifier())
-        _newSceneViewer.setPickFacing(_oldSceneViewer.pickFacing())
-        #_newSceneViewer.setHydraRenderer(_oldSceneViewer.currentHydraRenderer())
+        new_scene_viewer.setSnappingMode(old_scene_viewer.snappingMode())
+        new_scene_viewer.setPickingVisibleGeometry(old_scene_viewer.isPickingVisibleGeometry())
+        new_scene_viewer.setPickingContainedGeometry(old_scene_viewer.isPickingContainedGeometry())
+        new_scene_viewer.setWholeGeometryPicking(old_scene_viewer.isWholeGeometryPicking())
+        new_scene_viewer.setSecureSelection(old_scene_viewer.isSecureSelection())
+        new_scene_viewer.setPickGeometryType(old_scene_viewer.pickGeometryType())
+        new_scene_viewer.setPickStyle(old_scene_viewer.pickStyle())
+        new_scene_viewer.setPickModifier(old_scene_viewer.pickModifier())
+        new_scene_viewer.setPickFacing(old_scene_viewer.pickFacing())
+        if old_scene_viewer.viewerType() != hou.stateViewerType.SceneGraph:
+            new_scene_viewer.setPickingCurrentNode(old_scene_viewer.isPickingCurrentNode())
+            
+        #new_scene_viewer.setHydraRenderer(old_scene_viewer.currentHydraRenderer())
 
         # Group List
-        _newSceneViewer.setGroupListColoringGeometry(_oldSceneViewer.isGroupListColoringGeometry())
-        _newSceneViewer.setGroupListShowingEmptyGroups(_oldSceneViewer.isGroupListShowingEmptyGroups())
-        _newSceneViewer.setGroupListVisible(_oldSceneViewer.isGroupListVisible())
-        _groupListSize = _oldSceneViewer.groupListSize()
-        _newSceneViewer.setGroupListSize(_groupListSize[0], _groupListSize[1])
-        _newSceneViewer.setGroupListType(_oldSceneViewer.groupListType())
-        _newSceneViewer.setGroupListMask(_oldSceneViewer.groupListMask())
-        _newSceneViewer.setGroupPicking(_oldSceneViewer.isGroupPicking())
+        new_scene_viewer.setGroupListColoringGeometry(old_scene_viewer.isGroupListColoringGeometry())
+        new_scene_viewer.setGroupListShowingEmptyGroups(old_scene_viewer.isGroupListShowingEmptyGroups())
+        new_scene_viewer.setGroupListVisible(old_scene_viewer.isGroupListVisible())
+        groupListSize = old_scene_viewer.groupListSize()
+        new_scene_viewer.setGroupListSize(groupListSize[0], groupListSize[1])
+        new_scene_viewer.setGroupListType(old_scene_viewer.groupListType())
+        new_scene_viewer.setGroupListMask(old_scene_viewer.groupListMask())
+        new_scene_viewer.setGroupPicking(old_scene_viewer.isGroupPicking())
 
         # Pinning and Link Grouping
-        _newSceneViewer.setPin(_oldSceneViewer.isPin())
-        _newSceneViewer.setLinkGroup(_oldSceneViewer.linkGroup())
+        new_scene_viewer.setPin(old_scene_viewer.isPin())
+        new_scene_viewer.setLinkGroup(old_scene_viewer.linkGroup())
 
-        _oldSceneViewer.close()
+
+        # Viewports
+
+        # Disables applying display options to all split viewports
+        hou.hscript("vieweroption -s 0 {}".format(desktop_name + "." + new_scene_viewer_name + ".world"))
+
+        new_scene_viewer.setViewportLayout(old_scene_viewer.viewportLayout())
+
+        for i in range(len(old_scene_viewer.viewports())):
+
+            old_viewport = old_scene_viewer.viewports()[i]
+            new_viewport = new_scene_viewer.viewports()[i]
+
+            # Sets new current viewport name
+            old_viewport_name = desktop_name + "." + old_scene_viewer_name + ".world" + "." + old_viewport.name()
+            new_viewport_name = desktop_name + "." + new_scene_viewer_name + ".world" +"." + new_viewport.name()
+
+            hou.hscript("viewcopy {0} {1}".format(old_viewport_name, new_viewport_name))
+
+            # Viewport names may change after the viewcopy command
+            new_viewport_name = desktop_name + "." + new_scene_viewer_name + ".world" +"." + new_viewport.name()
+
+            # Sets view transform or camera to look through
+            if old_viewport.camera() is None:
+
+                view_transform = hou.hscript("viewtransform -p {}".format(old_viewport_name))[0]
+                new_transform = view_transform.replace(old_viewport_name, new_viewport_name)
+                hou.hscript("{}".format(new_transform))
+
+            else:
+
+                # Currently if the camera is ortho., only in the main viewport can it be properly set.
+                # In any other viewport, only the view transform is set but the camera is not.
+                new_viewport.setCamera(hou.node(old_viewport.cameraPath()))
+                new_viewport.lockCameraToView(old_viewport.isCameraLockedToView())
+
+            old_display_options = old_viewport.settings()
+            new_display_options = new_viewport.settings()
+            new_display_options.showsName(old_display_options.showName())
+            new_display_options.showsCameraName(old_display_options.showCameraName())
+            new_display_options.setLighting(old_display_options.lighting())
+        
+
+        old_scene_viewer.close()
