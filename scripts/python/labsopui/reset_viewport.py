@@ -1,14 +1,14 @@
 import hou
 
-def resetViewport():
+def resetSceneViewers():
 
-    scene_viewers = [paneTab for paneTab in hou.ui.paneTabs() if paneTab.type() == hou.paneTabType.SceneViewer]
+    scene_viewers = [pane_tab for pane_tab in hou.ui.paneTabs() if pane_tab.type() == hou.paneTabType.SceneViewer]
 
     for old_scene_viewer in scene_viewers:
-        resetSpecificViewport(old_scene_viewer)
+        resetSceneViewer(old_scene_viewer)
 
 
-def resetSpecificViewport(old_scene_viewer):
+def resetSceneViewer(old_scene_viewer):
 
         desktop = hou.ui.curDesktop()
         desktop_name = desktop.name()
