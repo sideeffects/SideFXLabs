@@ -203,3 +203,7 @@ def extract_embedded_image(path, destination):
     elif path.startswith("opdef:"):
         with open(destination, "w") as f:
             f.write(hou.readFile(path))
+
+def create_node_help(nodetypename, context, directory):
+    from labsopui import labsdocs
+    labsdocs.create_node_help(nodetypename, context, directory)
