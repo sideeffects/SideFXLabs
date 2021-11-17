@@ -1,14 +1,14 @@
 import hou
 
-def resetSceneViewers():
+def resetSceneViewers(external_object_visibility = 0):
 
     scene_viewers = [pane_tab for pane_tab in hou.ui.paneTabs() if pane_tab.type() == hou.paneTabType.SceneViewer]
 
     for old_scene_viewer in scene_viewers:
-        resetSceneViewer(old_scene_viewer)
+        resetSceneViewer(old_scene_viewer, external_object_visibility)
 
 
-def resetSceneViewer(old_scene_viewer):
+def resetSceneViewer(old_scene_viewer, external_object_visibility = 0):
 
         desktop = hou.ui.curDesktop()
         desktop_name = desktop.name()
@@ -24,9 +24,10 @@ def resetSceneViewer(old_scene_viewer):
         old_scene_viewer_name = old_scene_viewer.name()
         new_scene_viewer_name = new_scene_viewer.name()
 
-        # Sets new Scene Viewer to "Hide Other Objects".
-        # Currently unable to read old Scene Viewer's setting.
-        hou.hscript("vieweroption -a 0 {}".format(desktop_name + "." + new_scene_viewer_name + ".world"))
+        # Sets new Scene Viewer's external object visibility.
+        # 0 is to "Hide Other Objects"; 1 is to "Show All Objects"; 2 is to "Ghost Other Objects".
+        # Currently this seems to be no way to read the Scene Viewer's existing setting.
+        hou.hscript("vieweroption -a {0} {1}".format(external_object_visibility, desktop_name + "." + new_scene_viewer_name + ".world"))
 
         # Sets the visibilities of Toolbars
         new_scene_viewer.showOperationBar(old_scene_viewer.isShowingOperationBar())
