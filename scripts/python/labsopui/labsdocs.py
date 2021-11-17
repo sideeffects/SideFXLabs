@@ -78,8 +78,6 @@ def writeTemplates(templates, indent):
                 
 def create_node_help(nodetypename, context, directory):
 
-    sys.stdout = open(os.path.join(hou.text.expandString(directory), nodetypename.replace("::", "-") + ".txt"), 'w')
-
     if context not in catsubs.keys():
         raise hou.NodeError("Specified context not found. Available contexts: {}".format([x + " " for x in catsubs.keys()]))
 
@@ -89,6 +87,15 @@ def create_node_help(nodetypename, context, directory):
         raise hou.NodeError("Specified node type does not exist.")
 
     node = table.nodeTypes()[ nodetypename ]
+    
+    namecomponents = node.nameComponents()
+    txtname = namecomponents[1]+"--"+namecomponents[2]
+
+    if namecomponents[3] != "":
+        txtname += "-"+namecomponents[3]
+    txtname += ".txt"
+
+    sys.stdout = open(os.path.join(hou.text.expandString(directory), txtname), 'w')
 
     writeHeader(node, nodetypename, context)
     writeTemplates(node.parmTemplateGroup().entries(), "==")
