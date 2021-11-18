@@ -1,6 +1,6 @@
 import hou
 
-def recentre_nodes():
+def node_to_network_origin():
 
     pane_tab = hou.ui.paneTabUnderCursor()
 
