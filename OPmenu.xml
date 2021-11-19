@@ -1,22 +1,22 @@
 <menuDocument>
-  <!-- menuDocument can only contain 1 menu element, whose id is 
+	<!-- menuDocument can only contain 1 menu element, whose id is 
          implicitly "root_menu"
       -->
-  <menu>
-    <scriptItem id="expreditor_edit_python_code">
-      <label>Edit python source code</label>
-      <context>
-        <expression>
-          <![CDATA[
+	<menu>
+		<scriptItem id="expreditor_edit_python_code">
+			<label>Edit python source code</label>
+			<context>
+				<expression>
+					<![CDATA[
 try:
   from HoudiniExprEditor import ParmWatcher
   return ParmWatcher.is_python_node(kwargs["node"])
 except Exception as e:
   return False]]>
-        </expression>
-      </context>
-      <scriptCode>
-        <![CDATA[
+				</expression>
+			</context>
+			<scriptCode>
+				<![CDATA[
 from HoudiniExprEditor import ParmWatcher
 try:
   reload(ParmWatcher)
@@ -24,169 +24,26 @@ except NameError:
   from importlib import reload
   reload(ParmWatcher)
 ParmWatcher.add_watcher(kwargs["node"], type_="python_node")]]>
-      </scriptCode>
-
-    </scriptItem>
-
-    
-    <subMenu id="opmenu.labs_vhda_options_create">
-            <label>Versioned Digital Asset...</label>
-            <insertAtIndex>48</insertAtIndex>
-            <context>
-                    <expression>
-import hou
-from labsopui import assettools
-
-if hou.applicationVersion()[0] > 18:
-    return 0
-
-node = kwargs["node"]
-if assettools.isSubnet(node):
-    return 1
-else:
-    return 0
-            </expression>
-            </context>
-            <scriptItem id="opmenu.labs_vhda_create">
-                <label>Create New...</label>
-                <context>
-                </context>
-                <scriptCode>
-<![CDATA[
-import hou
-from labsopui import assettools
-
-node = kwargs["node"]
-assettools.createNewVHDAFromSubnet(node)
-]]>
-                 </scriptCode>
-            </scriptItem>  
-            <separatorItem/>      
-            <scriptItem id="opmenu.labs_vhda_prefcreate">
-                <label>Preferences...</label>
-                <context>
-                </context>
-                <scriptCode>
-<![CDATA[
-import hou
-from labsopui import assettools
-
-node = kwargs["node"]
-assettools.openPreferences(node)
-]]>
-                </scriptCode>
-            </scriptItem>
-    </subMenu>    
-        <subMenu id="opmenu.labs_vhda_options">
-            <label>Versioned Digital Asset</label>
-            <insertAtIndex>48</insertAtIndex>
-            <context>
-            <expression>
-import hou
-from labsopui import assettools
-
-if hou.applicationVersion()[0] > 18:
-    return 0
-
-node = kwargs["node"]
-if assettools.isVHDA(node) or assettools.isHDA(node):
-    return 1
-else:
-    return 0
-            </expression>
-            </context>  
-            <scriptItem id="opmenu.labs_vhda_save_as">
-                <label>Save As...</label>
-                <context>
-                </context>
-                <scriptCode>
-<![CDATA[
-import hou
-from labsopui import assettools
-
-node = kwargs["node"]
-assettools.copyToNewVHDA(node)
-]]>
-                </scriptCode>
-            </scriptItem>  
-            <separatorItem/>
-            <scriptItem id="opmenu.labs_vhda_bump_major">
-                <label>Increase Major Version</label>
-                <context>
-                </context>
-                <scriptCode>
-<![CDATA[
-import hou
-from labsopui import assettools
-
-node = kwargs["node"]
-assettools.increaseMajorVersion(node)
-]]>
-                </scriptCode>
-            </scriptItem>
-            <scriptItem id="opmenu.labs_vhda_bump_minor">
-                <label>Increase Minor Version</label>
-                <context>
-                </context>
-                <scriptCode>
-<![CDATA[
-import hou
-from labsopui import assettools
-
-node = kwargs["node"]
-assettools.increaseMinorVersion(node)
-]]>
-                </scriptCode>
-            </scriptItem>  
-            <separatorItem/>      
-            <scriptItem id="opmenu.labs_vhda_delete_versions">
-                <label>Delete Versions...</label>
-                <context>
-                </context>
-                <scriptCode>
-<![CDATA[
-import hou
-from labsopui import assettools
-
-node = kwargs["node"]
-assettools.deleteVersions(node)
-]]>
-                </scriptCode>
-            </scriptItem>
-            <separatorItem/>      
-            <scriptItem id="opmenu.labs_vhda_pref">
-                <label>Preferences...</label>
-                <context>
-                </context>
-                <scriptCode>
-<![CDATA[
-import hou
-from labsopui import assettools
-
-node = kwargs["node"]
-assettools.openPreferences(node)
-]]>
-                </scriptCode>
-            </scriptItem>
-        </subMenu>
-    <scriptItem id="expreditor_edit_extra_sections">
-      <label>Edit Extra Sections Source Code</label>
-      <insertAtIndex>49</insertAtIndex>
-      <context>
-        <expression>
-          <![CDATA[
+			</scriptCode>
+		</scriptItem>
+		<scriptItem id="expreditor_edit_extra_sections">
+			<label>Edit Extra Sections Source Code</label>
+			<insertAtIndex>49</insertAtIndex>
+			<context>
+				<expression>
+					<![CDATA[
 try:
   import os
   if os.environ.get("HOUDINI_EXPR_DISABLE_SECTIONS") == "1":
     return False
   from HoudiniExprEditor import ParmWatcher
-  return len(ParmWatcher.get_extra_file_scripts(kwargs["node"])) > 0
+  return len(ParmWatcher.get_extra_file_scripts(kwargs["node"])) >0
 except Exception as e:
   return False]]>
-        </expression>
-      </context>
-      <scriptCode>
-        <![CDATA[
+				</expression>
+			</context>
+			<scriptCode>
+				<![CDATA[
 from HoudiniExprEditor import ParmWatcher
 try:
   reload(ParmWatcher)
@@ -194,11 +51,7 @@ except NameError:
   from importlib import reload
   reload(ParmWatcher)
 ParmWatcher.add_watcher_to_section(kwargs["node"])]]>
-      </scriptCode>
-    </scriptItem>
-
-
-
-
-  </menu>
+			</scriptCode>
+		</scriptItem>
+	</menu>
 </menuDocument>
