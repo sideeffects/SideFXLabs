@@ -119,6 +119,10 @@ def run_tests(node):
     if not should_be_checked(node):  # Do this check after checking namespace, to prevent any nodes without namespace getting accidentally skipped.
         return _ok
 
+    if not check_labs_prefix(node):
+        print(node_name + ": __SmoketestWarning__ : Missing Labs Label Prefix")
+        _ok = False
+
     if not check_icon(node):
         print(node_name + ": __SmoketestWarning__ : Generic Icon")
         _ok = False
