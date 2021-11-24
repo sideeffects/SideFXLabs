@@ -1,0 +1,1150 @@
+import datetime
+import time
+from labsopui import reset_viewport
+
+try:
+
+    reload(reset_viewport)
+
+except NameError:
+
+    from importlib import reload
+    reload(reset_viewport)
+
+
+
+
+# Render Intermediate
+
+
+def checkExtraInputPaths(node):
+
+    failed = 0
+
+    for i in range(2, 6):
+
+        idx = str(i)
+        geo_path = node.evalParm('bakevolpath' + idx)
+        pyro_bake_volume = node.node(geo_path)
+
+        if type(pyro_bake_volume) is not hou.SopNode:
+
+            if geo_path != '':
+                print ("Pyro Bake Volume " + idx + " does not point to a Pyro Bake Volume SOP.\n")
+                failed = 1
+
+        elif pyro_bake_volume.type().name() != 'pyrobakevolume':
+
+            print ("Pyro Bake Volume " + idx + " does not point to a Pyro Bake Volume SOP.\n")
+            failed = 1
+
+       
+    if node.evalParm('nonvolemissive') == 1 and node.evalParm('nonvolpath') != '':
+
+        geo_path = node.evalParm('nonvolnepath')
+
+        if type(node.node(geo_path)) is not hou.SopNode and geo_path != '':
+
+            print ("Non-emissive Path does not point to a SOP.\n")
+            failed = 1
+        
+    return failed == 0
+
+
+
+def checkMainInputPaths(node):
+    
+    cam = node.node(node.evalParm('camerapath'))
+
+    if type(cam) is not hou.ObjNode:
+
+        print ("Camera is not valid.\n")
+        return None
+
+    elif cam.type().name() != 'cam':
+
+        print ("Camera is not valid.\n")
+        return None
+
+    else:
+
+        near_clipping = cam.parm('near')
+
+        if cam.evalParm('near') < node.evalParm('nearcliplimit'):
+            cam.setParms({'near': node.evalParm('nearcliplimit')})
+
+        main_vol_path = node.evalParm('bakevolpath1')
+        main_geometry = node.node(main_vol_path)
+
+        if not checkExtraInputPaths(node):
+            return None
+
+        if type(main_geometry) is hou.SopNode:
+
+            if main_geometry.type().name() == 'pyrobakevolume':
+                    return main_geometry
+
+        if main_vol_path != '':
+            print ("Pyro Bake Volume Path does not point to a Pyro Bake Volume SOP.\n")
+
+        main_non_vol_path = node.evalParm('nonvolpath')
+        main_geometry = node.node(main_non_vol_path)
+
+        if type(main_geometry) is hou.SopNode:
+                return main_geometry
+
+        if main_non_vol_path != '':
+            print ("Non-volumetric Geometry Final Color Path does not point to a SOP.\n")
+
+        print ("For any render to start, at least one of the two following paths must be valid: ' \
+                'Pyro Bake Volume Path and Non-volumetric Geometry Final Color Path.\n")
+
+    return None
+
+
+
+def pinSelectionFollowingTabs(node):
+
+    tabs = [pane_tab for pane_tab in hou.ui.paneTabs() if isinstance(pane_tab, hou.PathBasedPaneTab)]
+
+    for tab in tabs:
+
+        if tab.type() != hou.paneTabType.SceneViewer:
+
+            if tab.linkGroup() == hou.paneLinkType.FollowSelection:
+                tab.setPin(True)
+
+    return
+
+
+
+# Points all existing Scene Viewers to an embedded empty OBJ network and then resets them to clear the GPU memory.
+# Returns a dictionary of Scene Viewer data, which are needed to restore these Scene Viewers after rendering. 
+def clearExistingSceneViewers(node):
+
+    pinSelectionFollowingTabs(node)
+
+    scene_viewers = [pane_tab for pane_tab in hou.ui.paneTabs() if pane_tab.type() == hou.paneTabType.SceneViewer]
+
+    scene_viewer_nodes = []
+    link_groups = []
+
+    for scene_viewer in scene_viewers:
+
+        scene_viewer_nodes.append(scene_viewer.currentNode())
+        link_groups.append(scene_viewer.linkGroup())
+        scene_viewer.setPin(True)
+        scene_viewer.setCurrentNode(node.node(node.path() + '/empty/clear_scene_viewer_gpu_mem'))
+        reset_viewport.resetSceneViewer(scene_viewer)
+
+    return {'scene_viewer_nodes': scene_viewer_nodes, 'link_groups': link_groups}
+
+
+
+def restoreExistingSceneViewers(node, scene_viewer_data):
+
+    scene_viewers = [pane_tab for pane_tab in hou.ui.paneTabs() if pane_tab.type() == hou.paneTabType.SceneViewer]
+
+    for i in range(len(scene_viewer_data['scene_viewer_nodes'])):
+
+        link_group = scene_viewer_data['link_groups'][i]
+
+        if link_group is not None:
+            scene_viewers[i].setLinkGroup(link_group)
+
+        scene_viewer_node = scene_viewer_data['scene_viewer_nodes'][i]
+
+        try:
+
+            if isinstance(scene_viewer_node, hou.Node):
+    
+                path = scene_viewer_node.path()
+    
+                if path != '/obj' and path != '':
+                    scene_viewers[i].setCurrentNode(scene_viewer_node)
+    
+            else:
+    
+                scene_viewers[i].setCurrentNode(node.node(node.evalParm('camerapath')))
+
+        except hou.OperationFailed:
+
+            pass
+
+    return
+
+
+
+def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
+
+    if main_geometry is None:
+        return None
+
+    merged_geos = main_geometry.parent().createNode('object_merge', 'merge_render_geos')
+    merged_geos.setParms({'numobj': 6, 'xformtype': 1})
+    count = 0
+
+    # Merges volumes
+    for i in range(1, 6):
+
+        idx = str(i)
+        merged_geos.parm('enable' + idx).set(0)
+        geo_path = node.evalParm('bakevolpath' + idx)
+        pyro_bake_volume = node.node(geo_path)
+
+        if type(pyro_bake_volume) is hou.SopNode:
+
+            if pyro_bake_volume.type().name() == 'pyrobakevolume':
+
+                geo_path = pyro_bake_volume.path()  # This returns the full path
+                geo_path += '/VISUALIZER'
+                merged_geos.parm('objpath' + idx).set(geo_path)
+                merged_geos.parm('enable' + idx).set(1)
+                count += 2
+
+    # Merges non-volumes
+
+    merged_geos.parm('enable6').set(0)
+
+    emissive_property = node.evalParm('nonvolemissive')
+
+    if not non_emissive_pass:
+
+        geo_path = node.evalParm('nonvolpath')
+
+    else:
+
+        if emissive_property == 0:
+            geo_path = node.evalParm('nonvolpath')
+
+        elif emissive_property == 1:
+            geo_path = node.evalParm('nonvolnepath')
+
+        else:
+            geo_path = ''
+        
+    non_vol = node.node(geo_path)
+
+    if type(non_vol) is hou.SopNode:
+
+        geo_path = non_vol.path()  # This returns the full path
+        merged_geos.parm('objpath6').set(geo_path)
+        merged_geos.parm('enable6').set(1)
+        count += 1
+
+    if count == 0:
+
+        merged_geos.destroy()
+        merged_geos = None
+
+    return merged_geos
+
+
+
+def setCommonSceneViewerSettings(node, scene_viewer_node):
+
+    target_res = (node.evalParm('frameresx'), node.evalParm('frameresy'))
+    pos = (node.evalParm('viewerposx'), node.evalParm('viewerposy'))
+    scene_viewer = hou.ui.curDesktop().createFloatingPaneTab(hou.paneTabType.SceneViewer, pos, target_res, None, True)
+    scene_viewer.showOperationBar(True)
+    scene_viewer.showDisplayOptionsBar(True)
+    res = scene_viewer.curViewport().resolutionInPixels()
+    res = (target_res[0] * 2 - res[0], target_res[1] * 2 - res[1])
+    scene_viewer.close()
+    
+    scene_viewer = hou.ui.curDesktop().createFloatingPaneTab(hou.paneTabType.SceneViewer, pos, res, None, True)
+    scene_viewer.setPin(True)
+    scene_viewer.setCurrentNode(scene_viewer_node)
+    scene_viewer.showOperationBar(True)
+    scene_viewer.showDisplayOptionsBar(True)
+    scene_viewer.referencePlane().setIsVisible(False)
+
+    return scene_viewer
+
+
+
+def setCommonViewportSettings(node, scene_viewer, render_type):
+
+    viewport = scene_viewer.curViewport()
+    viewport.setCamera(node.node(node.evalParm('camerapath')).path())
+    
+    display_options = viewport.settings()
+
+    # Rendering
+
+    if render_type == 'lit':
+
+        display_options.setSceneAntialias(pow(2, node.evalParm('aasamples_lit')))
+        display_options.particlePointSize(node.evalParm('pointsize_lit'))
+        display_options.particlePointSize(node.evalParm('wirewidth_lit'))
+        display_options.setShadowMapSize(node.evalParm('shadowmapres'))
+        display_options.setShadowMapSizeFromLight(False)
+        display_options.showSpecular(node.evalParm('enablespecularcol'))
+        display_options.showEmission(True)
+
+        if node.evalParm('lightquality') == 0:
+
+            display_options.setLighting(hou.viewportLighting.Off)
+            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+
+        elif node.evalParm('lightquality') == 1:
+
+            display_options.setLighting(hou.viewportLighting.Headlight)
+            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+    
+        elif node.evalParm('lightquality') == 2:
+
+            display_options.setLighting(hou.viewportLighting.Normal)
+            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+    
+        elif node.evalParm('lightquality') == 3:
+
+            display_options.setLighting(hou.viewportLighting.HighQuality)
+            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+    
+        elif node.evalParm('lightquality') == 4:
+
+            display_options.setLighting(hou.viewportLighting.HighQualityWithShadows)
+            display_options.setShadowQuality(hou.viewportShadowQuality.PointAA)
+     
+        elif node.evalParm('lightquality') == 5:
+
+            display_options.setLighting(hou.viewportLighting.HighQualityWithShadows)
+            display_options.setShadowQuality(hou.viewportShadowQuality.AreaAA)
+
+    elif render_type == 'unlit':
+
+        display_options.setSceneAntialias(pow(2, node.evalParm('aasamples_unlit')))
+        display_options.particlePointSize(node.evalParm('pointsize_unlit'))
+        display_options.particlePointSize(node.evalParm('wirewidth_unlit'))
+        display_options.setShadowMapSize(16)
+        display_options.setShadowMapSizeFromLight(False)
+        display_options.setLighting(hou.viewportLighting.Off)
+        display_options.showEmission(False)
+
+    display_options.setHdrRendering(True)
+    display_options.setTransparencyQuality(hou.viewportTransparency.High)
+    display_options.setTextureMaxMemory(node.evalParm('singletexmemlimit'))
+    display_options.setTextureAutoReduce(False) 
+
+    # Volume quality
+
+    display_options.setTextureResLimit3D(node.evalParm('enabletexlimit3d'))
+    display_options.setTextureMaxRes3D((node.evalParm('texlimit3dx'), node.evalParm('texlimit3dy'), node.evalParm('texlimit3dz')))
+    display_options.setTextureBitDepthLimit3D(hou.viewportTextureDepth.HDR16)
+    display_options.setTexture2DSettingsFor3D(False)
+    display_options.setTextureAutoReduce3D(False)
+    display_options.volumeQuality(hou.viewportVolumeQuality.High)
+    display_options.volumeBSplines(hou.viewportVolumeBSplines.NonInteractive)
+    
+    # Viewport displays
+
+    scene_viewer_name = hou.ui.curDesktop().name() + '.' + scene_viewer.name() + '.world'
+    hou.hscript('vieweroption -a {0} {1}'.format(0, scene_viewer_name))
+    display_options.setColorScheme(hou.viewportColorScheme.Dark)
+    display_options.displaySet(hou.displaySetType.DisplayModel).setShadedMode(hou.glShadingType.Smooth)
+    display_options.displaySet(hou.displaySetType.SceneObject).setShadedMode(hou.glShadingType.Smooth)
+    display_options.displaySet(hou.displaySetType.DisplayModel).useUVMap(False)
+    display_options.displaySet(hou.displaySetType.SceneObject).useUVMap(False)
+    display_options.enableGuide(hou.viewportGuide.FloatingGnomon, False)
+    display_options.enableGuide(hou.viewportGuide.ObjectSelection, False)
+    display_options.showsName(False)
+    display_options.showsCameraName(False)
+
+    return {'viewport': viewport, 'settings': display_options}
+
+
+
+def setCommonFlipbookSettings(node, scene_viewer):
+
+    fb_settings = scene_viewer.flipbookSettings()
+    fb_settings.frameRange((node.evalParm('f1'), node.evalParm('f2')))
+    fb_settings.resolution((node.evalParm('frameresx'), node.evalParm('frameresy')))
+    fb_settings.sheetSize((node.evalParm('gridsizex'), node.evalParm('gridsizey')))
+    fb_settings.outputToMPlay(node.evalParm('outputtomplay'))
+    fb_settings.appendFramesToCurrent(node.evalParm('appendrenders'))
+
+    fb_settings.useSheetSize(True)
+    fb_settings.renderAllViewports(False)
+    fb_settings.visibleTypes(hou.flipbookObjectType.GeoOnly)
+    fb_settings.antialias(hou.flipbookAntialias.UseViewportSetting)
+
+    return fb_settings
+
+
+
+def updateTimeStamp(node, parm_name):
+
+    parm = node.parm(parm_name)
+    
+    if node.evalParm('enabletimestamps') and parm is not None:
+
+        now = datetime.datetime.now()
+        time_stamp = now.strftime('%Y-%m-%d  %I:%M %p')
+        parm.set(time_stamp)
+
+    return
+
+
+
+def renderFinalColor(node, single_pass = True, main_geometry = None):
+
+    if node.evalParm('renderer_fc') == 0: 
+        return
+
+    if single_pass:
+        
+        main_geometry = checkMainInputPaths(node)
+
+        if main_geometry is None:
+            return
+
+        existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        scene_viewer_node = mergeRenderGeometries(node, main_geometry)
+    
+        if scene_viewer_node is None:
+            return
+
+        # Start of This Pass ...
+
+        scene_viewer_node.setGenericFlag(hou.nodeFlag.Display, True)
+        scene_viewer_node.setGenericFlag(hou.nodeFlag.Render, True)
+
+        scene_viewer = None
+        time.sleep(node.evalParm('warmuptime'))
+    
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
+        fb_settings = setCommonFlipbookSettings(node, scene_viewer)
+    
+        # Pass-specific viewport overrides
+        # None
+    
+        # Color space settings
+    
+        if hou.getenv('OCIO') is not None:
+    
+            scene_viewer.setUsingOCIO(True)
+            scene_viewer.setOCIODisplayView('ACES', 'sRGB')
+    
+        else:
+            scene_viewer.setUsingOCIO(False)
+            viewport_data['settings'].setSceneGamma(2.2)
+    
+        fb_settings.beautyPassOnly(False)
+    
+        # Starts the render. Once it's complete, updates the time stamp.
+        fb_settings.output(node.evalParm('interdir') + 'FC.pic.gz')
+        scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
+        updateTimeStamp(node, 'lb_timestamp_fc')
+    
+    except:
+
+        if not single_pass:
+            raise hou.OperationFailed
+
+    finally:
+
+        if type(scene_viewer) is hou.SceneViewer:
+            scene_viewer.close()
+
+        if isinstance(scene_viewer_node, hou.Node):
+            scene_viewer_node.destroy()
+
+        # ... End of This Pass
+        
+        if single_pass:
+            restoreExistingSceneViewers(node, existing_scene_viewer_data)
+    
+    return
+
+
+
+def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
+
+
+    if node.evalParm('renderer_ne') == 0: 
+        return
+
+    if single_pass:
+        
+        main_geometry = checkMainInputPaths(node)
+
+        if main_geometry is None:
+            return        
+            
+        existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        scene_viewer_node = mergeRenderGeometries(node, main_geometry, True)
+    
+        if scene_viewer_node is None:
+            return
+
+        # Start of This Pass ...
+    
+        # Temporarily override settings on Pyro Bake Volume nodes
+    
+        pyro_bake_volumes = []
+        scatter_toggles = []
+        fire_toggles = []
+        secfire_toggles = []
+    
+        for i in range(1, 6):
+    
+            idx = str(i)
+            geo_path = node.evalParm('bakevolpath' + idx)
+            pyro_bake_volume = node.node(geo_path)
+    
+            if type(pyro_bake_volume) is hou.SopNode:
+    
+                if pyro_bake_volume.type().name() == 'pyrobakevolume':
+    
+                    pyro_bake_volumes.append(pyro_bake_volume)
+    
+                    scatter_toggles.append(pyro_bake_volume.evalParm('enablescatter'))
+                    fire_toggles.append(pyro_bake_volume.evalParm('enablefire'))
+                    secfire_toggles.append(pyro_bake_volume.evalParm('enablesecfire'))
+    
+                    pyro_bake_volume.setParms({'enablescatter': 0, 'enablefire': 0, 'enablesecfire': 0})
+    
+        scene_viewer_node.setGenericFlag(hou.nodeFlag.Display, True)
+        scene_viewer_node.setGenericFlag(hou.nodeFlag.Render, True)
+        
+        scene_viewer = None
+        time.sleep(node.evalParm('warmuptime'))      
+
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
+        fb_settings = setCommonFlipbookSettings(node, scene_viewer)
+    
+        # Pass-specific viewport overrides
+        # None
+    
+        # Color space settings
+    
+        if hou.getenv('OCIO') is not None:
+    
+            scene_viewer.setUsingOCIO(True)
+            scene_viewer.setOCIODisplayView('ACES', 'sRGB')
+    
+        else:
+            scene_viewer.setUsingOCIO(False)
+            viewport_data['settings'].setSceneGamma(2.2)
+    
+        fb_settings.beautyPassOnly(False)
+    
+        # Starts the render. Once it's complete, updates the time stamp.
+        fb_settings.output(node.evalParm('interdir') + 'NE.pic.gz')
+        scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
+        updateTimeStamp(node, 'lb_timestamp_ne')
+
+    except:
+
+        if not single_pass:
+            raise hou.OperationFailed
+
+    finally:
+
+        if type(scene_viewer) is hou.SceneViewer:
+            scene_viewer.close()
+
+        if isinstance(scene_viewer_node, hou.Node):
+            scene_viewer_node.destroy()
+    
+        # Restores settings on the Pyro Bake Volume nodes
+        for i in range(len(pyro_bake_volumes)):
+    
+            pyro_bake_volumes[i].parm('enablescatter').set(scatter_toggles[i])
+            pyro_bake_volumes[i].parm('enablefire').set(fire_toggles[i])
+            pyro_bake_volumes[i].parm('enablesecfire').set(secfire_toggles[i])
+    
+        # ... End of This Pass
+    
+        if single_pass:
+            restoreExistingSceneViewers(node, existing_scene_viewer_data)
+
+    return
+
+
+
+def renderMDC(node, single_pass = True):
+
+    if node.evalParm('renderer_mdc') == 0: 
+        return
+
+    if single_pass:
+        
+        main_geometry = checkMainInputPaths(node)
+
+        if main_geometry is None:
+            return        
+            
+        existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        scene_viewer_node = node.node(node.path() + '/mdc_c/geo/RENDER_MDC')
+    
+        if scene_viewer_node is None:
+            return
+    
+        scene_viewer_node = node.node(node.path() + '/mdc_b/geo/RENDER_MDC')
+    
+        if scene_viewer_node is None:
+            return
+    
+        scene_viewer_node = node.node(node.path() + '/mdc_a/geo/RENDER_MDC')
+    
+        if scene_viewer_node is None:
+            return
+    
+        # Start of This Pass ...
+    
+        # Temporarily override settings on Pyro Bake Volume nodes
+    
+        pyro_bake_volumes = []
+        scatter_toggles = []
+        fire_toggles = []
+        secfire_toggles = []
+        smoke_rs = []
+        smoke_gs = []
+        smoke_bs = []
+        shadow_rs = []
+        shadow_gs = []
+        shadow_bs = []
+        shadow_densities = []
+        ambient_shadows = []
+        
+        for i in range(1, 6):
+    
+            idx = str(i)
+            geo_path = node.evalParm('bakevolpath' + idx)
+            pyro_bake_volume = node.node(geo_path)
+    
+            if type(pyro_bake_volume) is hou.SopNode:
+    
+                if pyro_bake_volume.type().name() == 'pyrobakevolume':
+    
+                    pyro_bake_volumes.append(pyro_bake_volume)
+    
+                    scatter_toggles.append(pyro_bake_volume.evalParm('enablescatter'))
+                    fire_toggles.append(pyro_bake_volume.evalParm('enablefire'))
+                    secfire_toggles.append(pyro_bake_volume.evalParm('enablesecfire'))
+    
+                    smoke_rs.append(pyro_bake_volume.evalParm('smokecolorr'))
+                    smoke_gs.append(pyro_bake_volume.evalParm('smokecolorg'))
+                    smoke_bs.append(pyro_bake_volume.evalParm('smokecolorb'))
+    
+                    shadow_rs.append(pyro_bake_volume.evalParm('shadowcolorr'))
+                    shadow_gs.append(pyro_bake_volume.evalParm('shadowcolorg'))
+                    shadow_bs.append(pyro_bake_volume.evalParm('shadowcolorb'))
+    
+                    shadow_densities.append(pyro_bake_volume.evalParm('shadowint'))
+                    ambient_shadows.append(pyro_bake_volume.evalParm('ambientshadows'))
+    
+                    pyro_bake_volume.setParms({'enablescatter': 0, 'enablefire': 0, 'enablesecfire': 0})
+                    pyro_bake_volume.setParms({'smokecolorr': 1, 'smokecolorg': 1, 'smokecolorb': 1})
+                    pyro_bake_volume.setParms({'shadowcolorr': 1, 'shadowcolorg': 1, 'shadowcolorb': 1})
+                    pyro_bake_volume.setParms({'shadowint': 1, 'ambientshadows': 0.5})
+    
+    
+        # MDC A Pass
+
+        scene_viewer = None
+        time.sleep(node.evalParm('warmuptime'))
+
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
+        fb_settings = setCommonFlipbookSettings(node, scene_viewer)
+    
+        # Pass-specific viewport overrides
+        viewport_data['settings'].showSpecular(False)
+        viewport_data['settings'].showEmission(False)
+        
+        # Color space settings
+    
+        if hou.getenv('OCIO') is not None:
+    
+            scene_viewer.setUsingOCIO(True)
+            scene_viewer.setOCIODisplayView('ACES', 'Raw')
+    
+        else:
+            scene_viewer.setUsingOCIO(False)
+    
+        viewport_data['settings'].setSceneGamma(1.0)
+        fb_settings.beautyPassOnly(True)
+        
+        # Starts the render.
+        fb_settings.output(node.evalParm('interdir') + 'MDCa.pic.gz')
+        scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
+    
+        scene_viewer.close()
+
+
+        # MDC B Pass
+
+        scene_viewer_node = node.node(node.path() + '/mdc_b/geo/RENDER_MDC')
+
+        scene_viewer = None
+        time.sleep(node.evalParm('warmuptime'))
+
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
+        fb_settings = setCommonFlipbookSettings(node, scene_viewer)
+    
+        # Pass-specific viewport overrides
+        viewport_data['settings'].showSpecular(False)
+        viewport_data['settings'].showEmission(False)
+        
+        # Color space settings
+    
+        if hou.getenv('OCIO') is not None:
+    
+            scene_viewer.setUsingOCIO(True)
+            scene_viewer.setOCIODisplayView('ACES', 'Raw')
+    
+        else:
+            scene_viewer.setUsingOCIO(False)
+    
+        viewport_data['settings'].setSceneGamma(1.0)
+        fb_settings.beautyPassOnly(True)
+        
+        # Starts the render.
+        fb_settings.output(node.evalParm('interdir') + 'MDCb.pic.gz')
+        scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
+    
+        scene_viewer.close()
+
+    
+        # MDC C Pass
+
+        scene_viewer_node = node.node(node.path() + '/mdc_c/geo/RENDER_MDC')
+
+        scene_viewer = None
+        time.sleep(node.evalParm('warmuptime'))
+
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
+        fb_settings = setCommonFlipbookSettings(node, scene_viewer)
+    
+        # Pass-specific viewport overrides
+        viewport_data['settings'].showSpecular(False)
+        viewport_data['settings'].showEmission(False)
+        
+        # Color space settings
+    
+        if hou.getenv('OCIO') is not None:
+    
+            scene_viewer.setUsingOCIO(True)
+            scene_viewer.setOCIODisplayView('ACES', 'Raw')
+    
+        else:
+            scene_viewer.setUsingOCIO(False)
+    
+        viewport_data['settings'].setSceneGamma(1.0)
+        fb_settings.beautyPassOnly(True)
+        
+        # Starts the render. Once it's complete, updates the time stamp.
+        fb_settings.output(node.evalParm('interdir') + 'MDCc.pic.gz')
+        scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
+        updateTimeStamp(node, 'lb_timestamp_mdc')
+
+    except:
+
+        if not single_pass:
+            raise hou.OperationFailed
+
+    finally:
+
+        if type(scene_viewer) is hou.SceneViewer:
+            scene_viewer.close()
+
+        # Restores settings on the Pyro Bake Volume nodes
+        for i in range(len(pyro_bake_volumes)):
+    
+            pyro_bake_volumes[i].parm('enablescatter').set(scatter_toggles[i])
+            pyro_bake_volumes[i].parm('enablefire').set(fire_toggles[i])
+            pyro_bake_volumes[i].parm('enablesecfire').set(secfire_toggles[i])
+    
+            pyro_bake_volumes[i].parm('smokecolorr').set(smoke_rs[i])
+            pyro_bake_volumes[i].parm('smokecolorg').set(smoke_gs[i])
+            pyro_bake_volumes[i].parm('smokecolorb').set(smoke_bs[i])
+    
+            pyro_bake_volumes[i].parm('shadowcolorr').set(shadow_rs[i])
+            pyro_bake_volumes[i].parm('shadowcolorg').set(shadow_gs[i])
+            pyro_bake_volumes[i].parm('shadowcolorb').set(shadow_bs[i])
+    
+            pyro_bake_volumes[i].parm('shadowint').set(shadow_densities[i])
+            pyro_bake_volumes[i].parm('ambientshadows').set(ambient_shadows[i])
+    
+        # ... End of This Pass
+    
+        if single_pass:
+            restoreExistingSceneViewers(node, existing_scene_viewer_data)
+    
+    return
+
+
+
+def renderSurfaceNormal(node, single_pass = True):
+
+    if node.evalParm('renderer_sn') == 0: 
+        return
+
+    if single_pass:
+        
+        main_geometry = checkMainInputPaths(node)
+
+        if main_geometry is None:
+            return        
+            
+        existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        scene_viewer_node = node.node(node.path() + '/surface_normal/geo/RENDER_SN')
+    
+        if scene_viewer_node is None:
+            return
+
+        scene_viewer = None
+        time.sleep(node.evalParm('warmuptime'))
+    
+        # Start of This Pass ...
+    
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        viewport_data = setCommonViewportSettings(node, scene_viewer, 'unlit')
+        fb_settings = setCommonFlipbookSettings(node, scene_viewer)
+    
+        # Pass-specific viewport overrides
+        # None
+    
+        # Color space settings
+    
+        if hou.getenv('OCIO') is not None:
+    
+            scene_viewer.setUsingOCIO(True)
+            scene_viewer.setOCIODisplayView('ACES', 'Raw')
+    
+        else:
+            scene_viewer.setUsingOCIO(False)
+    
+        viewport_data['settings'].setSceneGamma(1.0)
+        fb_settings.beautyPassOnly(True)
+    
+        # Starts the render. Once it's complete, updates the time stamp.
+        fb_settings.output(node.evalParm('interdir') + 'SN.pic.gz')
+        scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
+        updateTimeStamp(node, 'lb_timestamp_sn')
+    
+    except:
+
+        if not single_pass:
+            raise hou.OperationFailed
+
+    finally:
+
+        if type(scene_viewer) is hou.SceneViewer:
+            scene_viewer.close()
+    
+        # ... End of This Pass
+    
+        if single_pass:
+            restoreExistingSceneViewers(node, existing_scene_viewer_data)
+    
+    return
+
+
+
+def renderMotionVector(node, single_pass = True):
+
+    if node.evalParm('renderer_mv') == 0: 
+        return
+
+    if single_pass:
+        
+        main_geometry = checkMainInputPaths(node)
+
+        if main_geometry is None:
+            return        
+            
+        existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        scene_viewer_node = node.node(node.path() + '/motion_vector/geo/RENDER_MV')
+    
+        if scene_viewer_node is None:
+            return
+
+        scene_viewer = None
+        time.sleep(node.evalParm('warmuptime'))
+
+        # Start of This Pass ...
+    
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        viewport_data = setCommonViewportSettings(node, scene_viewer, 'unlit')
+        fb_settings = setCommonFlipbookSettings(node, scene_viewer)
+    
+        # Pass-specific viewport overrides
+        # None
+    
+        # Color space settings
+    
+        if hou.getenv('OCIO') is not None:
+    
+            scene_viewer.setUsingOCIO(True)
+            scene_viewer.setOCIODisplayView('ACES', 'Raw')
+    
+        else:
+            scene_viewer.setUsingOCIO(False)
+    
+        viewport_data['settings'].setSceneGamma(1.0)
+        fb_settings.beautyPassOnly(True)
+    
+        # Starts the render. Once it's complete, updates the time stamp.
+        fb_settings.output(node.evalParm('interdir') + 'MV.pic.gz')
+        scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
+        updateTimeStamp(node, 'lb_timestamp_mv')
+    
+    except:
+
+        if not single_pass:
+            raise hou.OperationFailed
+
+    finally:
+
+        if type(scene_viewer) is hou.SceneViewer:
+            scene_viewer.close()
+    
+        # ... End of This Pass
+    
+        if single_pass:
+            restoreExistingSceneViewers(node, existing_scene_viewer_data)
+    
+    return
+
+
+
+def renderDepth(node, single_pass = True):
+
+    if node.evalParm('renderer_d') == 0: 
+        return
+
+    if single_pass:
+        
+        main_geometry = checkMainInputPaths(node)
+
+        if main_geometry is None:
+            return        
+            
+        existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        scene_viewer_node = node.node(node.path() + '/depth/geo/RENDER_D')
+    
+        if scene_viewer_node is None:
+            return
+
+        time.sleep(node.evalParm('warmuptime'))
+    
+        # Start of This Pass ...
+    
+        # Starts the render. Once it's complete, updates the time stamp.
+        node.node(node.path() + '/opengl_depth').render(ignore_inputs = True, ignore_bypass_flags = True)
+        updateTimeStamp(node, 'lb_timestamp_d')
+
+    except:
+
+        if not single_pass:
+            raise hou.OperationFailed
+
+    finally:
+
+        # ... End of This Pass
+    
+        if single_pass:
+            restoreExistingSceneViewers(node, existing_scene_viewer_data)
+    
+    return
+
+
+
+def renderAll(node):
+
+    main_geometry = checkMainInputPaths(node)
+    
+    if main_geometry is None:
+        return
+
+    existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        renderFinalColor(node, False, main_geometry)
+        renderNonEmissiveColor(node, False, main_geometry)
+        renderMDC(node, False)
+        renderSurfaceNormal(node, False)
+        renderMotionVector(node, False)
+        renderDepth(node, False)
+
+    except:
+
+        pass
+
+    finally:
+
+        restoreExistingSceneViewers(node, existing_scene_viewer_data)
+
+    return
+
+
+
+# Composite Intermediate
+
+
+def reloadImageFile(node, relative_path):
+
+    file_node = node.node(node.path() + relative_path)
+    file_node.parm('reload').pressButton()
+
+    return
+
+
+
+def setPreviewImage(node):
+
+    preview_image = node.evalParm('previewimage')
+
+    if preview_image == 0:
+        return
+
+    pinSelectionFollowingTabs(node)
+
+    desktop = hou.ui.curDesktop()
+
+    # Attempts to find a valid Compositor Viewer
+
+    comp_viewer = desktop.paneTabOfType(hou.paneTabType.CompositorViewer)
+
+    if comp_viewer is None:
+
+        should_create_floating = 1
+
+        scene_viewer = desktop.paneTabOfType(hou.paneTabType.SceneViewer)
+
+        if scene_viewer is not None:
+
+            pane = scene_viewer.pane()
+
+            if pane is not None:
+
+                comp_viewer = pane.createTab(hou.paneTabType.CompositorViewer)
+                should_create_floating = 0
+
+        if should_create_floating == 1:
+
+            panel = desktop.createFloatingPanel(hou.paneTabType.CompositorViewer, immediate = True)
+            comp_viewer = panel.paneTabOfType(hou.paneTabType.CompositorViewer)
+
+            if comp_viewer is None:
+
+                print ("Failed to create a Composite View Tab in a new Floating Panel.")
+                return
+
+    comp_viewer.setIsCurrentTab()
+    comp_viewer.setPin(True)
+    preview_node = node.node(node.path() + '/preview/OUT_PREVIEW')
+    comp_viewer.setCurrentNode(preview_node)
+
+    if hou.getenv('OCIO') is not None:
+
+        comp_viewer.setUsingOCIO(True)
+        comp_viewer.setOCIODisplayView('ACES', 'Raw')
+
+    # Reloads dependent image files
+    if preview_image == 1:
+
+        reloadImageFile(node, '/comp_final_color/final_color')
+
+    elif preview_image == 2:
+
+        reloadImageFile(node, '/comp_non_emissive/non_emissive_color')
+
+    elif preview_image <= 8:
+
+        reloadImageFile(node, '/comp_mdc/mdc_a')
+        reloadImageFile(node, '/comp_mdc/mdc_b')
+        reloadImageFile(node, '/comp_mdc/mdc_c')
+
+    elif preview_image == 9:
+
+        reloadImageFile(node, '/comp_normal/surface_normal')
+
+    elif preview_image == 10:
+
+        reloadImageFile(node, '/comp_mdc/mdc_a')
+        reloadImageFile(node, '/comp_mdc/mdc_b')
+        reloadImageFile(node, '/comp_mdc/mdc_c')
+        reloadImageFile(node, '/comp_normal/surface_normal')
+
+    elif preview_image <= 12:
+
+        reloadImageFile(node, '/comp_motion_vector/motion_vector')
+
+    elif preview_image == 13:
+
+        reloadImageFile(node, '/comp_depth/depth')
+
+    elif preview_image <= 18:
+
+        reloadImageFile(node, '/comp_final_color/final_color')
+        reloadImageFile(node, '/comp_non_emissive/non_emissive_color')
+        reloadImageFile(node, '/comp_normal/surface_normal')
+        reloadImageFile(node, '/comp_mdc/mdc_a')
+        reloadImageFile(node, '/comp_mdc/mdc_b')
+        reloadImageFile(node, '/comp_mdc/mdc_c')
+        reloadImageFile(node, '/comp_motion_vector/motion_vector')
+        reloadImageFile(node, '/comp_depth/depth')
+
+    return
+
+
+
+def stopPreviewImage(node):
+
+    if node.evalParm('previewimage') > 0:
+        node.setParms({'previewimage': 0})
+
+    return
+
+
+
+def exportTexture(node, texture_index):
+
+    stopPreviewImage(node)
+
+    if node.evalParm('enabletex' + str(texture_index)) == 1:
+
+        output_node = node.node(node.path() + '/channel_pack/ROP_TEX' + str(texture_index))
+        output_node.render()
+
+    return
+
+
+
+def exportAll(node):
+
+    exportTexture(node, 1)
+    exportTexture(node, 2)
+    exportTexture(node, 3)
+    exportTexture(node, 4)
+    exportTexture(node, 5)
+
+    return
