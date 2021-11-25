@@ -3,17 +3,8 @@
 # =============================================================================
 
 import hou
-import os
-import sys
 import json
 from subprocess import Popen, PIPE, STDOUT
-
-try:
-    # Python 2
-    from itertools import izip
-except ImportError:
-    # Python 3
-    izip = zip
 
 # =============================================================================
 # FUNCTIONS

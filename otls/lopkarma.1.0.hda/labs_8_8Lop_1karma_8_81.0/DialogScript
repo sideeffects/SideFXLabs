@@ -1,0 +1,3972 @@
+# Dialog script for labs::karma::1.0 automatically generated
+
+{
+    name	labs::karma::1.0
+    script	karma
+    label	"Labs Karma"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Stage"
+    inputlabel	2	"Additional Render Products"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+    outputlabel	1	"Output Stage"
+
+    parm {
+        name    "primpath"
+        label   "Primitive Path"
+        type    string
+        default { "/Render/rendersettings" }
+        menureplace {
+            [ "opmenu -l -a karmarenderproperties primpath" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, False)" }
+        parmtag { "script_action_help" "Select a primitive in the Scene Viewer or Scene Graph Tree pane. Ctrl-click to select using the primitive picker dialog." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sidefx::usdpathtype" "prim" }
+    }
+    parm {
+        name    "filemethod"
+        label   "File Method"
+        type    ordinal
+        joinnext
+        default { "constructed" }
+        menu {
+            "constructed"   "Constructed"
+            "explicit"      "Explicit"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "timedependent"
+        label   "Time Dependent Render"
+        type    toggle
+        joinnext
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "labelparm41"
+        label   "Label"
+        type    label
+        nolabel
+        joinnext
+        default { "" }
+    }
+    parm {
+        name    "createtopfilecache"
+        label   "Create TOP File Cache"
+        type    button
+        nolabel
+        default { "0" }
+        parmtag { "button_icon" "NETWORKS_top" }
+        parmtag { "script_callback" "hou.phm().createTOPKarma(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "basename"
+        label   "Base Name"
+        type    string
+        joinnext
+        default { "$OS" }
+        hidewhen "{ filemethod != constructed }"
+        menureplace {
+            "`opname(\".\")`"                               "Node Name"
+            "$HIPNAME.`opname(\".\")`"                      "File + Node Name"
+            "`strreplace(opfullpath(\".\"),\"/\",\"_\")`"   "Unique Node Name"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "filetype"
+        label   "File Type"
+        type    ordinal
+        nolabel
+        default { "exr" }
+        hidewhen "{ filemethod != constructed }"
+        menu {
+            ".exr"  "exr"
+            ".png"  "png"
+            ".tiff" "tiff"
+            ".jpeg" "jpeg"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "file"
+        label   "Image File"
+        type    geometry
+        joinnext
+        default { "$HIP/render/$OS/$HIPNAME.$OS.$F4.exr" }
+        hidewhen "{ filemethod != explicit }"
+        menureplace {
+            [ "opmenu -l -a ../topfilecacheversioned1 file" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "filechooser_mode" "write" }
+    }
+    parm {
+        name    "openfiledir"
+        label   "Open Directory"
+        type    button
+        nolabel
+        default { "0" }
+        hidewhen "{ filemethod != explicit }"
+        parmtag { "button_icon" "BUTTONS_folder" }
+        parmtag { "script_callback" "hou.phm().openPath(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "basedir"
+        label   "Base Folder"
+        type    directory
+        joinnext
+        default { "$HIP/render" }
+        hidewhen "{ filemethod != constructed }"
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "openbasedir"
+        label   "Open Directory"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        hidewhen "{ filemethod != constructed }"
+        parmtag { "button_icon" "BUTTONS_folder" }
+        parmtag { "script_callback" "hou.phm().openPath(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "opensequence"
+        label   "Open Sequence"
+        type    button
+        nolabel
+        default { "0" }
+        hidewhen "{ filemethod != constructed }"
+        parmtag { "button_icon" "DESKTOP_image_sequence" }
+        parmtag { "script_callback" "hou.phm().loadRender(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "enableversion"
+        label   "Enable Version"
+        type    toggle
+        nolabel
+        joinnext
+        default { "on" }
+        hidewhen "{ filemethod != constructed }"
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "version"
+        label   "Version"
+        type    integer
+        joinnext
+        default { "1" }
+        disablewhen "{ enableversion != 1 }"
+        hidewhen "{ filemethod != constructed }"
+        range   { 1! 25 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "versiondown"
+        label   "Down Version"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        disablewhen "{ enableversion != 1 }"
+        hidewhen "{ filemethod != constructed }"
+        parmtag { "button_icon" "BUTTONS_minus" }
+        parmtag { "script_callback" "hou.phm().versionBump(kwargs,'down')" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "versionup"
+        label   "Up Version"
+        type    button
+        nolabel
+        joinnext
+        default { "0" }
+        disablewhen "{ enableversion != 1 }"
+        hidewhen "{ filemethod != constructed }"
+        parmtag { "button_icon" "BUTTONS_add" }
+        parmtag { "script_callback" "hou.phm().versionBump(kwargs,'up')" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "cleanversion"
+        label   "Clean Version"
+        type    button
+        invisible
+        nolabel
+        default { "0" }
+        disablewhen "{ enableversion != 1 }"
+        hidewhen "{ filemethod != constructed }"
+        parmtag { "button_icon" "BUTTONS_clear" }
+        parmtag { "script_callback" "hou.phm().deleteVersions(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    group {
+        name    "main_1_1"
+        label   "Rendering"
+
+        groupcollapsible {
+            name    "folder12"
+            label   "Render"
+            grouptag { "group_default" "1" }
+
+            parm {
+                name    "execute"
+                label   "Render to Disk"
+                type    button
+                joinnext
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "takecontrol" "always" }
+            }
+            parm {
+                name    "renderpreview"
+                label   "Render to MPlay"
+                type    button
+                joinnext
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "takecontrol" "always" }
+            }
+            parm {
+                name    "cookoutputnode"
+                label   "Render to Disk in Background"
+                type    button
+                joinnext
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback" "hou.phm().saveToDiskInBackground(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+                parmtag { "takecontrol" "always" }
+            }
+            parm {
+                name    "dirtyall"
+                label   "Cancel Cook"
+                type    button
+                default { "0" }
+                parmtag { "script_callback" "import nodegraphtopui; nodegraphtopui.dirtyAll(kwargs['node'].parm('targettopnetwork').evalAsNode(), False)" }
+                parmtag { "script_callback_language" "python" }
+                parmtag { "spare_category" "TOPCookControls" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder14"
+            label   "Sequence"
+            grouptag { "group_default" "1" }
+
+            parm {
+                name    "trange"
+                label   "Evaluate As"
+                type    ordinal
+                default { "1" }
+                menu {
+                    "single"    "Single Frame"
+                    "range"     "Frame Range"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "f"
+                label   "Start/End/Inc"
+                type    float
+                joinnext
+                size    3
+                default { "$FSTART" "$FEND" "1" }
+                disablewhen "{ cachespecificrange != 0 }"
+                hidewhen "{ trange != range }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fmenu"
+                label   "F Menu"
+                type    ordinal
+                nolabel
+                default { "0" }
+                disablewhen "{ cachespecificrange != 0 }"
+                hidewhen "{ trange != range }"
+                menumini {
+                    "fstartend"     "Animation Range"
+                    "rfstartend"    "Playbar Range"
+                    "nosubsteps"    "No Substeps"
+                    "substeps2"     "2 Substeps"
+                    "substeps4"     "4 Substeps"
+                    "substeps5"     "5 Substeps"
+                    "every2"        "Every 2nd Frame"
+                    "every5"        "Every 5th Frame"
+                    "every10"       "Every 10th Frame"
+                }
+                parmtag { "script_callback" "hou.phm().setRange(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "useframeoverride"
+                label   "Override Frame"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                hidewhen "{ trange != single }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "frameoverride"
+                label   "Override Frame"
+                type    float
+                default { "1" }
+                disablewhen "{ useframeoverride == 0 }"
+                hidewhen "{ trange != single }"
+                range   { 1 240 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "sidefx::slider" "snap_to_int" }
+            }
+            parm {
+                name    "cachespecificrange"
+                label   "Cache Specific Range"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ trange != range }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "specificrange"
+                label   "List of Frames"
+                type    string
+                default { "`chs(\"f1\")`-`chs(\"f2\")`:`chs(\"f3\")`" }
+                disablewhen "{ cachespecificrange != 1 }"
+                hidewhen "{ trange != range }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder22"
+            label   " Wedging"
+            grouptag { "sidefx::header_parm" "wedgecount" }
+            grouptag { "sidefx::header_toggle" "enablewedging" }
+
+            parm {
+                name    "enablewedging"
+                label   "Enable Wedging"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "wedgecount"
+                label   "Wedge Count"
+                type    integer
+                default { "1" }
+                disablewhen "{ enablewedging != 1 }"
+                range   { 1! 50 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cachespecificwedges"
+                label   "Cache Specific Wedges"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                disablewhen "{ enablewedging != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "specificwedges"
+                label   "List of Wedges"
+                type    string
+                default { "0-`chs(\"wedgecount\")-1`" }
+                disablewhen "{ enablewedging != 1 } { cachespecificwedges != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            multiparm {
+                name    "nwedgeattribs"
+                label    "Number of Attributes"
+                default 0
+                disablewhen "{ enablewedging != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "autoselect" "0000000000000000" }
+                parmtag { "multistartoffset" "1" }
+
+                groupsimple {
+                    name    "folder4_#"
+                    label   "Attribute #"
+
+                    parm {
+                        name    "attrib#"
+                        label   "Attribute Name"
+                        type    string
+                        joinnext
+                        default { "wedgeattribute#" }
+                    }
+                    parm {
+                        name    "wedgetype#"
+                        label   "Wedge Type"
+                        type    ordinal
+                        nolabel
+                        default { "0" }
+                        menu {
+                            "range"     "Custom Range"
+                            "list"      "List of Values"
+                            "attrib"    "Attribute Values"
+                        }
+                    }
+                    parm {
+                        name    "minvalue#"
+                        label   "Min Value"
+                        type    float
+                        default { "0" }
+                        hidewhen "{ wedgetype# != range }"
+                        range   { 0 10 }
+                    }
+                    parm {
+                        name    "maxvalue#"
+                        label   "Max Value"
+                        type    float
+                        default { "1" }
+                        hidewhen "{ wedgetype# != range }"
+                        range   { 0 10 }
+                    }
+                    parm {
+                        name    "randsample#"
+                        label   "Random Sample"
+                        type    toggle
+                        default { "0" }
+                        hidewhen "{ wedgetype# != range }"
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "dobatchsize#"
+                        label   "Do Batch Size"
+                        type    toggle
+                        nolabel
+                        joinnext
+                        default { "0" }
+                        hidewhen "{ wedgetype# != range } { randsample# == 1 }"
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "batchsize#"
+                        label   "Batch Size"
+                        type    integer
+                        default { "1" }
+                        disablewhen "{ dobatchsize# != 1 }"
+                        hidewhen "{ wedgetype# != range } { randsample# == 1 }"
+                        range   { 1! 10 }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "randomseed#"
+                        label   "Seed"
+                        type    integer
+                        default { "#" }
+                        hidewhen "{ wedgetype# != range } { randsample# != 1 }"
+                        range   { 0! 100 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "values#"
+                        label   "List of Values"
+                        type    string
+                        default { "0-1" }
+                        hidewhen "{ wedgetype# != list }"
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "geopath#"
+                        label   "Geometry Path"
+                        type    oppath
+                        default { "" }
+                        hidewhen "{ wedgetype# != attrib }"
+                        parmtag { "opfilter" "!!SOP!!" }
+                        parmtag { "oprelative" "." }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "valuesdefault#"
+                        label   "Default Value"
+                        type    float
+                        default { "0" }
+                        hidewhen "{ wedgetype# == range }"
+                        range   { 0 10 }
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+    group {
+        name    "main_1_1_1"
+        label   "Scheduling"
+
+        parm {
+            name    "targettopnetwork"
+            label   "TOP Network"
+            type    oppath
+            invisible
+            default { "topnet1" }
+            parmtag { "oprelative" "." }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "folder20"
+            label   "Local Scheduler"
+            hidewhentab "{ topscheduler != \"\" overwritetopscheduler == 1 }"
+            grouptag { "group_default" "1" }
+
+            parm {
+                name    "maxprocsmenu"
+                label   "Logical Cores to Use"
+                type    ordinal
+                joinnext
+                default { "0" }
+                menu {
+                    "0" "1/4 of Total Count"
+                    "1" "1/3 of Total Count"
+                    "2" "1/2 of Total Count"
+                    "3" "2/3 of Total Count"
+                    "4" "3/4 of Total Count"
+                    "5" "Total Count Less One"
+                    "6" "Custom Count"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "corecount"
+                label   "Core Count"
+                type    label
+                default { "`ifs(ch(\"maxprocsmenu\")==6,\"\",\" =   \" + chs(\"numlogicalcores\"))`" }
+                parmtag { "sidefx::look" "block" }
+            }
+            parm {
+                name    "numlogicalcores"
+                label   "Core Count"
+                type    integer
+                invisible
+                default { [ "import multiprocessing\n\nnode = hou.pwd()\n\nncpu = multiprocessing.cpu_count()\n\nchoice = node.evalParm(\"maxprocsmenu\")\n\nif choice == 0:\n    return ncpu * 1/4\nelif choice == 1:\n    return ncpu * 1/3\nelif choice == 2:\n    return ncpu * 1/2\nelif choice == 3:\n    return ncpu * 2/3\nelif choice == 4:\n    return ncpu * 3/4    \nelif choice == 5:\n    return ncpu - 1\nelif choice == 6:\n    return node.evalParm(\"maxprocs\")" python ] }
+                disablewhen "{ maxprocsmenu != 6 }"
+                hidewhen "{ maxprocsmenu == 6 }"
+                range   { 1 128 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "maxprocs"
+                label   "Core Count"
+                type    integer
+                default { "1" }
+                hidewhen "{ maxprocsmenu != 6 }"
+                range   { 1! 128 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "local_is_CPU_number_set"
+                label   "local_is_CPU_number_set"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                help    "Enabling this will use the CPUs per Task value when deciding the number of CPUs to use per work item. Otherwise the work item will be assumed to consume one CPU."
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "pdg::scheduler" "" }
+                parmtag { "spare_category" "Local" }
+            }
+            parm {
+                name    "local_CPUs_to_use"
+                label   "Core Per Work Item"
+                type    integer
+                default { "2" }
+                help    "The number of Slots consumed by each work item.  This work item will only be run by the scheduler if at least this number of Slots are available.  The total number of Slots available is specified by the 'Total Slots' parm on the scheduler node."
+                disablewhen "{ local_is_CPU_number_set == 0 }"
+                range   { 1! 64 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "pdg::scheduler" "" }
+                parmtag { "spare_category" "Local" }
+            }
+            parm {
+                name    "sepparm13"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "local_useminfreemem"
+                label   "Memory"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "No Minimum"
+                    "1" "MB Available"
+                    "2" "Percent Available"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "pdg::scheduler" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "local_minfreemem"
+                label   "MB"
+                type    integer
+                default { "4096" }
+                hidewhen "{ local_useminfreemem != 1 }"
+                range   { 0! 32768 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "pdg::scheduler" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "local_minfreemempct"
+                label   "Percent"
+                type    float
+                default { "10" }
+                hidewhen "{ local_useminfreemem != 2 }"
+                range   { 0! 100! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "pdg::scheduler" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder21"
+            label   "Batch"
+            grouptag { "group_default" "1" }
+
+            parm {
+                name    "framesperbatch"
+                label   "Frames per Batch"
+                type    integer
+                default { "1" }
+                hidewhen "{ trange == static }"
+                range   { 1! 25 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "local_single"
+                label   "One Batch at a Time"
+                type    toggle
+                default { "off" }
+                help    "Enabling this will force one work item to be executed at a time."
+                hidewhen "{ topscheduler != \"\" } { trange != range }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "pdg::scheduler" "" }
+                parmtag { "spare_category" "Local" }
+            }
+        }
+
+    }
+
+    group {
+        name    "main_1_1_2"
+        label   "Properties"
+
+        groupcollapsible {
+            name    "common"
+            label   "Camera"
+            grouptag { "group_default" "1" }
+            grouptag { "sidefx::header_parm" "resolution" }
+
+            parm {
+                name    "camera"
+                label   "Camera"
+                type    string
+                default { "/cameras/camera1" }
+                menureplace {
+                    [ "opmenu -l karmarenderproperties camera" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, False)\n" }
+                parmtag { "script_action_icon" "hicon:/SVGIcons.index?BUTTONS_reselect.svg" }
+                parmtag { "sidefx::usdpathinput" "0" }
+                parmtag { "sidefx::usdpathtype" "prim" }
+            }
+            parm {
+                name    "resolution"
+                label   "Resolution"
+                type    intvector2
+                joinnext
+                size    2
+                default { "1280" "720" }
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resolutionMenu"
+                label   "Choose Resolution"
+                type    button
+                nolabel
+                default { "640 480 1" }
+                menumini {
+                    [ "echo `pythonexprs(\"__import__('toolutils').parseDialogScriptMenu('FBres')\")`" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback" "opparm . resolution ( `arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)` pixelAspectRatio ( `arg(\"$script_value\", 2)` )" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder16"
+            label   "Karma"
+            grouptag { "group_default" "1" }
+            grouptag { "sidefx::header_parm" "samplesperpixel" }
+
+            parm {
+                name    "engine"
+                label   "Rendering Engine"
+                type    string
+                joinnext
+                default { "cpu" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties engine" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Render" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "force_headlight"
+                label   "Simplified Shading"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "samplesperpixel"
+                label   "Pixel Samples"
+                type    integer
+                default { "9" }
+                range   { 1! 256 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Sampling" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "int" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder27"
+            label   "Render Mode"
+            grouptag { "sidefx::header_parm" "imagemode" }
+
+            parm {
+                name    "imagemode"
+                label   "Image Mode"
+                type    string
+                default { "Progressive" }
+                hidewhen "{ engine == xpu }"
+                menu {
+                    [ "opmenu -a -l karmarenderproperties imagemode" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "progressivepasses"
+                label   "Progressive Passes"
+                type    integer
+                default { "0" }
+                disablewhen "{ imagemode != Bucket }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "int" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder15"
+            label   "Sampling"
+            grouptag { "group_default" "0" }
+            grouptag { "sidefx::header_parm" "convergence_mode" }
+
+            parm {
+                name    "convergence_mode"
+                label   "Convergence Mode"
+                type    string
+                default { "Variance" }
+                hidewhen "{ engine == xpu }"
+                menu {
+                    [ "opmenu -l -a karmarenderproperties convergence_mode" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "varianceaa_minsamples"
+                label   "Min Ray Samples"
+                type    integer
+                default { "1" }
+                hidewhen "{ engine == xpu } { convergence_mode != Variance }"
+                range   { 1! 9 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "varianceaa_maxsamples"
+                label   "Max Ray Samples"
+                type    integer
+                default { "9" }
+                hidewhen "{ engine == xpu } { convergence_mode != Variance }"
+                range   { 1! 9 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "diffusesamples"
+                label   "Diffuse Samples"
+                type    integer
+                default { "4" }
+                hidewhen "{ engine == xpu } { convergence_mode != Distributed }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "reflectionsamples"
+                label   "Reflection Samples"
+                type    integer
+                default { "4" }
+                hidewhen "{ engine == xpu } { convergence_mode != Distributed }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "refractionsamples"
+                label   "Refraction Samples"
+                type    integer
+                default { "4" }
+                hidewhen "{ engine == xpu } { convergence_mode != Distributed }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "volumesamples"
+                label   "Volume Samples"
+                type    integer
+                default { "4" }
+                hidewhen "{ engine == xpu } { convergence_mode != Distributed }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "ssssamples"
+                label   "SSS Samples"
+                type    integer
+                default { "4" }
+                hidewhen "{ engine == xpu } { convergence_mode != Distributed }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__lightsindirect"
+            label   "Light Quality"
+            grouptag { "sidefx::header_parm" "light_sampling_mode" }
+
+            parm {
+                name    "light_sampling_mode"
+                label   "Light Sampling Mode"
+                type    ordinal
+                default { "1" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties light_sampling_mode" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Sampling" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "light_sampling_quality"
+                label   "Light Sampling Quality"
+                type    float
+                default { "1" }
+                range   { 0! 4 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Sampling" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__rendering___1"
+            label   "Limits"
+            hidewhentab "{ force_headlight == 1 }"
+
+            parm {
+                name    "diffuselimit"
+                label   "Diffuse Limit"
+                type    float
+                default { "1" }
+                range   { 0! 32 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Limits" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float[]" }
+            }
+            parm {
+                name    "reflectionlimit"
+                label   "Reflection Limit"
+                type    float
+                default { "4" }
+                range   { 0! 32 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Limits" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float[]" }
+            }
+            parm {
+                name    "refractionlimit"
+                label   "Refraction Limit"
+                type    float
+                default { "4" }
+                range   { 0! 32 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Limits" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float[]" }
+            }
+            parm {
+                name    "volumelimit"
+                label   "Volume Limit"
+                type    float
+                default { "0" }
+                hidewhen "{ engine == xpu }"
+                range   { 0! 32 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Limits" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "float[]" }
+            }
+            parm {
+                name    "ssslimit"
+                label   "SSS Limit"
+                type    float
+                default { "0" }
+                hidewhen "{ engine == xpu }"
+                range   { 0! 32 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Limits" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "float[]" }
+            }
+            parm {
+                name    "colorlimit"
+                label   "Color Limit"
+                type    float
+                default { "10" }
+                range   { 1 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "colorlimitindlinked"
+                label   "Shared Color Limit"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "colorlimitindirect"
+                label   "Indirect Color Limit"
+                type    float
+                default { "10" }
+                disablewhen "{ colorlimitindlinked == 1 }"
+                range   { 1 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "russianroulette_cutoff"
+                label   "Russian Roulette Cutoff Depth"
+                type    integer
+                default { "2" }
+                range   { 0! 4 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "int" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__opacity"
+            label   "Volume and Opacity"
+            hidewhentab "{ engine == xpu }"
+
+            parm {
+                name    "screendoorlimit"
+                label   "Screendoor Samples"
+                type    integer
+                default { "4" }
+                range   { 0! 16 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "volumesteprate"
+                label   "Volume Step Rate"
+                type    float
+                default { "0.25" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float[]" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder17"
+            label   "Depth of Field"
+            grouptag { "sidefx::header_toggle" "enabledof" }
+
+            parm {
+                name    "enabledof"
+                label   "Enable Depth of Field"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Sampling" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__rendering___2"
+            label   "Motion Blur"
+            grouptag { "sidefx::header_toggle" "enablemblur" }
+
+            parm {
+                name    "enablemblur"
+                label   "Enable Motion Blur"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Sampling" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "mblur"
+                label   "Per-Object Motion Blur"
+                type    ordinal
+                default { "1" }
+                menu usetokenvalue {
+                    "1" "On by Default"
+                    "2" "Off by Default"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Motion Blur" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "bool[]" }
+            }
+            parm {
+                name    "xformsamples"
+                label   "Xform Time Samples"
+                type    integer
+                default { "2" }
+                range   { 1! 8 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Motion Blur" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "int[]" }
+            }
+            parm {
+                name    "geosamples"
+                label   "Geo Time Samples"
+                type    integer
+                default { "2" }
+                range   { 1! 8 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Motion Blur" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "int[]" }
+            }
+            parm {
+                name    "vblur"
+                label   "Velocity Blur"
+                type    string
+                default { "No Velocity Blur" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties vblur" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Motion Blur" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "instance_vblur"
+                label   "Instance Velocity Blur"
+                type    string
+                default { "No Velocity Blur" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties instance_vblur" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Motion Blur" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "volumevblurscale"
+                label   "Volume Velocity Scale"
+                type    float
+                default { "1" }
+                range   { 0! 2 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Motion Blur" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder13"
+            label   "Caustics"
+            disablewhentab "{ causticsenable == 0 }"
+            hidewhentab "{ force_headlight == 1 }"
+            grouptag { "sidefx::header_parm" "causticsroughnessclamp" }
+            grouptag { "sidefx::header_toggle" "causticsenable" }
+
+            parm {
+                name    "causticsroughnessclamp"
+                label   "Roughness Clamp"
+                type    float
+                default { "0.2" }
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__rendering___3"
+            label   "Geometry"
+
+            parm {
+                name    "point_style"
+                label   "Render Points as"
+                type    string
+                default { "Spheres" }
+                hidewhen "{ engine == xpu }"
+                menu {
+                    [ "opmenu -l -a karmarenderproperties point_style" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Geometry" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "curve_style"
+                label   "Render Curves As"
+                type    string
+                default { "Rounded Curves" }
+                hidewhen "{ engine == xpu }"
+                menu {
+                    [ "opmenu -l -a karmarenderproperties curve_style" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Geometry" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "curve_basis"
+                label   "Override Curves Basis"
+                type    ordinal
+                default { "0" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties curve_basis" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Geometry" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "cull_backface"
+                label   "Cull Backface"
+                type    string
+                default { "Off" }
+                hidewhen "{ engine == xpu }"
+                menu {
+                    [ "opmenu -l -a karmarenderproperties cull_backface" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Geometry" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+        }
+
+        parm {
+            name    "causticsenable"
+            label   "Enable Caustics"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "spare_category" "Shading" }
+            parmtag { "uiscope" "None" }
+            parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+            parmtag { "usdvaluetype" "bool" }
+        }
+        groupcollapsible {
+            name    "__shading"
+            label   "Shading"
+            grouptag { "group_default" "0" }
+
+            parm {
+                name    "raybias"
+                label   "Ray Bias"
+                type    float
+                default { "0.001" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "constrainmaxrough"
+                label   "Constrain by Maximum Roughness"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "autoheadlight"
+                label   "Automatic Headlight Creation"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__dicing"
+            label   "Dicing"
+            grouptag { "group_default" "0" }
+
+            parm {
+                name    "usedicingcamera"
+                label   "usedicingcamera"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "dicingcamera"
+                label   "Dicing Camera"
+                type    string
+                default { "" }
+                disablewhen "{ usedicingcamera == 0 }"
+                menureplace {
+                    [ "opmenu -l karmarenderproperties camera" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, False)\n" }
+                parmtag { "script_action_icon" "hicon:/SVGIcons.index?BUTTONS_reselect.svg" }
+                parmtag { "spare_category" "Dicing" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "offscreenquality"
+                label   "Offscreen Quality"
+                type    float
+                default { "0.1" }
+                hidewhen "{ engine == xpu }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "dicingqualityscale"
+                label   "Dicing Quality Scale"
+                type    float
+                default { "1" }
+                range   { 0! 16 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Dicing" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__rendering___4"
+            label   "Ambient Occlusion"
+            hidewhentab "{ force_headlight == 0 }"
+
+            parm {
+                name    "head_ao_samples"
+                label   "Samples"
+                type    integer
+                default { "1" }
+                range   { 0! 4 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "head_ao_distance"
+                label   "Ray Distance"
+                type    float
+                default { "1" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "head_addfog"
+                label   "Add Distance Fog"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "head_depthcue_z"
+                label   "Fog Distance"
+                type    float
+                size    2
+                default { "0" "0" }
+                hidewhen "{ head_addfog == 0 }"
+                range   { 0! 1000 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float2" }
+            }
+            parm {
+                name    "head_depthcue_color"
+                label   "Fog Color"
+                type    color
+                size    3
+                default { "1" "1" "1" }
+                hidewhen "{ head_addfog == 0 }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float3" }
+            }
+            parm {
+                name    "head_depthcue_alpha"
+                label   "Fog Alpha"
+                type    float
+                default { "1" }
+                hidewhen "{ head_addfog == 0 }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "viewport" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+    }
+
+    group {
+        name    "main_1_1_3"
+        label   "Image Output"
+
+        groupcollapsible {
+            name    "folder0"
+            label   "Pixel Filter"
+            grouptag { "sidefx::header_parm" "pixelfilter" }
+
+            parm {
+                name    "pixelfilter"
+                label   "Pixel Filter"
+                type    string
+                default { "gauss" }
+                menureplace {
+                    "box"       "Box Filter"
+                    "gauss"     "Gaussian Filter"
+                    "blackman"  "Blackman Filter"
+                    "mitchell"  "Mitchell Filter"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Image" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "pixelfiltersize"
+                label   "Pixel Filter Size"
+                type    float
+                default { "2" }
+                range   { 1 5 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Image" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder3"
+            label   "Denoiser"
+            grouptag { "sidefx::header_parm" "denoiser" }
+            grouptag { "sidefx::header_toggle" "enable_denoiser" }
+
+            parm {
+                name    "enable_denoiser"
+                label   "Denoiser"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoiser"
+                label   "Denoiser"
+                type    string
+                default { "optix" }
+                disablewhen "{ enable_denoiser != 1 }"
+                menu {
+                    "optix" "nVidia Optix Denoiser"
+                    "oidn"  "Intel OIDN"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_usealbedo"
+                label   "Use Albedo"
+                type    toggle
+                default { "on" }
+                disablewhen "{ enable_denoiser != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_useN"
+                label   "Use N Input"
+                type    toggle
+                default { "on" }
+                disablewhen "{ enable_denoiser != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_useGl"
+                label   "Use Gl Output"
+                type    toggle
+                default { "off" }
+                disablewhen "{ enable_denoiser != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "denoise_aovs"
+                label   "AOVs"
+                type    string
+                default { "C" }
+                disablewhen "{ enable_denoiser != 1 }"
+                menutoggle {
+                    [ "opmenu -l -a karmarenderproperties denoise_aovs" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder8"
+            label   "Deep Camera Map"
+            grouptag { "sidefx::header_toggle" "dcm" }
+
+            parm {
+                name    "dcm"
+                label   "Ouput Deep Camera Map"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "dcmfile"
+                label   "DCM File"
+                type    file
+                default { "$HIP/render/$HIPNAME.$OS.dcm.$F4.exr" }
+                disablewhen "{ dcm == 0 }"
+                hidewhen "{ filemethod == constructed }"
+                menureplace {
+                    [ "opmenu -l -a karmarenderproperties dcmfilename" ]
+                }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "write" }
+            }
+            parm {
+                name    "dcmvars"
+                label   "DCM Render Vars"
+                type    string
+                default { "/Render/Products/Vars/*" }
+                disablewhen "{ dcm == 0 }"
+                menutoggle {
+                    [ "opmenu -l -a karmarenderproperties dcmvars" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, False)" }
+                parmtag { "script_action_help" "Select a primitive in the Scene Viewer or Scene Graph Tree pane. Ctrl-click to select using the primitive picker dialog." }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+                parmtag { "sidefx::usdpathtype" "prim" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__imageoutput"
+            label   "AOVs"
+
+            groupcollapsible {
+                name    "folder1"
+                label   "Beauty"
+                grouptag { "group_default" "1" }
+
+                parm {
+                    name    "beauty"
+                    label   "Beauty"
+                    type    toggle
+                    joinnext
+                    default { "on" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm"
+                    label   "labelparm"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "beautyperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ beauty == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "beautyunshadowed"
+                    label   "Beauty Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm2"
+                    label   "labelparm2"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "beautyunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ beautyunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder2"
+                label   "Diffuse"
+
+                parm {
+                    name    "combineddiffuse"
+                    label   "Combined Diffuse"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm3"
+                    label   "labelparm3"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "combineddiffuseperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combineddiffuse == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directdiffuse"
+                    label   "Direct Diffuse"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm4"
+                    label   "labelparm4"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directdiffuseperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directdiffuse == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectdiffuse"
+                    label   "Indirect Diffuse"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm5"
+                    label   "labelparm5"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectdiffuseperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectdiffuse == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "combineddiffuseunshadowed"
+                    label   "Combined Diffuse Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm6"
+                    label   "labelparm6"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "combineddiffuseunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combineddiffuseunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directdiffuseunshadowed"
+                    label   "Direct Diffuse Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm7"
+                    label   "labelparm7"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directdiffuseunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directdiffuseunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectdiffuseunshadowed"
+                    label   "Indirect Diffuse Unshadowed"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm8"
+                    label   "labelparm8"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectdiffuseunshadowedperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectdiffuseunshadowed == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder5"
+                label   "Reflections and Refractions"
+
+                parm {
+                    name    "combinedglossyreflection"
+                    label   "Combined Glossy Reflection"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm9"
+                    label   "labelparm9"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "combinedglossyreflectionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combinedglossyreflection == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directglossyreflection"
+                    label   "Direct Glossy Reflection"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm10"
+                    label   "labelparm10"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directglossyreflectionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directglossyreflection == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectglossyreflection"
+                    label   "Indirect Glossy Reflection"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm11"
+                    label   "labelparm11"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectglossyreflectionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectglossyreflection == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "glossytransmission"
+                    label   "Glossy Transmission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm12"
+                    label   "labelparm12"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "glossytransmissionperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ glossytransmission == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "coat"
+                    label   "BSDF Labelled 'coat'"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm13"
+                    label   "labelparm13"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "coatperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ coat == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder6"
+                label   "Lights and Emission"
+
+                parm {
+                    name    "combinedemission"
+                    label   "Combined Emission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm14"
+                    label   "labelparm14"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "directemission"
+                    label   "Direct Emission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm15"
+                    label   "labelparm15"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "indirectemission"
+                    label   "Indirect Emission"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm16"
+                    label   "labelparm16"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "visiblelights"
+                    label   "Visible Lights"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm17"
+                    label   "labelparm17"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "visiblelightsperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ visiblelights == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder7"
+                label   "Volume"
+
+                parm {
+                    name    "combinedvolume"
+                    label   "Combined Volume"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm18"
+                    label   "labelparm18"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "combinedvolumeperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ combinedvolume == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "directvolume"
+                    label   "Direct Volume"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm19"
+                    label   "labelparm19"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "directvolumeperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ directvolume == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "indirectvolume"
+                    label   "Indirect Volume"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm20"
+                    label   "labelparm20"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "indirectvolumeperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ indirectvolume == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder9"
+                label   "SSS"
+
+                parm {
+                    name    "sss"
+                    label   "BSDF Labelled 'sss'"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm21"
+                    label   "labelparm21"
+                    type    label
+                    nolabel
+                    joinnext
+                    default { "" }
+                }
+                parm {
+                    name    "sssperlpe"
+                    label   "Split per LPE Tag"
+                    type    toggle
+                    default { "off" }
+                    disablewhen "{ sss == 0 }"
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupcollapsible {
+                name    "folder10"
+                label   "Albedo"
+
+                parm {
+                    name    "albedo"
+                    label   "Albedo"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm22"
+                    label   "labelparm22"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+            }
+
+            groupcollapsible {
+                name    "__ray"
+                label   "Ray Level"
+
+                parm {
+                    name    "P"
+                    label   "Ray Origin (P)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm23"
+                    label   "labelparm23"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "D"
+                    label   "Ray Direction (D)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm24"
+                    label   "labelparm24"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "time"
+                    label   "Time (Shutter Time)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm25"
+                    label   "labelparm25"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "near"
+                    label   "Near (Near Bias)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm26"
+                    label   "labelparm26"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "far"
+                    label   "Far (Max Distance)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm27"
+                    label   "labelparm27"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "mask"
+                    label   "Mask (Intersection Mask)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm28"
+                    label   "labelparm28"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "contrib"
+                    label   "Contribution"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm29"
+                    label   "labelparm29"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "hitP"
+                    label   "P (World Space)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm30"
+                    label   "labelparm30"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "hitPz"
+                    label   "Depth (Camera Space)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm31"
+                    label   "labelparm31"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "hitstack"
+                    label   "Hit Stack"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm32"
+                    label   "labelparm32"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "element"
+                    label   "Element (Raw Id)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm33"
+                    label   "labelparm33"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "primid"
+                    label   "Prim Id"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm34"
+                    label   "labelparm34"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "hituv"
+                    label   "UV"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm35"
+                    label   "labelparm35"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "hitdist"
+                    label   "Hit Dist"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm36"
+                    label   "labelparm36"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "dPdz"
+                    label   "dPdz"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm37"
+                    label   "labelparm37"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "hitN"
+                    label   "N (Smooth Normal)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm38"
+                    label   "labelparm38"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "hitNg"
+                    label   "Ng (Geometric Normal)"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm39"
+                    label   "labelparm39"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+                parm {
+                    name    "flags"
+                    label   "Flags"
+                    type    toggle
+                    joinnext
+                    default { "off" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labelparm40"
+                    label   "labelparm40"
+                    type    label
+                    nolabel
+                    default { "" }
+                }
+            }
+
+            groupcollapsible {
+                name    "__lpe_1"
+                label   "Extra AOVs"
+
+                multiparm {
+                    name    "extrarendervars"
+                    label    "Number of AOVs"
+                    default 0
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "autoselect" "1000000000000000" }
+
+                    groupcollapsible {
+                        name    "folder0_#"
+                        label   "Render Variable #"
+                        grouptag { "sidefx::header_parm" "name#" }
+                        grouptag { "sidefx::header_toggle" "enable#" }
+
+                        parm {
+                            name    "enable#"
+                            label   "Enable"
+                            type    toggle
+                            default { "1" }
+                        }
+                        parm {
+                            name    "name#"
+                            label   "Name"
+                            type    string
+                            default { "" }
+                            menureplace {
+                                [ "opmenu -l -a karmarenderproperties name1" ]
+                            }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "script_callback" "kwargs[\"node\"].node(\"karmarenderproperties\").hm().setAOV(kwargs)" }
+                            parmtag { "script_callback_language" "python" }
+                            parmtag { "usdvaluetype" "string" }
+                        }
+                        parm {
+                            name    "format#"
+                            label   "Format"
+                            type    string
+                            default { "float" }
+                            disablewhen "{ name# == \"\" }"
+                            menu {
+                                [ "values = [\"float\",\"color2f\",\"color3f\",\"color4f\",\"float2\",\"float3\",\"float4\"]" ]
+                                [ "values += [\"half\",\"float16\",\"color2h\",\"color3h\",\"color4h\",\"half2\",\"half3\",\"half4\"]" ]
+                                [ "values += [\"u8\",\"uint8\",\"color2u8\",\"color3u8\",\"color4u8\"]" ]
+                                [ "values += [\"i8\",\"int8\",\"color2i8\",\"color3i8\",\"color4i8\"]" ]
+                                [ "values += [\"int\",\"int2\",\"int3\",\"int4\",\"uint\",\"uint2\",\"uint3\",\"uint4\"]" ]
+                                [ "" ]
+                                [ "return [x for x in values for y in range(2)]" ]
+                                language python
+                            }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "usdvaluetype" "string" }
+                        }
+                        parm {
+                            name    "multisampled#"
+                            label   "Multi Sampled"
+                            type    toggle
+                            default { "off" }
+                            disablewhen "{ name# == \"\" }"
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "usdvaluetype" "bool" }
+                        }
+                        parm {
+                            name    "clearvalue#"
+                            label   "Clear Value"
+                            type    integer
+                            default { "0" }
+                            disablewhen "{ name# == \"\" }"
+                            range   { 0 10 }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "usdvaluetype" "int" }
+                        }
+                        parm {
+                            name    "dataType#"
+                            label   "Data Type"
+                            type    string
+                            default { "color3f" }
+                            disablewhen "{ name# == \"\" }"
+                            menu {
+                                [ "import loputils" ]
+                                [ "return loputils.createAttribTypeMenu()" ]
+                                language python
+                            }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "usdvaluetype" "token" }
+                        }
+                        parm {
+                            name    "sourceName#"
+                            label   "Source Name"
+                            type    string
+                            default { "" }
+                            disablewhen "{ name# == \"\" }"
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "usdvaluetype" "string" }
+                        }
+                        parm {
+                            name    "sourceType#"
+                            label   "Source Type"
+                            type    string
+                            default { "raw" }
+                            disablewhen "{ name# == \"\" }"
+                            menu {
+                                "raw"       "Raw"
+                                "primvar"   "Primvar"
+                                "lpe"       "LPE"
+                                "intrinsic" "Intrinsic"
+                            }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "usdvaluetype" "token" }
+                        }
+                        groupsimple {
+                            name    "folder0_#_2"
+                            label   "Karma"
+                            disablewhentab "{ name# == \"\" }"
+
+                            parm {
+                                name    "filter#"
+                                label   "Pixel Filter"
+                                type    string
+                                default { "[\"ubox\",{}]" }
+                                menureplace {
+                                    [ "opmenu -l -a karmarenderproperties filter1" ]
+                                }
+                                parmtag { "autoscope" "0000000000000000" }
+                                parmtag { "spare_category" "Image" }
+                                parmtag { "uiscope" "None" }
+                                parmtag { "usdvaluetype" "string" }
+                            }
+                            parm {
+                                name    "cryptomatte#"
+                                label   "Cryptomatte"
+                                type    toggle
+                                default { "0" }
+                                parmtag { "script_callback_language" "python" }
+                            }
+                            parm {
+                                name    "cryptomatterank#"
+                                label   "Overlap Limit"
+                                type    integer
+                                default { "6" }
+                                disablewhen "{ cryptomatte# == 0 }"
+                                range   { 0 10 }
+                                parmtag { "script_callback_language" "python" }
+                            }
+                            parm {
+                                name    "cryptomattesidecar#"
+                                label   "Manifest File"
+                                type    string
+                                default { "" }
+                                disablewhen "{ cryptomatte# == 0 }"
+                                parmtag { "script_callback_language" "python" }
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder24"
+            label   "Imports"
+
+            parm {
+                name    "importsecondaryinputvars"
+                label   "Import Render Vars From Second Input"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "importsecondaryproducts"
+                label   "Import Render Products From Second Input"
+                type    toggle
+                default { "off" }
+                disablewhen "{ importsecondaryinputvars == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder23"
+            label   "LPE tags"
+
+            parm {
+                name    "lpeaovlimit"
+                label   "LPE Tag AOV Limit"
+                type    integer
+                default { "100" }
+                disablewhen "{ beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
+                range   { 0 1000 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "doomitlpes"
+                label   "Omit LPE Tags"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                disablewhen "{ beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "omitlpes"
+                label   "Omit LPE Tags"
+                type    string
+                default { "Untagged_Lights" }
+                disablewhen "{ doomitlpes == 0 } { beautyperlpe == 0 beautyunshadowedperlpe == 0 combineddiffuseperlpe == 0 directdiffuseperlpe == 0 indirectdiffuseperlpe == 0 combineddiffuseunshadowedperlpe == 0 directdiffuseunshadowedperlpe == 0 indirectdiffuseunshadowedperlpe == 0 combinedglossyreflectionperlpe == 0 directglossyreflectionperlpe == 0 indirectglossyreflectionperlpe == 0 glossytransmissionperlpe == 0 visiblelightsperlpe == 0 combinedvolumeperlpe == 0 directvolumeperlpe == 0 indirectvolumeperlpe == 0 coatperlpe == 0 sssperlpe == 0 }"
+                menutoggle {
+                    [ "opmenu -l -a karmarenderproperties omitlpes" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder11"
+            label   "Color Management"
+
+            multiparm {
+                name    "ocio"
+                label    "Number of Planes"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+
+                groupcollapsible {
+                    name    "folder25_#"
+                    label   "Plane #"
+                    grouptag { "sidefx::header_parm" "ocio_planes#" }
+                    grouptag { "sidefx::header_toggle" "ocio_enable#" }
+
+                    parm {
+                        name    "ocio_enable#"
+                        label   "Enable"
+                        type    toggle
+                        default { "1" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "ocio_planes#"
+                        label   "Planes"
+                        type    string
+                        default { "" }
+                        disablewhen "{ ocio_enable# == 0 }"
+                        menutoggle {
+                            [ "node = kwargs['node'].node('karmarenderproperties')" ]
+                            [ "kwargs['node'] = node" ]
+                            [ "return node.hm().getPlanes(kwargs)" ]
+                            language python
+                        }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "ocio_inputspace#"
+                        label   "Input Space"
+                        type    string
+                        default { "data" }
+                        disablewhen "{ ocio_enable# == 0 }"
+                        menureplace {
+                            [ "echo `pythonexprs(\"__import__('toolutils').ocioColorSpaceMenu()\")`" ]
+                        }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "ocio_outputspace#"
+                        label   "Output Space"
+                        type    string
+                        default { "" }
+                        disablewhen "{ ocio_enable# == 0 }"
+                        menureplace {
+                            [ "echo `pythonexprs(\"__import__('toolutils').ocioColorSpaceMenu()\")`" ]
+                        }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "ocio_looks#"
+                        label   "Looks"
+                        type    string
+                        default { "" }
+                        disablewhen "{ ocio_enable# == 0 }"
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "folder4"
+            label   "Color Limits"
+
+            multiparm {
+                name    "colorlimits"
+                label    "Number of Limits"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+
+                groupcollapsible {
+                    name    "folder25_#_2"
+                    label   "Plane #"
+                    grouptag { "sidefx::header_parm" "colorlimit_planes#" }
+                    grouptag { "sidefx::header_toggle" "colorlimit_enable#" }
+
+                    parm {
+                        name    "colorlimit_enable#"
+                        label   "Enable"
+                        type    toggle
+                        default { "1" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "colorlimit_planes#"
+                        label   "Planes"
+                        type    string
+                        default { "" }
+                        disablewhen "{ colorlimit_enable# == 0 }"
+                        menutoggle {
+                            [ "node = kwargs['node'].node('karmarenderproperties')" ]
+                            [ "kwargs['node'] = node" ]
+                            [ "return node.hm().getPlanes(kwargs)" ]
+                            language python
+                        }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "colorlimit_limit#"
+                        label   "Limit"
+                        type    float
+                        default { "10" }
+                        disablewhen "{ colorlimit_enable# == 0 }"
+                        range   { 0 10 }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+        groupcollapsible {
+            name    "__imageoutput_2"
+            label   "Aspect Ratio"
+
+            parm {
+                name    "aspectRatioConformPolicy"
+                label   "Conform Policy"
+                type    string
+                default { "expandAperture" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties aspectRatioConformPolicy" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "dataWindowNDC"
+                label   "Data Window NDC"
+                type    float
+                size    4
+                default { "0" "0" "1" "1" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "float4" }
+            }
+            parm {
+                name    "pixelAspectRatio"
+                label   "Pixel Aspect Ratio"
+                type    float
+                default { "1" }
+                range   { 0.05 2 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder25"
+            label   "EXR Image"
+            disablewhen "{ filetype != .exr }"
+
+            parm {
+                name    "image_exr_compression"
+                label   "EXR Compression"
+                type    string
+                default { "zips" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties image_exr_compression" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "image_dwa_compression"
+                label   "DWA Compression Level"
+                type    float
+                default { "85" }
+                hidewhen "{ image_exr_compression != dwab image_exr_compression != dwaa }"
+                range   { 1 200 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "float" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__imageoutput_3"
+            label   "Meta Data"
+
+            parm {
+                name    "image_artist"
+                label   "Artist"
+                type    string
+                default { "$USER" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "image_comment"
+                label   "Comment"
+                type    string
+                default { "" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "image_hostname"
+                label   "Hostname"
+                type    string
+                default { "" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "string" }
+            }
+        }
+
+    }
+
+    group {
+        name    "main_1_1_4"
+        label   "Advanced"
+
+        groupcollapsible {
+            name    "__advanced_6"
+            label   "Scripts"
+
+            parm {
+                name    "tprerender"
+                label   "Pre-Render Script"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "prerender"
+                label   "Pre-Render Script"
+                type    file
+                joinnext
+                default { "" }
+                disablewhen "{ tprerender != 1 }"
+                menureplace {
+                    [ "opmenu -l rop_usdrender1 prerender" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read" }
+            }
+            parm {
+                name    "lprerender"
+                label   "Pre-Render Script Language"
+                type    string
+                nolabel
+                default { "hscript" }
+                disablewhen "{ tprerender != 1 }"
+                menu {
+                    "hscript"   "Hscript"
+                    "python"    "Python"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "tpreframe"
+                label   "Pre-Frame Script"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "preframe"
+                label   "Pre-Frame Script"
+                type    file
+                joinnext
+                default { "" }
+                disablewhen "{ tpreframe != 1 }"
+                menureplace {
+                    [ "opmenu -l rop_usdrender1 preframe" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read" }
+            }
+            parm {
+                name    "lpreframe"
+                label   "Pre-Frame Script Language"
+                type    string
+                nolabel
+                default { "hscript" }
+                disablewhen "{ tpreframe != 1 }"
+                menu {
+                    "hscript"   "Hscript"
+                    "python"    "Python"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "tpostframe"
+                label   "Post-Frame Script"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "postframe"
+                label   "Post-Frame Script"
+                type    file
+                joinnext
+                default { "" }
+                disablewhen "{ tpostframe != 1 }"
+                menureplace {
+                    [ "opmenu -l rop_usdrender1 postframe" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read" }
+            }
+            parm {
+                name    "lpostframe"
+                label   "Post-Frame Script Language"
+                type    string
+                nolabel
+                default { "hscript" }
+                disablewhen "{ tpostframe != 1 }"
+                menu {
+                    "hscript"   "Hscript"
+                    "python"    "Python"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "tpostrender"
+                label   "Post-Render Script"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "postrender"
+                label   "Post-Render Script"
+                type    file
+                joinnext
+                default { "" }
+                disablewhen "{ tpostwrite != 1 }"
+                menureplace {
+                    [ "opmenu -l rop_usdrender1 postrender" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read" }
+            }
+            parm {
+                name    "lpostrender"
+                label   "Post-Render Script Language"
+                type    string
+                nolabel
+                default { "hscript" }
+                disablewhen "{ tpostwrite != 1 }"
+                menu {
+                    "hscript"   "Hscript"
+                    "python"    "Python"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder19"
+            label   "Node Generation"
+
+            parm {
+                name    "topkarmapath"
+                label   "Top Karma In"
+                type    oplist
+                default { "/obj/topnet1" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "opfilter" "!!TOP!!" }
+                parmtag { "oprelative" "/" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder18"
+            label   "Path Construction"
+            grouptag { "sidefx::header_parm" "sopoutput" }
+
+            parm {
+                name    "frame"
+                label   "Frame"
+                type    float
+                default { "{\n    if(ch(\"timedependent\"))\n    {\n        rawframe = $T * $FPS + 1;\n        rawframe -= ch(\"f1\");\n        rawframe *= 1 / ch(\"f3\");\n        rawframe = rint(rawframe);\n        rawframe /= 1 / ch(\"f3\");\n        rawframe += ch(\"f1\");\n        return rawframe;\n    }\n    else\n    {\n        return 1;\n    }\n}" }
+                range   { 1 240 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "framestr"
+                label   "Frame String"
+                type    string
+                default { "`ifs (ch(\"timedependent\"), \".\" + fpadzero(4, if(ch(\"f3\")>1, 3, 0), ch(\"frame\")), \"\")`" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "versionstr"
+                label   "Version String"
+                type    string
+                default { "v`chs(\"version\")`" }
+                hidewhen "{ enableversion != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "wedgestr"
+                label   "Wedge String"
+                type    string
+                default { "w`pdgattrib(\"wedgeindex\", 0)`" }
+                hidewhen "{ enablewedging != 1 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm8"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "cachedir"
+                label   "Image Folder"
+                type    string
+                default { "`chs(\"basedir\") + \"/\" + chs(\"basename\")``ifs(ch(\"enableversion\"), \"/\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"/\" + chs(\"wedgestr\"),\"\")`" }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "cachename"
+                label   "Image Name"
+                type    string
+                default { "`chs(\"basename\")``ifs(ch(\"enableversion\"), \"_\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"_\" + chs(\"wedgestr\"),\"\")``chs(\"framestr\")``chs(\"filetype\")`" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "descriptivelabel"
+                label   "Descriptive Label"
+                type    geometry
+                default { [ "ifs(ch(\"filemethod\"),chsraw(\"file\"),strreplace(strreplace(chs(\"cachename\"),chs(\"basename\"),chsraw(\"basename\")),chs(\"framestr\"),\".\" + '$F' + 4))" hscript-expr ] }
+                parmtag { "filechooser_mode" "read" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "picture"
+                label   "Output Image"
+                type    string
+                default { [ "{\n    if(ch('filemethod'))\n    {\n        return chs('file');\n    }\n    else\n    {\n        return chs('cachedir') + '/' + chs('cachename');\n    }\n}" hscript-expr ] }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "read" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "checkpointname"
+                label   "Checkpoint Name"
+                type    string
+                default { "`chs(\"basename\")``ifs(ch(\"enableversion\"), \"_\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"_\" + chs(\"wedgestr\"),\"\")``chs(\"framestr\")`.checkpoint" }
+                disablewhen "{ outputcheckpoint == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "productName"
+                label   "Output Checkpoint"
+                type    string
+                default { [ "{\n    if(ch('filemethod'))\n    {\n        return chs('checkpoint');\n    }\n    else\n    {\n        return chs('cachedir') + '/' + chs('checkpointname');\n    }\n}" hscript-expr ] }
+                disablewhen "{ outputcheckpoint == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "dcmname"
+                label   "DCM Name"
+                type    string
+                default { "`chs(\"basename\")``ifs(ch(\"enableversion\"), \"_\" + chs(\"versionstr\"),\"\")``ifs(ch(\"enablewedging\"), \"_\" + chs(\"wedgestr\"),\"\")`.dcm`chs(\"framestr\")``chs(\"filetype\")`" }
+                disablewhen "{ dcm == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "dcmfilename"
+                label   "Output DCM"
+                type    file
+                default { [ "{\n    if(ch('filemethod'))\n    {\n        return chs('dcmfile');\n    }\n    else\n    {\n        return chs('cachedir') + '/' + chs('dcmname');\n    }\n}\n" hscript-expr ] }
+                disablewhen "{ dcm == 0 }"
+                menureplace {
+                    [ "opmenu -l -a karmarenderproperties dcmfilename" ]
+                }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "write" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__advanced"
+            label   "Sampling"
+            hidewhentab "{ engine == xpu }"
+
+            parm {
+                name    "varianceaa_thresh"
+                label   "Noise Level"
+                type    float
+                default { "0.01" }
+                disablewhen "{ convergence_mode != Variance }"
+                range   { 0! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Shading" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "guiding_enable"
+                label   "Enable Indirect Guiding"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "guiding_samples"
+                label   "Indirect Samples"
+                type    integer
+                default { "64" }
+                disablewhen "{ guiding_enable == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            groupcollapsible {
+                name    "__variance"
+                label   "Pixel Oracle"
+                grouptag { "sidefx::header_parm" "oracle" }
+
+                parm {
+                    name    "oracle"
+                    label   "Pixel Oracle"
+                    type    string
+                    default { "variance" }
+                    menu {
+                        [ "opmenu -l -a karmarenderproperties oracle" ]
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "oracle_minsamples"
+                    label   "Minimum Samples"
+                    type    integer
+                    default { "max(1, sqrt(ch(\"samplesperpixel\")))" }
+                    hidewhen "{ oracle == uniform }"
+                    range   { 1 64 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "oracle_plane"
+                    label   "Plane"
+                    type    string
+                    default { "C" }
+                    hidewhen "{ oracle == uniform }"
+                    menureplace {
+                        [ "opmenu -l karmarenderproperties oracle_plane" ]
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "oracle_variance"
+                    label   "Variance Threshold"
+                    type    float
+                    default { "0.01" }
+                    hidewhen "{ oracle == uniform }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "randomseed"
+                    label   "Random Seed"
+                    type    integer
+                    default { "0" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "spare_category" "Rendering" }
+                    parmtag { "uiscope" "None" }
+                    parmtag { "usdvaluetype" "int" }
+                }
+                parm {
+                    name    "oracle_ociomode"
+                    label   "OCIO Transform"
+                    type    ordinal
+                    default { "0" }
+                    hidewhen "{ oracle == uniform }"
+                    menu {
+                        [ "opmenu -l -a karmarenderproperties oracle_ociomode" ]
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "oracle_ociodisplay"
+                    label   "Display"
+                    type    string
+                    joinnext
+                    default { "" }
+                    hidewhen "{ oracle == uniform } { oracle_ociomode != 1 }"
+                    menureplace {
+                        [ "opmenu -l -a karmarenderproperties oracle_ociodisplay" ]
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "oracle_ocioview"
+                    label   "View"
+                    type    string
+                    default { "" }
+                    hidewhen "{ oracle == uniform } { oracle_ociomode != 1 }"
+                    menureplace {
+                        [ "opmenu -l -a karmarenderproperties oracle_ocioview" ]
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "oracle_ociocolorspace"
+                    label   "Color Space"
+                    type    string
+                    default { "default" }
+                    hidewhen "{ oracle == uniform } { oracle_ociomode != 2 }"
+                    menureplace {
+                        [ "opmenu -l -a karmarenderproperties oracle_ociocolorspace" ]
+                    }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupcollapsible {
+            name    "__advanced_1"
+            label   "Checkpointing"
+            grouptag { "sidefx::header_toggle" "outputcheckpoint" }
+
+            parm {
+                name    "checkpoint"
+                label   "Checkpoint File"
+                type    string
+                default { "$HIP/render/$HIPNAME.$OS.$F4.checkpoint" }
+                hidewhen "{ filemethod == constructed }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "outputcheckpoint"
+                label   "Output Checkpoint Files"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "savefrequency"
+                label   "Save Frequency"
+                type    float
+                default { "1" }
+                disablewhen "{ outputcheckpoint == 0 }"
+                range   { -1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "sidefx::slider" "snap_to_int" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "resume"
+                label   "Resume From Checkpoint"
+                type    toggle
+                default { "on" }
+                disablewhen "{ outputcheckpoint == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__advanced_2"
+            label   "Tiles and Caching"
+
+            parm {
+                name    "bucketsize"
+                label   "Bucket Size"
+                type    integer
+                default { "32" }
+                range   { 4! 128 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "bucketorder"
+                label   "Bucket Order"
+                type    string
+                default { "Middle" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties bucketorder" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdapischema" "KarmaRendererSettingsAPI" }
+                parmtag { "usdvaluetype" "token" }
+            }
+            parm {
+                name    "usecacheratio"
+                label   "Cache Limit"
+                type    integer
+                default { "1" }
+                menu {
+                    [ "opmenu -l -a karmarenderproperties usecacheratio" ]
+                }
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "cacheratio"
+                label   "Cache Memory Ratio"
+                type    float
+                default { "0.25" }
+                hidewhen "{ usecacheratio == 0 }"
+                range   { 0.0001! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "float" }
+            }
+            parm {
+                name    "cachesize"
+                label   "Cache Size (MB)"
+                type    integer
+                default { "1000" }
+                hidewhen "{ usecacheratio == 1 }"
+                range   { 1! 32000 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Rendering" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "int" }
+            }
+            parm {
+                name    "threads"
+                label   "Threads"
+                type    integer
+                default { "0" }
+                menureplace usetokenvalue {
+                    "0"     "Use All Processors"
+                    "4"     "Use Four Processors"
+                    "-1"    "Use All Processors but One"
+                }
+                range   { -1 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "addtimelimit"
+                label   "Add Time Limit"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "timelimit"
+                label   "Time Limit"
+                type    integer
+                default { "-1" }
+                disablewhen "{ addtimelimit == 0 }"
+                range   { -1! 600 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "offlineoptimization"
+                label   "Offline Optimization"
+                type    integer
+                invisible
+                default { "0" }
+                menu {
+                    "0" "Disable optimization"
+                    "1" "Disable for multi-frame renders"
+                    "2" "Force optimization for all renders"
+                }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__usdoptions"
+            label   "USD"
+
+            parm {
+                name    "complexity"
+                label   "Complexity"
+                type    string
+                default { "veryhigh" }
+                menu {
+                    [ "opmenu -l -a rop_usdrender husk_complexity" ]
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "purpose"
+                label   "Purpose"
+                type    string
+                default { "geometry render" }
+                menutoggle {
+                    "geometry"  "Geometry"
+                    "guide"     "Guide"
+                    "proxy"     "Proxy"
+                    "render"    "Render"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resolvercontext"
+                label   "Resolver Context Asset Path"
+                type    string
+                default { "`chs(strcat(opcreator(chsop(\"rop_usdrender/loppath\")), \"/resolvercontextassetpath\"))`" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "savetodirectory"
+                label   "USD Output Directory"
+                type    file
+                default { "$HOUDINI_TEMP_DIR/usd_renders/$RENDERID" }
+                menureplace {
+                    [ "opmenu -l -a rop_usdrender savetodirectory_directory" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder26"
+            label   "Context"
+
+            multiparm {
+                name    "optioncount"
+                label    "Number of Options"
+                default 0
+                parmtag { "autoscope" "0000000000000000" }
+
+                parm {
+                    name    "optiontype#"
+                    label   "Option Type"
+                    type    string
+                    default { "string" }
+                    menu {
+                        "string"    "String"
+                        "float"     "Number"
+                    }
+                }
+                parm {
+                    name    "optionname#"
+                    label   "Option Name"
+                    type    string
+                    default { "" }
+                }
+                parm {
+                    name    "optionstrvalue#"
+                    label   "Option Value"
+                    type    string
+                    default { "" }
+                    hidewhen "{ optiontype# != string }"
+                }
+                parm {
+                    name    "optionfloatvalue#"
+                    label   "Option Value"
+                    type    float
+                    default { "0" }
+                    hidewhen "{ optiontype# != float }"
+                    range   { 0 10 }
+                }
+            }
+
+        }
+
+        groupcollapsible {
+            name    "__advanced_4"
+            label   "Driver"
+
+            parm {
+                name    "abortmissingtexture"
+                label   "Cancel Render if Missing Texture is Discovered"
+                type    toggle
+                default { "off" }
+                hidewhen "{ engine == xpu }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Control" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "runcommand"
+                label   "Run Command"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "striplayerbreaks"
+                label   "Strip Layers Above Layer Breaks"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "initsim"
+                label   "Initialize Simulation OPs"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mkpath"
+                label   "Create Intermediate Directories"
+                type    toggle
+                default { "on" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "reportnetwork"
+                label   "Report Network Use"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "soho_foreground"
+                label   "Wait for Render to Complete"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__advanced_5"
+            label   "Profiling"
+            grouptag { "sidefx::header_parm" "verbose" }
+
+            parm {
+                name    "verbose"
+                label   "Verbose Level"
+                type    integer
+                default { "0" }
+                range   { 0! 9! }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vexprofiling"
+                label   "VEX Profiling"
+                type    string
+                default { "" }
+                menu {
+                    ""  "No VEX Profiling"
+                    "p" "Execution Profiling"
+                    "P" "Profiling and NAN Detection"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "alfprogress"
+                label   "Show Alfred Progress"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Statistics" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "bool" }
+            }
+            parm {
+                name    "timestamps"
+                label   "Add Message Time Stamps"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "windowsconsole"
+                label   "Windows Console"
+                type    ordinal
+                default { "none" }
+                menu {
+                    "none"      "None"
+                    "wait"      "Wait"
+                    "nowait"    "No Wait"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "usdtrace"
+                label   "USD Trace"
+                type    string
+                default { "" }
+                menu {
+                    [ "opmenu -l -a rop_usdrender husk_usdtrace" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "log"
+                label   "Log Output"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "logappend"
+                label   "Append to Log Instead of Overwriting"
+                type    toggle
+                default { "off" }
+                hidewhen "{ log == off }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "stdout"
+                label   "Output Log"
+                type    file
+                default { "" }
+                hidewhen "{ log == off }"
+                menureplace {
+                    [ "opmenu -l -a rop_usdrender husk_stdout" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "write" }
+            }
+            parm {
+                name    "stderr"
+                label   "Error Log"
+                type    file
+                default { "" }
+                hidewhen "{ log == off }"
+                menureplace {
+                    [ "opmenu -l -a rop_usdrender husk_stderr" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "filechooser_mode" "write" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__advanced_7"
+            label   "Component Labels"
+            hidewhentab "{ force_headlight == 1 }"
+
+            parm {
+                name    "exportcomponents"
+                label   "Export Components"
+                type    string
+                default { "diffuse reflect coat refract volume sss" }
+                menureplace {
+                    "diffuse reflect sss"                       "Basic Components"
+                    "diffuse reflect coat refract volume sss"   "Common Components"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Image" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "diffusecomponents"
+                label   "Diffuse Components"
+                type    string
+                default { "diffuse" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Image" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "refractcomponents"
+                label   "Refract Components"
+                type    string
+                default { "refract" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Image" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "volumecomponents"
+                label   "Volume Components"
+                type    string
+                default { "volume" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Image" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "string" }
+            }
+            parm {
+                name    "ssscomponents"
+                label   "SSS Components"
+                type    string
+                default { "sss" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "spare_category" "Image" }
+                parmtag { "uiscope" "None" }
+                parmtag { "usdvaluetype" "string" }
+            }
+        }
+
+        groupcollapsible {
+            name    "__advanced_8"
+            label   "MPlay"
+
+            parm {
+                name    "enablemplaymonitor"
+                label   "Enable MPlay Monitor"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "previewchannels"
+                label   "Preview Channels"
+                type    string
+                default { "-" }
+                hidewhen "{ enablemplaymonitor == 0 }"
+                menutoggle {
+                    [ "node = kwargs['node'].node(\"karmarenderproperties\")" ]
+                    [ "kwargs['node'] = node" ]
+                    [ "planes = node.hm().getPlanes(kwargs)" ]
+                    [ "return planes + [\"-\", \"All AOVs\"]" ]
+                    language python
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "previewscale"
+                label   "Preview Scale"
+                type    integer
+                default { "100" }
+                menu usetokenvalue {
+                    "100"   "100 %"
+                    "75"    "75 %"
+                    "66"    "66 %"
+                    "50"    "50 %"
+                    "33"    "33 %"
+                    "25"    "25 %"
+                    "20"    "20 %"
+                    "10"    "10 %"
+                }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "mplayname"
+                label   "Session Name"
+                type    string
+                default { "" }
+                menureplace {
+                    "`pythonexprs(\"__import__('os').getpid()\")`"  "One per Houdini Process"
+                    "$HIPNAME"                                      "One per Houdini File Name (.hip)"
+                    "$OS"                                           "One per Output Driver Name (ROP)"
+                    ""                                              "One MPlay session Only"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

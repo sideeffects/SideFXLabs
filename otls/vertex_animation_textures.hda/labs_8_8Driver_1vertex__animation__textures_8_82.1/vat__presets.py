@@ -40,12 +40,12 @@ def main(node):
         gamemaker(node,method)
     elif engine == 'mantra':
         mantra(node,method)
-    elif engine == 'sop':
-        sop(node,method)
-    elif engine == 'winter':
-        winter(node,method)
-    elif engine == 'hammer':
-        hammer(node,method)
+    # elif engine == 'sop':
+    #     sop(node,method)
+    # elif engine == 'winter':
+    #     winter(node,method)
+    # elif engine == 'hammer':
+    #     hammer(node,method)
     elif engine == 'popcornfx':
         popcornfx(node,method)
 

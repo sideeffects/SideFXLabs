@@ -1,22 +1,22 @@
-import sys, os, hou
-from hutil.Qt.QtCore import *
-from hutil.Qt.QtGui import *
-from hutil.Qt.QtWidgets import *
+import os
+import hou
+import labutils
+
+from hutil.Qt import QtCore, QtGui, QtWidgets
 
 sticker_source_dirs = ["$SIDEFXLABS/misc/stickers"]
 
-if hou.getenv("STICKER_PATH", None) != None:
+if hou.getenv("STICKER_PATH", None) is not None:
     sticker_source_dirs.extend(hou.getenv("STICKER_PATH").split(";"))
 
-class StickerPlacer(QDialog):
+class StickerPlacer(QtWidgets.QDialog):
     def __init__(self, parent):
         super(StickerPlacer, self).__init__(parent)
         self.build_ui()
         self.populate_widget_icons()
 
     def show_help(self):
-        hou.ui.curDesktop().displayHelpPath("/nodes/other/labs--sticker_picker")
-
+        hou.ui.curDesktop().displayHelpPath("/nodes/other/labs--sticker_placer")
 
     def get_source_dirs(self):
         sticker_dirs = []
@@ -32,62 +32,40 @@ class StickerPlacer(QDialog):
 
         return sticker_dirs
 
-    # def addSectionFromFile(hda_definition, section_name, file_name):
-    #     section_file = open(file_name, "r")
-    #     hda_definition.addSection(section_name, section_file.read())
-    #     section_file.close()
-    #     return "SOME PATH"
-
-
     def create_sticker(self, item):
-
         pane_tab = [t for t in hou.ui.paneTabs() if t.type() == hou.paneTabType.NetworkEditor and t.isCurrentTab()]
 
         if len(pane_tab) > 0 :
             pane_tab = pane_tab[0]
-
-            image = hou.NetworkImage()
-            image.setPath(item.data(Qt.UserRole))
-
-            bounds = pane_tab.visibleBounds()
-            bounds.expand((-bounds.size()[0]*0.4, -bounds.size()[1]*0.4))
-            image.setRect(bounds)
-
-            background_images = pane_tab.backgroundImages() + (image,)
-            pane_tab.setBackgroundImages(background_images)
-
-        #self.close()
-
+            labutils.add_network_image(pane_tab, hou.text.expandString(item.data(QtCore.Qt.UserRole)), scale=0.4, embedded=True)
 
     def build_ui(self):
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
+        self.setWindowTitle("Sticker Placer")
 
-        self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
-        self.setWindowTitle("Sticker Picker")
-
-        self.listwidget = QListWidget()
-        self.listwidget.setViewMode(QListView.IconMode)
+        self.listwidget = QtWidgets.QListWidget()
+        self.listwidget.setViewMode(QtWidgets.QListView.IconMode)
         self.listwidget.setDragEnabled(False)
-
 
         self.listwidget.setFixedWidth(512)
 
-        self.listwidget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.listwidget.setIconSize(QSize(64, 64))
+        self.listwidget.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.listwidget.setIconSize(QtCore.QSize(64, 64))
 
         self.listwidget.itemDoubleClicked.connect(self.create_sticker)
-        self.iconset = QComboBox()
+        self.iconset = QtWidgets.QComboBox()
 
         self.iconset.addItems(self.get_source_dirs())
         self.iconset.currentIndexChanged.connect(self.populate_widget_icons)
 
-        dialog_box = QVBoxLayout()
+        dialog_box = QtWidgets.QVBoxLayout()
         dialog_box.addWidget(self.iconset)
         dialog_box.addWidget(self.listwidget)
 
-        help_box = QHBoxLayout()
+        help_box = QtWidgets.QHBoxLayout()
 
-        controls_label = QLabel("Press Control + i to edit placed stickers!")
-        help_button = QPushButton("More Information")
+        controls_label = QtWidgets.QLabel("Press Control + i to edit placed stickers!")
+        help_button = QtWidgets.QPushButton("More Information")
         help_button.clicked.connect(self.show_help)
 
         help_box.addWidget(controls_label)
@@ -97,9 +75,7 @@ class StickerPlacer(QDialog):
         self.setLayout(dialog_box)
         self.setFixedWidth(534)
 
-
     def populate_widget_icons(self):
-
         self.listwidget.clear()
 
         stickers = []
@@ -110,11 +86,11 @@ class StickerPlacer(QDialog):
                     _relpath = os.path.normpath(os.path.join(self.iconset.currentText(), file))
                     _abspath = hou.text.expandString(_relpath)
 
-                    item = QListWidgetItem()
-                    icon = QIcon()
-                    icon.addPixmap(QPixmap(_abspath), QIcon.Normal, QIcon.Off)
+                    item = QtWidgets.QListWidgetItem()
+                    icon = QtGui.QIcon()
+                    icon.addPixmap(QtGui.QPixmap(_abspath), QtGui.QIcon.Normal, QtGui.QIcon.Off)
                     item.setIcon(icon)
-                    item.setData(Qt.UserRole, _relpath)
+                    item.setData(QtCore.Qt.UserRole, _relpath)
                     self.listwidget.addItem(item)
 
             self.listwidget.update()

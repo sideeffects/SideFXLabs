@@ -1,0 +1,119 @@
+# Dialog script for labs::mesh_tiler::1.0 automatically generated
+
+{
+    name	labs::mesh_tiler::1.0
+    script	gamedev::sop_mesh_tiler
+    label	"Labs Mesh Tiler"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry To Tile"
+    inputlabel	2	"Ground Plane"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "folder1"
+        label   "Tiling"
+
+        parm {
+            name    "tilemode"
+            label   "Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Full Tile"
+                "1" "Piece Tile"
+            }
+        }
+        parm {
+            name    "xside"
+            label   "X-Axis"
+            type    ordinal
+            joinnext
+            default { "0" }
+            disablewhen "{ tilemode == 0 }"
+            menu {
+                "0" "Negative"
+                "1" "Positive"
+            }
+        }
+        parm {
+            name    "zside"
+            label   "Z-Axis"
+            type    ordinal
+            default { "0" }
+            disablewhen "{ tilemode == 0 }"
+            menu {
+                "0" "Negative"
+                "1" "Positive"
+            }
+        }
+        parm {
+            name    "exportplane"
+            label   "Export Ground Plane"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "edgedensity"
+            label   "Overlap Density"
+            type    float
+            default { "50" }
+            range   { 0! 100! }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Debug"
+
+        parm {
+            name    "debug"
+            label   "Visualize Tiling"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "color"
+            label   "Visualize Overlapping Elements"
+            type    toggle
+            default { "1" }
+            disablewhen "{ debug == 0 }"
+        }
+        parm {
+            name    "gridsamples"
+            label   "Debug Resolution"
+            type    integer
+            default { "500" }
+            disablewhen "{ debug == 0 }"
+            range   { 1! 2048 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder2"
+        label   "Advanced"
+
+        parm {
+            name    "attribname"
+            label   "Piece Attribute"
+            type    string
+            default { "piece" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "newname1"
+            label   "Overlap Group Name"
+            type    string
+            default { "overlaps" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

@@ -1,15 +1,15 @@
-from PySide2 import QtWebEngineWidgets, QtWidgets
 import os 
-from math import sin, cos, sqrt, atan2, radians, pow, pi
 import time 
 import platform
 import ssl
-import sys
 
-if sys.version_info.major >= 3:
+from hutil.Qt import QtWidgets, QtWebEngineWidgets
+from math import sin, cos, sqrt, atan2, radians, pi
+
+try:
     from urllib.error import HTTPError
     from urllib.request import urlopen
-else:
+except:
     from urllib2 import urlopen, HTTPError
     
 
@@ -94,82 +94,74 @@ def refresh(node, force=True):
     cache_offset_lat = node.parm("cache_offsetsy").eval()
     cache_mapstyle = node.parm("mapstyle").evalAsString()
     cached_attribution = "true" if node.parm("attribution").evalAsInt() == 1 else "false"
-    download_osm = True if node.parm("downloadosm").evalAsInt() == 1 else False
+    download_osm = node.parm("downloadosm").evalAsInt() == 1
     
     lat_step = degree_per_tile(lat, zoom)/2
     lon_step = 360 / 2**zoom * 2
+ 
+    ne_lat = lat + lat_step/2
+    sw_lat = lat - lat_step/2
+    ne_lon = lon + lon_step/2 
+    sw_lon = lon - lon_step/2 
+    
+    distance = latlong_distance([float(ne_lat), float(sw_lon)], [float(sw_lat), float(sw_lon)])
+    distance2 = latlong_distance([float(ne_lat), float(ne_lon)], [float(ne_lat), float(sw_lon)])
 
-    if True:     
-        
-        ne_lat = lat + lat_step/2
-        sw_lat = lat - lat_step/2
-        ne_lon = lon + lon_step/2 
-        sw_lon = lon - lon_step/2 
-        
-        distance = latlong_distance([float(ne_lat), float(sw_lon)], [float(sw_lat), float(sw_lon)])
-        distance2 = latlong_distance([float(ne_lat), float(ne_lon)], [float(ne_lat), float(sw_lon)])
+    node.setUserData("mapbox_total_size", str(max(distance, distance2)))        
 
-        node.setUserData("mapbox_total_size", str(max(distance, distance2)))        
+    if offset_lat: 
+        lat += lat_step  * offset_lat       
+        ne_lat += lat_step * offset_lat
+        sw_lat += lat_step * offset_lat
+    
+    if offset_lon: 
+        lon += lon_step * offset_lon
+        ne_lon += lon_step * offset_lon
+        sw_lon += lon_step * offset_lon
 
-        if offset_lat: 
-            lat += lat_step  * offset_lat       
-            ne_lat += lat_step * offset_lat
-            sw_lat += lat_step * offset_lat
-        
-        if offset_lon: 
-            lon += lon_step * offset_lon
-            ne_lon += lon_step * offset_lon
-            sw_lon += lon_step * offset_lon
+
+    terrain_url = "https://api.mapbox.com/v4/mapbox.terrain-rgb/" + str(lon) +"," + str(lat) + "," + str((zoom+1)) + "/1024x1024@2x.png?access_token=" + API_KEY 
+    #print("terrain url: %s" % terrain_url)
+    
+    if cache_mapstyle != "custom":
+        mapstyle = "mapbox/" + cache_mapstyle
+    else:
+        customstyle = node.parm("customstyle").evalAsString()
+        customstyle = customstyle.replace("mapbox://styles/", "")
+        mapstyle = customstyle
+
+    color_url = "https://api.mapbox.com/styles/v1/" + mapstyle + "/static/" + str(lon) + "," + str(lat) + "," + str((zoom)) + "/1024x1024@2x?access_token="+ API_KEY + "&attribution=" + cached_attribution + "&logo=false"
+    osm_url = "https://overpass-api.de/api/map?bbox=" + str(sw_lon) + "," + str(sw_lat) + "," + str(ne_lon) + "," + str(ne_lat)
+
+
+    
+    # Terrain
+    terrain_path = node.parm("download_path_height").eval()
+    terrain_dir = os.path.dirname(terrain_path)
+    if not os.path.exists(terrain_dir):
+        os.makedirs(terrain_dir)
+    download_file(terrain_url, terrain_path) 
     
 
-        terrain_url = "https://api.mapbox.com/v4/mapbox.terrain-rgb/" + str(lon) +"," + str(lat) + "," + str((zoom+1)) + "/1024x1024@2x.png?access_token=" + API_KEY 
-        #print("terrain url: %s" % terrain_url)
-        
-        if cache_mapstyle != "custom":
-                mapstyle = "mapbox/" + cache_mapstyle
-        else:
-                customstyle = node.parm("customstyle").evalAsString()
-                customstyle = customstyle.replace("mapbox://styles/", "")
-                mapstyle = customstyle
-
-        color_url = "https://api.mapbox.com/styles/v1/" + mapstyle + "/static/" + str(lon) + "," + str(lat) + "," + str((zoom)) + "/1024x1024@2x?access_token="+ API_KEY + "&attribution=" + cached_attribution + "&logo=false"
-        #print("color url: %s" % color_url)
-
-        osm_url = "https://overpass-api.de/api/map?bbox=" + str(sw_lon) + "," + str(sw_lat) + "," + str(ne_lon) + "," + str(ne_lat)
-        #print("osm url: %s" % osm_url)
-
-
-        
-        # Terrain
-        terrain_path = node.parm("download_path_height").eval()
-        terrain_dir = os.path.dirname(terrain_path)
-        if not os.path.exists(terrain_dir):
-            os.makedirs(terrain_dir)
-        download_file(terrain_url, terrain_path) 
-        
-
-        # Color
-        color_path = node.parm("download_path_color").eval()
-        color_dir = os.path.dirname(color_path)
-        if not os.path.exists(color_dir):
-            os.makedirs(color_dir)
-        download_file(color_url, color_path)
-        
-        # OSM
-        if download_osm:
-                osm_path = node.parm("download_path_osm").eval()
-                osm_dir = os.path.dirname(osm_path)
-                if not os.path.exists(osm_dir):
-                    os.makedirs(osm_dir)
-                download_file(osm_url, osm_path)
+    # Color
+    color_path = node.parm("download_path_color").eval()
+    color_dir = os.path.dirname(color_path)
+    if not os.path.exists(color_dir):
+        os.makedirs(color_dir)
+    download_file(color_url, color_path)
+    
+    # OSM
+    if download_osm:
+        osm_path = node.parm("download_path_osm").eval()
+        osm_dir = os.path.dirname(osm_path)
+        if not os.path.exists(osm_dir):
+            os.makedirs(osm_dir)
+        download_file(osm_url, osm_path)
         
     hou.hscript("texcache -n")
     node.node("cop2net1/input_file").cook(force=True)
     node.node("load_height_information").cook(force=True)
     node.node("attribfrommap1").cook(force=True)
-    # Import Data
-    #node.node("cop2net1/input_file").parm("reload").pressButton()
-    #node.node("load_sat_image_as_color").parm("reload").pressButton()
 
     if download_osm:
         node.node('load_in_osm_data/read_in_map_data').cook(force=True)
@@ -211,7 +203,7 @@ def launch_map(hidden=False):
     if not API_KEY:
         API_KEY = node.parm("api_key").eval()
         
-    url = os.environ["HOUDINI_USER_PREF_DIR"] + "/mapbox/mapbox_map.html?#" + str(lon) + "," + str(lat) + "," + str(zoom) + "," + API_KEY
+    url = os.environ["HOUDINI_USER_PREF_DIR"] + "/SideFXLabs/misc/mapbox/mapbox_map.html?#" + str(lon) + "," + str(lat) + "," + str(zoom) + "," + API_KEY
     if platform.system() != "Windows":
         url = "file://" + url
         

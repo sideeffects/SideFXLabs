@@ -1,0 +1,115 @@
+# Dialog script for labs::edge_smooth::1.0 automatically generated
+
+{
+    name	labs::edge_smooth::1.0
+    script	Edge_smoother
+    label	"Labs Edge Smooth"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        joinnext
+        default { "" }
+        help    "Edge group for smoothing"
+        menutoggle {
+            [ "opmenu -l -a edgegroup_to_curve1 group" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Edges\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "includeunshared"
+        label   "Include Unshared Edges"
+        type    toggle
+        default { "0" }
+        help    "Auto select the edge border of the input"
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Edge Smoothing"
+
+        parm {
+            name    "smoothstrength"
+            label   "Strength"
+            type    float
+            default { "200" }
+            range   { 0! 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filterquality"
+            label   "Filter Quality"
+            type    integer
+            default { "2" }
+            help    "Tolerance for the smooth that changes the shape"
+            range   { 1! 5! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Neighbor Smoothing"
+
+        parm {
+            name    "nbrrange"
+            label   "Neighbor Range"
+            type    integer
+            default { "1" }
+            help    "Range of the relax amount"
+            range   { 1 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "smoothsteps"
+            label   "Steps"
+            type    integer
+            default { "5" }
+            help    "Relax points around border"
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "visguide"
+        label   "Show Guide"
+        type    toggle
+        joinnext
+        default { "1" }
+        help    "Highlight the smoothed edges"
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "visgrp"
+        label   "Show Original"
+        type    toggle
+        default { "0" }
+        help    "Highlight the input edge for comparing"
+        disablewhen "{ visguide == 0 }"
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

@@ -1,0 +1,132 @@
+def buildWorkItems(kwargs):
+    node = kwargs['node']
+    hou.hipFile.save(save_to_recent_files=False)    
+    node.dirtyTasks(False)
+    node.executeGraph(False,True,True,False)
+
+def setSelectedWedge(kwargs):    
+    node = kwargs['node']
+    selected_wedge_index = int(kwargs['parm'].eval())
+    pdg_node = node.getPDGNode()
+    
+    if pdg_node:
+        work_items = pdg_node.workItems            
+        work_id = 0
+        work_index = 0
+        for work_item in work_items:
+            wedge_index = work_item.numericAttribute("wedgeindex")
+            if (wedge_index == selected_wedge_index):
+                #print "id:    ", work_item.id
+                #print "index: ", work_item.index
+                #print "wedgeindex: ", wedge_index
+                work_id = work_item.id
+                break
+        node.setSelectedWorkItem(work_id)
+        
+def setRange(kwargs):
+
+    node = kwargs['node']
+    
+    parm = kwargs['parm']
+    r1 = node.parm("f1")
+    r2 = node.parm("f2")
+    r3 = node.parm("f3")   
+    
+    if parm.evalAsString() == "fstartend":
+        r1.deleteAllKeyframes()
+        r2.deleteAllKeyframes()
+        r1.setExpression('$FSTART')
+        r2.setExpression('$FEND')
+    elif parm.evalAsString() == "rfstartend":
+        r1.deleteAllKeyframes()
+        r2.deleteAllKeyframes()
+        r1.setExpression('$RFSTART')
+        r2.setExpression('$RFEND')        
+    elif parm.evalAsString() == "nosubsteps":
+        r3.deleteAllKeyframes()
+        r3.set(1)
+        node.parm("substeps").set(1)
+    elif parm.evalAsString() == "substeps2":
+        r3.deleteAllKeyframes()
+        r3.set(1.0/2.0)
+        node.parm("substeps").set(1)
+    elif parm.evalAsString() == "substeps4":
+        r3.deleteAllKeyframes()
+        r3.set(1.0/4.0)
+        node.parm("substeps").set(1)
+    elif parm.evalAsString() == "substeps5":
+        r3.deleteAllKeyframes()
+        r3.set(1.0/5.0)      
+        node.parm("substeps").set(1)
+    elif parm.evalAsString() == "every2":
+        r3.deleteAllKeyframes()
+        r3.set(2)
+        node.parm("substeps").set(1)
+    elif parm.evalAsString() == "every5":
+        r3.deleteAllKeyframes()
+        r3.set(5)
+        node.parm("substeps").set(1)
+    elif parm.evalAsString() == "every10":
+        r3.deleteAllKeyframes()
+        r3.set(10)
+        node.parm("substeps").set(1)        
+def quickSetups(kwargs):    
+    selected = kwargs["script_value"]  
+    
+    if selected == "combinestatic":    
+        CombineStatic(kwargs)
+        
+    kwargs['parm'].set(0)
+    
+def CombineStatic(kwargs):
+    
+    node = kwargs['node']
+    parent = node.parent()
+    
+    partitionbyindex = parent.createNode("partitionbyindex")
+    null = parent.createNode("null", 'connect_static_frameless')
+    
+    partitionbyindex.setPosition(node.position() + hou.Vector2(2,-2)) 
+    null.setPosition(partitionbyindex.position() + hou.Vector2(2,1)) 
+    
+    partitionbyindex.setInput(0,node,0)
+    partitionbyindex.setInput(1,null,0)
+    
+    partitionbyindex.parm("secondaryrule").set(0)
+
+def openPath(kwargs):
+    import os
+    
+    node = kwargs['node']     
+    
+    dir = node.evalParm("basedir") 
+    if node.evalParm("filemethod"):
+        dir = os.path.dirname(node.evalParm("file"))
+    
+    if os.path.exists(dir):
+        if dir[-1] is not '/':
+            dir += '/'
+        hou.ui.showInFileBrowser(dir)
+    else:
+        hou.ui.displayMessage(text="Could not open directory:\n{dir}.".format(dir=dir),
+                              severity=hou.severityType.ImportantMessage)
+                              
+def versionBump(kwargs, operation='up'):  
+    node = kwargs['node']
+   
+    if 'up' in operation:
+        node.parm("version").set(node.evalParm("version") + 1)
+    else:
+        node.parm("version").set(max(node.evalParm("version") - 1,1)) 
+        
+def openProfile(kwargs):
+    import os 
+    node = kwargs['node']
+    
+    pane_tab = hou.ui.curDesktop().createFloatingPaneTab(hou.paneTabType.PerformanceMonitor)
+    pane_tab.setPin(True)
+
+    hperffile = node.evalParm("hprofileoutput")     
+    if os.path.exists(hperffile):
+        hou.perfMon.loadProfile(hperffile)
+        

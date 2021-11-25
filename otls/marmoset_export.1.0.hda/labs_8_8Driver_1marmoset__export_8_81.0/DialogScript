@@ -1,0 +1,277 @@
+# Dialog script for labs::marmoset_export::1.0 automatically generated
+
+{
+    name	labs::marmoset_export::1.0
+    script	gamedev::rop_marmoset_export
+    label	"Labs Marmoset ROP"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input 1"
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    parm {
+        name    "true"
+        label   "True"
+        type    toggle
+        invisible
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupradio {
+        name    "folder2"
+        label   "Mview"
+
+        parm {
+            name    "btnCreateMview"
+            label   "Export"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hm().MviewRender(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "openmarmoset"
+            label   "Open Marmoset Viewer after Export"
+            type    toggle
+            default { "1" }
+            hidewhen "{ true == 1 }"
+        }
+        parm {
+            name    "vm_picture2"
+            label   "Output"
+            type    file
+            default { "$HIP/render/$HIPNAME.$OS.mview" }
+            menureplace {
+                [ "opmenu -l mantra1 vm_picture" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+    }
+
+    groupradio {
+        name    "folder2_1"
+        label   "Image"
+
+        parm {
+            name    "renderimagebutton"
+            label   "Export"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hm().ImageRender(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "res_override"
+            label   "Resolution"
+            type    intvector2
+            joinnext
+            size    2
+            default { "1920" "1080" }
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "res_overrideMenu"
+            label   "Choose Resolution"
+            type    button
+            nolabel
+            default { "0" }
+            menumini {
+                [ "echo `pythonexprs(\"__import__('toolutils').parseDialogScriptMenu('FBres')\")`" ]
+            }
+            parmtag { "script_callback" "opparm . res_override ( `arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)` aspect_override ( `arg(\"$script_value\", 2)` )" }
+        }
+        parm {
+            name    "sampling"
+            label   "Sampling"
+            type    ordinal
+            joinnext
+            default { "16" }
+            menu usetokenvalue {
+                "1"     "1x"
+                "4"     "4x"
+                "9"     "9x"
+                "16"    "16x"
+                "25"    "25x"
+                "100"   "100x"
+                "400"   "400x"
+            }
+        }
+        parm {
+            name    "transparentbg"
+            label   "Transparent Background"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "vm_picture"
+            label   "Output"
+            type    file
+            default { "$HIP/render/$HIPNAME.$OS.png" }
+            menureplace {
+                [ "opmenu -l mantra1 vm_picture" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+    }
+
+    groupradio {
+        name    "folder2_2"
+        label   "Export to Marmoset"
+        tabbreak
+
+        parm {
+            name    "export"
+            label   "Export"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].hm().ExportMarmoset(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder3"
+        label   "Rendering"
+
+        parm {
+            name    "camera"
+            label   "Camera"
+            type    oppath
+            default { "" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!OBJ/CAMERA!!" }
+            parmtag { "oprelative" "." }
+        }
+        groupsimple {
+            name    "folder0"
+            label   "Range"
+            hidewhen "{ true == 1 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "framerangemode"
+                label   "Valid Frame Range"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Render Current Frame"
+                    "1" "Render Frame Range"
+                }
+            }
+            parm {
+                name    "framerange"
+                label   "Frame Range"
+                type    intvector2
+                size    2
+                default { "$RFSTART" "$RFEND" }
+                disablewhen "{ framerangemode == 0 }"
+                range   { -1 1 }
+            }
+        }
+
+        parm {
+            name    "vobject"
+            label   "Candidate Objects"
+            type    oplist
+            default { "" }
+            help    "Objects will not be output if their display flag is off"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!OBJ!!" }
+            parmtag { "oprelative" "/obj" }
+        }
+        parm {
+            name    "usecustomskylight"
+            label   "Skylight"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu {
+                "0" "Preset"
+                "1" "Image"
+            }
+        }
+        parm {
+            name    "customskylight"
+            label   "Image"
+            type    image
+            joinnext
+            default { "" }
+            hidewhen "{ usecustomskylight == 0 }"
+        }
+        parm {
+            name    "skylightpreset"
+            label   "Name"
+            type    ordinal
+            default { "0" }
+            hidewhen "{ usecustomskylight == 1 }"
+            menu {
+                [ "import glob, os" ]
+                [ "" ]
+                [ "node = kwargs['node']" ]
+                [ "librarypath = node.parm(\"librarypath\").evalAsString()" ]
+                [ "installroot = os.path.dirname(node.parm(\"installdir\").evalAsString())" ]
+                [ "defaulttbsky = os.path.join(installroot, \"data\", \"sky\", \"default.tbsky\")" ]
+                [ "" ]
+                [ "tbskyfiles = glob.glob(librarypath+\"**/*.tbsky\", recursive=True)" ]
+                [ "tbskyfiles.insert(0, defaulttbsky)" ]
+                [ "" ]
+                [ "returnlist = []" ]
+                [ "for tbsky in tbskyfiles:" ]
+                [ "    returnlist.append(os.path.abspath(tbsky))" ]
+                [ "    returnlist.append(os.path.basename(os.path.abspath(tbsky)))" ]
+                [ "" ]
+                [ "" ]
+                [ "return returnlist" ]
+                language python
+            }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder4"
+        label   "Settings"
+
+        parm {
+            name    "installdir"
+            label   "Marmoset Executable"
+            type    file
+            default { "C:/Program Files/Marmoset/Toolbag 4/toolbag.exe" }
+        }
+        parm {
+            name    "librarypath"
+            label   "Marmoset Library"
+            type    directory
+            default { "C:/ProgramData/Marmoset Toolbag 4/library/" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "materialmapping"
+            label   "Material Mapping"
+            type    file
+            default { "$SIDEFXLABS/misc/materials/MaterialMapping.json" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

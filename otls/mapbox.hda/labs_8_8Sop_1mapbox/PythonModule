@@ -1,10 +1,16 @@
-from PySide2 import QtWebEngineWidgets, QtWidgets
-import urllib2
-import os 
-from math import sin, cos, sqrt, atan2, radians, pow
-import time 
+import os
 import platform
 import ssl
+
+from math import sin, cos, sqrt, atan2, radians
+from hutil.Qt import QtWidgets, QtWebEngineWidgets
+
+try:
+    from urllib.request import urlopen
+except:
+    from urllib2 import urlopen
+
+
 # approximate radius of earth in km
 R = 6371.0
 
@@ -143,18 +149,18 @@ def refresh(node, force=True):
 
         
         #urllib2.urlretrieve(terrain, terrain_path, context=ssl._create_unverified_context())
-        terrain_data = urllib2.urlopen(terrain_url, context=ssl._create_unverified_context())
+        terrain_data = urlopen(terrain_url, context=ssl._create_unverified_context())
         with open(terrain_path, 'wb') as output:
             output.write(terrain_data.read())
             output.close()
         #urllib2.urlretrieve(color_url, color_path, context=ssl._create_unverified_context())
-        color_data = urllib2.urlopen(color_url, context=ssl._create_unverified_context())
+        color_data = urlopen(color_url, context=ssl._create_unverified_context())
         with open(color_path, 'wb') as output:
             output.write(color_data.read())
             output.close()
         #urllib2.urlretrieve(osm_url, osm_path, context=ssl._create_unverified_context())
         print(osm_url)
-        osm_data = urllib2.urlopen(osm_url, context=ssl._create_unverified_context())
+        osm_data = urlopen(osm_url, context=ssl._create_unverified_context())
         with open(osm_path, 'wb') as output:
             output.write(osm_data.read())
             output.close()
@@ -184,7 +190,7 @@ def launch_map(hidden=False):
     if not API_KEY:
         API_KEY = node.parm("api_key").eval()
         
-    url = os.environ["HOUDINI_USER_PREF_DIR"] + "/mapbox/mapbox_map.html?#" + str(lon) + "," + str(lat) + "," + str(zoom) + "," + API_KEY
+    url = os.environ["HOUDINI_USER_PREF_DIR"] + "/SideFXLabs/misc/mapbox/mapbox_map.html?#" + str(lon) + "," + str(lat) + "," + str(zoom) + "," + API_KEY
     if platform.system() != "Windows":
         url = "file://" + url
         

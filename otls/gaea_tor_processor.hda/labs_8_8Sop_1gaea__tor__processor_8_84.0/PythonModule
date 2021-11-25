@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-import subprocess, os, sys, platform
+import subprocess, os, platform
 
 
 def GetGaeaRegistryInstall(a_node):
@@ -8,7 +8,7 @@ def GetGaeaRegistryInstall(a_node):
         try:
             import _winreg as winreg
         except:
-            import winreg as winreg
+            import winreg
 
         try:
             if a_node.parm("bBleedingEdge").evalAsInt() == 1:
@@ -65,7 +65,7 @@ def ProcessTor(a_node):
     if automation_file == "" or not os.path.isfile(automation_file):
         raise hou.Error("Missing Automation Tor File.")
 
-    if a_node.parm("generated_gaeaparms") == None:
+    if a_node.parm("generated_gaeaparms") is None:
         LoadXML(a_node)
 
     # Export All Maps
@@ -163,9 +163,8 @@ def RunGaea(a_node, cmd, gaea_dir):
 
     with hou.InterruptableOperation(a_node.name(), open_interrupt_dialog=True) as Operation:
         Process = subprocess.Popen(" ".join(cmd), startupinfo=si, stdout=subprocess.PIPE, cwd=gaea_dir)
-
-        # # Process is still running
-        while Process.poll() == None:
+        # Process is still running
+        while Process.poll() is None:
             try:
                 Operation.updateProgress(0.0)
             # User interrupted
@@ -177,7 +176,7 @@ def RunGaea(a_node, cmd, gaea_dir):
 def ResetInterface(a_node):
     ParmGroup = a_node.parmTemplateGroup()
 
-    if a_node.parm("generated_gaeaparms") != None:
+    if a_node.parm("generated_gaeaparms") is not None:
         for spareparm in ParmGroup.find("generated_gaeaparms").parmTemplates():
             ParmGroup.remove(spareparm.name())
         ParmGroup.remove("generated_gaeaparms")
@@ -214,7 +213,6 @@ def LoadXML(a_node):
 
     if not os.path.isfile(os.path.abspath("".join(automation_file))):
         raise hou.Error("Could not find TOR file. Please make sure to specify a valid path")
-        return
 
     cmd = ['"'+gaea_path+'"']
     cmd.append('"'+automation_file+'"')
@@ -228,14 +226,13 @@ def LoadXML(a_node):
 
     if not os.path.isfile(automation_xml):
         raise hou.Error("Could not find XML file. Please make sure Houdini has writing privileges in the directory where the .tor file is located!")
-        return
 
     XMLTree = ET.parse(automation_xml)
     XMLRoot = XMLTree.getroot()
     ParmGroup = a_node.parmTemplateGroup()
     FolderGroup = a_node.parm("generated_gaeaparms")
 
-    if FolderGroup == None:
+    if FolderGroup is None:
         FolderGroup = hou.FolderParmTemplate("generated_gaeaparms", "Gaea Controls", folder_type=hou.folderType.Simple, ends_tab_group=True)
 
     ParmGroup.insertAfter(ParmGroup.findIndices("sepparm"), FolderGroup)
@@ -258,7 +255,7 @@ def LoadXML(a_node):
             
             name = LineEntry['Variable']
             label = LineEntry['Name']
-            type = LineEntry['Type']
+            parmtype = LineEntry['Type']
             default = LineEntry['Default']
             owner = LineEntry["Owner"]
 
@@ -268,24 +265,24 @@ def LoadXML(a_node):
             if a_node.parm(name) == None:
                 SpareParm = None
 
-                if type == "int":
+                if parmtype == "int":
                     SpareParm = hou.IntParmTemplate(name, label, 1, default_value=(int(default),), min=int(LineEntry['Min']), max=int(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
-                elif type == "double":
+                elif parmtype == "double":
                     SpareParm = hou.FloatParmTemplate(name, label, 1, default_value=(float(default),), min=float(LineEntry['Min']), max=float(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
-                elif type == "bool":
+                elif parmtype == "bool":
                     SpareParm = hou.ToggleParmTemplate(name, label, default_value=eval(default), script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
-                elif type == "choice":
+                elif parmtype == "choice":
                     MenuValues = tuple(LineEntry['Choices'].split(','))
                     SpareParm = hou.MenuParmTemplate(name, label, menu_items=MenuValues, default_value=int(default), menu_type=hou.menuType.Normal, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
 
-                elif type == "in":
+                elif parmtype == "in":
                     SpareParm = hou.StringParmTemplate(name, label, 1, default_value=(default,), string_type=hou.stringParmType.Regular, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     SpareParm.setMenuType(hou.menuType.StringReplace)
                     SpareParm.setItemGeneratorScript("import hou\ntry:\n    AllModuleNames = set(kwargs['node'].node('in').geometry().primStringAttribValues('name'))\n    ModulePairs = [[x, x] for x in AllModuleNames]\n    return sum(ModulePairs, [])\nexcept:\n    return ['', '']")
@@ -293,7 +290,7 @@ def LoadXML(a_node):
 
                     ParmGroup.appendToFolder(ParmGroup.find("generated_houdinioutputfolder"), SpareParm)
 
-                elif type == "out":
+                elif parmtype == "out":
                     Channels = LineEntry["Channels"]
                     SpareParm = hou.StringParmTemplate("c" +Channels+ "_" + name, label, 1, default_value=(default,), string_type=hou.stringParmType.Regular, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     
@@ -304,7 +301,7 @@ def LoadXML(a_node):
                     ParmGroup.appendToFolder(ParmGroup.find("generated_houdiniinputfolder"), SpareParm)
 
                 else:
-                    raise hou.Error("{0} {1} {2} {3} cannot be processed.".format(name, label, type, default))
+                    raise hou.Error("{0} {1} {2} {3} cannot be processed.".format(name, label, parmtype, default))
 
     a_node.setParmTemplateGroup(ParmGroup)
     os.remove(automation_xml)

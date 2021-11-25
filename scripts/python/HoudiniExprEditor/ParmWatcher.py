@@ -25,10 +25,7 @@
 
 import hou
 import os
-import sys
 import time
-import subprocess
-import hdefereval
 import tempfile
 import hashlib
 
@@ -105,7 +102,7 @@ def get_config_file():
 
 def set_external_editor():
 
-    r = QtWidgets.QFileDialog.getOpenFileName(hou.ui.mainWindow(),
+    r = QtWidgets.QFileDialog.getOpenFileName(hou.qt.mainWindow(),
                                                 "Select an external editor program")
     if r[0]:
 
@@ -132,6 +129,7 @@ def which_executable(pgm):
         p = os.path.join(p,pgm)
         if os.path.exists(p) and os.access(p,os.X_OK):
             return p
+    return
 
 def get_external_editor():
 

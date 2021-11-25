@@ -2,75 +2,71 @@ import hou, os
 
 
 def ImportFBX(kwargs):
-        node = kwargs["node"]
+    node = kwargs["node"]
+    
+    FileOnDisk = node.parm("sFBXFile").evalAsString()
+    
+    if os.path.isfile(FileOnDisk):
+
+        MaterialMode = hou.fbxMaterialMode.PrincipledShaders
+        ObjNet = node.node("objnet1")
+        ObjNet.deleteItems(ObjNet.children(), disable_safety_checks=False)
+
+        ImportBonesAndSkin = (node.parm("bImportBoneSkin").evalAsInt() == 1)
+        ImportAnimation = (node.parm("bImportAnimation").evalAsInt() == 1)
+        ImportMaterials = (node.parm("bImportMaterials").evalAsInt() == 1)
+        ConvertToYUp = (node.parm("bConvertYUp").evalAsInt() == 1)
+        UnlockGeometry = (node.parm("bUnlockGeo").evalAsInt() == 1)
+        EmbeddedImport = (node.parm("bEmbeddedImport").evalAsInt() == 1)
+        ConvertUnits = (node.parm("bConvertUnits").evalAsInt() == 1)
+
+        # Destroying old instance of geometry if not embedded import... For example on reimport
+        if hou.node(node.parm("sImportPath").evalAsString()) is not None:
+            hou.node(node.parm("sImportPath").evalAsString()).destroy(disable_safety_checks=False)
+
+        FBXFiles = hou.hipFile.importFBX(FileOnDisk, suppress_save_prompt=True, merge_into_scene=True, import_cameras=False, import_joints_and_skin=ImportBonesAndSkin, import_geometry=True, import_lights=False, import_animation=ImportAnimation, import_materials=ImportMaterials, resample_animation=False, resample_interval=1.0, override_framerate=False,framerate=-1, hide_joints_attached_to_skin=True, convert_joints_to_zyx_rotation_order=False, material_mode=MaterialMode, compatibility_mode=hou.fbxCompatibilityMode.Maya, single_precision_vertex_caches=False, triangulate_nurbs=False, triangulate_patches=False, import_global_ambient_light=False, import_blend_deformers_as_blend_sops=False, segment_scale_already_baked_in=True, convert_file_paths_to_relative=True, unlock_geometry=UnlockGeometry, unlock_deformations=False, import_nulls_as_subnets=False, import_into_object_subnet=True, convert_into_y_up_coordinate_system=ConvertToYUp, create_sibling_bones=True, override_scene_frame_range=False, convert_units=ConvertUnits)
         
-        FileOnDisk = node.parm("sFBXFile").evalAsString()
-        
-        if os.path.isfile(FileOnDisk):
-
-                MaterialMode = hou.fbxMaterialMode.PrincipledShaders
-                ObjNet = node.node("objnet1")
-                ObjNet.deleteItems(ObjNet.children(), disable_safety_checks=False)
-
-                ImportBonesAndSkin = False if node.parm("bImportBoneSkin").evalAsInt() == 0 else True
-                ImportAnimation = False if node.parm("bImportAnimation").evalAsInt() == 0 else True
-                ImportMaterials = False if node.parm("bImportMaterials").evalAsInt() == 0 else True
-                ConvertToYUp = False if node.parm("bConvertYUp").evalAsInt() == 0 else True
-                UnlockGeometry = False if node.parm("bUnlockGeo").evalAsInt() == 0 else True
-                EmbeddedImport = False if node.parm("bEmbeddedImport").evalAsInt() == 0 else True
-                ConvertUnits = False if node.parm("bConvertUnits").evalAsInt() == 0 else True
-
-                # Destroying old instance of geometry if not embedded import... For example on reimport
-                if hou.node(node.parm("sImportPath").evalAsString()) != None:
-                        hou.node(node.parm("sImportPath").evalAsString()).destroy(disable_safety_checks=False)
-
-                FBXFiles = hou.hipFile.importFBX(FileOnDisk, suppress_save_prompt=True, merge_into_scene=True, import_cameras=False, import_joints_and_skin=ImportBonesAndSkin, import_geometry=True, import_lights=False, import_animation=ImportAnimation, import_materials=ImportMaterials, resample_animation=False, resample_interval=1.0, override_framerate=False,framerate=-1, hide_joints_attached_to_skin=True, convert_joints_to_zyx_rotation_order=False, material_mode=MaterialMode, compatibility_mode=hou.fbxCompatibilityMode.Maya, single_precision_vertex_caches=False, triangulate_nurbs=False, triangulate_patches=False, import_global_ambient_light=False, import_blend_deformers_as_blend_sops=False, segment_scale_already_baked_in=True, convert_file_paths_to_relative=True, unlock_geometry=UnlockGeometry, unlock_deformations=False, import_nulls_as_subnets=False, import_into_object_subnet=True, convert_into_y_up_coordinate_system=ConvertToYUp, create_sibling_bones=True, override_scene_frame_range=False, convert_units=ConvertUnits)
-                
-                # Destroy embedded FBX nodes, and make a reference to the copied object
-                if EmbeddedImport:
-                        GeneratedSubnet = FBXFiles[0].copyTo(ObjNet)
-                        FBXFiles[0].destroy(disable_safety_checks=False)
-                else:
-                        GeneratedSubnet = FBXFiles[0]
-
-                # Store reference to created object
-                node.parm("sImportPath").set(GeneratedSubnet.path())
-
-
-                geos = [x for x in GeneratedSubnet.children() if x.type().name() == "geo"]
-                for geo in geos:
-
-                        # Captures
-                        for capture in [x for x in geo.children() if x.type().name() == "capture"]:
-                                capture.setHardLocked(False)
-
-                        # Material assigned on Render tab on obj level.... bad!
-                        if geo.parm("shop_materialpath").evalAsString() != "":
-                                matnode = geo.createNode("material")
-                                curdisplaynode = geo.displayNode()
-                                matnode.setNextInput(curdisplaynode)
-                                matnode.setRenderFlag(True)
-                                matnode.setDisplayFlag(True)
-
-                                Val = geo.parm("shop_materialpath").evalAsString().split("/materials/")
-                                matnode.parm("shop_materialpath1").set("../../materials/"+Val[-1])
-
-                        else: # Material nodes inside the geo contained... need to repath
-                                matassignmentnodes = [x for x in geo.children() if x.type().name() == "material"]
-                                for matassignment in matassignmentnodes:
-                                        numassignments = matassignment.parm("num_materials").evalAsInt()
-
-                                        for x in range(numassignments):
-                                                Val = matassignment.parm("shop_materialpath%s" % (x+1)).evalAsString().split("/materials/")
-                                                matassignment.parm("shop_materialpath%s" % (x+1)).set("../../materials/"+Val[-1])
-
-                # Dealing with an embedded 
-                if EmbeddedImport:
-                        node.setCurrent(True, clear_all_selected=False)
-                        node.node("object_merge1").cook(force=True)
-                        
-
+        # Destroy embedded FBX nodes, and make a reference to the copied object
+        if EmbeddedImport:
+            GeneratedSubnet = FBXFiles[0].copyTo(ObjNet)
+            FBXFiles[0].destroy(disable_safety_checks=False)
         else:
-                raise hou.NodeError("The file %s does not exist." % FileOnDisk)
+            GeneratedSubnet = FBXFiles[0]
 
+        # Store reference to created object
+        node.parm("sImportPath").set(GeneratedSubnet.path())
+
+        geos = [x for x in GeneratedSubnet.children() if x.type().name() == "geo"]
+        for geo in geos:
+
+            # Captures
+            for capture in [x for x in geo.children() if x.type().name() == "capture"]:
+                capture.setHardLocked(False)
+
+            # Material assigned on Render tab on obj level.... bad!
+            if geo.parm("shop_materialpath").evalAsString() != "":
+                matnode = geo.createNode("material")
+                curdisplaynode = geo.displayNode()
+                matnode.setNextInput(curdisplaynode)
+                matnode.setRenderFlag(True)
+                matnode.setDisplayFlag(True)
+
+                Val = geo.parm("shop_materialpath").evalAsString().split("/materials/")
+                matnode.parm("shop_materialpath1").set("../../materials/"+Val[-1])
+
+            else: # Material nodes inside the geo contained... need to repath
+                matassignmentnodes = [x for x in geo.children() if x.type().name() == "material"]
+                for matassignment in matassignmentnodes:
+                    numassignments = matassignment.parm("num_materials").evalAsInt()
+
+                    for x in range(numassignments):
+                        Val = matassignment.parm("shop_materialpath%s" % (x+1)).evalAsString().split("/materials/")
+                        matassignment.parm("shop_materialpath%s" % (x+1)).set("../../materials/"+Val[-1])
+
+        # Dealing with an embedded 
+        if EmbeddedImport:
+            node.setCurrent(True, clear_all_selected=False)
+            node.node("object_merge1").cook(force=True)
                 
+    else:
+        raise hou.NodeError("The file %s does not exist." % FileOnDisk)

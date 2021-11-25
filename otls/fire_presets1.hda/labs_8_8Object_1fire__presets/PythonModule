@@ -1,10 +1,6 @@
-def applyParmList(node, list):
-    for (pm, value) in list:
-        #print (pm + " : " + value)
+def applyParmList(node, parmlist):
+    for (pm, value) in parmlist:
         node.parm(pm).set(value)
-        #node.parm('visible' + str(i)).set(visible)
-        #node.parm('enable' + str(i)).set(True)
-        #i = i + 1
         
 def applyPresets(node, firetype):
     defaults = [ ('divsize', '0.01'),
@@ -125,14 +121,12 @@ def invokePresetMenu(kwargs):
     node = kwargs['node']
     firetype = kwargs['script_value0']
     applyPresets(node, firetype)
-    # Reset our own value.
-    # node.parm('presets').set('choose')
     
 def printChanges(kwargs):
     node = kwargs['node']
     allParms = node.parms()
     for pm in allParms:
-        if (pm.isAtDefault() == False):
+        if not pm.isAtDefault():
             name = pm.name()
             value = str(pm.eval())
             print (name + " : " + value)

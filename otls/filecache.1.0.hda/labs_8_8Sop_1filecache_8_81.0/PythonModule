@@ -1,0 +1,742 @@
+import os
+import re
+import shutil
+import subprocess
+ 
+def openProfile(kwargs):
+    import os 
+    node = kwargs['node']
+    
+    pane_tab = hou.ui.curDesktop().createFloatingPaneTab(hou.paneTabType.PerformanceMonitor)
+    pane_tab.setPin(True)
+
+    hperffile = node.evalParm("perffile")     
+    if os.path.exists(hperffile):
+        hou.perfMon.loadProfile(hperffile)        
+
+def saveToDisk(kwargs):
+
+    node = kwargs['node']
+             
+    hardenBaseName(node)
+    enableLoadFromDisk(node)
+    
+    if node.evalParm("enablewedging") and node.evalParm("domergewedges"):
+        node.node('read_wedged_cache').parm('reload').pressButton()
+    else:
+        node.node('read_back').parm('reload').pressButton()
+    
+    
+def saveToDiskInBackground(kwargs):    
+    import nodegraphtopui
+    
+    node = kwargs['node']       
+    
+    node.parm('targettopnetwork').set('topnet_cache')   
+    nodegraphtopui.dirtyAll(kwargs['node'].parm('targettopnetwork').evalAsNode(), False)
+    nodegraphtopui.cookOutputNode(kwargs['node'].parm('targettopnetwork').evalAsNode())
+       
+    hardenBaseName(node)
+    enableLoadFromDisk(node)
+    
+def submitJob(kwargs):
+
+    hardenBaseName(node)
+    enableLoadFromDisk(node)   
+    
+def generateStatic(kwargs):
+    import nodegraphtopui
+    
+    node = kwargs['node']  
+    
+    node.parm('targettopnetwork').set('topnet_display')
+    
+    nodegraphtopui.dirtyAll(kwargs['node'].parm('targettopnetwork').evalAsNode(), False)
+    nodegraphtopui.generateStatic(kwargs['node'].parm('targettopnetwork').evalAsNode())
+    #kwargs['node'].hdaViewerStateModule().updateInfoBox()
+
+def dirtyAll(kwargs):
+    import nodegraphtopui
+    nodegraphtopui.dirtyAll(kwargs['node'].parm('targettopnetwork').evalAsNode(), False)
+
+def generateStaticWedges(kwargs):
+    node = kwargs['node']
+    parm = kwargs["parm"]
+    
+    topnode = node.node(node.evalParm('targettopnetwork'))
+    outnode = topnode.node("output0")   
+    
+    if parm.eval() == 0:
+        dirtyAll(kwargs)      
+    else:
+        generateStatic(kwargs)
+        # init wedge attributes by selecting first work item.
+        pdg_node = outnode.getPDGNode()
+        work_id = 0
+        work_items = pdg_node.workItems  
+        for work_item in work_items:
+            if work_item.numericAttribute("wedgeindex") == 0:
+                work_id = work_item.id
+                break
+        outnode.setSelectedWorkItem(work_id)   
+        
+   
+        
+def buildWorkItems(kwargs):
+    node = kwargs['node']   
+    hou.hipFile.save(save_to_recent_files=False)  
+    node.parm('targettopnetwork').set('topnet_display') 
+    topnode = node.node("{}/output0".format(node.evalParm('targettopnetwork')))
+    topnode.dirtyTasks(False)
+    topnode.executeGraph(False,True,True,False)     
+    #generateStaticWorkItems(kwargs)
+          
+def createWedgeGeo(kwargs):
+    node = kwargs['node']
+    parm = kwargs['parm']
+    
+    parmname = parm.name()
+    digit = int(parmname.split('createwedgegeo')[1])
+    
+    attribparmname = "attrib" + str(digit)
+    geopathparmname = "geopath" + str(digit)
+    
+    attribname = node.evalParm(attribparmname)    
+    choices = ['Float', 'Integer', 'Vector', 'Color']
+    defaults = [-1]
+    selected = hou.ui.selectFromList(choices,
+                                     defaults,
+                                     True,
+                                     message=None,
+                                     title='Data Type',
+                                     column_header='Data Types',
+                                     clear_on_cancel=True,
+                                     width=200,
+                                     height=155)
+
+    if selected:
+        parent = node.parent()
+        pos = node.position()
+        
+        nwedgesparmname = 'wedgecount'
+        
+        pointgenerate = parent.createNode('pointgenerate','create_wedgepoints')        
+        pointgenerate.parm('npts').setExpression('ch("' + pointgenerate.relativePathTo(node) + '/' + nwedgesparmname + '")')
+        pointgenerate.setPosition(pos + hou.Vector2(2,2))
+       
+        adjustnode = None
+        parms = None
+        if selected[0] == 0: # Float
+            adjustnode = parent.createNode('attribadjustfloat', 'wedge_attributes')
+            parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
+                        'valuetype': 'rand',
+                        'dodefault': 1,
+                        'default': 1 }
+            
+        elif selected[0] == 1: # Integer
+            adjustnode = paren
+            t.createNode('attribadjustinteger', 'wedge_attributes')
+            parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
+                        'valuetype': 'rand',
+                        'dodefault': 1,
+                        'default': 1 }
+        elif selected[0] == 2: # Vector
+            adjustnode = parent.createNode('attribadjustvector', 'wedge_attributes')
+            parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
+                        'dirlen_valuetype': 'rand',
+                        'dirlen_noiserange': 'zcentered',
+                        'dodefault': 1 }
+        elif selected[0] == 3: # Color
+            adjustnode = parent.createNode('attribadjustcolor', 'wedge_attributes')
+            parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
+                        'valuetype': 'rand',                        
+                        'dodefault': 1 } 
+                        
+        adjustnode.setParms(parms)        
+        node.parm(geopathparmname).set(node.relativePathTo(adjustnode)) 
+        adjustnode.setPosition(pos + hou.Vector2(2,1))
+        adjustnode.setNextInput(pointgenerate) 
+        
+        adjustnode.setGenericFlag(hou.nodeFlag.Display,True)
+        adjustnode.setGenericFlag(hou.nodeFlag.Render,True)
+        adjustnode.setCurrent(True,True)
+        
+def setRange(kwargs):
+
+    node = kwargs['node']
+    
+    parm = kwargs['parm']
+    r1 = node.parm("f1")
+    r2 = node.parm("f2")
+    r3 = node.parm("f3")   
+    ss = node.parm("substeps")
+    
+    if parm.evalAsString() == "fstartend":
+        r1.deleteAllKeyframes()
+        r2.deleteAllKeyframes()
+        r1.setExpression('$FSTART')
+        r2.setExpression('$FEND')
+    elif parm.evalAsString() == "rfstartend":
+        r1.deleteAllKeyframes()
+        r2.deleteAllKeyframes()
+        r1.setExpression('$RFSTART')
+        r2.setExpression('$RFEND')        
+    elif parm.evalAsString() == "nosubsteps":
+        r3.deleteAllKeyframes()
+        r3.set(1)
+        node.parm("substeps").set(1)
+    elif parm.evalAsString() == "substeps2":
+        r3.deleteAllKeyframes()
+        r3.set(1)
+        ss.deleteAllKeyframes()
+        ss.set(2)       
+    elif parm.evalAsString() == "substeps4":
+        r3.deleteAllKeyframes()
+        r3.set(1)
+        ss.deleteAllKeyframes()
+        ss.set(4)  
+    elif parm.evalAsString() == "substeps5":
+        r3.deleteAllKeyframes()
+        r3.set(1)   
+        ss.deleteAllKeyframes()
+        ss.set(5)  
+    elif parm.evalAsString() == "every2":
+        r3.deleteAllKeyframes()
+        r3.set(2)
+        ss.set(1)
+    elif parm.evalAsString() == "every5":
+        r3.deleteAllKeyframes()
+        r3.set(5)
+        ss.set(1)
+    elif parm.evalAsString() == "every10":
+        r3.deleteAllKeyframes()
+        r3.set(10)
+        ss.set(1)
+
+def openPath(kwargs):
+    import os
+    
+    node = kwargs['node']     
+    
+    dir = node.evalParm("basedir") 
+    if node.evalParm("filemethod"):
+        dir = os.path.dirname(node.evalParm("file"))
+    
+    if os.path.exists(dir):
+        if dir[-1] is not '/':
+            dir += '/'
+        hou.ui.showInFileBrowser(dir)
+    else:
+        hou.ui.displayMessage(text="Could not open directory:\n{dir}.".format(dir=dir),
+                              severity=hou.severityType.ImportantMessage)  
+                              
+def versionBump(kwargs, operation='up'):  
+    node = kwargs['node']
+   
+    if 'up' in operation:
+        node.parm("version").set(node.evalParm("version") + 1)
+    else:
+        node.parm("version").set(max(node.evalParm("version") - 1,1))
+        
+def get_directory_size(directory):
+    """Returns the `directory` size in bytes."""   
+        
+    total = 0
+    try:
+        # print("[+] Getting the size of", directory)
+        for entry in os.scandir(directory):
+            if entry.is_file():
+                # if it's a file, use stat() function
+                total += entry.stat().st_size
+            elif entry.is_dir():
+                # if it's a directory, recursively call this function
+                total += get_directory_size(entry.path)
+    except NotADirectoryError:
+        # if `directory` isn't a directory, get the file size then
+        return os.path.getsize(directory)
+    except PermissionError:
+        # if for whatever reason we can't open the folder, return 0
+        return 0
+    return total
+    
+def get_size_format(b, factor=1024, suffix="B"):
+    """
+    Scale bytes to its proper byte format
+    e.g:
+        1253656 => '1.20MB'
+        1253656678 => '1.17GB'
+    """
+    for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
+        if b < factor:
+            return f"{b:.2f}{unit}{suffix}"
+        b /= factor
+    return f"{b:.2f}Y{suffix}"
+    
+def deleteDirectory(dir):
+
+    try:
+        shutil.rmtree(dir)                   
+    except OSError as e:
+        print ("Error: %s - %s." % (e.filename, e.strerror)) 
+    
+def isVersionDir(node, dir):  
+    
+    prefix = 'v'   
+    regex = r'^{}\d+$'.format(prefix)   
+    if re.match(regex, dir):
+        return True
+    return False
+    
+def isWedgeDir(node, dir):  
+    
+    prefix = 'w'  
+    regex = r'^{}\d+$'.format(prefix)   
+    if re.match(regex, dir):
+        return True
+    return False
+    
+def getDigitsFromDir(node, dir):
+
+    return re.match('.*?([0-9]+)$', dir).group(1)
+    
+def deleteVersions(kwargs):
+    
+    node = kwargs['node']   
+    
+    if (node.parm('frame').isAtDefault(compare_expressions=True) == False or
+        node.parm('framestr').isAtDefault(compare_expressions=True) == False or
+        node.parm('versionstr').isAtDefault(compare_expressions=True) == False or 
+        node.parm('wedgestr').isAtDefault(compare_expressions=True) == False or
+        node.parm('cachedir').isAtDefault(compare_expressions=True) == False or
+        node.parm('cachename').isAtDefault(compare_expressions=True) == False or 
+        node.parm('sopoutput').isAtDefault(compare_expressions=True) == False):       
+            hou.ui.displayMessage('Path construction defaults have been changed.', title="Remove Caches")      
+            return
+   
+    cachedir = node.evalParm('cachedir')  
+    cachename = node.evalParm("cachename")   
+    dover = node.evalParm('enableversion')    
+    dowedging = node.evalParm('enablewedging') 
+    basedir = cachedir
+    
+    if dover:
+        basedir = os.path.split(basedir)[0]
+        
+    if dowedging:
+        basedir = os.path.split(basedir)[0]  
+         
+    if not os.path.exists(os.path.join(basedir)):
+        return 
+        
+    verdirs = [dir for dir in os.listdir(basedir) if os.path.isdir(os.path.join(basedir,dir))] 
+    
+    if not verdirs:
+        return    
+    
+    entries = []
+    elements = {}
+    
+    for verdir in verdirs:
+        if isVersionDir(node,verdir):      
+            verstr = 'v{}'.format(getDigitsFromDir(node, verdir))           
+            elements[verstr] = verdir
+            
+    for key in elements:        
+        verdir = elements[key]      
+        size = get_directory_size(os.path.join(basedir,verdir))             
+        entries.append('{} ({})'.format(key,get_size_format(size)))
+  
+    entries.sort()
+    all_selected = hou.ui.selectFromList(entries, message=basedir,title="Delete Versions",column_header="Cached Versions", width=300,height=300)
+    
+    remove_dirs = []
+    if all_selected:
+        for selected in all_selected:
+            verstr = entries[selected].split(' ')[0]            
+            remove_dirs.append(elements[verstr])     
+       
+        remove_dirs.sort()
+        confirm_message = "Are you sure you want to delete the following folders in\n"
+        confirm_message += "{} ?\n\nThis will also delete any wedges belonging to these versions!\n\n".format(basedir)
+        confirm_message += "{} ?\n\n".format(basedir)
+        confirm_message += "\n".join(remove_dirs)
+        
+        confirm = hou.ui.displayMessage(confirm_message, buttons=("Yes", "No"), severity=hou.severityType.Warning, default_choice=(1),title="Remove Caches")            
+        if confirm == 0:
+            for dir in remove_dirs:            
+                deleteDirectory(os.path.join(basedir,dir)) 
+                
+            if len(os.listdir(basedir)) == 0:
+                deleteDirectory(basedir)   
+            
+def deleteWedges(kwargs):
+    
+    node = kwargs['node']   
+    
+    if (node.parm('frame').isAtDefault(compare_expressions=True) == False or
+        node.parm('framestr').isAtDefault(compare_expressions=True) == False or
+        node.parm('versionstr').isAtDefault(compare_expressions=True) == False or 
+        node.parm('wedgestr').isAtDefault(compare_expressions=True) == False or
+        node.parm('cachedir').isAtDefault(compare_expressions=True) == False or
+        node.parm('cachename').isAtDefault(compare_expressions=True) == False or 
+        node.parm('sopoutput').isAtDefault(compare_expressions=True) == False):       
+            hou.ui.displayMessage('Path construction defaults have been changed.', title="Remove Caches")      
+            return
+    
+    cachedir = node.evalParm('cachedir')  
+    cachename = node.evalParm("cachename")   
+    dover = node.evalParm('enableversion') 
+    dowedging = node.evalParm('enablewedging')    
+    
+    basedir = cachedir   
+    basedir = os.path.split(basedir)[0]
+
+    if not os.path.exists(os.path.join(basedir)):
+        return 
+        
+    wedgedirs = [dir for dir in os.listdir(basedir) if os.path.isdir(os.path.join(basedir,dir))] 
+    
+    if not wedgedirs:
+        return    
+    
+    entries = []
+    elements = {}
+    
+    for wedgedir in wedgedirs:
+        if isWedgeDir(node,wedgedir):      
+            wedgestr = 'w{}'.format(getDigitsFromDir(node, wedgedir))            
+            elements[wedgestr] = wedgedir
+            
+    for key in elements:        
+        wedgedir = elements[key]      
+        size = get_directory_size(os.path.join(basedir,wedgedir))             
+        entries.append('{} ({})'.format(key,get_size_format(size)))
+  
+    entries.sort()
+    all_selected = hou.ui.selectFromList(entries, message=basedir,title="Delete Wedges",column_header="Cached Wedges", width=300,height=300)
+    
+    remove_dirs = []
+    if all_selected:
+        for selected in all_selected:
+            wedgestr = entries[selected].split(' ')[0]            
+            remove_dirs.append(elements[wedgestr])     
+       
+        remove_dirs.sort()
+        confirm_message = "Are you sure you want to delete the following folders in\n"
+        confirm_message += "{} ?\n\n".format(basedir)
+        confirm_message += "\n".join(remove_dirs)
+        
+        confirm = hou.ui.displayMessage(confirm_message, buttons=("Yes", "No"), severity=hou.severityType.Warning, default_choice=(1),title="Remove Caches")            
+        if confirm == 0:
+            for dir in remove_dirs:            
+                deleteDirectory(os.path.join(basedir,dir)) 
+                
+            if len(os.listdir(basedir)) == 0:
+                deleteDirectory(basedir)                    
+                       
+def setExpressionParm(_parm_from,_parm_to, chref="ch"):
+    
+    node_from = _parm_from.node()
+    node_to   = _parm_to.node()
+    
+    relative_path = node_to.relativePathTo(node_from)
+    
+    parm_template = _parm_from.parmTemplate()
+    
+    if chref is not "chsop":
+        if (parm_template.type() == hou.parmTemplateType.String):
+            chref = "chs"
+    
+    expression = '%s("%s/%s")' % (chref,relative_path,_parm_from.name())
+    _parm_to.setExpression(expression)
+    
+def setRelativePath(_node_from,_parm_to):
+
+    node_to   = _parm_to.node()
+    relative_path = node_to.relativePathTo(_node_from)   
+    
+    _parm_to.set(relative_path)  
+ 
+def setMultiParm(refnode, node2, parm):
+
+    parmpath = node2.relativePathTo(refnode) + '/' + parm
+    command = 'opmultiparm ' + node2.path() + ' "' + parm + '" "' + parmpath + '"'
+    #print(command)
+    hou.hscript(command)
+    
+def createTOPFetch(kwargs):
+    node = kwargs['node']
+    
+    name = node.name()
+    file_name = node.parm("basename").eval()
+    path = node.parm("topfilecachepath").eval()    
+    topnet = hou.node(path)
+    
+    if not topnet:
+        import os
+        root = hou.node(os.path.dirname(path))
+        topnet = root.createNode('topnet', os.path.basename(path))        
+    
+    if topnet:
+        fetch = topnet.createNode("topfetch",name)
+        setRelativePath(hou.node(node.path() + "/topnet_cache/filecacheversioned1"),fetch.parm("toppath"))
+        
+def createTOPFileCache(kwargs):   
+    node = kwargs['node']
+    
+    name = node.name()
+    file_name = node.parm("basename").eval()
+    path = node.parm("topfilecachepath").eval()    
+    topnet = hou.node(path)
+    
+    if not topnet:
+        import os
+        root = hou.node(os.path.dirname(path))
+        topnet = root.createNode('topnet', os.path.basename(path)) 
+        topnet.node("localscheduler").parm("maxprocsmenu").set(-1)
+    
+    if topnet:
+        rop_node = topnet.createNode("topfilecache",name)
+        
+        # Add Spare Parms
+        
+        tg = rop_node.parmTemplateGroup()  
+        
+        local_folder = hou.FolderParmTemplate("localfolder", "Local", folder_type=hou.folderType.Simple)
+        
+        local_folder.addParmTemplate(hou.properties.parmTemplate('top','local_single'))  
+         
+        for template in hou.properties.parmTemplate('top','local_is_CPU_number_set_collection').parmTemplates():
+            local_folder.addParmTemplate(template)  
+            
+        for template in hou.properties.parmTemplate('top','local_usehoudinimaxthreads_collection').parmTemplates():
+            local_folder.addParmTemplate(template)
+            
+        for template in hou.properties.parmTemplate('top','local_minfreemem_collection').parmTemplates():
+            local_folder.addParmTemplate(template)        
+       
+        schedulers = tg.findFolder('Schedulers')
+        tg.appendToFolder(schedulers, local_folder)
+        rop_node.setParmTemplateGroup(tg)
+        
+        parm_names = []
+        
+        parm_names.append("basedir")
+        parm_names.append("basename")
+        parm_names.append("filemethod")         
+        parm_names.append("file")
+        parm_names.append("filetype")        
+        parm_names.append("enableversion")
+        parm_names.append("version")
+        #parm_names.append("enablesubversion")
+        #parm_names.append("subversion")        
+        parm_names.append("timedependent") 
+        
+       
+        parm_names.append("enablewedging")        
+        
+        parm_names.append("trange")
+        parm_names.append("cachesim")
+        parm_names.append("initsim")
+        parm_names.append("useframeoverride") 
+        parm_names.append("frameoverride") 
+        parm_names.append("substeps") 
+        parm_names.append("specificrange")
+        parm_names.append("f1")
+        parm_names.append("f2")
+        parm_names.append("f3")       
+        parm_names.append("framesperbatch")
+        
+        
+        parm_names.append("cachespecificrange")
+        parm_names.append("specificrange")
+        parm_names.append("cachespecificwedges")
+        parm_names.append("specificwedges")   
+       
+        parm_names.append("doclampfirst")
+        parm_names.append("clampfirst")
+        parm_names.append("doclamplast")
+        parm_names.append("clamplast")
+        
+        parm_names.append("domergeframes")
+        parm_names.append("mergeframes")       
+        parm_names.append("mergeframerange1")
+        parm_names.append("mergeframerange2")
+        parm_names.append("mergeframerange3") 
+        parm_names.append("mergesubsteps") 
+        parm_names.append("mergespecificrange")        
+        parm_names.append("domergewedges")
+        parm_names.append("mergewedges")     
+        parm_names.append("mergewedgeidxrangemin")
+        parm_names.append("mergewedgeidxrangemax")
+        parm_names.append("mergespecificwedges")
+        
+        parm_names.append("alfprogress")  
+        parm_names.append("saveretry")
+        #parm_names.append("enablepdgservice")
+        #parm_names.append("pdgservicename")        
+        parm_names.append("enableperfmon")
+        parm_names.append("mkpath")        
+        parm_names.append("savebackground")
+        
+        #parm_names.append("selected_wedge_index")
+        #parm_names.append("execute_wedges")
+        #parm_names.append("execute_wedge_rangex")
+        #parm_names.append("execute_wedge_rangey")
+        #parm_names.append("execute_single_wedge")     
+
+        
+        parm_names.append("local_single") 
+        parm_names.append("local_is_CPU_number_set") 
+        parm_names.append("local_CPUs_to_use") 
+        parm_names.append("local_useminfreemem") 
+        parm_names.append("local_minfreemem")
+        parm_names.append("local_minfreemempct")
+        
+        parm_names.append("wedgecount") 
+        parm_names.append("nwedgeattribs")
+        
+        parm_names.append("tprerender")
+        parm_names.append("prerender")
+        parm_names.append("lprerender")
+       
+        parm_names.append("tpreframe")
+        parm_names.append("preframe")
+        parm_names.append("lpreframe")
+        
+        parm_names.append("tpostframe")
+        parm_names.append("postframe")
+        parm_names.append("lpostframe")
+        
+        parm_names.append("tpostwrite")
+        parm_names.append("postwrite")
+        parm_names.append("lpostwrite")
+        
+        parm_names.append("tpostrender")
+        parm_names.append("postrender")
+        parm_names.append("lpostrender")   
+       
+        parm_names.append("frame")
+        parm_names.append("framestr")        
+        parm_names.append("versionstr") 
+        parm_names.append("wedgestr")
+        
+        parm_names.append("cachename")
+        parm_names.append("cachedir")
+        parm_names.append("sopoutput")
+        parm_names.append("perffile")
+        parm_names.append("descriptivelabel")
+        
+        for parm_name in parm_names:  
+            rop_node.parm(parm_name).deleteAllKeyframes()
+            setExpressionParm(node.parm(parm_name),rop_node.parm(parm_name))           
+        
+            
+        # Custom Expression for Houdin Max Threads
+        setExpressionParm(node.parm("local_is_CPU_number_set"),rop_node.parm("local_usehoudinimaxthreads"))
+        setExpressionParm(node.parm("local_CPUs_to_use"),rop_node.parm("local_houdinimaxthreads"))
+        
+        setRelativePath(hou.node(node.path() + "/OUT_CACHE"),rop_node.parm("soppath"))
+        
+        #rop_node.parm("hqueue_is_CPU_number_set").setExpression('ch("local_is_CPU_number_set")')
+        #rop_node.parm("hqueue_CPUs_to_use").setExpression('ch("local_CPUs_to_use")')
+        #rop_node.parm("hqueue_usehoudinimaxthreads").setExpression('ch("local_usehoudinimaxthreads")')
+        #rop_node.parm("hqueue_houdinimaxthreads").setExpression('ch("local_houdinimaxthreads")')
+        
+       
+        for idx in range(0,node.evalParm("nwedgeattribs")):
+            multiparm_names = []    
+            sidx = str(idx+1)
+            multiparm_names.append("attrib" + sidx) 
+            multiparm_names.append("wedgetype" + sidx)             
+            multiparm_names.append("minvalue" + sidx) 
+            multiparm_names.append("maxvalue" + sidx)
+            multiparm_names.append("dobatchsize" + sidx) 
+            multiparm_names.append("batchsize" + sidx)             
+            multiparm_names.append("randsample" + sidx)
+            multiparm_names.append("randomseed" + sidx)
+            #multiparm_names.append("randomseedmode" + sidx)
+            #multiparm_names.append("randomfloatseed" + sidx)
+            multiparm_names.append("geopath" + sidx)
+            multiparm_names.append("values" + sidx)
+            multiparm_names.append("valuesdefault" + sidx)
+            
+            for multiparm_name in multiparm_names:    
+                if "geopath" in multiparm_name:
+                    setExpressionParm(node.parm(multiparm_name),rop_node.parm(multiparm_name),'chsop')
+                else:
+                    setExpressionParm(node.parm(multiparm_name),rop_node.parm(multiparm_name))
+            
+            '''
+            for specificidx in range(0,node.evalParm("nvalues" + sidx)):
+                specific_multiparm_names = []   
+                specific_multiparm_names.append("floatvalue" + sidx + "_" + str(specificidx + 1))   
+                
+                for specific_multiparm_name in specific_multiparm_names:       
+                    setExpressionParm(node.parm(specific_multiparm_name),rop_node.parm(specific_multiparm_name)) 
+            '''
+            
+        setMultiParm(node,rop_node,"attrib#")
+        setMultiParm(node,rop_node,"wedgetype#")       
+        setMultiParm(node,rop_node,"minvalue#")
+        setMultiParm(node,rop_node,"maxvalue#")
+        setMultiParm(node,rop_node,"randsample#")
+        setMultiParm(node,rop_node,"randomseed#")
+        setMultiParm(node,rop_node,"dobatchsize#")
+        setMultiParm(node,rop_node,"batchsize#")
+        setMultiParm(node,rop_node,"geopath#")
+        setMultiParm(node,rop_node,"values#")
+        setMultiParm(node,rop_node,"valuesdefault#")
+        
+
+        
+        
+        
+        
+        #setMultiParm(node,rop_node,"floatvalue#_#")
+        
+def createRenderGeometry(kwargs):
+    node = kwargs['node']
+    parent_node = node.parent()
+    location = node.parm("rendergeopath").eval()
+    root = hou.node(location)
+    
+    if root:
+        rendergeo_node = root.createNode("labs::rendergeo", "RENDER_" + node.evalParm("basename"))        
+        setRelativePath(hou.node(node.path()),rendergeo_node.parm("fcsoppath"))
+        
+def reload(kwargs):
+    node = kwargs['node']
+    node.parm("reload").pressButton()
+
+def hardenBaseName(node):
+
+    if node.evalParm('hardenbasename') and node.evalParm('filemethod') == 0:        
+        if node.parm('basename').rawValue() is not node.parm('basename').evalAsString():
+            basename = node.parm('basename').evalAsString()
+            node.parm('basename').deleteAllKeyframes()
+            node.parm('basename').revertToDefaults()
+            node.parm('basename').set(basename,follow_parm_reference=False)  
+            
+def enableLoadFromDisk(node):
+
+    if node.evalParm('loadfromdiskonsave'):
+        node.parm('loadfromdisk').deleteAllKeyframes()
+        node.parm('loadfromdisk').revertToDefaults()
+        node.parm('loadfromdisk').set(1,follow_parm_reference=False)
+        
+def getOpenCommand(filepath):
+
+    import platform
+    
+    OS = platform.system().lower()
+    
+    if 'windows' in OS:
+        opener = 'start'
+    elif 'osx' in OS or 'darwin' in OS:
+        opener = 'open'
+    else:
+        opener = 'xdg-open'
+    return '{opener} {filepath}'.format(opener=opener, filepath=filepath)     
+    
+                  

@@ -4,15 +4,17 @@ import collections
 import io
 import struct
 
-# Py3 support
+# Py3 str vs Py2 basestring
 try:
-    basestring
-    from collections import Mapping, Iterable
+    _BaseStringType = basestring
 except NameError:
-    basestring = str
-    long = int
-    from collections.abc import Mapping, Iterable
+    _BaseStringType = str
 
+# In Python 3 collections.Mapping and collections.Iterable moved to collections.abc
+try:
+    _collections_abc = collections.abc
+except AttributeError:
+    _collections_abc = collections
 
 MAX_UINT8 = 2 ** 8 - 1
 MAX_UINT16 = 2 ** 16 - 1
@@ -145,7 +147,7 @@ class NiagaraData(object):
 
         def dumpb(self):
             """ Return a byte array of the header in binary format. """
-            with BytesIO() as f:
+            with io.BytesIO() as f:
                 self.dump(f)
                 return f.getvalue()
 
@@ -213,7 +215,6 @@ class NiagaraData(object):
             write_value(f, self.num_points, self._type_num_points)
 
             write_string(f, 'frame_data')
-            attrib_data_types = self._header.attrib_data_type
             f.write(Markers.ARRAY_START)
 
         def dump_end(self, f):
@@ -228,6 +229,7 @@ class NiagaraData(object):
             Raises an IndexError if there are less points than ``num_points`` in ``frame_data``.
 
             """
+            attrib_data_types = self._header.attrib_data_type
             num_points_written = 0
             for sample in self.frame_data:
                 write_array(f, sample, attrib_data_types, clamp_values_to_pack_type)
@@ -251,7 +253,7 @@ class NiagaraData(object):
 
         def dumpb(self, clamp_values_to_pack_type=True):
             """ Returns a byte-array containing the frame entry in the custom binary format. """
-            with BytesIO() as f:
+            with io.BytesIO() as f:
                 self.dump(f, clamp_values_to_pack_type)
                 return f.getvalue()
 
@@ -318,7 +320,7 @@ class NiagaraData(object):
 
     def dumpb(self, clamp_values_to_pack_type=True):
         """ Returns a bytes array of the point cache in custom binary format. """
-        with BytesIO() as f:
+        with io.BytesIO() as f:
             self.dump(f, clamp_values_to_pack_type)
             return f.getvalue()
 
@@ -374,7 +376,7 @@ def write_basic_value(f, value, pack_type=None, clamp=True):
     elif pack_type == Markers.TYPE_CHAR:
         if isinstance(value, bytes):
             casted_value = value
-        elif isinstance(value, basestring):
+        elif isinstance(value, _BaseStringType):
             casted_value = value.encode('utf-8')
         else:
             casted_value = str(value).encode('utf-8')
@@ -383,12 +385,11 @@ def write_basic_value(f, value, pack_type=None, clamp=True):
             casted_value = casted_value[0:1]
         else:
             casted_value = b'\0'
-    elif (pack_type == Markers.TYPE_INT8 or pack_type == Markers.TYPE_UINT8 or
-            pack_type == Markers.TYPE_INT16 or pack_type == Markers.TYPE_UINT16 or
-            pack_type == Markers.TYPE_INT32 or pack_type == Markers.TYPE_UINT32 or
-            pack_type == Markers.TYPE_INT64 or pack_type == Markers.TYPE_UINT64):
+    elif pack_type in (Markers.TYPE_INT8, Markers.TYPE_UINT8,
+            Markers.TYPE_INT16, Markers.TYPE_UINT16, Markers.TYPE_INT32,
+            Markers.TYPE_UINT32, Markers.TYPE_INT64, Markers.TYPE_UINT64):
         casted_value = int(value)
-    elif pack_type == Markers.TYPE_FLOAT32 or pack_type == Markers.TYPE_FLOAT64:
+    elif pack_type in (Markers.TYPE_FLOAT32, Markers.TYPE_FLOAT64):
         casted_value = float(value)
     else:
         casted_value = value
@@ -447,9 +448,9 @@ def write_object(f, obj, pack_type=None, clamp=True):
 
     """
     f.write(Markers.OBJECT_START)
-    pack_type_is_mapping = bool(isinstance(pack_type, Mapping))
+    pack_type_is_mapping = bool(isinstance(pack_type, _collections_abc.Mapping))
     for key, value in obj.items():
-        if not isinstance(key, basestring):
+        if not isinstance(key, _BaseStringType):
             raise TypeError('Mapping keys must be strings: {0}'.format(key))
         write_string(f, key)
         if pack_type_is_mapping:
@@ -481,7 +482,7 @@ def write_array(f, obj, pack_type=None, clamp=True):
     """
     open_array(f)
     if obj:
-        if pack_type and not isinstance(pack_type, bytes) and isinstance(pack_type, Iterable):
+        if pack_type and not isinstance(pack_type, bytes) and isinstance(pack_type, _collections_abc.Iterable):
             index = 0
             for value in obj:
                 write_value(f, value, pack_type[index], clamp)
@@ -512,18 +513,18 @@ def write_value(f, value, pack_type=None, clamp=True):
         ``ValueError``: If the type of ``value`` is not supported.
 
     """
-    if isinstance(value, Mapping):
+    if isinstance(value, _collections_abc.Mapping):
         write_object(f, value, pack_type, clamp)
-    elif isinstance(value, (bytes, basestring)):
+    elif isinstance(value, (bytes, _BaseStringType)):
         if pack_type == Markers.TYPE_CHAR:
             # Slice value to ensure we don't get an int in python 3 if value is
             # bytes
             write_basic_value(f, value[0:1] if value else 0, pack_type, clamp)
         else:
             write_string(f, value)
-    elif isinstance(value, Iterable):
+    elif isinstance(value, _collections_abc.Iterable):
         write_array(f, value, pack_type, clamp)
-    elif isinstance(value, (int, float, bool, None)):
+    elif value is None or isinstance(value, (int, float, bool)):
         write_basic_value(f, value, pack_type, clamp)
     else:
         raise TypeError('Unsupported type for {0}'.format(value))

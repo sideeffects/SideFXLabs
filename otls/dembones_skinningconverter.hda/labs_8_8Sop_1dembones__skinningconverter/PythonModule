@@ -2,7 +2,7 @@ import hou, subprocess, os, zipfile, platform, ntpath
 
 
 def unzip_file(zip_file, destination_path):
-        zipf = zipfile.ZipFile(zip_file, 'r', zipfile.ZIP_DEFLATED)
+    with zipfile.ZipFile(zip_file, 'r', zipfile.ZIP_DEFLATED) as zipf:
         zipf.extractall(destination_path)
 
 def Convert(kwargs):
@@ -68,15 +68,15 @@ def Convert(kwargs):
 
 
         # Starting the process
-        Process = subprocess.Popen(cmd, startupinfo=StartupInfo)
+        with subprocess.Popen(cmd, startupinfo=StartupInfo) as Process:
 
-        # Process is still running
-        while Process.poll() == None:
-            try:
-                Operation.updateProgress(0.0)
-            # User interrupted
-            except hou.OperationInterrupted:
-                Process.kill()
+            # Process is still running
+            while Process.poll() is None:
+                try:
+                    Operation.updateProgress(0.0)
+                # User interrupted
+                except hou.OperationInterrupted:
+                    Process.kill()
 
         # Cleanup
         if os.path.exists(ABCFile):

@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from houdinihelp import api
+from houdinihelp import api, server
 
 import xml.etree.ElementTree as ET
 import glob
@@ -10,7 +10,7 @@ import sys
 import logging
 import hou
 
-HOUDINI_VERSION = ["17.5", "18.0", "18.5"]
+HOUDINI_VERSION = ["17.5", "18.0", "18.5", "19.0"]
 MAJOR_MINOR = "%s.%s" % hou.applicationVersion()[:2]
 
 logging.basicConfig(level=logging.DEBUG)
@@ -19,6 +19,21 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
+def should_be_checked(node):
+    node_type = node.type()
+    scope, namespace, name, version = node_type.nameComponents()
+      
+    unversioned_name = "{0}/{1}".format(node_type.category().name(), name)
+    if namespace:
+        unversioned_name = namespace + "::" + unversioned_name
+
+    preferred_node = hou.preferredNodeType(unversioned_name)
+    is_old_version = preferred_node is not None and preferred_node != node_type
+
+    if is_old_version or node_type.hidden():
+        return False
+    else:
+        return True
 
 def check_labs_namespace(node):
     correct_namespace = "gamedev" if MAJOR_MINOR == "17.5" else "labs"
@@ -46,8 +61,8 @@ def check_output_node(node):
 
 
 def check_input_names(node):
-    for name in node.inputLabels():
-        if "Sub-Network" in name:
+    for _name in node.inputLabels():
+        if "Sub-Network" in _name:
             return False
 
     return True
@@ -68,83 +83,81 @@ def check_tab_submenu(node):
 
     return True
 
-
-def check_version(node):
-    version = node.type().definition().version()
-    if version != "":
-        return True
-    return False
-
 def check_docs(node):
     nodetype = node.type()
-    pages = api.get_pages()
-    helppath = api.nodetype_to_path(nodetype)
-    sourcepath = pages.source_path(helppath)
-    return pages.store.exists(sourcepath)
-
-
+    app = server.default_houdini_app()
+    pages = api.get_pages(app)
+    return api.nodeHasHelp(pages, nodetype)
 
 def check_analytics(node):
     sections = node.type().definition().sections()
     if "OnCreated" in sections:
         if "analytics" in sections["OnCreated"].contents():
             return True
+    return False
 
 
 def check_parm_names(node):
     parmTemplates = list(node.type().parmTemplates())
 
     for parmtemplate in parmTemplates:
-        name = parmtemplate.name()
+        _name = parmtemplate.name()
 
-        if name.startswith('newparameter') or name.startswith('parm') or name.startswith('folder'):
+        if _name.startswith('newparameter') or _name.startswith('parm') or _name.startswith('folder'):
             return False
     return True
 
 
 def run_tests(node):
     node_name = node.type().description() + "(" + node.type().name() + ")"
-    ok = True
+    _ok = True
 
     if not check_labs_namespace(node):
         print(node_name + ": __SmoketestError__ : Incorrect Namespace")
-        ok = False
+        _ok = False
+
+    if not should_be_checked(node):  # Do this check after checking namespace, to prevent any nodes without namespace getting accidentally skipped.
+        return _ok
+
+    if not check_labs_prefix(node):
+        print(node_name + ": __SmoketestWarning__ : Missing Labs Label Prefix")
+        _ok = False
 
     if not check_icon(node):
         print(node_name + ": __SmoketestWarning__ : Generic Icon")
-        ok = False
+        _ok = False
 
     if not check_output_node(node):
         print(node_name + ":  __SmoketestWarning__ : Missing Output Node")
-        ok = False
+        _ok = False
 
     if not check_input_names(node):
         print(node_name + ":  __SmoketestWarning__ : Generic Input Name ")
-        ok = False
+        _ok = False
 
     if not check_tab_submenu(node):
         print(node_name + ": __SmoketestError__ : Wrong Tab Menu Entry")
-        ok = False
+        _ok = False
 
     if not check_analytics(node):
         print(node_name + ": __SmoketestWarning__ : No Analytics Code")
-        ok = False
+        _ok = False
 
-    # if not check_docs(node):
-    #     print(node_name + ": __SmoketestWarning__ : No Documentation")
-    #     ok = False
+    if not check_docs(node):
+        print(node_name + ": __SmoketestWarning__ : No Documentation")
+        _ok = False
 
     if not check_parm_names(node):
         # print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
-        # ok = False
+        # _ok = False
         pass
 
-    return ok
+    return _ok
 
 
 if __name__ == '__main__':
     if MAJOR_MINOR not in HOUDINI_VERSION:
-        print("Houdini %s is not supported. Please use Houdini 17.5-18.5" % MAJOR_MINOR)
+        print("Houdini %s is not supported. Please use Houdini 17.5-19.0. (Or add support in smoke_tests.py)" % MAJOR_MINOR)
         sys.exit(1)
 
     nodes_to_ignore = \
@@ -157,11 +170,14 @@ if __name__ == '__main__':
              "labs::substance_material"]
 
     current_folder = os.path.dirname(os.path.abspath(__file__))
-    repo_dir = os.getenv("WORKSPACE", "C:\\Github\\SideFXLabs")
+    repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
     if MAJOR_MINOR != "17.5":
-        repo_dir = os.getenv("WORKSPACE", "C:\\Github\\SideFXLabs")
+        repo_dir = os.getenv("WORKSPACE", "C:\\SideFXLabs")
     if len(sys.argv) > 1:
         repo_dir = sys.argv[1] + "/SideFXLabs"
+
+    with open(os.path.join(repo_dir, "automation", "smoketest", "deprecations.txt"), "r") as file:
+        deprecations = [line.rstrip() for line in file.readlines()]
 
     hda_files = glob.glob(os.path.join(repo_dir, "otls/*.hda"))
 
@@ -173,6 +189,7 @@ if __name__ == '__main__':
     rop_node = hou.node("/out")
     shop_node = hou.node("/shop")
     top_node = hou.node("/obj").createNode("topnet")
+    lop_node = hou.node("/stage")
 
     categories = {"Cop2": cop_node, "Object": obj_node, "Driver": rop_node,
                   "Sop": sop_node, "Shop": shop_node}
@@ -180,7 +197,7 @@ if __name__ == '__main__':
         categories["Dop"] = dop_node
         categories["Vop"] = vop_node
         categories["Top"] = top_node
-
+        categories["Lop"] = lop_node
 
     num_nodes = 0
     num_skipped = 0
@@ -194,9 +211,9 @@ if __name__ == '__main__':
         for definition in definitions:
             name = definition.nodeType().name()
 
-            num_nodes = num_nodes + 1
+            num_nodes += 1
 
-            if name not in nodes_to_ignore:
+            if name not in nodes_to_ignore and name not in deprecations:
                 print("Attempting to Create Node : " + name)
                 ok = True
                 try:
@@ -205,14 +222,14 @@ if __name__ == '__main__':
                     ok = run_tests(new_node)
                     new_node.destroy()
                     if not ok:
-                        num_failed = num_failed + 1
+                        num_failed += 1
                 except Exception as e:
                     print(e)
                     ok = False
-                    num_failed = num_failed + 1
+                    num_failed += 1
                 print("Tests", "passed" if ok else "FAILED", "on :", name)
             else:
-                num_skipped = num_skipped + 1
+                num_skipped += 1
 
     print("Completed", num_nodes, "tests")
     print("Skipped", num_skipped)

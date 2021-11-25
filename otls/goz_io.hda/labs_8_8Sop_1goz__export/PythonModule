@@ -1,6 +1,11 @@
 import os
 import subprocess
 import platform
+import labutils
+
+import warnings
+
+warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
 OS = platform.system()
 MacOS = False
@@ -38,9 +43,8 @@ def get_mesh_paths(meshes_to_send):
     paths_to_meshes = []
     for mesh in meshes_to_send:
         object_path_file = os.path.join(zbrush_dir, "GoZ_ObjectPath.txt")
-        f = open(object_path_file, 'w')
-        f.write(mesh + "\n")
-        f.close()
+        with open(object_path_file, 'w') as f:
+            f.write(mesh + "\n")
 
         object_path_exe = os.path.join(zbrush_dir, "GoZMakeObjectPath.exe")
         if MacOS:
@@ -48,21 +52,17 @@ def get_mesh_paths(meshes_to_send):
         subprocess.call(object_path_exe)
 
         object_path_file = os.path.join(zbrush_dir, "GoZ_ObjectPath.txt")
-        f = open(object_path_file, 'r')
-        for line in f.readlines():
-            print (line)
-            paths_to_meshes.append(line)
-
-        f.close()
+        with open(object_path_file, 'r') as f:
+            for line in f.readlines():
+                paths_to_meshes.append(line)
 
     return paths_to_meshes
 
 def write_object_path(path_to_meshes):
     object_path_file = os.path.join(zbrush_dir, "GoZ_ObjectList.txt")
-    f = open(object_path_file, 'w')
-    for path in path_to_meshes:
-        f.write(path.replace("\\", "/") + "\n")
-    f.close()
+    with open(object_path_file, 'w') as f:
+        for path in path_to_meshes:
+            f.write(path.replace("\\", "/") + "\n")
 
 def export_subtool(instance):
     meshes_to_send = [instance.parm("tool_name").eval()]
@@ -96,18 +96,7 @@ def export(kwargs):
     object_path_exe = os.path.join(zbrush_dir, "GoZBrushFromApp.exe")
     if MacOS:
         object_path_exe = os.path.join(zbrush_dir, "GoZBrushFromApp.app/Contents/MacOS/GoZBrushFromApp")
-    subprocess.call(object_path_exe)   
-    
-def saveSectionToFile(section, file_name, mode="w"):
-    '''Given a section, save it to a file.'''
-    try:
-        section_file = open(file_name, mode)    
-        section_file.write(section.contents())
-        section_file.close()
-        return True
-    except Exception as e:
-        print (e)
-        return False 
+    subprocess.call(object_path_exe)
     
 def install(node):
 
@@ -123,7 +112,7 @@ def install(node):
         dirname = os.path.dirname(file_path)
         if not os.path.exists(dirname):
             os.makedirs(dirname)
-        success = saveSectionToFile(sections[ascii_file], file_path)
+        labutils.extract_section_file(sections[ascii_file], file_path, "w")
 
 def start_server():
     import hrpyc 

@@ -1,0 +1,192 @@
+import hou, subprocess, os, shutil, threading, tempfile, labutils, json
+from PySide2.QtWebEngineWidgets import QWebEngineView
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+
+# Parms
+Camera, FrameType, FrameRange, Objects, bSkyLight, SkyLightPreset, CustomSkyLight, ExportDir = tuple(range(8)) 
+MarmosetInstall, OpenMarmoset, MviewLocation, Resolution, RenderLocation, SampleNum, Transparent, MarmosetProcessor  = tuple(range(8)) 
+
+SupportedNodeTypes = ['geo', 'hlight::2.0']
+
+# Render Image / Video
+def ImageRender(node):
+    CollectSceneInfo(node)
+    if FrameType == 0:
+        MarmosetProcessor.RefreshMarmosetData(node, Export=0)
+    else:
+        MarmosetProcessor.RefreshMarmosetData(node, Export=1)
+
+# Render MView
+def MviewRender(node):
+    CollectSceneInfo(node)
+    MarmosetProcessor.RefreshMarmosetData(node, Export=2)
+
+def ExportMarmoset(node):
+    CollectSceneInfo(node)
+    MarmosetProcessor.RefreshMarmosetData(node, Export=3)
+
+# Get Parm Values
+def CollectSceneInfo(node):
+    global Camera, FrameType, FrameRange, Objects, bSkyLight, SkyLightPreset, CustomSkyLight, ExportDir
+    global MarmosetInstall, OpenMarmoset, MviewLocation, Resolution, RenderLocation, SampleNum, Transparent, MarmosetProcessor
+
+    Camera = hou.node(node.parm("camera").evalAsString())
+    FrameType = node.parm("framerangemode").evalAsInt()
+    FrameRange = [node.parm("framerangex").evalAsInt(), node.parm("framerangey").evalAsInt()] if FrameType == 1 else [hou.intFrame(), hou.intFrame()]
+    Objects = [x for x in node.parm("vobject").evalAsNodes() if x.type().name() in SupportedNodeTypes and x.isObjectDisplayed()]  
+    bSkyLight = node.parm("usecustomskylight").evalAsInt()
+    SkyLightPreset = node.parm("skylightpreset").evalAsString()
+    CustomSkyLight = node.parm("customskylight").evalAsString()
+    MarmosetInstall = hou.getenv('MARMOSET_TOOLBAG_LOCATION', node.parm("installdir").evalAsString())
+    OpenMarmoset = node.parm("openmarmoset").evalAsInt()
+    MviewLocation = node.parm("vm_picture2").evalAsString()
+    Resolution = [node.parm("res_overridex").evalAsInt(), node.parm("res_overridey").evalAsInt()]
+    RenderLocation = node.parm("vm_picture").evalAsString()
+    SampleNum = node.parm("sampling").evalAsInt()
+    Transparent = node.parm("transparentbg").evalAsInt()
+    MarmosetProcessor = MarmosetViewer()
+    ExportDir = os.path.join("\\".join(tempfile.gettempdir().split("\\")[:-1]), "MHoudini")
+
+
+# Save all Embedded Files to disk
+def InitializeProcess(node):
+    NodeDef = node.type().definition()
+    Sections = NodeDef.sections()
+
+    if NodeDef.hasSection("MarmosetExport.py"):
+        labutils.extract_section_file(Sections.get("MarmosetExport.py"), os.path.join(ExportDir, 'MarmosetExport.py'), "wb")
+
+    if NodeDef.hasSection("index.html"):
+        labutils.extract_section_file(Sections.get("index.html"), os.path.join(ExportDir, 'index.html'), "wb")
+
+
+# Marmoset Viewer Processing Class
+class MarmosetViewer(object):
+    def __init__(self):
+        self.ProcessedTextureFiles = []
+
+    # Construct FBX Export ROP
+    def CreateFBXRop(self):
+        FBXRop = hou.node('/out').createNode('filmboxfbx')
+        FBXRop.parm('sopoutput').set(os.path.join(ExportDir, "MarmosetMesh.fbx"))
+        FBXRop.parm('trange').set("normal")
+        FBXRop.parm('f1').deleteAllKeyframes()
+        FBXRop.parm('f2').deleteAllKeyframes()
+        FBXRop.parm('f1').set(FrameRange[0])
+        FBXRop.parm('f2').set(FrameRange[1])
+        FBXRop.parm("buildfrompath").set(1)
+
+        Bundle = None
+        if hou.nodeBundle("marmosetexport"):
+            Bundle = hou.nodeBundle("marmosetexport")
+            Bundle.clear()
+        else:
+            Bundle = hou.addNodeBundle("marmosetexport")
+
+        for node in Objects:
+            Bundle.addNode(node)
+
+        if Camera != None:
+            Bundle.addNode(Camera)
+
+        FBXRop.parm('startnode').set("@"+Bundle.name())
+        return FBXRop
+
+    # Main Function to Prepare Houdini Data for Marmoset Toolbag
+    def RefreshMarmosetData(self, node, Export):
+
+        
+        ################### GEOMETRY EXPORT #########################
+      
+        # Create Temporary Directory for Files
+        labutils.create_directory_if_not_exists(ExportDir)
+        labutils.empty_directory_recursive(ExportDir)
+
+        InitializeProcess(node)
+
+        # Export FBX with ContainerGeo and Children
+        FBXRop = self.CreateFBXRop()
+        FBXRop.render()
+        FBXRop.destroy()
+        
+        # ################### MATERIALS EXPORT #########################
+        # Get all Geometry Type Nodes in Selection
+        GeometryNodes = [x.renderNode() for x in Objects if x.type().name() == "geo"]
+
+        DataObject = hou.node("/obj/").createNode("geo")
+        ObjMerge = DataObject.createNode("object_merge")
+        ObjMerge.parm("objpath1").set(" ".join([x.path() for x in GeometryNodes]))
+
+        if not ObjMerge.geometry().findPrimAttrib("material_override"):
+            OverrideData = DataObject.createNode("labs::material_to_override::1.0")
+            OverrideData.setNextInput(ObjMerge)
+            Enumerate = DataObject.createNode("enumerate")
+            Enumerate.setNextInput(OverrideData)
+        else:
+            Enumerate = DataObject.createNode("enumerate")
+            Enumerate.setNextInput(ObjMerge)
+
+        Enumerate.parm("pieceattrib").set("material_override")
+        Blast = DataObject.createNode("blast")
+        Blast.setNextInput(Enumerate)
+        Blast.parm("group").set("@index!=0")
+
+        BlastGeometry = Blast.geometry()
+        MaterialDicts = {}
+
+        MappingFile = node.parm("materialmapping").evalAsString()
+
+        if BlastGeometry.findPrimAttrib("material_override"):
+            for prim in Blast.geometry().prims():
+                MaterialPath = prim.stringAttribValue("shop_materialpath")
+                MaterialType = hou.node(MaterialPath).type().name()
+                MaterialName = os.path.basename(MaterialPath)
+                MaterialOverride = json.loads(prim.stringAttribValue("material_override"))
+
+                MaterialDescription = labutils.remap_material_override(MaterialType, MaterialOverride, MappingFile)
+
+                for i, key in enumerate(MaterialDescription.keys()):
+                    if str(MaterialDescription[key]).startswith("op:"):
+                        tempimage = os.path.join(ExportDir, "file_{}.jpg".format(i))
+                        labutils.extract_embedded_image(MaterialDescription[key], tempimage)
+                        MaterialDescription[key] = tempimage
+
+                MaterialDicts[MaterialName] = MaterialDescription
+
+        # Create Dictionary Structure JSON Export
+        MaterialDataJSONDict = {}
+        MaterialDataJSONDict['TEXDATA'] = MaterialDicts
+        MaterialDataJSONDict['CAMERA'] = Camera.name() if Camera is not None else ""
+        MaterialDataJSONDict['SKYLIGHT'] = {}
+        MaterialDataJSONDict['SKYLIGHT']['UseCustom'] = bSkyLight
+        MaterialDataJSONDict['SKYLIGHT']['CustomSkyLight'] = CustomSkyLight
+        MaterialDataJSONDict['SKYLIGHT']['Preset'] = SkyLightPreset
+        MaterialDataJSONDict['RENDERTYPE'] = Export
+        MaterialDataJSONDict['RESOLUTION'] = Resolution
+        MaterialDataJSONDict['MVIEWLOCATION'] = MviewLocation
+        MaterialDataJSONDict['RENDERLOCATION'] = RenderLocation
+        MaterialDataJSONDict['FRAMERANGE'] = FrameRange
+        MaterialDataJSONDict['PIXELSAMPLES'] = SampleNum
+        MaterialDataJSONDict['TRANSPARENT'] = Transparent
+        MaterialDataJSONDict['CURRENTFRAME'] = hou.intFrame()
+        DataObject.destroy()
+
+
+        ################### JSON EXPORT #########################
+        # Write JSONDict to JSONFile. Creates if non-existent
+    
+        with open(os.path.join(ExportDir, 'MaterialStylesheet.json'), 'w') as JSONFile:  
+            json.dump(MaterialDataJSONDict, JSONFile, indent=4)
+
+        ################### GENERATE #########################      
+        script = os.path.normpath(os.path.join(ExportDir, 'MarmosetExport.py'))
+
+        if os.path.isfile(MarmosetInstall):
+            p = QProcess()
+            p.setProgram(MarmosetInstall)
+            p.setArguments([script])
+            p.setStandardOutputFile(p.nullDevice())
+            p.setStandardErrorFile(p.nullDevice())
+            p.startDetached()

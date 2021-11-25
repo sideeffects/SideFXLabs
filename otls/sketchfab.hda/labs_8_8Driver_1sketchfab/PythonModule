@@ -1,15 +1,14 @@
-import sys 
 import os 
 import webbrowser
 import json
 import requests 
-from zipfile import ZipFile
-import shutil 
+import shutil
+import hou
 import urllib3
 urllib3.disable_warnings()
 
-import hou
-from PySide2 import QtGui, QtCore, QtWidgets
+from zipfile import ZipFile
+from hutil.Qt import QtWidgets
 
 SKETCHFAB_DOMAIN = 'sketchfab.com'
 SKETCHFAB_API_URL = 'https://api.{}/v3'.format(SKETCHFAB_DOMAIN)
@@ -51,8 +50,8 @@ def doLogin(user, password, node):
             'client_id': CLIENT_ID,
         }
     )
-    json = data.json()
-    if "access_token" not in json:
+
+    if "access_token" not in data.json():
         hou.ui.displayMessage("Login Failed") 
         return 
         
@@ -114,18 +113,15 @@ def upload(node, model_file):
         'isPublished': isPublished, 
     }
 
-    f = open(model_file, 'rb')
-
-    files = {'modelFile': f}
-    try:
-        r = requests.post(
-            model_endpoint, **_get_request_payload(
-                api_key, data, files=files, authentication_password = authentication_method))
-    except requests.exceptions.RequestException as e:
-        print ('An error occured: {0}'.format(e))
-        return
-    finally:
-        f.close()
+    with open(model_file, 'rb') as f:
+        files = {'modelFile': f}
+        try:
+            r = requests.post(
+                model_endpoint, **_get_request_payload(
+                    api_key, data, files=files, authentication_password = authentication_method))
+        except requests.exceptions.RequestException as e:
+            print ('An error occured: {0}'.format(e))
+            return
 
     if r.status_code != requests.codes.created:
         print ('Upload failed with error: {0}'.format(r.json()))

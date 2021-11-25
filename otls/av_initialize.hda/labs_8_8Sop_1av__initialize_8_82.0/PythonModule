@@ -30,28 +30,24 @@ def log(cmd, cache, folder, node):
             print("--------")
             print(node.name())
 
-        logfile = open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a')
-        errorlogfile = open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'a')
+        with open(os.path.join(cache, folder, node.name()+"_log.txt"), 'a') as logfile:
+            with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'a') as errorlogfile:
 
-        StartupInfo = None
-        if os.name == 'nt':
-            StartupInfo = subprocess.STARTUPINFO()
-            subprocess.STARTF_USESHOWWINDOW = 1
-            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                StartupInfo = None
+                if os.name == 'nt':
+                    StartupInfo = subprocess.STARTUPINFO()
+                    subprocess.STARTF_USESHOWWINDOW = 1
+                    StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-        Process = subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo)
+                with subprocess.Popen(cmd, stdout=logfile, stderr=errorlogfile, startupinfo=StartupInfo) as Process:
 
-        # Process is still running
-        while Process.poll() == None:
-            try:
-                Operation.updateProgress(0.0)
-            # User interrupted
-            except hou.OperationInterrupted:
-                Process.kill()
-
-        # Close log file, because Process has ended
-        logfile.close()
-        errorlogfile.close()
+                    # Process is still running
+                    while Process.poll() == None:
+                        try:
+                            Operation.updateProgress(0.0)
+                        # User interrupted
+                        except hou.OperationInterrupted:
+                            Process.kill()
 
         with open(os.path.join(cache, folder, node.name()+"_errorlog.txt"), 'r') as myfile:
             data = myfile.read()
@@ -72,8 +68,8 @@ def cookNode(node):
 
     avnodes = ["01_Camera_Init"]
     for process in avnodes:
-            try:
-                node.node(process).cook(force=True)
-            except:
-                hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
-                return
+        try:
+            node.node(process).cook(force=True)
+        except:
+            hou.ui.displayMessage("Step %s Failed! See log for details!" % process, buttons=('OK',), severity=hou.severityType.Error, title="AliceVision Processing Failed!")
+            return

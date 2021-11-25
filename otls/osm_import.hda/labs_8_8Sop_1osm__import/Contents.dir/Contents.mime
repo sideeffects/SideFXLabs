@@ -32,11 +32,12 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -3.23693 0.291176
-connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+position 36.2594 -65.2933
+connectornextid 1
+flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
+0 "output1"
 }
 inputsNamed3
 {
@@ -48,7 +49,7 @@ stat
 {
   create -1
   modify -1
-  author prisms@threadripper1
+  author simon@LAPTOP-UT28NOSR
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -168,7 +169,7 @@ class OSMNode(object):
         self.lon = xml_node.attrib[\"lon\"]
         for child in xml_node:
             if child.tag == \"tag\":
-                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])#.encode(\"utf-8\")
                 self.tags[clean_tag] = child.attrib[\"v\"]
 
         return self
@@ -188,7 +189,7 @@ class OSMWay(object):
         self.id = xml_node.attrib[\"id\"]
         for child in xml_node:
             if child.tag == \"tag\" and \"k\" in child.attrib:
-                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])#.encode(\"utf-8\")
                 self.tags[clean_tag] = child.attrib[\"v\"]
 
             if child.tag == \"nd\" and \"ref\" in child.attrib:
@@ -210,7 +211,7 @@ class OSMRelation(object):
         self.id = xml_node.attrib[\"id\"]
         for child in xml_node:
             if child.tag == \"tag\" and \"k\" in child.attrib:
-                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])#.encode(\"utf-8\")
                 self.tags[clean_tag] = child.attrib[\"v\"]
 
             if child.tag == \"member\" and \"ref\" in child.attrib:
@@ -369,12 +370,7 @@ class OSMParser(object):
                                     poly.setAttribValue(tag, clean_value)
                             except:
                                 pass
-                                
-                
-
-
-                               
-                    
+                            
         # Marked Nodes 
         if hou.node(\"..\").parm(\"build_nodes\").eval():
             for node in self.tagged_nodes:
@@ -385,15 +381,12 @@ class OSMParser(object):
                 poly.setAttribValue(\"hou_id\", node.id)
                 poly.setAttribValue(\"hou_node\", 1)
                 for tag in node.tags:
-                    #try:
-                        #clean_value = re.sub('[^a-zA-Z0-9.,\\n]', '', node.tags[tag])
-                    clean_value = node.tags[tag].encode(\"utf-8\")
+                    clean_value = re.sub('[^a-zA-Z0-9.,\\n]', '', node.tags[tag])#.encode(\"utf-8\")
+
                     if tag == \"name\":
                         poly.setAttribValue(\"hou_name\", clean_value)
                     else:
                         poly.setAttribValue(tag, clean_value)
-                    #except:
-                    #    print \"Could not set tag: %s with value: %s\"%(tag,clean_value)
                 for point in points:
                     poly.addVertex(point)
 

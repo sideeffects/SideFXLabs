@@ -3,7 +3,8 @@ import logging
 import subprocess
 import platform
 
-HOUDINI_VERSION = "18.5"
+HOUDINI_VERSION = "19.0"
+PYTHON_VERSION = "3.7"
 
 def get_latest_houdini_version():
     logging.info("Determining latest Houdini Version...")
@@ -17,12 +18,12 @@ def get_latest_houdini_version():
         for possible_dir in version_list:
             if HOUDINI_VERSION in possible_dir and not "Reality Capture" in possible_dir:
 
-                return os.path.join(sidefx_path, possible_dir, "bin", "hython2.7.exe")
+                return os.path.join(sidefx_path, possible_dir, "bin", "hython{}.exe".format(PYTHON_VERSION))
 
     elif machineos == "Linux":
         sidefx_path = "/opt/hfs{0}/".format(HOUDINI_VERSION)
 
-        return os.path.join(sidefx_path, "bin", "hython2.7")
+        return os.path.join(sidefx_path, "bin", "hython{}".format(PYTHON_VERSION))
 
 
 latest_houdini = get_latest_houdini_version()
@@ -35,12 +36,12 @@ my_env["PATH"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), "..", 
 my_env["SIDEFXLABS"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), ".."))
 my_env["HOUDINI_DSO_ERROR"] = "1"
 
-print latest_houdini, os.path.isfile(latest_houdini)
+print (latest_houdini, os.path.isfile(latest_houdini))
 
 if os.path.isfile(latest_houdini):
     for filename in os.listdir(local_dir):
         if "test_" in filename and ".py" in filename:
-            print "Running Test:", filename
+            print ("Running Test:", filename)
             subprocess.call([latest_houdini, os.path.join(local_dir, filename)], env=my_env)
 else:
-    print "ERROR, No matching Houdini install found"
+    print ("ERROR, No matching Houdini install found")

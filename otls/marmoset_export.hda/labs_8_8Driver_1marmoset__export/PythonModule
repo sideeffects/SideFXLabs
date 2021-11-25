@@ -1,13 +1,14 @@
 ## Questions: paula@sidefx.com
 ## Last Update: 20-June-2018
 
-import hou, subprocess, os, shutil, json, threading, sys, tempfile
+import hou, subprocess, os, shutil, json, threading, tempfile
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 from BaseHTTPServer import HTTPServer as BaseHTTPServer
 from PySide2.QtWebEngineWidgets import QWebEngineView
 from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
+import labutils
 
 # Parms
 Camera, FrameType, FrameRange, Objects, bSkyLight, SkyLightPreset, CustomSkyLight, JSONDir = tuple(range(8)) 
@@ -15,36 +16,30 @@ MarmosetInstall, OpenMarmoset, MviewLocation, Resolution, RenderLocation, Sample
 
 # Get Parm Values
 def CollectSceneInfo():
-        global Camera, FrameType, FrameRange, Objects, bSkyLight, SkyLightPreset, CustomSkyLight, JSONDir
-        global MarmosetInstall, OpenMarmoset, MviewLocation, Resolution, RenderLocation, SampleNum, Transparent, MarmosetProcessor
-        
-        # Running from Shell?
-        Node = hou.pwd()
-        if Node.name() == "shell1":
-                Node = Node.parent()
+    global Camera, FrameType, FrameRange, Objects, bSkyLight, SkyLightPreset, CustomSkyLight, JSONDir
+    global MarmosetInstall, OpenMarmoset, MviewLocation, Resolution, RenderLocation, SampleNum, Transparent, MarmosetProcessor
+    
+    # Running from Shell?
+    Node = hou.pwd()
+    if Node.name() == "shell1":
+        Node = Node.parent()
 
-        Camera = hou.node(Node.parm("camera").evalAsString())
-        FrameType = Node.parm("iFrameType").evalAsInt()
-        FrameRange = [Node.parm("uFrameRangex").evalAsInt(), Node.parm("uFrameRangey").evalAsInt()] if FrameType == 1 else [hou.intFrame(), hou.intFrame()]
-        Objects = Node.parm("vobject").evalAsNodes()
-        bSkyLight = Node.parm("bCustomSkyLight").evalAsInt()
-        SkyLightPreset = Node.parm("mSkyLightPreset").evalAsString()
-        CustomSkyLight = Node.parm("sCustomSkyLight").evalAsString()
-        MarmosetInstall = hou.getenv('MARMOSET_TOOLBAG_LOCATION', Node.parm("sMarmosetInstall").evalAsString())
-        OpenMarmoset = Node.parm("bOpenMarmoset").evalAsInt()
-        MviewLocation = Node.parm("vm_picture2").evalAsString()
-        Resolution = [Node.parm("res_overridex").evalAsInt(), Node.parm("res_overridey").evalAsInt()]
-        RenderLocation = Node.parm("vm_picture").evalAsString()
-        SampleNum = Node.parm("mSampling").evalAsInt()
-        Transparent = Node.parm("bTransparentBg").evalAsInt()
-        JSONDir = "\\".join(tempfile.gettempdir().split("\\")[:-1])
-        MarmosetProcessor = MarmosetViewer()
-
-# Save embedded file in HDA to disk
-def SaveHDASectionToFile(section, fileName):
-        SectionFile = file(fileName, "wb")
-        SectionFile.write(section.contents())
-        SectionFile.close()
+    Camera = hou.node(Node.parm("camera").evalAsString())
+    FrameType = Node.parm("iFrameType").evalAsInt()
+    FrameRange = [Node.parm("uFrameRangex").evalAsInt(), Node.parm("uFrameRangey").evalAsInt()] if FrameType == 1 else [hou.intFrame(), hou.intFrame()]
+    Objects = Node.parm("vobject").evalAsNodes()
+    bSkyLight = Node.parm("bCustomSkyLight").evalAsInt()
+    SkyLightPreset = Node.parm("mSkyLightPreset").evalAsString()
+    CustomSkyLight = Node.parm("sCustomSkyLight").evalAsString()
+    MarmosetInstall = hou.getenv('MARMOSET_TOOLBAG_LOCATION', Node.parm("sMarmosetInstall").evalAsString())
+    OpenMarmoset = Node.parm("bOpenMarmoset").evalAsInt()
+    MviewLocation = Node.parm("vm_picture2").evalAsString()
+    Resolution = [Node.parm("res_overridex").evalAsInt(), Node.parm("res_overridey").evalAsInt()]
+    RenderLocation = Node.parm("vm_picture").evalAsString()
+    SampleNum = Node.parm("mSampling").evalAsInt()
+    Transparent = Node.parm("bTransparentBg").evalAsInt()
+    JSONDir = "\\".join(tempfile.gettempdir().split("\\")[:-1])
+    MarmosetProcessor = MarmosetViewer()
 
 # Check if directory exists, if not.. Create
 def ValidateDir(directory):
@@ -53,30 +48,31 @@ def ValidateDir(directory):
 
 # Save all Embedded Files to disk
 def InitializeProcess():
-        Node = hou.pwd()
-        if Node.name() == "shell1":
-                Node = Node.parent()
-        NodeDef = Node.type().definition()
+    Node = hou.pwd()
+    if Node.name() == "shell1":
+        Node = Node.parent()
+    NodeDef = Node.type().definition()
 
-        if NodeDef.hasSection("MarmosetExport.py"):
-                SaveHDASectionToFile(NodeDef.sections().get("MarmosetExport.py"), str(JSONDir+'\\MHoudini\\MarmosetExport.py'))
-        if NodeDef.hasSection("index.html"):
-                SaveHDASectionToFile(NodeDef.sections().get("index.html"), str(JSONDir+'\\MHoudini\\index.html'))
+    if NodeDef.hasSection("MarmosetExport.py"):
+        labutils.extract_section_file(NodeDef.sections().get("MarmosetExport.py"), str(JSONDir+'\\MHoudini\\MarmosetExport.py'), "wb")
+
+    if NodeDef.hasSection("index.html"):
+        labutils.extract_section_file(NodeDef.sections().get("index.html"), str(JSONDir+'\\MHoudini\\index.html'), "wb")
 
 # Render MView
 def MviewRender():
-        CollectSceneInfo()
-        MarmosetProcessor.RefreshMarmosetData(Export=0, Nodes=Objects)
+    CollectSceneInfo()
+    MarmosetProcessor.RefreshMarmosetData(Export=0, Nodes=Objects)
 
-        # Open MView?
-        if OpenMarmoset:
-                StartThreadWithHTTP()
-                MarmosetViewerUI(hou.ui.mainQtWindow()).show()
+    # Open MView?
+    if OpenMarmoset:
+        StartThreadWithHTTP()
+        MarmosetViewerUI(hou.ui.mainQtWindow()).show()
 
 # Render Image / Video
 def ImageRender():
-        CollectSceneInfo()
-        MarmosetProcessor.RefreshMarmosetData(Export=1, Nodes=Objects)
+    CollectSceneInfo()
+    MarmosetProcessor.RefreshMarmosetData(Export=1, Nodes=Objects)
 
 # Simple HTTPHandler using SimpleHTTPServer Module
 class HTTPHandler(SimpleHTTPRequestHandler):
@@ -106,19 +102,19 @@ def StartThreadWithHTTP():
 # Marmoset Viewer UI Class
 class MarmosetViewerUI(QDialog):
     def __init__(self, parent):
-       super(MarmosetViewerUI, self).__init__(parent)
-       self.setAttribute(Qt.WA_DeleteOnClose)
-       # UI Title
-       self.setWindowTitle("Houdini - Marmoset Toolbag Viewer")
+        super(MarmosetViewerUI, self).__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        # UI Title
+        self.setWindowTitle("Houdini - Marmoset Toolbag Viewer")
 
-       # Constructing UI
-       windowUILayout = QVBoxLayout()
+        # Constructing UI
+        windowUILayout = QVBoxLayout()
 
-       self.webViewer = QWebEngineView()
-       self.webViewer.load(QUrl("http://localhost:8000"))
-       windowUILayout.addWidget(self.webViewer)
-       self.setLayout(windowUILayout)
-       self.activateWindow()
+        self.webViewer = QWebEngineView()
+        self.webViewer.load(QUrl("http://localhost:8000"))
+        windowUILayout.addWidget(self.webViewer)
+        self.setLayout(windowUILayout)
+        self.activateWindow()
 
 # Marmoset Viewer Processing Class
 class MarmosetViewer(object):
@@ -209,7 +205,7 @@ class MarmosetViewer(object):
 
                 # Deal with HDA Stored "Textures"
                 elif TexturePath.startswith("opdef:"):
-                    print ('Skipping Texture [%s] stored inside an HDA. Please export to regular texture or load in COPs.'.format(TexturePath))
+                    print ('Skipping Texture [{}] stored inside an HDA. Please export to regular texture or load in COPs.'.format(TexturePath))
                     
                     # Logic is here, but functionality is not. Keeping warning message   
                     HDADef = TexturePath[7:].split('?')[0].split('/')[-1]
@@ -222,9 +218,7 @@ class MarmosetViewer(object):
                             HDAInstance = node
                             break
                     if HDAInstance.type().definition().hasSection(HDATextureFile):
-                        SectionFile = file(JPGPath, "wb")
-                        SectionFile.write(HDAInstance.type().definition().sections().get(HDATextureFile).contents())
-                        SectionFile.close()
+                        labutils.extract_section_file(HDAInstance.type().definition().sections().get(HDATextureFile), JPGPath, "wb" )
 
                 # Deal with Regular Textures
                 else:
@@ -325,7 +319,7 @@ class MarmosetViewer(object):
                 ExportNodes.append(node)
                 ExportObjNet.copyItems((node,), relative_references = True)
 
-        if Camera != None:
+        if Camera is not None:
             ExportObjNet.copyItems((Camera,))
 
         # Export FBX with ContainerGeo and Children
@@ -362,13 +356,13 @@ class MarmosetViewer(object):
                     MaterialTint = [1.0, 1.0, 1.0]
                     MaterialFlipNormalY = 0
 
-                if TextureDict != None:
+                if TextureDict is not None:
                     Texturesets.append([MaterialData[0], MaterialPath, TextureDict, MaterialTint, MaterialFlipNormalY])
 
         # Create Dictionary Structure JSON Export
         MaterialDataJSONDict = {}
         MaterialDataJSONDict['TEXDATA'] = {}
-        MaterialDataJSONDict['CAMERA'] = Camera.name() if Camera != None else ""
+        MaterialDataJSONDict['CAMERA'] = Camera.name() if Camera is not None else ""
         MaterialDataJSONDict['SKYLIGHT'] = {}
         MaterialDataJSONDict['SKYLIGHT']['UseCustom'] = bSkyLight
         MaterialDataJSONDict['SKYLIGHT']['CustomSkyLight'] = CustomSkyLight
@@ -391,11 +385,11 @@ class MarmosetViewer(object):
 
         # Clean all temporary ROPs
         for nodeobject in TextureROPsList:
-          nodeobject.destroy()
+            nodeobject.destroy()
 
         GeoContainer.destroy()
         for node in GarbageNodes:
-            if node != None:
+            if node is not None:
                 node.destroy()
 
         ################### JSON EXPORT #########################
@@ -408,14 +402,14 @@ class MarmosetViewer(object):
         ################### GENERATE MVIEW #########################
         # Launch Marmoset through subprocess.call() with Custom .py script as argument
         script = JSONDir+'\\MHoudini\\MarmosetExport.py'
-        FNull = open(os.devnull, 'w')
+        with open(os.devnull, 'w') as FNull:
 
-        # Disable Marmoset GUI -- Toolbag ignores the startupinfo in 3.04, but will be added in next patch 
-        StartupInfo = None
-        if os.name == 'nt':
-            StartupInfo = subprocess.STARTUPINFO()
-            subprocess.STARTF_USESHOWWINDOW = 1
-            StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            # Disable Marmoset GUI -- Toolbag ignores the startupinfo in 3.04, but will be added in next patch 
+            StartupInfo = None
+            if os.name == 'nt':
+                StartupInfo = subprocess.STARTUPINFO()
+                subprocess.STARTF_USESHOWWINDOW = 1
+                StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-        # Actually Open Marmoset
-        subprocess.call([MarmosetInstall, script], stdout=FNull, startupinfo=StartupInfo)
+            # Actually Open Marmoset
+            subprocess.call([MarmosetInstall, script], stdout=FNull, startupinfo=StartupInfo)

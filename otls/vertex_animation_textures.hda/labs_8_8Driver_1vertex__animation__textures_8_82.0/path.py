@@ -506,7 +506,5 @@ def file_version(node):
                                      dirs += [dirName, dirName]
 
         return dirs
-    except WindowsError:
-        return ["ElementNotRendered", "ElementNotRendered"]
     except :
         return ["ElementNotRendered", "ElementNotRendered"]
