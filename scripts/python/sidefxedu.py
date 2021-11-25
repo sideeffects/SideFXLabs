@@ -8,16 +8,14 @@ import hou
 import importlib
 
 from past.utils import old_div
-import nodegraphutils as utils
-import sidefxedu_nodegraphview as edu_nodegraphview
+import nodegraphutils
+import nodegraphview
 
 try:
-  reload(edu_nodegraphview)
+  reload(nodegraphview)
 except NameError:
   from importlib import reload
-  reload(edu_nodegraphview)
-
-
+  reload(nodegraphview)
 
 # define colors
 COLOR_BG = {
@@ -101,8 +99,8 @@ class Quickmarks(object):
         pos = item.position() + hou.Vector2(0, item.size().y())
         bounds = hou.BoundingRect(pos[0], pos[1], pos[0], pos[1])
         # Adjust the bounds so we end up at roughly the "default" zoom level.
-        minwidth = old_div(self._pane.screenBounds().size().x(), utils.getDefaultScale())
-        minheight = old_div(self._pane.screenBounds().size().y(), utils.getDefaultScale())
+        minwidth = old_div(self._pane.screenBounds().size().x(), nodegraphutils.getDefaultScale())
+        minheight = old_div(self._pane.screenBounds().size().y(), nodegraphutils.getDefaultScale())
         if bounds.size().x() < minwidth:
             expandVec = hou.Vector2((minwidth - bounds.size().x()) * 0.5, 0.0)
         if bounds.size().y() < minheight:
@@ -112,7 +110,7 @@ class Quickmarks(object):
         # Define the items to
         items = [item]
         currentnode = item if isinstance(item, hou.Node) else None
-        edu_nodegraphview.setQuickMark(index, edu_nodegraphview.QuickMark(net, bounds, items, currentnode))
+        nodegraphview.setQuickMark(index, nodegraphview.QuickMark(net, bounds, items, currentnode), qmKey=SIDEFXEDU_QUICKMARK_KEY)
         self.updateQmlist()
 
     def deleteQuickmarks(self, keyword=SIDEFXEDU_QUICKMARK_KEY):
@@ -247,14 +245,16 @@ class Quickmarks(object):
         self.deleteQuickmarks()
 
     def jumpToNext(self):
-        value = min(self._qmlist[-1], self._qmcurrent+1)
-        self.jumpTo(value)
-        # print("Jump to next (%d)" % value)
+        self.updateQmlist()
+        if len(self._qmlist):
+            value = min(self._qmlist[-1], self._qmcurrent+1)
+            self.jumpTo(value)
 
     def jumpToPrev(self):
-        value = max(self._qmlist[0], self._qmcurrent-1)
-        self.jumpTo(value)
-        # print("Jump to prev (%d)" % value)
+        self.updateQmlist()
+        if len(self._qmlist):
+            value = max(self._qmlist[0], self._qmcurrent-1)
+            self.jumpTo(value)
 
     def jumpToFirst(self):
         self.updateQmlist()
@@ -270,11 +270,9 @@ class Quickmarks(object):
 
     def jumpTo(self, value):
         self._qmcurrent = value
-        edu_nodegraphview.jumpToQuickMark(self._pane, value)
-        # print("Jump to quickmark %d" % value)
-
-    def jumpToQuickMark(editor, index):
-        quickmark = getQuickMark(index)
-        createUndoQuickMark(editor)
+        # TODO: this function should be used instead, once it is fixed in nodegraphview module
+        # nodegraphview.jumpToQuickMark(self._pane, value, SIDEFXEDU_QUICKMARK_KEY)
+        quickmark = nodegraphview.getQuickMark(value, SIDEFXEDU_QUICKMARK_KEY)
+        nodegraphview.createUndoQuickMark(self._pane)
         if quickmark is not None:
-            quickmark.jump(editor)
+            quickmark.jump(self._pane)
