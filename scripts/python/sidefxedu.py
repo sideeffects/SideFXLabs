@@ -70,10 +70,6 @@ def createNotes(kwargs, stickytype="info"):
 
 class Quickmarks(object):
 
-    # TODO:
-    # - delete all previous quickmarks when creating new ones
-    # - use quickmark().jump() instead of jumpTo(value)
-
     def __init__(self):
         super(Quickmarks, self).__init__()
         self._pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
@@ -155,46 +151,15 @@ class Quickmarks(object):
         image.setRect(IMAGE_BOUNDING_RECT)
         return image
 
-    def numberItems(self):
+    def numberItems(self, append=False):
         """ This code attaches number background images to the selected network items. """
 
         # get the network editor
         pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
 
-        # first delete all quickmarks
-        self.deleteQuickmarks()
-
-        # collect already existing images
-        images = []
-        bgimages = pane.backgroundImages()
-        bgimagepaths = [image.path() for image in bgimages]
-        images.extend(bgimages)
-
-        # create images
-        index = 1
-        items = hou.selectedItems()
-        for item in items:
-            # define image path (must be full path)
-            fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
-            # print(fullpath)
-
-            # create a background image and add it to the list
-            images.append(self.createBgImage(fullpath, item.path(), IMAGE_BOUNDING_RECT))
-
-            # create a quickmark
-            self.createQuickMark(item, index, SIDEFXEDU_QUICKMARK_KEY)
-
-            # move index forward
-            index += 1
-
-        # set the background images
-        pane.setBackgroundImages(images)
-
-    def appendNumberItems(self):
-        """ This code append a new quickmark. """
-
-        # get the network editor
-        pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+        if not append:
+            # first delete all quickmarks
+            self.deleteQuickmarks()
 
         # collect already existing images
         images = []
@@ -204,7 +169,6 @@ class Quickmarks(object):
 
         # collect nodes with background image attached to them
         itemswithimage = [image.relativeToPath() for image in bgimages]
-        # print(itemswithimage)
 
         # update quickmark list
         self.updateQmlist()
@@ -213,25 +177,16 @@ class Quickmarks(object):
         index = self._qmlist[-1]+1 if self._qmlist else 1
         selectedItems = hou.selectedItems()
         for item in selectedItems:
-            # print(item.path())
-            # if the item already has an image attached to it, skip it
+            # only do something if the item does not already have an image attached to it
+            # this is needed to manage the case when the user keeps in their selection an item that already has an image number attached to it.
             if item.path() not in itemswithimage:
                 # define image path (must be full path)
                 fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
 
-                # try:
-                #     # if the image number is already used, remove it
-                #     id = bgimagepaths.index(fullpath)
-                #     images.pop(id)
-                #     bgimagepaths.pop(id)
-                # except:
-                #     # if not, don't do anything
-                #     pass
-
                 # create a background image and add it to the list
                 images.append(self.createBgImage(fullpath, item.path(), IMAGE_BOUNDING_RECT))
 
-                # define a quickmark
+                # create a quickmark
                 self.createQuickMark(item, index, SIDEFXEDU_QUICKMARK_KEY)
 
                 # move index forward
