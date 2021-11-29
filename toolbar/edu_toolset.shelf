@@ -29,7 +29,6 @@ module.createNotes(kwargs)]]></script>
   <tool name="labs::number_items" label="Number Items" icon="$SIDEFXLABS/help/icons/number_items.svg">
     <helpURL>/shelf/labs--number_items.txt</helpURL>
     <script scriptType="python"><![CDATA[
-
 import sidefxedu as module
 
 try:
@@ -44,22 +43,35 @@ except:
     hou.session.eduqm = module.Quickmarks()
     eduqm = hou.session.eduqm
 
-if (kwargs["ctrlclick"] and not kwargs["shiftclick"]):
-    eduqm.jumpToPrev()
-elif (kwargs["altclick"] and not kwargs["shiftclick"]):
-    eduqm.jumpToNext()
-elif (kwargs["ctrlclick"] and kwargs["shiftclick"]):
-    eduqm.jumpToFirst()
-elif (kwargs["altclick"] and kwargs["shiftclick"]):
+
+# SHIFT + click        
+if (not kwargs["altclick"] and not kwargs["ctrlclick"] and kwargs["shiftclick"]):
     eduqm.jumpToLast()
-elif (kwargs["cmdclick"] and kwargs["shiftclick"]):
-    eduqm.clear()
-elif (kwargs["shiftclick"] and not kwargs["ctrlclick"] and not kwargs["altclick"]):
-    eduqm.numberItems(append=True)
-else:
+# ALT + click
+elif (kwargs["altclick"] and not kwargs["ctrlclick"] and not kwargs["shiftclick"]):
+    eduqm.jumpToPrev()
+# ALT + SHIFT + click
+elif (kwargs["altclick"] and not kwargs["ctrlclick"] and kwargs["shiftclick"]):
+    eduqm.jumpToFirst()
+
+# CTRL + click
+elif (not kwargs["altclick"] and kwargs["ctrlclick"] and not kwargs["shiftclick"]):
     if hou.selectedItems():
         eduqm.numberItems()
         eduqm.reset()
+    else:
+        eduqm.clearQuickmarks()
+# CTRL + SHIFT + click
+elif (not kwargs["altclick"] and kwargs["ctrlclick"] and kwargs["shiftclick"]):
+    if hou.selectedItems():
+        eduqm.numberItems(append=True)
+    else:
+        pass
+
+# click
+elif (not kwargs["altclick"] and not kwargs["ctrlclick"] and not kwargs["shiftclick"]):
+    eduqm.jumpToNext()
+
 ]]></script>
   </tool>
 
