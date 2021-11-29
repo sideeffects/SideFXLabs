@@ -9,13 +9,20 @@ import importlib
 
 from past.utils import old_div
 import nodegraphutils
-import nodegraphview
 
+import nodegraphview
 try:
   reload(nodegraphview)
 except NameError:
   from importlib import reload
   reload(nodegraphview)
+
+import labutils
+try:
+  reload(labutils)
+except NameError:
+  from importlib import reload
+  reload(labutils)
 
 # define colors
 COLOR_BG = {
@@ -120,20 +127,21 @@ class Quickmarks(object):
         bgimages = pane.backgroundImages()
         bgimagepaths = [image.path() for image in bgimages]
         images.extend(bgimages)
-        # for image in images:
-        #     print(image)
 
         for k in hou.node('/').userDataDict().keys():
-            # print('k = %s' % k)
             if keyword in k:
                 hou.node('/').destroyUserData(k)
 
                 index = int(k.replace(keyword, ''))
                 fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % index)
+                # here we use a datablock path because we know for sure our images are stored in data blocks when we set them up.
+                datablockpath = "opdatablock:/obj/{}".format(os.path.basename(fullpath))
+                # NOTE: we are only unreferencing the data block, not deleting it from the hip file.
+                # TODO: delete the original data block to free allocated space
+
                 try:
-                    # if the image is used, remove it
-                    id = bgimagepaths.index(fullpath)
-                    # print('id = %d' % id)
+                    # if the image is used, remove it from the list
+                    id = bgimagepaths.index(datablockpath)
                     images.pop(id)
                     bgimagepaths.pop(id)
                 except:
@@ -143,14 +151,6 @@ class Quickmarks(object):
             # set the background images
             pane.setBackgroundImages(images)
 
-    def createBgImage(self, fullpath, itempath, boundingRect):
-        """ Create a background image and add it to the list. """
-        image = hou.NetworkImage()
-        image.setPath(fullpath)
-        image.setRelativeToPath(itempath)
-        image.setRect(IMAGE_BOUNDING_RECT)
-        return image
-
     def numberItems(self, append=False):
         """ This code attaches number background images to the selected network items. """
 
@@ -159,17 +159,15 @@ class Quickmarks(object):
 
         if not append:
             # first delete all quickmarks
-            self.deleteQuickmarks()
+            self.clearQuickmarks()
 
         # collect already existing images
         images = []
         bgimages = pane.backgroundImages()
         bgimagepaths = [image.path() for image in bgimages]
         images.extend(bgimages)
-
         # collect nodes with background image attached to them
         itemswithimage = [image.relativeToPath() for image in bgimages]
-
         # update quickmark list
         self.updateQmlist()
 
@@ -181,21 +179,15 @@ class Quickmarks(object):
             # this is needed to manage the case when the user keeps in their selection an item that already has an image number attached to it.
             if item.path() not in itemswithimage:
                 # define image path (must be full path)
-                fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
-
+                imagepath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
                 # create a background image and add it to the list
-                images.append(self.createBgImage(fullpath, item.path(), IMAGE_BOUNDING_RECT))
-
+                labutils.add_network_image(pane, imagepath, embedded=True, relativeto_path=item.path(), bounds=IMAGE_BOUNDING_RECT)
                 # create a quickmark
                 self.createQuickMark(item, index, SIDEFXEDU_QUICKMARK_KEY)
-
                 # move index forward
                 index += 1
 
-        # set the background images
-        pane.setBackgroundImages(images)
-
-    def clear(self):
+    def clearQuickmarks(self):
         # delete all quickmarks
         self.deleteQuickmarks()
 
