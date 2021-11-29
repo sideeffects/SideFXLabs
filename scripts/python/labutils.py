@@ -207,3 +207,14 @@ def extract_embedded_image(path, destination):
 def create_node_help(nodetypename, context, directory):
     from labsopui import labsdocs
     labsdocs.create_node_help(nodetypename, context, directory)
+
+def manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.json", install=0):
+    destination = hou.text.expandString(destination)
+
+    if install == 1:
+        create_directory_if_not_exists(os.path.dirname(destination))
+        shutil.copyfile(hou.text.expandString("$SIDEFXLABS/misc/ocio/Labs_OpenColorIO.json"), destination)
+    else:
+        if os.path.isfile(destination):
+            os.remove(destination)
+
