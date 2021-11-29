@@ -43,7 +43,7 @@ def checkExtraInputPaths(node):
 
         geo_path = node.evalParm('nonvolnepath')
 
-        if type(node.node(geo_path)) is not hou.SopNode and geo_path != '':
+        if geo_path != '' and type(node.node(geo_path)) is not hou.SopNode:
 
             print ("Non-emissive Path does not point to a SOP.\n")
             failed = 1
@@ -53,6 +53,8 @@ def checkExtraInputPaths(node):
 
 
 def checkMainInputPaths(node):
+
+    node.node(node.path() + '/empty/error_reports/msg_ui').cook(True)
     
     cam = node.node(node.evalParm('camerapath'))
 
@@ -167,7 +169,7 @@ def restoreExistingSceneViewers(node, scene_viewer_data):
     
                 scene_viewers[i].setCurrentNode(node.node(node.evalParm('camerapath')))
 
-        except hou.OperationFailed:
+        except (hou.OperationFailed, hou.OperationInterrupted):
 
             pass
 
