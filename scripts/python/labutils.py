@@ -41,7 +41,6 @@ def can_send_anonymous_stats():
 
     return can_share
 
-
 def track_event(category, action, label=None, value=0):
 
     # Generate a random user ID and store it as a setting per Google's guidelines
@@ -73,7 +72,6 @@ def track_event(category, action, label=None, value=0):
         except:
             pass
 
-
 def like_node(node):
     if can_send_anonymous_stats():
         track_event("Like Events", "liked node", str(node.type().name()))
@@ -102,7 +100,6 @@ def create_directory_if_not_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-
 def empty_directory_recursive(directory):
     for file in os.listdir(directory):
         file_path = os.path.join(directory, file)
@@ -123,7 +120,7 @@ def extract_section_file(section, savelocation, writemode="wb"):
 
 def saveBackgroundImages(node, images):
     theBackgroundImagesKey = 'backgroundimages'
-    
+
     result = []
     for image in images:
         image_dict = {
@@ -147,8 +144,7 @@ def saveBackgroundImages(node, images):
         else:
             node.destroyUserData(theBackgroundImagesKey)
 
-
-def add_network_image(network_editor, image_path, scale=0.4, embedded=False):
+def add_network_image(network_editor, image_path, scale=0.4, embedded=False, relativeto_path=None, bounds=None):
 
         image = hou.NetworkImage()
 
@@ -161,9 +157,13 @@ def add_network_image(network_editor, image_path, scale=0.4, embedded=False):
             image.setPath("opdatablock:/obj/{}".format(os.path.basename(image_path)))
         else:
             image.setPath(image_path)
-        
-        bounds = network_editor.visibleBounds()
-        bounds.expand((-bounds.size()[0]*scale, -bounds.size()[1]*scale))
+
+        if relativeto_path:
+            image.setRelativeToPath(relativeto_path)
+
+        if not bounds:
+            bounds = network_editor.visibleBounds()
+            bounds.expand((-bounds.size()[0]*scale, -bounds.size()[1]*scale))
         image.setRect(bounds)
 
         background_images = network_editor.backgroundImages() + (image,)
@@ -175,20 +175,20 @@ def remap_material_override(material_type, material_override, mapping_file):
 
         with open(mapping_file) as f:
             data = json.load(f)
-            
+
             Lookup = data["materials"][material_type]
 
             for x in data["supported"]:
                 if x in Lookup.keys():
                     enabled = Lookup[x][0]
-                    
+
                     # if not isinstance(enabled, int):
-                    #     enabled = MaterialNode.parm(enabled).evalAsInt() 
-                        
+                    #     enabled = MaterialNode.parm(enabled).evalAsInt()
+
                     if enabled == 1:
-                        CleanDict[x] = material_override[Lookup[x][1]] 
-                            
-        return CleanDict 
+                        CleanDict[x] = material_override[Lookup[x][1]]
+
+        return CleanDict
 
 def extract_embedded_image(path, destination):
     # Likely a COP
