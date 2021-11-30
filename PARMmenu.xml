@@ -33,6 +33,34 @@ screensampling.sample_ramp_color(kwargs["parms"])
 ]]>
       </scriptCode>
     </scriptItem>
+    <scriptItem id="show_in_file_browser">
+      <label>Show in File Browser</label>
+      <insertAtIndex>20</insertAtIndex>
+      <context>
+        <expression>
+          <![CDATA[
+import os
+if len(kwargs["parms"]) == 0:
+  return False
+parm = kwargs["parms"][0]
+if parm.parmTemplate().type() == hou.parmTemplateType.String:
+  path = hou.text.expandString(parm.evalAsString())
+  return os.path.isfile(path) or os.path.isdir(os.path.dirname(path))
+return False]]>
+        </expression>
+      </context>
+      <scriptCode>
+        <![CDATA[
+import os
+parm = kwargs["parms"][0]
+path = hou.text.expandString(parm.evalAsString())
+if os.path.isfile(path):
+  hou.ui.showInFileBrowser(path)
+elif os.path.isdir(os.path.dirname(path)):
+  hou.ui.showInFileBrowser(os.path.dirname(path)+"/")
+]]>
+      </scriptCode>
+    </scriptItem>
     <!-- External Editor -->
     <addScriptItem id="open_external_editor">
       <label>Edit in External Editor</label>
