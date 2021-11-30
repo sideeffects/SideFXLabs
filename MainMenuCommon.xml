@@ -1,16 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
 -->
-
 <mainMenu>
   <!-- menuDocument can only contain 1 menu element, whose id is 
          implicitly "root_menu"
       -->
   <menu>
-
     <!-- Set external editor -->
-
     <addScriptItem id="set_external_editor">
       <label>Set External Text Editor</label>
       <parent>preferences_submenu</parent>
@@ -28,9 +24,7 @@ except NameError:
 ParmWatcher.set_external_editor()]]>
       </scriptCode>
     </addScriptItem>
-
     <!-- Open session module source watcher -->
-
     <addScriptItem id="external_python_source_editor">
       <label>External Python Source Editor</label>
       <parent>windows_menu</parent>
@@ -58,28 +52,20 @@ except NameError:
 ParmWatcher.add_watcher("__temp__python_source_editor", type_="__temp__python_source_editor")]]>
       </scriptCode>
     </addScriptItem>
-
-
   </menu>
-
   <menuBar>
-
-
     <!-- An example of how to add a new submenu at the beginning of the 
          window menu. 
     -->
     <subMenu id="file_menu">
-	<!--<insertAtIndex>3</insertAtIndex>-->
-	
-	<subMenu id="crash_recovery">
-      <label>Crash Recovery</label>
-	  <insertAtIndex>3</insertAtIndex>
-
-     <scriptItem id="open_crashfile">
-        <label>Open Crashfile</label>
-        
-        <scriptCode>
-        <![CDATA[
+      <!--<insertAtIndex>3</insertAtIndex>-->
+      <subMenu id="crash_recovery">
+        <label>Crash Recovery</label>
+        <insertAtIndex>3</insertAtIndex>
+        <scriptItem id="open_crashfile">
+          <label>Open Crashfile</label>
+          <scriptCode>
+            <![CDATA[
 from labsopui import restore_backup
 
 try:
@@ -90,50 +76,53 @@ except NameError:
 
 restore_backup.recoverFile()
 ]]>
-      </scriptCode>
-      </scriptItem>
-	  
-	  <scriptItem id="open_crashdirectory">
-        <label>Open Crash Directory</label>
-        
-        <scriptCode>
-        <![CDATA[
+          </scriptCode>
+        </scriptItem>
+        <scriptItem id="open_crashdirectory">
+          <label>Open Crash Directory</label>
+          <scriptCode>
+            <![CDATA[
 file = hou.ui.selectFile(start_directory="$TEMP/", title="Select a file to open", collapse_sequences=False, file_type=hou.fileType.Hip, pattern=None, default_value=None, multiple_select=False, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
 if file != "":
   hou.hipFile.load(file, suppress_save_prompt=False, ignore_load_warnings=False)]]>
-      </scriptCode>
+          </scriptCode>
+        </scriptItem>
+      </subMenu>
+      <scriptItem id="show_hip_in_file_browser">
+        <label>Show in File Browser</label>
+        <insertAtIndex>4</insertAtIndex>
+        <scriptCode>
+          <![CDATA[
+import os
+path = hou.hipFile.path()
+if os.path.isfile(path):
+  hou.ui.showInFileBrowser(path)
+else:
+  hou.ui.displayMessage("You need to save your hip file first before being able to open it in the file browser.", buttons=('OK',), severity=hou.severityType.Message)
+]]>
+        </scriptCode>
       </scriptItem>
-
-	</subMenu>
     </subMenu>
-
     <subMenu id="assets_menu">
-
-     <scriptItem id="check_tool_versions">
+      <scriptItem id="check_tool_versions">
         <label>Check Asset Versions in Scene</label>
         <insertAtIndex>10</insertAtIndex>
-
         <scriptCode>
-        <![CDATA[
+          <![CDATA[
 LabsNodeInstances = [x for x in hou.node("/").allSubChildren() if x.type().nameComponents()[1] == "labs"] 
 for node in LabsNodeInstances:
   if node.type().definition().nodeType().name() != hou.nodeType(node.type().definition().nodeTypeCategory(), node.type().definition().nodeTypeName()).namespaceOrder()[0]:
     print ("Warning... Node instance is using older definition: ", node.path())
 ]]>
-      </scriptCode>
+        </scriptCode>
       </scriptItem>
-
-
     </subMenu>
-
     <subMenu id="help_menu">
-
-     <scriptItem id="reset_viewport">
+      <scriptItem id="reset_viewport">
         <label>Reset Viewport</label>
         <insertAtIndex>5</insertAtIndex>
-
         <scriptCode>
-        <![CDATA[
+          <![CDATA[
 from labsopui import reset_viewport
 
 try:
@@ -143,15 +132,13 @@ except NameError:
   reload(reset_viewport)
 
 reset_viewport.resetSceneViewers()]]>
-      </scriptCode>
+        </scriptCode>
       </scriptItem>
-
       <scriptItem id="quick_tip">
         <label>Quick Tip</label>
         <insertAtIndex>9</insertAtIndex>
-
         <scriptCode>
-        <![CDATA[
+          <![CDATA[
 from labsopui import quicktip
 
 try:
@@ -161,14 +148,8 @@ except NameError:
   reload(quicktip)
 
 quicktip.ShowQuickTip()]]>
-      </scriptCode>
+        </scriptCode>
       </scriptItem>
-
-
     </subMenu>
-
-
   </menuBar>
-
-
 </mainMenu>

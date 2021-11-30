@@ -1,0 +1,207 @@
+ocio_profile_version: 2
+
+search_path: luts
+strictparsing: true
+luma: [0.2126, 0.7152, 0.0722]
+
+description: Basic ACES config for testing
+
+name: sidefx_aces
+
+roles:
+  color_picking: ACES
+  color_timing: ACEScc
+  compositing_linear: ACEScg 
+  data: Raw
+  default: ACES2065-1 
+  reference: Raw
+  scene_linear: ACEScg
+  texture_paint: ACEScc
+
+displays:
+  sRGB:
+    - !<View> {name: ACES, colorspace: Output - sRGB}
+    - !<View> {name: Gamma 2.2, colorspace: Gamma2.2} 
+    - !<View> {name: Raw, colorspace: Raw}    
+  Rec.709:
+    - !<View> {name: ACES, colorspace: Output - Rec.709}
+    - !<View> {name: Gamma 2.2, colorspace: Gamma2.2} 
+    - !<View> {name: Raw, colorspace: Raw} 
+  Rec.2020:
+    - !<View> {name: ACES, colorspace: Output - Rec.2020}
+    - !<View> {name: Gamma 2.2, colorspace: Gamma2.2} 
+    - !<View> {name: Raw, colorspace: Raw} 
+  DCI-P3 D65:
+    - !<View> {name: ACES, colorspace: Output - P3-DCI D65}
+    - !<View> {name: Gamma 2.2, colorspace: Gamma2.2} 
+    - !<View> {name: Raw, colorspace: Raw}   
+
+inactive_colorspaces: [ACES2065-1, Output - sRGB, Output - Rec.709, Output - Rec.2020, Output - P3-DCI D65, Gamma2.2, Raw]
+
+colorspaces:
+
+  - !<ColorSpace>
+    name: Raw
+    family: Utility
+    equalitygroup: Raw
+    bitdepth: 32f
+    description: |
+      The Raw color space
+    isdata: true
+    allocation: uniform
+    allocationvars: [0, 1]
+
+  - !<ColorSpace>
+    name: ACES2065-1
+    family: ACES
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      The Academy Color Encoding System reference color space
+    isdata: false
+    allocation: lg2
+    allocationvars: [-8, 5, 0.00390625]
+
+  - !<ColorSpace>
+    name: Texture - sRGB(2.2) (.jpg, .png)
+    family: Utility
+    equalitygroup: sRGB - Texture
+    bitdepth: 32f
+    description: |
+      The sRGB - Texture color space
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [0.952552, 0, 9.36786e-05, 0, 0.343966, 0.728166, -0.0721325, 0, 0, 0, 1.00883, 0, 0, 0, 0, 1]}
+        - !<MatrixTransform> {matrix: [3.2096, -1.55743, -0.495805, 0, -0.970989, 1.88517, 0.0394894, 0, 0.0597193, -0.210104, 1.14312, 0, 0, 0, 0, 1]}
+        - !<FileTransform> {src: linear_to_sRGB.spi1d, interpolation: linear}
+
+  - !<ColorSpace>
+    name: Texture - sRGB(linear) (.exr, .hdr)
+    family: Utility
+    equalitygroup: Linear - sRGB
+    bitdepth: 32f
+    description: |
+      The Linear - sRGB color space
+    isdata: false
+    allocation: lg2
+    allocationvars: [-8, 5, 0.00390625]
+    from_reference: !<GroupTransform>
+      children:
+        - !<MatrixTransform> {matrix: [0.952552, 0, 9.36786e-05, 0, 0.343966, 0.728166, -0.0721325, 0, 0, 0, 1.00883, 0, 0, 0, 0, 1]}
+        - !<MatrixTransform> {matrix: [3.2096, -1.55743, -0.495805, 0, -0.970989, 1.88517, 0.0394894, 0, 0.0597193, -0.210104, 1.14312, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: ACEScg
+    family: ACES
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      The ACEScg color space
+      
+      ACES Transform ID : ACEScsc.ACEScg_to_ACES
+    isdata: false
+    allocation: lg2
+    allocationvars: [-8, 5, 0.00390625]
+    to_reference: !<MatrixTransform> {matrix: [0.695452, 0.140679, 0.163869, 0, 0.0447946, 0.859671, 0.0955343, 0, -0.00552588, 0.00402521, 1.0015, 0, 0, 0, 0, 1]}
+
+  - !<ColorSpace>
+    name: Output - sRGB
+    family: Output
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      ACES 1.0 Output - sRGB Output Transform
+      
+      ACES Transform ID : ODT.Academy.RGBmonitor_100nits_dim.a1.0.3
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: InvRRT.sRGB.Log2_48_nits_Shaper.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear}
+    from_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear, direction: inverse}
+        - !<FileTransform> {src: Log2_48_nits_Shaper.RRT.sRGB.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: Output - Rec.709
+    family: Output
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      ACES 1.0 Output - Rec.709 Output Transform
+      
+      ACES Transform ID : urn:ampas:aces:transformId:v1.5:ODT.Academy.Rec709_100nits_dim.a1.0.3
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: InvRRT.Rec.709.Log2_48_nits_Shaper.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear}
+    from_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear, direction: inverse}
+        - !<FileTransform> {src: Log2_48_nits_Shaper.RRT.Rec.709.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: Output - Rec.2020
+    family: Output
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      ACES 1.0 Output - Rec.2020 Output Transform
+      
+      ACES Transform ID : urn:ampas:aces:transformId:v1.5:ODT.Academy.Rec2020_100nits_dim.a1.0.3
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: InvRRT.Rec.2020.Log2_48_nits_Shaper.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear}
+    from_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear, direction: inverse}
+        - !<FileTransform> {src: Log2_48_nits_Shaper.RRT.Rec.2020.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: Output - P3-DCI D65
+    family: Output
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      ACES 1.0 Output - P3-DCI (D65 simulation) Output Transform
+      
+      ACES Transform ID : urn:ampas:aces:transformId:v1.5:ODT.Academy.P3DCI_D65sim_48nits.a1.1.0
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: InvRRT.P3-DCI__D65_simulation_.Log2_48_nits_Shaper.spi3d, interpolation: tetrahedral}
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear}
+    from_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: Log2_48_nits_Shaper_to_linear.spi1d, interpolation: linear, direction: inverse}
+        - !<FileTransform> {src: Log2_48_nits_Shaper.RRT.P3-DCI__D65_simulation_.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: Gamma2.2
+    family: Output
+    equalitygroup: ""
+    bitdepth: 32f
+    description: |
+      Gamma 2.2
+    isdata: false  
+    allocation: uniform
+    allocationvars: [-0.125, 1.125]
+    to_reference: !<GroupTransform>
+      children:   
+        - !<MatrixTransform> {matrix: [0.695452, 0.140679, 0.163869, 0, 0.0447946, 0.859671, 0.0955343, 0, -0.00552588, 0.00402521, 1.0015, 0, 0, 0, 0, 1]}
+        - !<FileTransform> {src: srgb.spi1d, interpolation: linear}
