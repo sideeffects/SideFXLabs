@@ -27,53 +27,50 @@ def CreateLocalCopy(a_Parent, a_Container):
 
     return Geometry
 
-def MainFunction():
-
-    ThisNode = hou.pwd()
+def DryPaint(node):
     ContainerObject = CreateNewSubnet()
-    Output = CreateLocalCopy(ThisNode, ContainerObject)
-    Cache = ThisNode.parm("objPrevSim").evalAsString()
-    ThisNode.parm("objPrevSim").set(Output.path())
+    Output = CreateLocalCopy(node, ContainerObject)
+    Cache = node.parm("objPrevSim").evalAsString()
+    node.parm("objPrevSim").set(Output.path())
 
-    hou.node(ThisNode.path()+"/drawcurve1").parm("stroke_numstrokes").set(0)
-    ThisNode.parm("btnClearCurrent").pressButton()
+    hou.node(node.path()+"/drawcurve1").parm("stroke_numstrokes").set(0)
+    node.parm("btnClearCurrent").pressButton()
     Clean(Cache)
-    ThisNode.parm('Activate_All').set(0)
+    node.parm('Activate_All').set(0)
     hou.setFrame(1)
+    node.setCurrent(True, clear_all_selected=True)
 
-def ResetCurrent():
-    ThisNode = hou.pwd()
-    hou.node(ThisNode.path()+"/drawcurve1").parm("stroke_numstrokes").set(0)
-    ThisNode.parm('Activate_All').set(0)
+def ResetCurrent(node):
+    hou.node(node.path()+"/drawcurve1").parm("stroke_numstrokes").set(0)
+    node.parm('Activate_All').set(0)
     hou.setFrame(1)
+    node.setCurrent(True, clear_all_selected=True)
 
-def ActivateAll():
-    ThisNode = hou.pwd()
+def ActivateAll(node):
     hou.setFrame(1)
-    ThisNode.parm('Activate_All').set(1)
+    node.parm('Activate_All').set(1)
+    node.setCurrent(True, clear_all_selected=True)
 
 
-def TertiaryFunction():
-    ThisNode = hou.pwd()
-    Clean(ThisNode.parm("objPrevSim").evalAsString())
-    hou.node(ThisNode.path()+"/IN_PREVIOUS_SIM").parm("objpath1").set("")
-    ThisNode.parm('Activate_All').set(0)
-    ResetCurrent()
+def ClearAll(node):
+    Clean(node.parm("objPrevSim").evalAsString())
+    hou.node(node.path()+"/IN_PREVIOUS_SIM").parm("objpath1").set("")
+    node.parm('Activate_All').set(0)
+    ResetCurrent(node)
+    node.setCurrent(True, clear_all_selected=True)
 
 
-def QuickAdd():
-    ThisNode = hou.pwd()
-
-    Paths = ThisNode.evalParm('opQuickAdd').split()
-    ThisNode.parm('opQuickAdd').set("")
-    Weight = ThisNode.evalParm('fQuickWeight')
+def QuickAdd(node):
+    Paths = node.evalParm('opQuickAdd').split()
+    node.parm('opQuickAdd').set("")
+    Weight = node.evalParm('fQuickWeight')
 
     if Paths:
         for i in Paths:
-            index = ThisNode.parm('folder2').evalAsInt()
+            index = node.parm('folder2').evalAsInt()
 
-            relpath = ThisNode.relativePathTo(hou.node(i))
+            relpath = node.relativePathTo(hou.node(i))
 
-            ThisNode.parm('folder2').insertMultiParmInstance(index)
-            ThisNode.parm('objObjPath'+str(index+1)).set(relpath)
-            ThisNode.parm('fChance'+str(index+1)).set(Weight)
+            node.parm('folder2').insertMultiParmInstance(index)
+            node.parm('objObjPath'+str(index+1)).set(relpath)
+            node.parm('fChance'+str(index+1)).set(Weight)
