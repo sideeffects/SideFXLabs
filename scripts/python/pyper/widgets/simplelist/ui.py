@@ -59,7 +59,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # define the application model to use
         self._appModel = appModel
-        self._logger.debug("Module %s is using %s application model." % (__name__, self._appModel.name))
+        self._logger.debug("Module %s is using %s application model.", __name__, self._appModel.name)
 
         # define parent in case this widget is not part of a parent widget
         if not parent:
@@ -69,7 +69,7 @@ class MainWidget(QtWidgets.QWidget):
         self.setup_ui()
 
     def setup_ui(self):
-        """ """
+        """ Sets up Simplelist UI """
 
         # build the ui
         uifile = os.path.abspath(os.path.join(os.path.dirname(__file__), "ui/widget.ui"))
@@ -113,10 +113,10 @@ class MainWidget(QtWidgets.QWidget):
     def closeEvent(self, event):
         """ Redefine closeEvent() function to add some logs and eventually file management before quitting the widget. """
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
-        self._logger.info("Closing %s..." % (name))
+        self._logger.info("Closing %s...", name)
         self.setParent(None)
         event.accept()
-        self._logger.info("%s closed." % (name))
+        self._logger.info("%s closed.", name)
 
     def showCustomContextMenu(self, point):
         """ Show my custom context menu. """

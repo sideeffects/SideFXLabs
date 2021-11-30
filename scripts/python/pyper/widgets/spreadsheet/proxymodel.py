@@ -13,12 +13,12 @@ License:
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
@@ -44,7 +44,6 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         self._showdiffonly = False
 
     def showname():
-        """ """
         def fget(self): return self._showname
         def fset(self, value):
             self._logger.debug("Set showname to \"%s\"." % value)
@@ -53,7 +52,6 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
     showname = property(**showname())
 
     def showlabel():
-        """ """
         def fget(self): return self._showlabel
         def fset(self, value):
             self._logger.debug("Set showlabel to \"%s\"." % value)
@@ -62,7 +60,6 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
     showlabel = property(**showlabel())
 
     def showdiffonly():
-        """ """
         def fget(self): return self._showdiffonly
         def fset(self, value):
             self._logger.debug("Set showdiffonly to \"%s\"." % value)
@@ -92,8 +89,4 @@ class ProxyModel(QtCore.QSortFilterProxyModel):
         # show values
         columnsToShow.append(2)
 
-        if columnIdx in columnsToShow:
-            return True
-        else:
-            return False
-
+        return bool(columnIdx in columnsToShow)

@@ -48,26 +48,24 @@ def run():
     # Load the application wrapper
     wrapper = wrappers.importwrapper()
     if not wrapper:
-        logger.error("Could not load wrapper %s." % (NAME))
-        logger.error("Exiting.")
-        return
+        return None
 
     # setup logger
     logfile = os.path.join(wrapper.tempdir, "sidefxlabs/%s.log" % NAME.lower())
     logger = logs.setup_logging(__name__, logfile)
-    logger.debug("Initializing %s..." % (NAME))
+    logger.debug("Initializing %s...", NAME)
 
     # Build the UI with the wrapper
     widget = ui.MainWidget(wrapper)
     if not widget:
-        logger.error("Could not build %s's widget." % (NAME))
+        logger.error("Could not build %s's widget.", NAME)
         logger.error("Exiting.")
-        return
+        return None
 
     # Show the widget
     widget.show()
-    logger.debug("%s's interface has been created: %s" % (NAME, widget))
-    logger.info("Running %s in %s." % (NAME, wrapper.name.capitalize()))
+    logger.debug("%s's interface has been created: %s", (NAME, widget))
+    logger.info("Running %s in %s.", NAME, wrapper.name.capitalize())
 
     # return the widget in case it is needed
     return widget

@@ -28,20 +28,12 @@ from __future__ import absolute_import
 import os
 import logging
 
-from PySide2 import QtGui
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtUiTools
 
-try:
-    from . import model
-    from . import proxymodel
-except Exception as e:
-    try:
-        import model
-        import proxymodel
-    except (ImportError):
-        pass
+from . import model
+from . import proxymodel
 
 try:
     from importlib import reload
@@ -88,7 +80,6 @@ class MainWidget(QtWidgets.QWidget):
     spreadsheetChanged = QtCore.Signal()
 
     def __init__(self, appModel, headerNames=None, nodepath="", parent=None):
-        """ """
         super(MainWidget, self).__init__(parent)
 
         # initialize/get the logger
@@ -100,7 +91,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # define the application model to use
         self._appModel = appModel
-        self._logger.debug("%s is using %s application model." % (__name__, self._appModel.name))
+        self._logger.debug("%s is using %s application model.", __name__, self._appModel.name)
 
         # get the first selected node to build the spreadsheet
         if not nodepath:
@@ -127,13 +118,11 @@ class MainWidget(QtWidgets.QWidget):
         self.centerWidget()
 
     def model():
-        """ """
         def fget(self): return self._model
         return locals()
     model = property(**model())
 
     def showname():
-        """ """
         def fget(self): return self._showname
         def fset(self, value):
             self._logger.debug("Set showname to \"%s\"." % value)
@@ -143,7 +132,6 @@ class MainWidget(QtWidgets.QWidget):
     showname = property(**showname())
 
     def showlabel():
-        """ """
         def fget(self): return self._showlabel
         def fset(self, value):
             self._logger.debug("Set showlabel to \"%s\"." % value)
@@ -153,7 +141,6 @@ class MainWidget(QtWidgets.QWidget):
     showlabel = property(**showlabel())
 
     def showdiffonly():
-        """ """
         def fget(self): return self._showdiffonly
         def fset(self, value):
             self._logger.debug("Set showdiffonly to \"%s\"." % value)
@@ -170,7 +157,6 @@ class MainWidget(QtWidgets.QWidget):
         self.move(frameGm.topLeft())
 
     def setup_ui(self, nodepath=""):
-        """ """
         # build the ui
         # uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
         # UiLoader(self).load(uifile)
@@ -243,10 +229,10 @@ class MainWidget(QtWidgets.QWidget):
     def closeEvent(self, event):
         """ Redefine closeEvent() function to add some logs and eventually file management before quitting the widget. """
         name = __name__.split('.')[-2].capitalize() # note: [-2] to get the name of the module above .ui
-        self._logger.debug("Closing %s..." % (name))
+        self._logger.debug("Closing %s...", name)
         self.setParent(None)
         event.accept()
-        self._logger.info("%s closed." % (name))
+        self._logger.info("%s closed.", name)
 
     def refresh(self, parmlist=None):
         """ Refresh the spreadsheet.

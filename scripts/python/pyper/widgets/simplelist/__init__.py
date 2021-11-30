@@ -13,12 +13,12 @@ License:
     it under the terms of the GNU Lesser General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
-    
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU Lesser General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
@@ -45,24 +45,24 @@ def run():
     if not wrapper:
         logger.error("Could not load wrapper %s." % (NAME))
         logger.error("Exiting.")
-        return
+        return None
 
     # setup logger
     logfile = os.path.join(wrapper.tempdir, "sidefxlabs/%s.log" % NAME.lower())
     logger = logs.setup_logging(__name__, logfile)
-    logger.debug("Initializing %s..." % (NAME))
+    logger.debug("Initializing %s...", NAME)
 
     # Build the UI with the wrapper
     widget = ui.MainWidget(wrapper)
     if not widget:
-        logger.error("Could not build %s's widget." % (NAME))
+        logger.error("Could not build %s's widget.", NAME)
         logger.error("Exiting.")
-        return
+        return None
 
     # Show the widget
     widget.show()
-    logger.debug("%s's interface has been created: %s" % (NAME, widget))
-    logger.info("Running %s in %s." % (NAME, wrapper.name.capitalize()))
+    logger.debug("%s's interface has been created: %s", NAME, widget)
+    logger.info("Running %s in %s.", NAME, wrapper.name.capitalize())
 
     # return the widget in case it is needed
     return widget

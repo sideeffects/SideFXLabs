@@ -27,7 +27,6 @@ License:
 import os
 import logging
 
-from PySide2 import QtGui
 from PySide2 import QtCore
 from PySide2 import QtWidgets
 from PySide2 import QtUiTools
@@ -70,7 +69,7 @@ class MainWidget(QtWidgets.QWidget):
 
         # define the application model to use
         self._appModel = appModel
-        self._logger.debug("%s is using %s application model." % (__name__, self._appModel.name))
+        self._logger.debug("%s is using %s application model.", __name__, self._appModel.name)
 
         # get the first two selected nodes...
         srcNodePath = dstNodePath = ""
@@ -106,7 +105,7 @@ class MainWidget(QtWidgets.QWidget):
         self.move(frameGm.topLeft())
 
     def setup_ui(self):
-        """ """
+        """ Sets up Diff UI """
 
         # build the ui
         uifile = os.path.join(os.path.dirname(__file__), "ui/widget.ui")
@@ -128,7 +127,7 @@ class MainWidget(QtWidgets.QWidget):
         # self.uiShowLabel.stateChanged.connect(self.refresh)
 
         spreadsheets = self._spreadsheets
-        for idx, spreadsheet in enumerate(spreadsheets):
+        for idx, spreadheet in enumerate(spreadsheets):
             # build a temporary list to pair one element to the next in a circular way
             # so that the last element is paired with the first one
             tmplist = spreadsheets[idx:] + spreadsheets[:idx]
@@ -139,7 +138,7 @@ class MainWidget(QtWidgets.QWidget):
             tableViewSrc.verticalScrollBar().valueChanged.connect(tableViewDst.verticalScrollBar().setValue)
 
             # refresh Diff UI if spreadsheet changes
-            spreadsheet.spreadsheetChanged.connect(lambda: self.refresh())
+            spreadheet.spreadsheetChanged.connect(lambda: self.refresh())
 
             # sync selection between the two spreadsheets
             selectionModel = tableViewSrc.selectionModel()
@@ -150,10 +149,10 @@ class MainWidget(QtWidgets.QWidget):
     def closeEvent(self, event):
         """ Redefine closeEvent() function to add some logs and eventually file management before quitting the widget. """
         name = __name__.split(".")[-2].capitalize() # note: [-2] to get the name of the module above .ui
-        self._logger.debug("Closing %s..." % (name))
+        self._logger.debug("Closing %s...", name)
         self.setParent(None)
         event.accept()
-        self._logger.info("%s closed." % (name))
+        self._logger.info("%s closed.", name)
 
     def syncData(self, topLeftIndex, bottomRightIndex):
         # get the row and model from the index
@@ -265,16 +264,16 @@ class MainWidget(QtWidgets.QWidget):
         return mylist
 
     def refresh(self):
-        self._logger.debug("Refreshing diff %s" % self)
+        self._logger.debug("Refreshing diff %s", self)
 
         if self._spreadsheets:
             # first refresh the spreadsheets so the model is updated
             # this is needed for nodeDict to be up to date
-            for spreadsheet in self._spreadsheets:
-                spreadsheet.refresh()
-                spreadsheet.showdiffonly = self.uiShowDiffOnly.isChecked()
-                spreadsheet.showname = False # self.uiShowName.isChecked()
-                spreadsheet.showlabel = True # self.uiShowLabel.isChecked()
+            for spreadSheet in self._spreadsheets:
+                spreadSheet.refresh()
+                spreadSheet.showdiffonly = self.uiShowDiffOnly.isChecked()
+                spreadSheet.showname = False # self.uiShowName.isChecked()
+                spreadSheet.showlabel = True # self.uiShowLabel.isChecked()
 
             # once nodeDict has been updated for each model, build the displayList
             displayList = self.buildDisplayList()

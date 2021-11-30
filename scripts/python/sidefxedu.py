@@ -8,16 +8,21 @@ import hou
 import importlib
 
 from past.utils import old_div
-import nodegraphutils as utils
-import sidefxedu_nodegraphview as edu_nodegraphview
+import nodegraphutils
 
+import nodegraphview
 try:
-  reload(edu_nodegraphview)
+  reload(nodegraphview)
 except NameError:
   from importlib import reload
-  reload(edu_nodegraphview)
+  reload(nodegraphview)
 
-
+import labutils
+try:
+  reload(labutils)
+except NameError:
+  from importlib import reload
+  reload(labutils)
 
 # define colors
 COLOR_BG = {
@@ -72,10 +77,6 @@ def createNotes(kwargs, stickytype="info"):
 
 class Quickmarks(object):
 
-    # TODO:
-    # - delete all previous quickmarks when creating new ones
-    # - use quickmark().jump() instead of jumpTo(value)
-
     def __init__(self):
         super(Quickmarks, self).__init__()
         self._pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
@@ -101,8 +102,8 @@ class Quickmarks(object):
         pos = item.position() + hou.Vector2(0, item.size().y())
         bounds = hou.BoundingRect(pos[0], pos[1], pos[0], pos[1])
         # Adjust the bounds so we end up at roughly the "default" zoom level.
-        minwidth = old_div(self._pane.screenBounds().size().x(), utils.getDefaultScale())
-        minheight = old_div(self._pane.screenBounds().size().y(), utils.getDefaultScale())
+        minwidth = old_div(self._pane.screenBounds().size().x(), nodegraphutils.getDefaultScale())
+        minheight = old_div(self._pane.screenBounds().size().y(), nodegraphutils.getDefaultScale())
         if bounds.size().x() < minwidth:
             expandVec = hou.Vector2((minwidth - bounds.size().x()) * 0.5, 0.0)
         if bounds.size().y() < minheight:
@@ -112,7 +113,7 @@ class Quickmarks(object):
         # Define the items to
         items = [item]
         currentnode = item if isinstance(item, hou.Node) else None
-        edu_nodegraphview.setQuickMark(index, edu_nodegraphview.QuickMark(net, bounds, items, currentnode))
+        nodegraphview.setQuickMark(index, nodegraphview.QuickMark(net, bounds, items, currentnode), qmKey=SIDEFXEDU_QUICKMARK_KEY)
         self.updateQmlist()
 
     def deleteQuickmarks(self, keyword=SIDEFXEDU_QUICKMARK_KEY):
@@ -126,20 +127,21 @@ class Quickmarks(object):
         bgimages = pane.backgroundImages()
         bgimagepaths = [image.path() for image in bgimages]
         images.extend(bgimages)
-        # for image in images:
-        #     print(image)
 
         for k in hou.node('/').userDataDict().keys():
-            # print('k = %s' % k)
             if keyword in k:
                 hou.node('/').destroyUserData(k)
 
                 index = int(k.replace(keyword, ''))
                 fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % index)
+                # here we use a datablock path because we know for sure our images are stored in data blocks when we set them up.
+                datablockpath = "opdatablock:/obj/{}".format(os.path.basename(fullpath))
+                # NOTE: we are only unreferencing the data block, not deleting it from the hip file.
+                # TODO: delete the original data block to free allocated space
+
                 try:
-                    # if the image is used, remove it
-                    id = bgimagepaths.index(fullpath)
-                    # print('id = %d' % id)
+                    # if the image is used, remove it from the list
+                    id = bgimagepaths.index(datablockpath)
                     images.pop(id)
                     bgimagepaths.pop(id)
                 except:
@@ -149,65 +151,23 @@ class Quickmarks(object):
             # set the background images
             pane.setBackgroundImages(images)
 
-    def createBgImage(self, fullpath, itempath, boundingRect):
-        """ Create a background image and add it to the list. """
-        image = hou.NetworkImage()
-        image.setPath(fullpath)
-        image.setRelativeToPath(itempath)
-        image.setRect(IMAGE_BOUNDING_RECT)
-        return image
-
-    def numberItems(self):
+    def numberItems(self, append=False):
         """ This code attaches number background images to the selected network items. """
 
         # get the network editor
         pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
 
-        # first delete all quickmarks
-        self.deleteQuickmarks()
+        if not append:
+            # first delete all quickmarks
+            self.clearQuickmarks()
 
         # collect already existing images
         images = []
         bgimages = pane.backgroundImages()
         bgimagepaths = [image.path() for image in bgimages]
         images.extend(bgimages)
-
-        # create images
-        index = 1
-        items = hou.selectedItems()
-        for item in items:
-            # define image path (must be full path)
-            fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
-            # print(fullpath)
-
-            # create a background image and add it to the list
-            images.append(self.createBgImage(fullpath, item.path(), IMAGE_BOUNDING_RECT))
-
-            # create a quickmark
-            self.createQuickMark(item, index, SIDEFXEDU_QUICKMARK_KEY)
-
-            # move index forward
-            index += 1
-
-        # set the background images
-        pane.setBackgroundImages(images)
-
-    def appendNumberItems(self):
-        """ This code append a new quickmark. """
-
-        # get the network editor
-        pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
-
-        # collect already existing images
-        images = []
-        bgimages = pane.backgroundImages()
-        bgimagepaths = [image.path() for image in bgimages]
-        images.extend(bgimages)
-
         # collect nodes with background image attached to them
         itemswithimage = [image.relativeToPath() for image in bgimages]
-        # print(itemswithimage)
-
         # update quickmark list
         self.updateQmlist()
 
@@ -215,46 +175,33 @@ class Quickmarks(object):
         index = self._qmlist[-1]+1 if self._qmlist else 1
         selectedItems = hou.selectedItems()
         for item in selectedItems:
-            # print(item.path())
-            # if the item already has an image attached to it, skip it
+            # only do something if the item does not already have an image attached to it
+            # this is needed to manage the case when the user keeps in their selection an item that already has an image number attached to it.
             if item.path() not in itemswithimage:
                 # define image path (must be full path)
-                fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
-
-                # try:
-                #     # if the image number is already used, remove it
-                #     id = bgimagepaths.index(fullpath)
-                #     images.pop(id)
-                #     bgimagepaths.pop(id)
-                # except:
-                #     # if not, don't do anything
-                #     pass
-
+                imagepath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
                 # create a background image and add it to the list
-                images.append(self.createBgImage(fullpath, item.path(), IMAGE_BOUNDING_RECT))
-
-                # define a quickmark
+                labutils.add_network_image(pane, imagepath, embedded=True, relativeto_path=item.path(), bounds=IMAGE_BOUNDING_RECT)
+                # create a quickmark
                 self.createQuickMark(item, index, SIDEFXEDU_QUICKMARK_KEY)
-
                 # move index forward
                 index += 1
 
-        # set the background images
-        pane.setBackgroundImages(images)
-
-    def clear(self):
+    def clearQuickmarks(self):
         # delete all quickmarks
         self.deleteQuickmarks()
 
     def jumpToNext(self):
-        value = min(self._qmlist[-1], self._qmcurrent+1)
-        self.jumpTo(value)
-        # print("Jump to next (%d)" % value)
+        self.updateQmlist()
+        if len(self._qmlist):
+            value = min(self._qmlist[-1], self._qmcurrent+1)
+            self.jumpTo(value)
 
     def jumpToPrev(self):
-        value = max(self._qmlist[0], self._qmcurrent-1)
-        self.jumpTo(value)
-        # print("Jump to prev (%d)" % value)
+        self.updateQmlist()
+        if len(self._qmlist):
+            value = max(self._qmlist[0], self._qmcurrent-1)
+            self.jumpTo(value)
 
     def jumpToFirst(self):
         self.updateQmlist()
@@ -270,11 +217,9 @@ class Quickmarks(object):
 
     def jumpTo(self, value):
         self._qmcurrent = value
-        edu_nodegraphview.jumpToQuickMark(self._pane, value)
-        # print("Jump to quickmark %d" % value)
-
-    def jumpToQuickMark(editor, index):
-        quickmark = getQuickMark(index)
-        createUndoQuickMark(editor)
+        # TODO: this function should be used instead, once it is fixed in nodegraphview module
+        # nodegraphview.jumpToQuickMark(self._pane, value, SIDEFXEDU_QUICKMARK_KEY)
+        quickmark = nodegraphview.getQuickMark(value, SIDEFXEDU_QUICKMARK_KEY)
+        nodegraphview.createUndoQuickMark(self._pane)
         if quickmark is not None:
-            quickmark.jump(editor)
+            quickmark.jump(self._pane)

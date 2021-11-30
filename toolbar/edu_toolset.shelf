@@ -28,9 +28,7 @@ module.createNotes(kwargs)]]></script>
 
   <tool name="labs::number_items" label="Number Items" icon="$SIDEFXLABS/help/icons/number_items.svg">
     <helpURL>/shelf/labs--number_items.txt</helpURL>
-    <script scriptType="python"><![CDATA[
-
-import sidefxedu as module
+    <script scriptType="python"><![CDATA[import sidefxedu as module
 
 try:
   reload(module)
@@ -44,22 +42,57 @@ except:
     hou.session.eduqm = module.Quickmarks()
     eduqm = hou.session.eduqm
 
-if (kwargs["ctrlclick"] and not kwargs["shiftclick"]):
-    eduqm.jumpToPrev()
-elif (kwargs["altclick"] and not kwargs["shiftclick"]):
-    eduqm.jumpToNext()
-elif (kwargs["ctrlclick"] and kwargs["shiftclick"]):
-    eduqm.jumpToFirst()
-elif (kwargs["altclick"] and kwargs["shiftclick"]):
+
+message = """You have not selected any item to add numbers to. 
+This will delete all current numbers. 
+
+Are you sure you want to proceed?
+
+"""
+buttons = ('OK', 'Cancel')
+severity=hou.severityType.Message
+default_choice = 0
+close_choice = -1
+help = None
+title = "Number Items: Warning"
+details = """
+Jump to Next: click
+Jump to Prev: ALT + click
+Jump to Last: SHIFT + click        
+Jump to First: ALT + SHIFT + click
+Set numbers (or clear everything if nothing is selected): CTRL + click      
+Appends numbers to the current set: CTRL + SHIFT + click
+"""
+details_label = "Shortcuts"
+details_expanded = False
+
+if (not kwargs["altclick"] and not kwargs["ctrlclick"] and kwargs["shiftclick"]):
     eduqm.jumpToLast()
-elif (kwargs["cmdclick"] and kwargs["shiftclick"]):
-    eduqm.clear()
-elif (kwargs["shiftclick"] and not kwargs["ctrlclick"] and not kwargs["altclick"]):
-    eduqm.appendNumberItems()
-else:
+# ALT + click
+elif (kwargs["altclick"] and not kwargs["ctrlclick"] and not kwargs["shiftclick"]):
+    eduqm.jumpToPrev()
+# ALT + SHIFT + click
+elif (kwargs["altclick"] and not kwargs["ctrlclick"] and kwargs["shiftclick"]):
+    eduqm.jumpToFirst()
+
+# CTRL + click
+elif (not kwargs["altclick"] and kwargs["ctrlclick"] and not kwargs["shiftclick"]):
     if hou.selectedItems():
         eduqm.numberItems()
         eduqm.reset()
+    else:
+        if not hou.ui.displayMessage(message, buttons, severity, default_choice, close_choice, help, title, details, details_label, details_expanded):
+          eduqm.clearQuickmarks()
+# CTRL + SHIFT + click
+elif (not kwargs["altclick"] and kwargs["ctrlclick"] and kwargs["shiftclick"]):
+    if hou.selectedItems():
+        eduqm.numberItems(append=True)
+    else:
+        pass
+# click
+elif (not kwargs["altclick"] and not kwargs["ctrlclick"] and not kwargs["shiftclick"]):
+    eduqm.jumpToNext()
+
 ]]></script>
   </tool>
 
