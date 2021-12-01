@@ -263,6 +263,12 @@ def read_exr_header(exrpath, maxreadsize=2000):
                 attribute_values = struct.unpack('f' * 16,
                                                  exr_file.read(4 * 16))
                 metadata[attribute_name] = attribute_values
+            
+            elif attribute_type == b'm44d':
+                attribute_values = struct.unpack('d' * 32,
+                                                 exr_file.read(4 * 32))
+                metadata[attribute_name] = attribute_values
+
 
             elif attribute_type == b'preview':
 
@@ -358,6 +364,14 @@ def read_exr_header(exrpath, maxreadsize=2000):
 
             elif attribute_type == b'v3f':
                 vector_3d_value = struct.unpack('fff', exr_file.read(4 * 3))
+
+                metadata[attribute_name] = []
+                metadata[attribute_name].append(vector_3d_value[0])
+                metadata[attribute_name].append(vector_3d_value[1])
+                metadata[attribute_name].append(vector_3d_value[2])
+
+            elif attribute_type == b'v3d':
+                vector_3d_value = struct.unpack('ddd', exr_file.read(4 * 6))
 
                 metadata[attribute_name] = []
                 metadata[attribute_name].append(vector_3d_value[0])
