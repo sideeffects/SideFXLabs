@@ -150,6 +150,27 @@ except NameError:
 quicktip.ShowQuickTip()]]>
         </scriptCode>
       </scriptItem>
+      <scriptItem id="export_diagnostics">
+        <label>Export Diagnostics</label>
+        <insertAtIndex>6</insertAtIndex>
+        <scriptCode>
+          <![CDATA[
+from labsopui import export_diagnostics
+import hou
+
+try:
+  reload(export_diagnostics)
+except NameError:
+  from importlib import reload
+  reload(export_diagnostics)
+
+directory = hou.ui.selectFile(start_directory=None, title="Save Diagnostics Information", collapse_sequences=False, file_type=hou.fileType.Directory, pattern=None, default_value=None, multiple_select=False, image_chooser=None, chooser_mode=hou.fileChooserMode.ReadAndWrite, width=0, height=0)
+
+file = export_diagnostics.ExportDiagnostics(directory)
+hou.ui.showInFileBrowser(file)
+]]>
+        </scriptCode>
+      </scriptItem>
     </subMenu>
   </menuBar>
 </mainMenu>
