@@ -86,13 +86,19 @@ def setWedgeIndex(parms):
     else:
         parm.setExpression('pdgattrib("wedgeindex", 0)')  
 
-def isFileCache(node):
+def isFileCache(node):    
     if 'labs::filecache' in node.type().name() and node.type().category().name() == 'Sop':
         return True
+
+    if 'labs::karma' in node.type().name() and node.type().category().name() == 'Lop':
+        return True    
+
     return False
 
 def createWedgeGeo(node, index, attribname, attribtype):
-
+    '''
+    Called when wedging parameter that is not a float
+    ''' 
     digit = int(index)
     
     attribparmname = "attrib" + str(digit)
@@ -112,29 +118,37 @@ def createWedgeGeo(node, index, attribname, attribtype):
                                      width=200,
                                      height=155)
     '''
-   
+
     parent = node.parent()
     pos = node.position()
     
     nwedgesparmname = 'wedgecount'
-    
-    pointgenerate = parent.createNode('pointgenerate','create_wedgepoints')        
+
+    # Deal with none sop contexts
+    if node.type().category().name() == "Sop":
+        container = parent
+    else:
+        container = parent.createNode('sopnet', 'wedgesopnet_' + node.name())
+        container.setPosition(pos + hou.Vector2(2,1))
+
+    pointgenerate = container.createNode('pointgenerate','create_wedgepoints')        
     pointgenerate.parm('npts').setExpression('ch("' + pointgenerate.relativePathTo(node) + '/' + nwedgesparmname + '")')
-    pointgenerate.setPosition(pos + hou.Vector2(2,2))
+    pointgenerate.setPosition(pos + hou.Vector2(2,3))
     
     adjustnode = None
     parms = None
     
+
     '''
     if attribtype == 0: # Float
-        adjustnode = parent.createNode('attribadjustfloat', 'wedge_attributes')
+        adjustnode = container.createNode('attribadjustfloat', 'wedge_attributes')
         parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
                     'valuetype': 'rand',
                     'dodefault': 1,
                     'default': 1 }
         
     elif selected[0] == 1: # Integer
-        adjustnode = paren
+        adjustnode = container
         t.createNode('attribadjustinteger', 'wedge_attributes')
         parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
                     'valuetype': 'rand',
@@ -142,25 +156,30 @@ def createWedgeGeo(node, index, attribname, attribtype):
                     'default': 1 }
     '''
     if attribtype == 'vector': 
-        adjustnode = parent.createNode('attribadjustvector', 'wedge_attributes')
+        adjustnode = container.createNode('attribadjustvector', 'wedge_attributes')
         parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
                     'dirlen_valuetype': 'rand',
                     'dirlen_noiserange': 'zcentered',
                     'dodefault': 1 }
     elif attribtype == 'color': # Color
-        adjustnode = parent.createNode('attribadjustcolor', 'wedge_attributes')
+        adjustnode = container.createNode('attribadjustcolor', 'wedge_attributes')
         parms = {   'attrib': '`chs("' + adjustnode.relativePathTo(node) + '/' + attribparmname + '")`',
                     'valuetype': 'rand',                        
                     'dodefault': 1 } 
                     
-    adjustnode.setParms(parms)        
-    node.parm(geopathparmname).set(node.relativePathTo(adjustnode)) 
-    adjustnode.setPosition(pos + hou.Vector2(2,1))
+    adjustnode.setParms(parms)       
+    adjustnode.setPosition(pos + hou.Vector2(2,2))
     adjustnode.setNextInput(pointgenerate) 
+
+    endnode = container.createNode('null', node.name() + "_wedge_attributes")
+    endnode.setPosition(pos + hou.Vector2(2,1))
+    endnode.setNextInput(adjustnode) 
     
-    adjustnode.setGenericFlag(hou.nodeFlag.Display,True)
-    adjustnode.setGenericFlag(hou.nodeFlag.Render,True)
-    adjustnode.setCurrent(True,True)   
+    node.parm(geopathparmname).set(node.relativePathTo(endnode)) 
+
+    endnode.setGenericFlag(hou.nodeFlag.Display,True)
+    endnode.setGenericFlag(hou.nodeFlag.Render,True)
+    endnode.setCurrent(True,True)   
 
 def setupWedgeAttrib(node, index, wedgeattribname, attribtype, wedgevalue):
     node.parm('attrib{}'.format(index)).set(wedgeattribname)  
@@ -170,7 +189,7 @@ def setupWedgeAttrib(node, index, wedgeattribname, attribtype, wedgevalue):
     node.parm('values{}'.format(index)).set('{}-{}'.format(wedgevalue,wedgevalue))
 
     if attribtype != 'float':
-        node.parm('wedgetype{}'.format(index)).set(2)
+        node.parm('wedgetype{}'.format(index)).set(6)
         createWedgeGeo(node, index, wedgeattribname, attribtype)   
 
 def wedge(parms):
