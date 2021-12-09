@@ -1,0 +1,147 @@
+# Dialog script for labs::wedge::1.0 automatically generated
+
+{
+    name	labs::wedge::1.0
+    script	labs::wedge::1.0
+    label	"Labs Wedge"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Work-Items to wedge"
+    inputlabel	2	"Input 2"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+    outputlabel	1	"Wedged Work-Items"
+
+    parm {
+        name    "wedgecount"
+        label   "Wedge Count"
+        type    integer
+        default { "1" }
+        range   { 1! 50 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    multiparm {
+        name    "nwedgeattribs"
+        label    "Number of Attributes"
+        default 0
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "autoselect" "0000000000000000" }
+        parmtag { "multistartoffset" "1" }
+
+        groupcollapsible {
+            name    "folder4_#"
+            label   "Attribute #"
+            grouptag { "sidefx::header_parm" "attrib#" }
+
+            parm {
+                name    "attrib#"
+                label   "Attribute Name"
+                type    string
+                joinnext
+                default { "wedgeattribute#" }
+            }
+            parm {
+                name    "wedgetype#"
+                label   "Wedge Type"
+                type    ordinal
+                nolabel
+                default { "0" }
+                menu {
+                    "auto"      "Automatic"
+                    "range"     "Custom Range"
+                    "rand"      "Random Sample"
+                    "batch"     "Batched Sequence"
+                    "periodic"  "Periodic Sequence"
+                    "list"      "List of Values"
+                    "attrib"    "Attribute Values"
+                }
+            }
+            parm {
+                name    "minvalue#"
+                label   "Min Value"
+                type    float
+                default { "0" }
+                hidewhen "{ wedgetype# != range wedgetype# != rand wedgetype# != batch wedgetype# != periodic }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "maxvalue#"
+                label   "Max Value"
+                type    float
+                default { "1" }
+                hidewhen "{ wedgetype# != range wedgetype# != rand wedgetype# != batch wedgetype# != periodic }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "randomseed#"
+                label   "Seed"
+                type    integer
+                default { "0" }
+                hidewhen "{ wedgetype# != rand }"
+                range   { 0! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "batchsize#"
+                label   "Batch Size"
+                type    integer
+                default { "1" }
+                hidewhen "{ wedgetype# != batch }"
+                range   { 1! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "periodsize#"
+                label   "Period Size"
+                type    integer
+                default { "1" }
+                hidewhen "{ wedgetype# != periodic }"
+                range   { 1! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "values#"
+                label   "List of Values"
+                type    string
+                default { "0-1" }
+                hidewhen "{ wedgetype# != list }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "geopath#"
+                label   "Geometry Path"
+                type    oppath
+                joinnext
+                default { "" }
+                hidewhen "{ wedgetype# != attrib }"
+                parmtag { "opfilter" "!!SOP!!" }
+                parmtag { "oprelative" "." }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "createwedgegeo#"
+                label   "Create Geometry    "
+                type    button
+                default { "0" }
+                hidewhen "{ wedgetype# != attrib }"
+                parmtag { "script_callback" "hou.phm().createWedgeGeo(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "valuesdefault#"
+                label   "Default Value"
+                type    float
+                default { "0" }
+                hidewhen "{ wedgetype# != list wedgetype# != attrib }"
+                range   { 0 10 }
+            }
+        }
+
+    }
+
+}
