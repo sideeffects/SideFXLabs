@@ -1,0 +1,627 @@
+"""
+State:          Sidefx Labs Karma
+State type:     sidefx_labs_karma
+Description:    Sidefx Labs Karma
+Author:         ati
+Date Created:   November 25, 2021 - 14:59:59
+"""
+import os
+import hou
+import pdg
+import viewerstate.utils as su
+import resourceutils as ru
+import toolutils
+import math
+import random
+#import fileseq
+
+from ParseExrMetadata import parse_metadata
+
+cachedir = "cachedir"
+cachename = "cachename"
+cachetype = "cachetype"
+wedgecount = "wedgecount"
+framerange = "framerange"
+missingframes = "missingframes"
+filesize = "filesize"
+seqsize = "seqsize"
+#artist = "artist"
+date = "date"
+time = "time"
+software = "software"
+rendertime = "rendertime"
+rendermemory = "rendermemory"
+
+class State(object):
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer   
+        self.node = None
+        self.infostyle = 0
+        
+        template = {
+            "title": "Karma", "desc": "info", "icon": "LOP_karma",
+            "rows": [
+            
+                { "type": "group", "id": "caching_group",
+                    "rows": [
+                        {"id": "general_divider", "type": "divider", "label": "Rendering"},
+                        {"id": cachetype, "label": "Render Type"},
+                        {"id": cachedir, "label": "Render Folder"},      
+                        {"id": cachename, "label": "Render Name"},
+                    ]
+                },
+                
+                { "type": "group", "id": "filedetails_group",
+                    "rows": [  
+                        {"id": "detail_divider", "type": "divider", "label": "File Details"},                     
+                        {"id": filesize, "label": "File Size"},                                            
+                        {"id": rendertime, "label": "Render Time"},  
+                        {"id": rendermemory, "label": "Render Memory"}, 
+                        {"id": date, "label": "Date"},
+                        {"id": time, "label": "Time"},                     
+                        {"id": software, "label": "Software"},                        
+                    ]
+                },
+                
+                { "type": "group", "id": "seqdetails_group",
+                    "rows": [  
+                        {"id": "detail_divider", "type": "divider", "label": "Sequence Details"},                    
+                        {"id": seqsize, "label": "Sequence Size"}, 
+                        {"id": framerange, "label": "Frame Range"},
+                        {"id": missingframes, "label": "Missing Frames"},                                                 
+                    ]
+                },
+                                   
+                { "type": "group", "id": "wedge_group",
+                    "rows": [
+                        {"id": "wedge_divider", "type": "divider", "label": "Wedging"},
+                        {"id": wedgecount, "label": "Wedge Count"},
+                        {"id": "wedgeindex", "label": "Wedge Index"},
+                        {
+                            "id": "wedgeattrib_group1", "type": "group",
+                            "rows": [
+                                {"id": "wedgeattribute1", "label": "wedgeattribute1"},
+                            ]
+                        }, 
+                        {
+                            "id": "wedgeattrib_group2", "type": "group",
+                            "rows": [
+                                {"id": "wedgeattribute2", "label": "wedgeattribute2"},
+                            ]
+                        },
+                        {
+                            "id": "wedgeattrib_group3", "type": "group",
+                            "rows": [
+                                {"id": "wedgeattribute3", "label": "wedgeattribute3"},
+                            ]
+                        }
+                    ]                    
+                }
+            ]
+        }
+        
+        self.scene_viewer.hudInfo(hud_template=template)
+
+    def onParmChangeEvent( self, kwargs ):
+
+        self.infostyle = kwargs['state_parms']['infostyle']['value']    
+        
+        rows = {}
+        self._fillCacheInfo(kwargs['node'],rows)           
+        self.scene_viewer.hudInfo(hud_values=rows)
+
+    def onPlaybarEvent(self, event_type, frame):
+        """ Updates our info box to reflect playbar change.
+        """    
+        
+        rows = {}
+        self._fillCacheInfo(self.node,rows)
+        self.scene_viewer.hudInfo(hud_values=rows)
+        
+    def updateInfoBox(self, node):
+        """ Updates our info box to reflect the current state settings.
+        """
+        
+        rows = {}
+        self._fillCacheInfo(node,rows)
+        self.scene_viewer.hudInfo(hud_values=rows)
+        
+    def updateParmInfo(self, **kwargs):
+        """Updates info box on the fly as parameters change."""
+        
+        node = kwargs["node"]
+        parmtup = kwargs["parm_tuple"]
+        name = parmtup.name()       
+        rows = {}
+        
+        wparms = []
+              
+        if node.evalParm("enablewedging"):  
+            nattribs = node.evalParm("nwedgeattribs")
+            
+            for i in range(0,nattribs):
+                index = str(i+1)
+                wparms.append("attrib" + index)
+                wparms.append("wedgetype" + index)
+                wparms.append("minvalue" + index)
+                wparms.append("maxvalue" + index)
+                wparms.append("randomseed" + index)                
+                wparms.append("batchsize" + index)
+                wparms.append("periodsize" + index)
+                wparms.append("geopath" + index)
+                wparms.append("values" + index)                
+                wparms.append("createwedgegeo" + index)
+                wparms.append("valuesdefault" + index)
+       
+        if (name in ("filemethod",
+                    "timedependent",
+                    "basename",
+                    "filetype",                    
+                    "basedir",
+                    "enableversion",
+                    "version",
+                    "enablewedging",
+                    "wedgecount",
+                    "nwedgeattribs", 
+                    "wedgestr",
+                    "sopoutput")) or(name in wparms):
+            
+            self._fillCacheInfo(node,rows)
+            self.scene_viewer.hudInfo(hud_values=rows)     
+
+    def _fillCacheInfo(self, node, rows):
+        """Updates cache path related parms"""
+        import os
+        
+        on_off = lambda x: "On" if x else "Off"
+        
+                # General group
+        
+        rows["caching_group"] = {"visible": self.infostyle == 0} 
+        
+        if self.infostyle == 0:        
+            if node.evalParm("filemethod"):
+                import os
+                rows[cachedir], rows[cachename] = os.path.split(node.evalParm("file"))             
+            else:      
+                rows[cachedir] = node.evalParm("cachedir") 
+                rows[cachename] = node.evalParm("cachename")     
+                
+                if node.evalParm("timedependent"):
+                    rows[cachename] = rows[cachename].replace(node.evalParm("framestr"), ".$F4")  
+                    
+            if node.evalParm("timedependent"):          
+                rows[cachetype] = "Sequence"
+            else:
+                rows[cachetype] = "Time Independent"  
+
+        # Cache Details group    
+        # Make group visible when menu set
+        rows["filedetails_group"] = {"visible": self.infostyle == 1} 
+        
+        if self.infostyle == 1:
+            current_file = node.evalParm("picture")        
+            
+            rows[filesize] = "-"
+            rows[rendertime] = "-"
+            rows[rendermemory] = "-"
+            rows[date] = "-"
+            rows[time] = "-"
+            rows[software] = "-"               
+           
+            file_exists = True if os.path.exists(current_file) else False
+            is_exr = True if node.parm("filetype").evalAsInt() == 0 else False
+            #loadfromdisk = node.evalParm("loadfromdisk")
+            
+            if file_exists and is_exr: # and loadfromdisk:           
+                rows[filesize] = get_size_format(os.path.getsize(current_file))
+                # Grab file info details
+                
+                header = parse_metadata.read_exr_header(current_file)
+               
+                if header:
+                    rows[rendertime] = get_time_format(header["renderTime"])
+                    rows[rendermemory] = get_size_format(header["renderMemory"]) 
+                    rows[date] = header["capDate"].split(" ")[0]
+                    rows[time] = header["capDate"].split(" ")[1]
+                    rows[software] = header["Software"]               
+                    #rows[artist] = geo.point(0).attribValue("artist")                  
+
+        # Sequence Details group 
+        rows["seqdetails_group"] = {"visible": self.infostyle == 2} 
+        
+        if self.infostyle == 2:       
+            
+            rows[framerange] = "-"
+            rows[missingframes] = "-"
+            rows[seqsize] = "-"
+            '''
+            timedependent = node.evalParm("timedependent")
+            #loadfromdisk = node.evalParm("loadfromdisk")            
+        
+            if timedependent: # and loadfromdisk:
+                hasmissingframes = 0
+                seq_pattern = node.evalParm("cachedir") + "/" + node.evalParm("cachename").replace(node.evalParm("framestr"), ".#") 
+                try:
+                    seq = fileseq.findSequenceOnDisk(pattern=seq_pattern)
+                except:
+                    seq = None
+                    
+                if seq:  
+                    total = 0                   
+                    for f in list(seq):
+                        total += os.path.getsize(f)
+                       
+                    rows[seqsize] = get_size_format(total)                 
+                                
+                    seq.setFramePadding("")
+                    srange = seq.frameRange()            
+                    rows[framerange] = seq.frameRange().replace(",",", ")
+                    invertedframerange = seq.invertedFrameRange()
+                    
+                    if invertedframerange:        
+                        rows[missingframes] = seq.invertedFrameRange().replace(",",", ")
+                        hasmissingframes = 1   
+                    else:
+                        rows[missingframes] = "None"
+                        
+
+                    #total = 0
+                    #print(seq.frame(1))
+                    #for idx, entry in enumerate(seq):    
+                        #total += os.stat(entry).st_size
+            '''                
+        # Wedge group   
+        enable_wedging = node.evalParm("enablewedging")       
+        rows["wedge_group"] = {"visible": enable_wedging}   
+        
+          
+        if enable_wedging:   
+            nwedges = node.evalParm("wedgecount")
+            nattribs = node.evalParm("nwedgeattribs")
+            
+            wedgeindex = 0            
+            if pdg.workItem():            
+                wedgeattrib = pdg.workItem()['wedgeindex']
+                if wedgeattrib:
+                    wedgeindex = wedgeattrib[0]
+                    
+            rows[wedgecount] = nwedges             
+            rows["wedgeindex"] = wedgeindex
+            
+            if nattribs > 0:        
+                values, metas = buildValues(node, nwedges, nattribs)
+                
+                for i in range(0,3):                  
+                    if i < nattribs:  
+                        rows["wedgeattrib_group" + str(i+1)] = {"visible": 1} 
+                        
+                        wedgetype = node.evalParm("wedgetype" + str(i+1))
+                        _values = []                        
+
+                        # Find floats and keep only 2 decimal places.
+                        for idx, value in enumerate(values[i]):  
+                        
+                            font_override = "<b><font size=3>"
+                            if idx == wedgeindex:
+                                font_override = "<b><font size=5>"
+                                
+                            if wedgetype == 3:
+                                batchsize = node.evalParm("batchsize" + str(i+1))
+                                nbatches = nwedges / batchsize
+                                if (math.floor(float(idx) / float(nbatches)) % 2 == 0):
+                                    font_override += "<font color=#ffffff>"
+                                else:
+                                    font_override += "<font color=#5D6D7E>"
+                                    
+                            if wedgetype == 4:
+                                periodsize = node.evalParm("periodsize" + str(i+1))                                
+                                if (math.floor(float(idx) / float(periodsize)) % 2 == 0):
+                                    font_override += "<font color=#ffffff>"
+                                else:
+                                    font_override += "<font color=#5D6D7E>" 
+                                    
+                            if isinstance(value,float): # float                            
+                                _values.append(font_override + str(value)[0:4]) 
+                            elif isinstance(value,tuple): # float vector
+                                _values.append(font_override + "[" + str(value[0])[0:4] + "," + str(value[1])[0:4] + "," + str(value[2])[0:4] + "]")                                     
+                            else: # integer
+                                _values.append(font_override + str(value))
+
+                        rows["wedgeattribute" + str(i+1)] = {"label": node.evalParm("attrib" + str(i+1)), "value": ", ".join(_values)}
+                    else:
+                        rows["wedgeattrib_group" + str(i+1)] = {"visible": 0} 
+            else: # Hide wedge attribute rows if no attributes.
+                rows["wedgeattrib_group1"] = {"visible": 0}
+                rows["wedgeattrib_group2"] = {"visible": 0}
+                rows["wedgeattrib_group3"] = {"visible": 0}
+                
+    def onEnter(self, kwargs):
+        """ Initializes the info
+        """    
+        
+        node = kwargs['node']
+        self.node = node
+        node.addEventCallback([hou.nodeEventType.ParmTupleChanged],
+                              self.updateParmInfo) 
+                              
+        hou.playbar.addEventCallback(self.onPlaybarEvent)
+        
+        # Hide Details group based on infostyle parm
+        self.infostyle = kwargs['state_parms']['infostyle']['value']  
+       
+        self.updateInfoBox(node)
+        self.scene_viewer.hudInfo(show=True)
+        
+    def onExit(self, kwargs):
+        """ Close the HUD
+        """
+        
+        node = kwargs.get("node")
+        
+        if node:
+            node.removeEventCallback([hou.nodeEventType.ParmTupleChanged],
+                                     self.updateParmInfo) 
+                                     
+        hou.playbar.removeEventCallback(self.onPlaybarEvent) 
+    '''                               
+    def getWedgeAttribValues(self, node, index):
+            
+        strindex    = str(index) 
+        workitems   = node.node("topnet_display/output0").getPDGNode().workItems
+        attribname  = node.evalParm('attrib' + strindex)    
+        wedgetype   = node.evalParm('wedgetype' + strindex)           
+        wedgeidx    = self.getWedgeIndex(node)    
+        failed = False
+        values = []            
+         
+        if workitems:
+            for workitem in workitems:
+                if workitem.attrib(attribname):
+                    type = workitem.attribType(attribname)
+                    if type == pdg.attribType.Float:
+                        value = workitem.attribValue(attribname)
+                        if value.is_integer():
+                            values.append("{}".format(int(value)))
+                        else:
+                            values.append("{:.2f}".format(workitem.attribValue(attribname)))
+                else:
+                    return ""
+        else:
+            return ""
+            
+        return ", ".join(values)
+        
+        
+    def getWedgeIndex(self, node):    
+        network = node.node("topnet_display")   
+        item_id = network.getSelectedWorkItem()    # Get the selected item ID from the network        
+        if (item_id):
+            context = network.getPDGGraphContext() 
+            work_item = context.graph.workItemById(item_id)            
+            if (work_item):
+                wedge_attrib = work_item.attrib("wedgeindex")               
+                if wedge_attrib:                    
+                    return wedge_attrib.asNumber()          
+    ''' 
+def get_size_format(b, factor=1024, suffix="B"):
+    """
+    Scale bytes to its proper byte format
+    e.g:
+        1253656 => '1.20MB'
+        1253656678 => '1.17GB'
+    """
+    for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
+        if b < factor:
+            return f"<b><font size=5>{b:.2f}</font></b>{unit}{suffix}"
+        b /= factor
+    return f"<b><font size=5>{b:.2f}</font></b>Y{suffix}"
+
+def get_time_format(seconds):
+    sign_string = '-' if seconds < 0 else ''
+    seconds = abs(seconds)
+    days, seconds = divmod(seconds, 86400)
+    hours, seconds = divmod(seconds, 3600)
+    minutes, seconds = divmod(seconds, 60)
+    if days > 0:
+        return '%s%dd%dh%dm%ds' % (sign_string, days, hours, minutes, seconds)
+    elif hours > 0:
+        return '<b><font size=5>%s%d</font></b>h<b><font size=5>%d</font></b>m<b><font size=5>%d</font></b>s' % (sign_string, hours, minutes, seconds)
+    elif minutes > 0:
+        return '<b><font size=5>%s%d</font></b>m<b><font size=5>%d</font></b>s' % (sign_string, minutes, seconds)
+    else:
+        return '<b><font size=5>%s%.2f</font></b>s' % (sign_string, seconds)
+    
+def pad(l, content, width):
+    l.extend([content] * (width - len(l)))
+    return l
+    
+def defaultValues(attribname,nwedges,default):
+    values = [default] * nwedges
+    metas = []
+    metas.append(attribname)
+    metas.append(hou.attribData.Float)    
+    return values, metas
+    
+def buildValues(node, nwedges, nattribs):
+    attribs = []
+    metas   = []
+    for i in range(0,nattribs):
+        values = []
+        meta   = []
+        stri   = str(i+1)    
+        attribname  = node.evalParm('attrib' + stri)    
+        wedgetype   = node.evalParm('wedgetype' + stri)
+            
+        # Automatic
+        # 0 to 'Wedge Count'
+        if wedgetype == 0:
+            for wedge in range(0,nwedges):
+                values.append(wedge)
+                
+            meta.append(attribname)
+            meta.append(hou.attribData.Float)
+            metas.append(meta)
+            attribs.append(values)  
+            
+        # Custom Range
+        # Sequence equally spaced and between min and max
+        elif wedgetype == 1: 
+            min = node.evalParm('minvalue' + stri)
+            max = node.evalParm('maxvalue' + stri)
+            
+            for wedge in range(0,nwedges):
+                value = hou.hmath.fit(wedge,0,nwedges-1,min,max)
+                values.append(value)
+                
+            meta.append(attribname)
+            meta.append(hou.attribData.Float)
+            metas.append(meta)
+            attribs.append(values) 
+            
+        # Random Sample  
+        # Random sample between min and max
+        elif wedgetype == 2:    
+            min = node.evalParm('minvalue' + stri)
+            max = node.evalParm('maxvalue' + stri)        
+            seed = node.evalParm('randomseed' + stri)   
+            
+            for wedge in range(0,nwedges):
+                value = hou.hmath.fit01(hou.hmath.rand(wedge + seed),min,max)    
+                values.append(value)
+
+            meta.append(attribname)
+            meta.append(hou.attribData.Float)
+            metas.append(meta)
+            attribs.append(values) 
+            
+        # Batched Sequence
+        # 000 111 222 ...
+        elif wedgetype == 3:
+            min = node.evalParm('minvalue' + stri)
+            max = node.evalParm('maxvalue' + stri)                   
+            batchsize = node.evalParm('batchsize' + stri)  
+            
+            nbatchsize =  float(nwedges / batchsize)
+            
+            for wedge in range(0,nwedges):
+                value = hou.hmath.fit(wedge%nbatchsize,0,nbatchsize-1,min,max) 
+                value = hou.hmath.fit(math.floor((wedge) / nbatchsize),0,batchsize-1,min,max)  
+                values.append(value)
+                    
+            meta.append(attribname)
+            meta.append(hou.attribData.Float)
+            metas.append(meta)
+            attribs.append(values)   
+            
+        # Periodic Sequence
+        # 012 012 012 ...
+        elif wedgetype == 4:
+            min = node.evalParm('minvalue' + stri)
+            max = node.evalParm('maxvalue' + stri)
+            periodsize = node.evalParm('periodsize' + stri) 
+            
+            for wedge in range(0,nwedges):
+                value = wedge % periodsize                
+                value = hou.hmath.fit(value,0,periodsize-1,min,max)
+                values.append(value)      
+
+            meta.append(attribname)
+            meta.append(hou.attribData.Float)
+            metas.append(meta)
+            attribs.append(values)            
+            
+        # List of Values             
+        elif wedgetype == 5: 
+            list = node.evalParm('values' + stri)
+            default = node.evalParm('valuesdefault' + stri)
+            
+            pattern = pdg.ValuePattern(list)
+            values = pattern.floatArray(inclusive=True)
+         
+            if len(values) < nwedges:
+                values = values + [default] * (nwedges - len(values))                
+           
+            meta.append(attribname)
+            meta.append(hou.attribData.Float)
+            metas.append(meta)
+            attribs.append(values)   
+            
+        # From geometry attributes  
+        # Supports point and primitive attributes
+        # Supports float,int,string            
+        else:
+            geonode = node.parm('geopath' + stri).evalAsNode()
+            default = node.evalParm('valuesdefault' + stri)
+            if not geonode:
+                values, meta = defaultValues(attribname,nwedges,default)
+                attribs.append(values)
+                metas.append(meta)
+                continue  
+                
+            geo = geonode.geometry()  
+            
+            if not geo:
+                values, meta = defaultValues(attribname,nwedges,default)
+                attribs.append(values)
+                metas.append(meta)
+                continue 
+                
+            attrib = geo.findPointAttrib(attribname)
+            if not attrib:
+                attrib = geo.findPrimAttrib(attribname)               
+                if not attrib: # No attribute found.
+                    values, meta = defaultValues(attribname,nwedges,default)
+                    attribs.append(values)
+                    metas.append(meta)
+                    continue 
+                    
+            # Array types not supported.        
+            if attrib.isArrayType():
+                values, meta = defaultValues(attribname,nwedges,default)        
+                attribs.append(values)
+                metas.append(meta)               
+           
+            if attrib.type() == hou.attribType.Point:
+                for point in geo.points():            
+                    values.append(point.attribValue(attrib))      
+            else:
+                for prim in geo.prims():
+                    values.append(prim.attirbVaue(attirb))
+                    
+            # Pad values if the number of elements is less then the number of wedges.
+            if len(values) < nwedges:
+                pad(values,attrib.defaultValue(),nwedges)
+                
+            meta.append(attribname)
+            meta.append(attrib.dataType())            
+            metas.append(meta)
+            attribs.append(values)         
+    
+    return attribs, metas
+    
+# Callback for triggering an info box update.
+def updateInfoBox():
+    sv = toolutils.sceneViewer()
+    if sv.currentState() == 'sidefx_labs_karma':
+        sv.runStateCommand( 'updateInfoBox' )
+        
+def createViewerStateTemplate():
+    """ Mandatory entry point to create and return the viewer state 
+        template to register. """
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Karma"
+    state_cat = hou.lopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    
+    template.bindIcon(kwargs["type"].icon())
+
+    template.bindParameter( hou.parmTemplateType.Menu, name="infostyle", label="Display", menu_items=(("rendering","Rendering"),("filedetails","File Details"),("seqdetails","Sequence Details")),
+        default_value='basic' )
+        
+    return template
+
