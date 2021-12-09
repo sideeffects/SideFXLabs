@@ -1,0 +1,113 @@
+# Dialog script for labs::filecachepartitioner::1.0 automatically generated
+
+{
+    name	labs::filecachepartitioner::1.0
+    script	labs::partitionbycachetype::1.0
+    label	"Labs File Cache Partitioner"
+
+    help {
+	""
+    }
+
+    inputlabel	1	input
+    inputlabel	2	input
+    inputlabel	3	input
+    inputlabel	4	input
+    inputlabel	5	input
+    inputlabel	6	input
+    inputlabel	7	input
+    inputlabel	8	input
+    inputlabel	9	input
+    inputlabel	10	input
+    inputlabel	11	input
+    inputlabel	12	input
+    inputlabel	13	input
+    inputlabel	14	input
+    inputlabel	15	input
+    inputlabel	16	input
+    inputlabel	17	input
+    inputlabel	18	input
+    inputlabel	19	input
+    inputlabel	20	input
+    inputlabel	21	input
+    inputlabel	22	input
+    inputlabel	23	input
+    inputlabel	24	input
+    inputlabel	25	input
+    inputlabel	26	input
+    inputlabel	27	input
+    inputlabel	28	input
+    inputlabel	29	input
+    inputlabel	30	"Work-Item with Range and Frame Attributes"
+    outputlabel	1	"Partitioned Work-Items"
+
+    groupcollapsible {
+        name    "folder0"
+        label   "Frame Range"
+        grouptag { "group_default" "1" }
+
+        parm {
+            name    "timedependent"
+            label   "Time Dependent Range"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "f"
+            label   "Frame Range"
+            type    float
+            size    3
+            default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+            hidewhen "{ timedependent != 1 }"
+            range   { 1 240 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "substeps"
+            label   "Substeps"
+            type    integer
+            default { "1" }
+            hidewhen "{ timedependent != 1 }"
+            range   { 1! 10 }
+        }
+        parm {
+            name    "waitforallframes"
+            label   "Wait for All Frames"
+            type    toggle
+            default { "0" }
+            hidewhen "{ timedependent != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "enablewedging"
+        label   "Enable Wedging"
+        type    toggle
+        nolabel
+        default { "off" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "folder1"
+        label   "Wedging"
+        grouptag { "sidefx::header_parm" "wedgecount" }
+        grouptag { "sidefx::header_toggle" "enablewedging" }
+
+        parm {
+            name    "wedgecount"
+            label   "Wedge Count"
+            type    integer
+            default { "1" }
+            disablewhen "{ enablewedging != 1 }"
+            range   { 1! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
