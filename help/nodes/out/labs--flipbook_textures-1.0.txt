@@ -1,0 +1,1788 @@
+#type:     node
+#context:  out
+#internal: labs::flipbook_textures::1.0
+#icon:     ROP/labs::flipbook_textures::1.0
+
+= Labs Flipbook Textures =
+
+"""Renders, composites, and exports flipbook textures."""
+
+Labs Flipbook Textures renders, composites, and exports flipbook textures. Multiple passes can be rendered to allow for fully dynamic real-time relighting, so you do not have to bake lighting scenario into the colors. The tool comes with real-time shaders designed to work with the exported textures. Built around Houdini 19's high-quality viewport pyro rendering, Flipbook Textures ROP can help you create beautiful volumetric effects, but it is also capable of rendering particles and polygonal geometries on their own or together with volumes.
+
+
+@parameters
+
+    Render:
+        #id: execute
+        Renders, composites, and exports flipbook textures using current settings. Pressing this button is the equivalent of pressing *Render All Passes* and then *Export All Textures*.
+        
+    == Render Intermediate Images ==
+
+    === Render Pass Control ===
+
+    Render All Passes:
+        #id: render_all
+        Renders all passes except the ones that are currently skipped.
+            
+    Render Final Color:
+        #id: render_fc
+        Renders the final look of your scene. You may not want to enable lights in your scene, because without baked-in lighting scenario, you can achieve fully dynamic relighting with the exported textures.
+
+    Render Separate Alphas:
+        #id: render_sa
+        Only applicable when you are rendering volumetric and non-volumetric geometries at the same time. When rendered in the same pass, the volumetric and non-volumetric geometries do not blend well in the alpha channel. This renders them in two separate passes so the two separate alpha channels can be blended correctly later in the compositing step. Unless this pass is explicitly skipped (this parameter is visible but disabled), *Render Final Color* implicitly and automatically executes this pass after the final color pass is successfully completed.
+
+    Render Non-emissive Color:
+        #id: render_nc
+        Renders the non-emissive look of your current scene. This is necessary in order to create the emissive map later in the compositing step by subtracting final color with non-emissive color.
+            
+    Render MDC / MDC Normal:
+        #id: render_mdc
+        Renders three Multi-directional Contribution maps (A/B/C) which will later be composited into two MDC maps (1/2) for the export. MDC maps are necessary to achieve high-quality dynamic lighting and self-shadowing in shader. They are also needed to create MDC normals, a type of interpreted normals particularly good for softer and lower density volumes.
+            
+    Render Surface Normal:
+        #id: render_sn
+        Renders the surface normals. For volumetric geometry, it renders voxel surface normals, which are good for thicker and higher density volumes. For non-volumetric geometry with surfaces, it renders vertex normals. For points or wires without surfaces, it outputs the default front-facing normal.
+            
+    Render Motion Vector:
+        #id: render_mv
+        Renders the motion vectors. Motion vectors are important in creating smooth interpolation between frames in shader and reducing the number of frames you need to export.
+            
+    Render Depth:
+        #id: render_d
+        Renders the depth of your scene from the camera's perspective.
+
+    === ===
+        
+    Start/End/Inc:
+        #id: frange
+        The start frame, end frame, and frame increment. You can increase the frame increment to skip frames.
+        
+    Camera:
+        #id: camerapath
+        The path to the render camera.
+        
+    Pyro Bake Volume Path:
+        #id: bakevolpath1
+        The path to the main Pyro Bake Volume SOP. If you want to render more than one Pyro Bake Volume SOP at the same time, go to the *Interface* tab and turn on *Additional Volume Paths*.
+        
+    === Additional Volume Paths ===
+
+    Pyro Bake Volume 2:
+        #id: bakevolpath2
+        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        
+    Pyro Bake Volume 3:
+        #id: bakevolpath3
+        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        
+    Pyro Bake Volume 4:
+        #id: bakevolpath4
+        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        
+    Pyro Bake Volume 5:
+        #id: bakevolpath5
+        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        
+    === Non-volumetric Geometry Paths ===
+
+    Final Color Path:
+        #id: nonvolpath
+        The path to the final color version of the non-volumetric geometries. If you have multiple non-volumetric geometries to render, merge them together and then point this path a SOP that contains the merged geometries. During the merge, make sure different attributes from different geometries are initialized correctly and the attributes have expected default values.
+        
+    Emissive Property:
+        #id: nonvolemissive
+        Set this according to the overall emissive property of the non-volumetric geometries. This affects how the non-emissive pass is rendered and what will be composited into the emissive map.
+            
+    Non-emissive Path:
+        #id: nonvolncpath
+        The path to the non-emissive version of the non-volumetric geometries.
+        
+    Resolution Per Frame:
+        #id: frameres
+        The render resolution of a single frame.
+            
+    Columns/Rows:
+        #id: gridsize
+        The grid dimension of the flipbook.
+        
+    Intermediate Directory:
+        #id: interdir
+        The folder to store the output images from all the render pass. At the rendering step, all the output images are intermediate images, which are not yet ready for the export. By default, the compositing step will look for images from this folder to start compositing.
+        
+    3D Resolution Limit:
+        #id: texlimit3dlvl
+        Set this according to the dedicated GPU memory of your graphic card. Higher resolution limit means higher maximum volume quality, but it may also cause Houdini to crash if the memory usage is allowed to exceed what your hardware can handle.
+        
+    Color Space:
+        #id: colspace
+        The color space of final color map, non-emissive map, and emissive map.
+            
+    Set Up OCIO ACES:
+        #id: setupocio
+        ACES color space is recommended for pyro rendering as it offers far better visual quality. Pressing this button will automatically configure the $OCIO environment variable to a minimal version of OCIO ACES 1.2 shipped with SideFX Labs. You will need to restart Houdini for this to take effect. 
+        <p>Please note that once $OCIO is set, the default viewport color space will change from Gamma 2.2 to ACES sRGB. You can unhide the Color Correction bar to switch between color spaces.</p>
+        <p>When this parameter is disabled, it means $OCIO is already set.</p>
+
+
+        
+    === Advanced ===
+
+    === Performance ===
+
+    Warmup Time:
+        #id: warmuptime
+        Pauses the execution for this many seconds before the actual render starts for each pass. This can be helpful in ensuring massive geometries are loaded properly before the render starts. It also attempts to prevent overloading your system.
+        
+    Shadow Map Resolution:
+        #id: shadowmapres
+        
+    Single Tex Mem Limit:
+        #id: singletexmemlimit
+        
+    Minimum Near Clipping:
+        #id: nearcliplimit
+        
+    Antialias:
+        #id: aasamples
+            
+    === Lit Passes ===
+
+    Point Size:
+        #id: pointsize_lit
+        
+    Wire Width:
+        #id: wirewidth_lit
+        
+    Non-volumetric Albedo:
+        #id: nonvolalbedo
+        
+    Lighting:
+        #id: lighting
+            
+    Specular in Color Passes:
+        #id: enablespecincols
+        
+    === Unlit Passes ===
+
+    Point Size:
+        #id: pointsize_unlit
+        
+    Wire Width:
+        #id: wirewidth_unlit
+        
+    === Non-volumetric Motion Vector ===
+
+    Motion Vector Source:
+        #id: nonvolmvsource
+        
+        Transform from Input Point Velocity:
+            
+        Compute from NDC-Space Displacement:
+            
+    Point Tracking:
+        #id: nonvolmvtracking
+        
+        Attempt to Match Point by ID Attribute:
+            
+        Match Point by Point Number:
+            
+        Match Point by 3D Proximity:
+            
+    Frame Range Clamp:
+        #id: nonvolmvclamp
+        
+        Input Animation Unavailable after End Frame:
+            
+        Input Animation Available after End Frame:
+            
+        Input Animation Loops Seamlessly:
+            
+    Correction Scale:
+        #id: nonvolmvscale
+        
+    == Composite ==
+
+    Preview Image:
+        #id: previewimage
+        
+        None:
+            
+        ---------:
+            
+        Final Color - Output:
+            
+        Non-emissive Color - Output:
+            
+        Emissive Color - Output:
+            
+        ---------:
+            
+        MDC A:
+            
+        MDC B:
+            
+        MDC C:
+            
+        MDC1 - Output:
+            
+        MDC2 - Output:
+            
+        ---------:
+            
+        MDC Normal:
+            
+        Surface Normal:
+            
+        Normal - Output:
+            
+        ---------:
+            
+        Motion Vector:
+            
+        Motion Vector - Output:
+            
+        ---------:
+            
+        Depth - Output:
+            
+        ---------:
+            
+        Texture 1 - Export:
+            
+        Texture 2 - Export:
+            
+        Texture 3 - Export:
+            
+        Texture 4 - Export:
+            
+        Texture 5 - Export:
+            
+    Single-Tile Preview:
+        #id: singletilepreview
+        
+    Preview Tile:
+        #id: previewtile
+        
+    === Colors ===
+
+    Export Resolution:
+        #id: res_fc
+        
+    Down/Up Res Filters:
+        #id: filter_fc1
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Down/Up Res Filters:
+        #id: filter_fc2
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Convert to Greyscale:
+        #id: greyscalemode
+        
+        Do Not Convert:
+            
+        Using Relative Luminance for ITU-R BT.709 / sRGB:
+            
+        Using Specified RGB Weighted Sum:
+            
+    R Weight:
+        #id: relluminancer
+        
+    G Weight:
+        #id: relluminanceg
+        
+    B Weight:
+        #id: relluminanceb
+        
+    === Multi-directional Contribution ===
+
+    Export Resolution:
+        #id: res_mdc
+        
+    Down/Up Res Filters:
+        #id: filter_mdc1
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Down/Up Res Filters:
+        #id: filter_mdc2
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    === Normal ===
+
+    Export Resolution:
+        #id: res_n
+        
+    Down/Up Res Filters:
+        #id: filter_n1
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Down/Up Res Filters:
+        #id: filter_n2
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Output Normal:
+        #id: outputnormal
+        
+        MDC Normal:
+            
+        Surface Normal:
+            
+        Surface Normal Blended over MDC Normal:
+            
+    Surface Normal Blend Weight across Frame Range:
+        #id: snweight
+        
+    MDC Normal Intensity:
+        #id: mdcnormalintensity
+        
+    Normal Axis System:
+        #id: normalaxes
+        
+        Down-Facing Normals Are Green (Unreal Engine):
+            
+        Up-Facing Normals Are Green (Unity):
+            
+    === Motion Vector ===
+
+    Export Resolution:
+        #id: res_mv
+        
+    Down/Up Res Filters:
+        #id: filter_mv1
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Down/Up Res Filters:
+        #id: filter_mv2
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Motion Vector Encoding:
+        #id: mvencoding
+        
+        R8G8 Remap to 0-1 (Faster Decoding):
+            
+        SideFX Labs R8G8 Encoding (Higher Accuracy):
+            
+        R16G16 (Highest Accuracy and Memory Footprint):
+            
+    Padding Ratio:
+        #id: mvpaddingratio
+        
+    Edge Detection Alpha:
+        #id: mvedgealpha
+        
+    === Depth ===
+
+    Export Resolution:
+        #id: res_d
+        
+    Down/Up Res Filters:
+        #id: filter_d1
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Down/Up Res Filters:
+        #id: filter_d2
+        
+        Point (Unfiltered):
+            
+        Gaussian (Smoother):
+            
+        Mitchell (Slightly Sharper):
+            
+        Catmull-Rom (Sharper):
+            
+    Max Depth Allowed:
+        #id: maxdepth
+        
+    Background Position:
+        #id: bgpos
+        
+    Bit Depth:
+        #id: depthbitdepth
+        
+        8-Bit Integer:
+            
+        16-Bit Floating Point:
+            
+        32-Bit Floating Point:
+            
+    === Intermediate Images ===
+
+    Final Color:
+        #id: img_fc
+        
+    Non-emissive Color:
+        #id: img_nc
+        
+    MDC A:
+        #id: img_mdc_a
+        
+    MDC B:
+        #id: img_mdc_b
+        
+    MDC C:
+        #id: img_mdc_c
+        
+    Surface Normal:
+        #id: img_sn
+        
+    Motion Vector:
+        #id: img_mv
+        
+    Depth:
+        #id: img_d
+        
+    Volume Alpha:
+        #id: img_va
+        
+    Non-volumetric Alpha:
+        #id: img_na
+        
+    == Export ==
+
+    Export All Textures:
+        #id: export_all
+        
+    Tex 1:
+        #id: export_tex1
+        
+    Tex 2:
+        #id: export_tex2
+        
+    Tex 3:
+        #id: export_tex3
+        
+    Tex 4:
+        #id: export_tex4
+        
+    Tex 5:
+        #id: export_tex5
+        
+    Export Directory:
+        #id: expdir
+        
+    Asset Name:
+        #id: asset
+        
+    === Texture 1 Packing ===
+
+    Texture 1:
+        #id: enabletex1
+        
+    Output Texture 1:
+        #id: output_tex1
+        
+    Texture 1 R:
+        #id: tex1_r
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+    Texture 1 G:
+        #id: tex1_g
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 1 B:
+        #id: tex1_b
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 1 A:
+        #id: tex1_a
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    === Texture 2 Packing ===
+
+    Texture 2:
+        #id: enabletex2
+        
+    Output Texture 2:
+        #id: output_tex2
+        
+    Texture 2 R:
+        #id: tex2_r
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+    Texture 2 G:
+        #id: tex2_g
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 2 B:
+        #id: tex2_b
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 2 A:
+        #id: tex2_a
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    === Texture 3 Packing ===
+
+    Texture 3:
+        #id: enabletex3
+        
+    Output Texture 3:
+        #id: output_tex3
+        
+    Texture 3 R:
+        #id: tex3_r
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+    Texture 3 G:
+        #id: tex3_g
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 3 B:
+        #id: tex3_b
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 3 A:
+        #id: tex3_a
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    === Texture 4 Packing ===
+
+    Texture 4:
+        #id: enabletex4
+        
+    Output Texture 4:
+        #id: output_tex4
+        
+    Texture 4 R:
+        #id: tex4_r
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+    Texture 4 G:
+        #id: tex4_g
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 4 B:
+        #id: tex4_b
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 4 A:
+        #id: tex4_a
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    === Texture 5 Packing ===
+
+    Texture 5:
+        #id: enabletex5
+        
+    Output Texture 5:
+        #id: output_tex5
+        
+    Texture 5 R:
+        #id: tex5_r
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+    Texture 5 G:
+        #id: tex5_g
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 5 B:
+        #id: tex5_b
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    Texture 5 A:
+        #id: tex5_a
+        
+        FinalColor.r:
+            
+        FinalColor.g:
+            
+        FinalColor.b:
+            
+        FinalColor.a:
+            
+        Non-emissive.r:
+            
+        Non-emissive.g:
+            
+        Non-emissive.b:
+            
+        Non-emissive.a:
+            
+        Emissive.r:
+            
+        Emissive.g:
+            
+        Emissive.b:
+            
+        Emissive.a:
+            
+        MDC1.r:
+            
+        MDC1.g:
+            
+        MDC1.b:
+            
+        MDC1.a:
+            
+        MDC2.r:
+            
+        MDC2.g:
+            
+        MDC2.b:
+            
+        MDC2.a:
+            
+        Normal.r:
+            
+        Normal.g:
+            
+        Normal.b:
+            
+        MotionVector.r:
+            
+        MotionVector.g:
+            
+        Depth:
+            
+        Set to 0:
+            
+        Set to 1:
+            
+    == Real-Time Shaders ==
+
+    Find Shaders For:
+        #id: shaderengine
+        
+        Unreal Engine:
+            
+    Unreal Engine Content Plugin and Guides:
+        #id: openunrealshaderpath
+        
+    == Interface ==
+
+    Additional Volume Paths:
+        #id: enableextravolpaths
+        
+    Explicit Render Control for Separate Alphas:
+        #id: explicitsacontrol
+        
+    Floating Viewer Position:
+        #id: viewerpos
+        
+    Print Non-Viewport Render Progress:
+        #id: printprogressofrops
+        
+    Record Render Completion Time:
+        #id: enabletimestamps
+        
+    Display Viewport Render Outputs in MPlay:
+        #id: outputtomplay
+        
+    Append Render Outputs in MPlay:
+        #id: appendrenders
+        
+    === Scripts ===
+
+    Pre-Render Script:
+        #id: tprerender
+        
+    Pre-Render Script:
+        #id: prerender
+        
+    Pre-Render Script Language:
+        #id: lprerender
+        
+    Post-Render Script:
+        #id: tpostrender
+        
+    Post-Render Script:
+        #id: postrender
+        
+    Post-Render Script Language:
+        #id: lpostrender
+        
+@locals
+    
+    
+@related
+- [item | /link ]
+

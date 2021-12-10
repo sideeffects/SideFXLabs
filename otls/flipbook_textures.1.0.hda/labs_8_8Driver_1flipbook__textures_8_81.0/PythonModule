@@ -1,6 +1,8 @@
 import datetime
 import time
 from labsopui import reset_viewport
+import labutils
+import json
 
 try:
 
@@ -14,63 +16,46 @@ except NameError:
 
 
 
-# Render Intermediate
+# Render Intermediate Images
 
 
-def checkExtraInputPaths(node):
+def setUpOCIO():
 
-    failed = 0
+    if hou.getenv('OCIO') is not None:
+        return
 
-    for i in range(2, 6):
+    labutils.manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.json", install=1)
 
-        idx = str(i)
-        geo_path = node.evalParm('bakevolpath' + idx)
-        pyro_bake_volume = node.node(geo_path)
+    message = \
+        "The $OCIO environment variable has been set to a minimal version of OCIO ACES 1.2 shipped with SideFX Labs. \n" \
+        "This changes the viewport default color space to ACES sRGB. " \
+        "Unhide Color Correction Bar at the bottom of a viewport to verify or switch color spaces. \n" \
+        "Learn more about ACES at https://www.sidefx.com/docs/houdini/pyro/shading.html. \n \n" \
+        "Please restart Houdini for the settings to take effect."
 
-        if type(pyro_bake_volume) is not hou.SopNode:
+    print (message)
 
-            if geo_path != '':
-                print ("Pyro Bake Volume " + idx + " does not point to a Pyro Bake Volume SOP.\n")
-                failed = 1
-
-        elif pyro_bake_volume.type().name() != 'pyrobakevolume':
-
-            print ("Pyro Bake Volume " + idx + " does not point to a Pyro Bake Volume SOP.\n")
-            failed = 1
-
-       
-    if node.evalParm('nonvolemissive') == 1 and node.evalParm('nonvolpath') != '':
-
-        geo_path = node.evalParm('nonvolnepath')
-
-        if geo_path != '' and type(node.node(geo_path)) is not hou.SopNode:
-
-            print ("Non-emissive Path does not point to a SOP.\n")
-            failed = 1
-        
-    return failed == 0
+    return
 
 
 
-def checkMainInputPaths(node):
+def checkInputs(node):
 
-    node.node(node.path() + '/empty/error_reports/msg_ui').cook(True)
-    
+    try:
+        node.node(node.path() + '/empty/error_reports/msg_input').cook(True)
+
+    except hou.OperationFailed:
+        return None
+
     cam = node.node(node.evalParm('camerapath'))
 
     if type(cam) is not hou.ObjNode:
-
-        print ("Camera is not valid.\n")
         return None
 
     elif cam.type().name() != 'cam':
-
-        print ("Camera is not valid.\n")
         return None
 
     else:
-
-        near_clipping = cam.parm('near')
 
         if cam.evalParm('near') < node.evalParm('nearcliplimit'):
             cam.setParms({'near': node.evalParm('nearcliplimit')})
@@ -78,28 +63,16 @@ def checkMainInputPaths(node):
         main_vol_path = node.evalParm('bakevolpath1')
         main_geometry = node.node(main_vol_path)
 
-        if not checkExtraInputPaths(node):
-            return None
-
         if type(main_geometry) is hou.SopNode:
 
             if main_geometry.type().name() == 'pyrobakevolume':
                     return main_geometry
-
-        if main_vol_path != '':
-            print ("Pyro Bake Volume Path does not point to a Pyro Bake Volume SOP.\n")
 
         main_non_vol_path = node.evalParm('nonvolpath')
         main_geometry = node.node(main_non_vol_path)
 
         if type(main_geometry) is hou.SopNode:
                 return main_geometry
-
-        if main_non_vol_path != '':
-            print ("Non-volumetric Geometry Final Color Path does not point to a SOP.\n")
-
-        print ("For any render to start, at least one of the two following paths must be valid: ' \
-                'Pyro Bake Volume Path and Non-volumetric Geometry Final Color Path.\n")
 
     return None
 
@@ -171,7 +144,37 @@ def restoreExistingSceneViewers(node, scene_viewer_data):
 
         except (hou.OperationFailed, hou.OperationInterrupted):
 
-            pass
+            # Sometimes irrelevant exceptions are raised even though the operation has succeeded.
+            # It's not worth raising those exceptions to confuse the users.
+            pass  
+
+    return
+
+
+
+def closeSceneViewer(scene_viewer, scene_viewer_node = None):
+
+    try:
+
+        if type(scene_viewer) is hou.SceneViewer:
+            scene_viewer.close()
+
+    except:
+
+        # Sometimes irrelevant exceptions are raised even though the operation has succeeded.
+        # It's not worth raising those exceptions to confuse the users.
+        pass
+
+    try:
+
+        if isinstance(scene_viewer_node, hou.Node):
+            scene_viewer_node.destroy()
+
+    except:
+
+        # Sometimes irrelevant exceptions are raised even though the operation has succeeded.
+        # It's not worth raising those exceptions to confuse the users.
+        pass
 
     return
 
@@ -180,7 +183,18 @@ def restoreExistingSceneViewers(node, scene_viewer_data):
 def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
 
     if main_geometry is None:
-        return None
+        return None 
+
+    # Attempts to disable any Template flags on any sibling nodes.
+    try:
+
+        for sibling in main_geometry.parent().children():
+            sibling.setGenericFlag(hou.nodeFlag.Template, False)
+
+    except Exception as exc:
+        
+        # Prints the exception but the rest of the code should execute regardless
+        print (type(exc).__name__, exc)
 
     merged_geos = main_geometry.parent().createNode('object_merge', 'merge_render_geos')
     merged_geos.setParms({'numobj': 6, 'xformtype': 1})
@@ -204,28 +218,41 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
                 merged_geos.parm('enable' + idx).set(1)
                 count += 2
 
+        if i == 1 and count == 0:
+            break
+
     # Merges non-volumes
 
     merged_geos.parm('enable6').set(0)
 
     emissive_property = node.evalParm('nonvolemissive')
 
+    geo_path = ''
+
     if not non_emissive_pass:
+        # Non-volumetric Final Color:
 
         geo_path = node.evalParm('nonvolpath')
 
-    else:
+    elif node.evalParm('nonvolpath') != '':
+        # Non-volumetric Non-emissive Color:
 
         if emissive_property == 0:
+            # Not Emissive:
             geo_path = node.evalParm('nonvolpath')
 
         elif emissive_property == 1:
-            geo_path = node.evalParm('nonvolnepath')
+            # Partially Emissive:
+            geo_path = node.evalParm('nonvolncpath')
 
-        else:
+        elif emissive_property == 2:
+            # Fully Emissive:
             geo_path = ''
         
     non_vol = node.node(geo_path)
+
+    # If 'geo_path' doesn't point to anything valid, 
+    # non-volumes simply won't be merged in.
 
     if type(non_vol) is hou.SopNode:
 
@@ -238,6 +265,7 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
 
         merged_geos.destroy()
         merged_geos = None
+        print ('There is nothing valid to render.')
 
     return merged_geos
 
@@ -270,90 +298,99 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
     viewport = scene_viewer.curViewport()
     viewport.setCamera(node.node(node.evalParm('camerapath')).path())
     
-    display_options = viewport.settings()
+    viewport_settings = viewport.settings()
 
     # Rendering
 
     if render_type == 'lit':
 
-        display_options.setSceneAntialias(pow(2, node.evalParm('aasamples_lit')))
-        display_options.particlePointSize(node.evalParm('pointsize_lit'))
-        display_options.particlePointSize(node.evalParm('wirewidth_lit'))
-        display_options.setShadowMapSize(node.evalParm('shadowmapres'))
-        display_options.setShadowMapSizeFromLight(False)
-        display_options.showSpecular(node.evalParm('enablespecularcol'))
-        display_options.showEmission(True)
+        viewport_settings.particlePointSize(node.evalParm('pointsize_lit'))
+        viewport_settings.particlePointSize(node.evalParm('wirewidth_lit'))
+        viewport_settings.setShadowMapSize(node.evalParm('shadowmapres'))
+        viewport_settings.setShadowMapSizeFromLight(False)
+        viewport_settings.showSpecular(node.evalParm('enablespecincols'))
+        viewport_settings.showEmission(True)
 
-        if node.evalParm('lightquality') == 0:
+        if node.evalParm('lighting') == 0:
 
-            display_options.setLighting(hou.viewportLighting.Off)
-            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+            viewport_settings.setLighting(hou.viewportLighting.Off)
+            viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
 
-        elif node.evalParm('lightquality') == 1:
+        elif node.evalParm('lighting') == 1:
 
-            display_options.setLighting(hou.viewportLighting.Headlight)
-            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+            viewport_settings.setLighting(hou.viewportLighting.Headlight)
+            viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
     
-        elif node.evalParm('lightquality') == 2:
+        elif node.evalParm('lighting') == 2:
 
-            display_options.setLighting(hou.viewportLighting.Normal)
-            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+            viewport_settings.setLighting(hou.viewportLighting.Normal)
+            viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
     
-        elif node.evalParm('lightquality') == 3:
+        elif node.evalParm('lighting') == 3:
 
-            display_options.setLighting(hou.viewportLighting.HighQuality)
-            display_options.setShadowQuality(hou.viewportShadowQuality.Point)
+            viewport_settings.setLighting(hou.viewportLighting.HighQuality)
+            viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
     
-        elif node.evalParm('lightquality') == 4:
+        elif node.evalParm('lighting') == 4:
 
-            display_options.setLighting(hou.viewportLighting.HighQualityWithShadows)
-            display_options.setShadowQuality(hou.viewportShadowQuality.PointAA)
+            viewport_settings.setLighting(hou.viewportLighting.HighQualityWithShadows)
+            viewport_settings.setShadowQuality(hou.viewportShadowQuality.PointAA)
      
-        elif node.evalParm('lightquality') == 5:
+        elif node.evalParm('lighting') == 5:
 
-            display_options.setLighting(hou.viewportLighting.HighQualityWithShadows)
-            display_options.setShadowQuality(hou.viewportShadowQuality.AreaAA)
+            viewport_settings.setLighting(hou.viewportLighting.HighQualityWithShadows)
+            viewport_settings.setShadowQuality(hou.viewportShadowQuality.AreaAA)
 
     elif render_type == 'unlit':
 
-        display_options.setSceneAntialias(pow(2, node.evalParm('aasamples_unlit')))
-        display_options.particlePointSize(node.evalParm('pointsize_unlit'))
-        display_options.particlePointSize(node.evalParm('wirewidth_unlit'))
-        display_options.setShadowMapSize(16)
-        display_options.setShadowMapSizeFromLight(False)
-        display_options.setLighting(hou.viewportLighting.Off)
-        display_options.showEmission(False)
+        viewport_settings.particlePointSize(node.evalParm('pointsize_unlit'))
+        viewport_settings.particlePointSize(node.evalParm('wirewidth_unlit'))
+        viewport_settings.setShadowMapSize(16)
+        viewport_settings.setShadowMapSizeFromLight(False)
+        viewport_settings.showSpecular(False)
+        viewport_settings.showEmission(False)
+        viewport_settings.setLighting(hou.viewportLighting.Off)
 
-    display_options.setHdrRendering(True)
-    display_options.setTransparencyQuality(hou.viewportTransparency.High)
-    display_options.setTextureMaxMemory(node.evalParm('singletexmemlimit'))
-    display_options.setTextureAutoReduce(False) 
+    viewport_settings.setSceneAntialias(pow(2, node.evalParm('aasamples')))
+    viewport_settings.setTextureMaxMemory(node.evalParm('singletexmemlimit'))
+    viewport_settings.setTransparencyQuality(hou.viewportTransparency.High)
+    viewport_settings.setHdrRendering(True)
+    viewport_settings.setTextureAutoReduce(False)
+    viewport_settings.setTextureAutoReduce3D(False)
 
     # Volume quality
 
-    display_options.setTextureResLimit3D(node.evalParm('enabletexlimit3d'))
-    display_options.setTextureMaxRes3D((node.evalParm('texlimit3dx'), node.evalParm('texlimit3dy'), node.evalParm('texlimit3dz')))
-    display_options.setTextureBitDepthLimit3D(hou.viewportTextureDepth.HDR16)
-    display_options.setTexture2DSettingsFor3D(False)
-    display_options.setTextureAutoReduce3D(False)
-    display_options.volumeQuality(hou.viewportVolumeQuality.High)
-    display_options.volumeBSplines(hou.viewportVolumeBSplines.NonInteractive)
+    max_res_3d_level = node.evalParm('texlimit3dlvl')
+
+    if max_res_3d_level > 0:
+        max_res_3d = (max_res_3d_level, max_res_3d_level, max_res_3d_level)
+
+    else:
+        max_res_3d = (node.evalParm('texlimit3dx'), node.evalParm('texlimit3dy'), node.evalParm('texlimit3dz'))
+
+    viewport_settings.setTextureMaxRes3D(max_res_3d)
+    viewport_settings.setTextureResLimit3D(True)
+    viewport_settings.setTextureBitDepthLimit3D(hou.viewportTextureDepth.HDR16)
+    viewport_settings.setTexture2DSettingsFor3D(False)
+    viewport_settings.setTextureAutoReduce3D(False)
+    viewport_settings.volumeQuality(hou.viewportVolumeQuality.High)
+    viewport_settings.volumeBSplines(hou.viewportVolumeBSplines.NonInteractive)
     
     # Viewport displays
 
     scene_viewer_name = hou.ui.curDesktop().name() + '.' + scene_viewer.name() + '.world'
     hou.hscript('vieweroption -a {0} {1}'.format(0, scene_viewer_name))
-    display_options.setColorScheme(hou.viewportColorScheme.Dark)
-    display_options.displaySet(hou.displaySetType.DisplayModel).setShadedMode(hou.glShadingType.Smooth)
-    display_options.displaySet(hou.displaySetType.SceneObject).setShadedMode(hou.glShadingType.Smooth)
-    display_options.displaySet(hou.displaySetType.DisplayModel).useUVMap(False)
-    display_options.displaySet(hou.displaySetType.SceneObject).useUVMap(False)
-    display_options.enableGuide(hou.viewportGuide.FloatingGnomon, False)
-    display_options.enableGuide(hou.viewportGuide.ObjectSelection, False)
-    display_options.showsName(False)
-    display_options.showsCameraName(False)
+    viewport_settings.setColorScheme(hou.viewportColorScheme.Dark)
+    viewport_settings.displaySet(hou.displaySetType.DisplayModel).setShadedMode(hou.glShadingType.Smooth)
+    viewport_settings.displaySet(hou.displaySetType.SceneObject).setShadedMode(hou.glShadingType.Smooth)
+    viewport_settings.displaySet(hou.displaySetType.DisplayModel).useUVMap(False)
+    viewport_settings.displaySet(hou.displaySetType.SceneObject).useUVMap(False)
+    viewport_settings.enableGuide(hou.viewportGuide.FloatingGnomon, False)
+    viewport_settings.enableGuide(hou.viewportGuide.ObjectSelection, False)
+    viewport_settings.showsName(False)
+    viewport_settings.showsCameraName(False)
 
-    return {'viewport': viewport, 'settings': display_options}
+    return {'viewport': viewport, 'settings': viewport_settings}
 
 
 
@@ -361,12 +398,15 @@ def setCommonFlipbookSettings(node, scene_viewer):
 
     fb_settings = scene_viewer.flipbookSettings()
     fb_settings.frameRange((node.evalParm('f1'), node.evalParm('f2')))
+    fb_settings.frameIncrement(node.evalParm('f3'))
     fb_settings.resolution((node.evalParm('frameresx'), node.evalParm('frameresy')))
     fb_settings.sheetSize((node.evalParm('gridsizex'), node.evalParm('gridsizey')))
     fb_settings.outputToMPlay(node.evalParm('outputtomplay'))
     fb_settings.appendFramesToCurrent(node.evalParm('appendrenders'))
 
     fb_settings.useSheetSize(True)
+    fb_settings.overrideLUT(False)
+    fb_settings.overrideGamma(False)
     fb_settings.renderAllViewports(False)
     fb_settings.visibleTypes(hou.flipbookObjectType.GeoOnly)
     fb_settings.antialias(hou.flipbookAntialias.UseViewportSetting)
@@ -382,42 +422,125 @@ def updateTimeStamp(node, parm_name):
     if node.evalParm('enabletimestamps') and parm is not None:
 
         now = datetime.datetime.now()
-        time_stamp = now.strftime('%Y-%m-%d  %I:%M %p')
+        time_stamp = now.strftime('%d %b %Y %I:%M %p')
         parm.set(time_stamp)
 
     return
 
 
 
+def setColorSpace(node, color_space, scene_viewer, viewport_settings, fb_settings):
+
+    ocio_env = hou.getenv('OCIO')
+
+    render_in_linear = color_space < 2
+
+    if ocio_env is not None:
+
+        scene_viewer.setUsingOCIO(True)
+
+        sidefxlabs_env = hou.getenv('SIDEFXLABS')
+
+        if sidefxlabs_env is None:
+            sidefxlabs_env = ''
+
+        if ocio_env == sidefxlabs_env + '/misc/ocio/aces_config.ocio':
+            # Labs Minimal OCIO ACES:
+
+            if render_in_linear:
+                scene_viewer.setOCIODisplayView('sRGB', 'Raw')
+
+            elif color_space == 1:
+                # Transforms this to Gamma 2.2 later in the compositing step
+                scene_viewer.setOCIODisplayView('sRGB', 'Raw')
+
+            elif color_space == 2:
+                scene_viewer.setOCIODisplayView('sRGB', 'ACES')
+
+            elif color_space == 3:
+                scene_viewer.setOCIODisplayView('Rec.709', 'ACES')
+
+            elif color_space == 4:
+                scene_viewer.setOCIODisplayView('Rec.2020', 'ACES')
+
+            elif color_space == 5:
+                scene_viewer.setOCIODisplayView('DCI-P3 D65', 'ACES')
+
+        else:
+            # Official Full OCIO ACES:
+
+            if render_in_linear:
+                scene_viewer.setOCIODisplayView('ACES', 'Raw')
+
+            elif color_space == 1:
+                # Transforms this to Gamma 2.2 later in the compositing step
+                scene_viewer.setOCIODisplayView('ACES', 'Raw')
+
+            elif color_space == 2:
+                scene_viewer.setOCIODisplayView('ACES', 'sRGB')
+
+            elif color_space == 3:
+                scene_viewer.setOCIODisplayView('ACES', 'Rec.709')
+
+            elif color_space == 4:
+                scene_viewer.setOCIODisplayView('ACES', 'Rec.2020')
+
+            elif color_space == 5:
+                scene_viewer.setOCIODisplayView('ACES', 'P3-DCI D65 simulation')
+
+    else:
+
+        scene_viewer.setUsingOCIO(False)
+
+        if color_space < 2:
+
+            viewport_settings.setSceneGamma(1.0)
+
+        else:
+
+            print ("OCIO ACES has not been set up.")
+            raise hou.OperationFailed
+
+    fb_settings.beautyPassOnly(render_in_linear)
+
+    return
+
+
+
+# Render Intermediate Images
+
+
 def renderFinalColor(node, single_pass = True, main_geometry = None):
 
+    success = False
+
     if node.evalParm('renderer_fc') == 0: 
-        return
+        return True
+
+    # Ensures this variable exists so the 'finally' clause can always execute
+    scene_viewer = None
 
     if single_pass:
         
-        main_geometry = checkMainInputPaths(node)
+        main_geometry = checkInputs(node)
 
         if main_geometry is None:
-            return
+            return False
 
         existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
 
+        # Start of This Pass ...
+
         scene_viewer_node = mergeRenderGeometries(node, main_geometry)
     
         if scene_viewer_node is None:
-            return
-
-        # Start of This Pass ...
+            return False
 
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Display, True)
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Render, True)
 
-        scene_viewer = None
-        time.sleep(node.evalParm('warmuptime'))
-    
         scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
         fb_settings = setCommonFlipbookSettings(node, scene_viewer)
@@ -425,70 +548,111 @@ def renderFinalColor(node, single_pass = True, main_geometry = None):
         # Pass-specific viewport overrides
         # None
     
-        # Color space settings
-    
-        if hou.getenv('OCIO') is not None:
-    
-            scene_viewer.setUsingOCIO(True)
-            scene_viewer.setOCIODisplayView('ACES', 'sRGB')
-    
-        else:
-            scene_viewer.setUsingOCIO(False)
-            viewport_data['settings'].setSceneGamma(2.2)
-    
-        fb_settings.beautyPassOnly(False)
-    
-        # Starts the render. Once it's complete, updates the time stamp.
+        setColorSpace(node, node.evalParm('colspace'), scene_viewer, viewport_data['settings'], fb_settings)
+
+        # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'FC.pic.gz')
+        time.sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_fc')
-    
-    except:
 
-        if not single_pass:
-            raise hou.OperationFailed
+        success = True
+    
+    except Exception as exc:
+
+        raise exc
 
     finally:
 
-        if type(scene_viewer) is hou.SceneViewer:
-            scene_viewer.close()
+        closeSceneViewer(scene_viewer, scene_viewer_node)
 
-        if isinstance(scene_viewer_node, hou.Node):
-            scene_viewer_node.destroy()
+        if success and node.evalParm('bakevolpath1') != '' and node.evalParm('nonvolpath') != '':
+            success = renderSeparateAlphas(node, False)
 
         # ... End of This Pass
         
         if single_pass:
             restoreExistingSceneViewers(node, existing_scene_viewer_data)
     
-    return
+    return success
 
 
 
-def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
+def renderSeparateAlphas(node, single_pass = True):
 
+    success = False
 
-    if node.evalParm('renderer_ne') == 0: 
-        return
+    if node.evalParm('renderer_sa') == 0 and node.evalParm('explicitsacontrol') == 1:
+        return True
 
     if single_pass:
         
-        main_geometry = checkMainInputPaths(node)
+        main_geometry = checkInputs(node)
 
         if main_geometry is None:
-            return        
+            return False       
             
         existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
 
+        # Start of This Pass ...
+
+        # Starts the render
+        print_progress = node.evalParm('printprogressofrops')
+        rop_node = node.node(node.path() + '/opengl_vol_alpha')
+        time.sleep(node.evalParm('warmuptime'))
+        rop_node.render(ignore_inputs = True, ignore_bypass_flags = True, verbose = print_progress)
+        rop_node = node.node(node.path() + '/opengl_nonvol_alpha')
+        time.sleep(node.evalParm('warmuptime'))
+        rop_node.render(ignore_inputs = True, ignore_bypass_flags = True, verbose = print_progress)
+        updateTimeStamp(node, 'lb_timestamp_sa')
+
+        success = True
+
+    except Exception as exc:
+
+        raise exc
+
+    finally:
+
+        # ... End of This Pass
+    
+        if single_pass:
+            restoreExistingSceneViewers(node, existing_scene_viewer_data)
+    
+    return success
+
+
+
+def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
+
+    success = False
+
+    if node.evalParm('renderer_nc') == 0: 
+        return True
+
+    # Ensures this variable exists so the 'finally' clause can always execute
+    scene_viewer = None
+
+    if single_pass:
+        
+        main_geometry = checkInputs(node)
+
+        if main_geometry is None:
+            return False        
+            
+        existing_scene_viewer_data = clearExistingSceneViewers(node)
+
+    try:
+
+        # Start of This Pass ...
+
         scene_viewer_node = mergeRenderGeometries(node, main_geometry, True)
     
         if scene_viewer_node is None:
-            return
+            return False
 
-        # Start of This Pass ...
-    
         # Temporarily override settings on Pyro Bake Volume nodes
     
         pyro_bake_volumes = []
@@ -516,9 +680,6 @@ def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
     
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Display, True)
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Render, True)
-        
-        scene_viewer = None
-        time.sleep(node.evalParm('warmuptime'))      
 
         scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
@@ -527,36 +688,23 @@ def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
         # Pass-specific viewport overrides
         # None
     
-        # Color space settings
+        setColorSpace(node, node.evalParm('colspace'), scene_viewer, viewport_data['settings'], fb_settings)
     
-        if hou.getenv('OCIO') is not None:
-    
-            scene_viewer.setUsingOCIO(True)
-            scene_viewer.setOCIODisplayView('ACES', 'sRGB')
-    
-        else:
-            scene_viewer.setUsingOCIO(False)
-            viewport_data['settings'].setSceneGamma(2.2)
-    
-        fb_settings.beautyPassOnly(False)
-    
-        # Starts the render. Once it's complete, updates the time stamp.
-        fb_settings.output(node.evalParm('interdir') + 'NE.pic.gz')
+        # Starts the render
+        fb_settings.output(node.evalParm('interdir') + 'NC.pic.gz')
+        time.sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
-        updateTimeStamp(node, 'lb_timestamp_ne')
+        updateTimeStamp(node, 'lb_timestamp_nc')
 
-    except:
+        success = True
 
-        if not single_pass:
-            raise hou.OperationFailed
+    except Exception as exc:
+
+        raise exc
 
     finally:
 
-        if type(scene_viewer) is hou.SceneViewer:
-            scene_viewer.close()
-
-        if isinstance(scene_viewer_node, hou.Node):
-            scene_viewer_node.destroy()
+        closeSceneViewer(scene_viewer, scene_viewer_node)
     
         # Restores settings on the Pyro Bake Volume nodes
         for i in range(len(pyro_bake_volumes)):
@@ -570,42 +718,47 @@ def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
         if single_pass:
             restoreExistingSceneViewers(node, existing_scene_viewer_data)
 
-    return
+    return success
 
 
 
 def renderMDC(node, single_pass = True):
 
+    success = False
+
     if node.evalParm('renderer_mdc') == 0: 
-        return
+        return True
+
+    # Ensures this variable exists so the 'finally' clause can always execute
+    scene_viewer = None
 
     if single_pass:
         
-        main_geometry = checkMainInputPaths(node)
+        main_geometry = checkInputs(node)
 
         if main_geometry is None:
-            return        
+            return False        
             
         existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
 
+        # Start of This Pass ...
+
         scene_viewer_node = node.node(node.path() + '/mdc_c/geo/RENDER_MDC')
     
         if scene_viewer_node is None:
-            return
+            return False
     
         scene_viewer_node = node.node(node.path() + '/mdc_b/geo/RENDER_MDC')
     
         if scene_viewer_node is None:
-            return
+            return False
     
         scene_viewer_node = node.node(node.path() + '/mdc_a/geo/RENDER_MDC')
     
         if scene_viewer_node is None:
-            return
-    
-        # Start of This Pass ...
+            return False
     
         # Temporarily override settings on Pyro Bake Volume nodes
     
@@ -657,9 +810,6 @@ def renderMDC(node, single_pass = True):
     
         # MDC A Pass
 
-        scene_viewer = None
-        time.sleep(node.evalParm('warmuptime'))
-
         scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
         fb_settings = setCommonFlipbookSettings(node, scene_viewer)
@@ -667,34 +817,23 @@ def renderMDC(node, single_pass = True):
         # Pass-specific viewport overrides
         viewport_data['settings'].showSpecular(False)
         viewport_data['settings'].showEmission(False)
+        viewport_data['settings'].setLighting(hou.viewportLighting.HighQualityWithShadows)
+        viewport_data['settings'].setShadowQuality(hou.viewportShadowQuality.AreaAA)
         
-        # Color space settings
-    
-        if hou.getenv('OCIO') is not None:
-    
-            scene_viewer.setUsingOCIO(True)
-            scene_viewer.setOCIODisplayView('ACES', 'Raw')
-    
-        else:
-            scene_viewer.setUsingOCIO(False)
-    
-        viewport_data['settings'].setSceneGamma(1.0)
-        fb_settings.beautyPassOnly(True)
+        setColorSpace(node, 0, scene_viewer, viewport_data['viewport'], fb_settings)
         
-        # Starts the render.
+        # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MDCa.pic.gz')
+        time.sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
     
-        scene_viewer.close()
+        closeSceneViewer(scene_viewer)
 
 
         # MDC B Pass
 
         scene_viewer_node = node.node(node.path() + '/mdc_b/geo/RENDER_MDC')
 
-        scene_viewer = None
-        time.sleep(node.evalParm('warmuptime'))
-
         scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
         fb_settings = setCommonFlipbookSettings(node, scene_viewer)
@@ -702,34 +841,23 @@ def renderMDC(node, single_pass = True):
         # Pass-specific viewport overrides
         viewport_data['settings'].showSpecular(False)
         viewport_data['settings'].showEmission(False)
+        viewport_data['settings'].setLighting(hou.viewportLighting.HighQualityWithShadows)
+        viewport_data['settings'].setShadowQuality(hou.viewportShadowQuality.AreaAA)
         
-        # Color space settings
-    
-        if hou.getenv('OCIO') is not None:
-    
-            scene_viewer.setUsingOCIO(True)
-            scene_viewer.setOCIODisplayView('ACES', 'Raw')
-    
-        else:
-            scene_viewer.setUsingOCIO(False)
-    
-        viewport_data['settings'].setSceneGamma(1.0)
-        fb_settings.beautyPassOnly(True)
+        setColorSpace(node, 0, scene_viewer, viewport_data['viewport'], fb_settings)
         
-        # Starts the render.
+        # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MDCb.pic.gz')
+        time.sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
     
-        scene_viewer.close()
+        closeSceneViewer(scene_viewer)
 
     
         # MDC C Pass
 
         scene_viewer_node = node.node(node.path() + '/mdc_c/geo/RENDER_MDC')
 
-        scene_viewer = None
-        time.sleep(node.evalParm('warmuptime'))
-
         scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
         fb_settings = setCommonFlipbookSettings(node, scene_viewer)
@@ -737,34 +865,26 @@ def renderMDC(node, single_pass = True):
         # Pass-specific viewport overrides
         viewport_data['settings'].showSpecular(False)
         viewport_data['settings'].showEmission(False)
+        viewport_data['settings'].setLighting(hou.viewportLighting.HighQualityWithShadows)
+        viewport_data['settings'].setShadowQuality(hou.viewportShadowQuality.AreaAA)
         
-        # Color space settings
-    
-        if hou.getenv('OCIO') is not None:
-    
-            scene_viewer.setUsingOCIO(True)
-            scene_viewer.setOCIODisplayView('ACES', 'Raw')
-    
-        else:
-            scene_viewer.setUsingOCIO(False)
-    
-        viewport_data['settings'].setSceneGamma(1.0)
-        fb_settings.beautyPassOnly(True)
+        setColorSpace(node, 0, scene_viewer, viewport_data['viewport'], fb_settings)
         
-        # Starts the render. Once it's complete, updates the time stamp.
+        # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MDCc.pic.gz')
+        time.sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_mdc')
 
-    except:
+        success = True
 
-        if not single_pass:
-            raise hou.OperationFailed
+    except Exception as exc:
+
+        raise exc
 
     finally:
 
-        if type(scene_viewer) is hou.SceneViewer:
-            scene_viewer.close()
+        closeSceneViewer(scene_viewer)
 
         # Restores settings on the Pyro Bake Volume nodes
         for i in range(len(pyro_bake_volumes)):
@@ -789,35 +909,37 @@ def renderMDC(node, single_pass = True):
         if single_pass:
             restoreExistingSceneViewers(node, existing_scene_viewer_data)
     
-    return
+    return success
 
 
 
 def renderSurfaceNormal(node, single_pass = True):
 
+    success = False
+
     if node.evalParm('renderer_sn') == 0: 
-        return
+        return True
+
+    # Ensures this variable exists so the 'finally' clause can always execute
+    scene_viewer = None
 
     if single_pass:
         
-        main_geometry = checkMainInputPaths(node)
+        main_geometry = checkInputs(node)
 
         if main_geometry is None:
-            return        
+            return False
             
         existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
 
+        # Start of This Pass ...
+
         scene_viewer_node = node.node(node.path() + '/surface_normal/geo/RENDER_SN')
     
         if scene_viewer_node is None:
-            return
-
-        scene_viewer = None
-        time.sleep(node.evalParm('warmuptime'))
-    
-        # Start of This Pass ...
+            return False
     
         scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'unlit')
@@ -826,68 +948,60 @@ def renderSurfaceNormal(node, single_pass = True):
         # Pass-specific viewport overrides
         # None
     
-        # Color space settings
+        setColorSpace(node, 0, scene_viewer, viewport_data['viewport'], fb_settings)
     
-        if hou.getenv('OCIO') is not None:
-    
-            scene_viewer.setUsingOCIO(True)
-            scene_viewer.setOCIODisplayView('ACES', 'Raw')
-    
-        else:
-            scene_viewer.setUsingOCIO(False)
-    
-        viewport_data['settings'].setSceneGamma(1.0)
-        fb_settings.beautyPassOnly(True)
-    
-        # Starts the render. Once it's complete, updates the time stamp.
+        # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'SN.pic.gz')
+        time.sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_sn')
-    
-    except:
 
-        if not single_pass:
-            raise hou.OperationFailed
+        success = True
+    
+    except Exception as exc:
+
+        raise exc
 
     finally:
 
-        if type(scene_viewer) is hou.SceneViewer:
-            scene_viewer.close()
+        closeSceneViewer(scene_viewer)
     
         # ... End of This Pass
     
         if single_pass:
             restoreExistingSceneViewers(node, existing_scene_viewer_data)
     
-    return
+    return success
 
 
 
 def renderMotionVector(node, single_pass = True):
 
+    success = False
+
     if node.evalParm('renderer_mv') == 0: 
-        return
+        return True
+
+    # Ensures this variable exists so the 'finally' clause can always execute
+    scene_viewer = None
 
     if single_pass:
         
-        main_geometry = checkMainInputPaths(node)
+        main_geometry = checkInputs(node)
 
         if main_geometry is None:
-            return        
+            return False        
             
         existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
 
+        # Start of This Pass ...
+
         scene_viewer_node = node.node(node.path() + '/motion_vector/geo/RENDER_MV')
     
         if scene_viewer_node is None:
-            return
-
-        scene_viewer = None
-        time.sleep(node.evalParm('warmuptime'))
-
-        # Start of This Pass ...
+            return False
     
         scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'unlit')
@@ -896,76 +1010,65 @@ def renderMotionVector(node, single_pass = True):
         # Pass-specific viewport overrides
         # None
     
-        # Color space settings
+        setColorSpace(node, 0, scene_viewer, viewport_data['viewport'], fb_settings)
     
-        if hou.getenv('OCIO') is not None:
-    
-            scene_viewer.setUsingOCIO(True)
-            scene_viewer.setOCIODisplayView('ACES', 'Raw')
-    
-        else:
-            scene_viewer.setUsingOCIO(False)
-    
-        viewport_data['settings'].setSceneGamma(1.0)
-        fb_settings.beautyPassOnly(True)
-    
-        # Starts the render. Once it's complete, updates the time stamp.
+        # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MV.pic.gz')
+        time.sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_mv')
-    
-    except:
 
-        if not single_pass:
-            raise hou.OperationFailed
+        success = True
+    
+    except Exception as exc:
+
+        raise exc
 
     finally:
 
-        if type(scene_viewer) is hou.SceneViewer:
-            scene_viewer.close()
+        closeSceneViewer(scene_viewer)
     
         # ... End of This Pass
     
         if single_pass:
             restoreExistingSceneViewers(node, existing_scene_viewer_data)
     
-    return
+    return success
 
 
 
 def renderDepth(node, single_pass = True):
 
+    success = False
+
     if node.evalParm('renderer_d') == 0: 
-        return
+        return True
 
     if single_pass:
         
-        main_geometry = checkMainInputPaths(node)
+        main_geometry = checkInputs(node)
 
         if main_geometry is None:
-            return        
+            return False        
             
         existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
 
-        scene_viewer_node = node.node(node.path() + '/depth/geo/RENDER_D')
-    
-        if scene_viewer_node is None:
-            return
-
-        time.sleep(node.evalParm('warmuptime'))
-    
         # Start of This Pass ...
-    
-        # Starts the render. Once it's complete, updates the time stamp.
-        node.node(node.path() + '/opengl_depth').render(ignore_inputs = True, ignore_bypass_flags = True)
+
+        # Starts the render
+        print_progress = node.evalParm('printprogressofrops')
+        rop_node = node.node(node.path() + '/opengl_depth')
+        time.sleep(node.evalParm('warmuptime'))
+        rop_node.render(ignore_inputs = True, ignore_bypass_flags = True, verbose = print_progress)
         updateTimeStamp(node, 'lb_timestamp_d')
 
-    except:
+        success = True
 
-        if not single_pass:
-            raise hou.OperationFailed
+    except Exception as exc:
+
+        raise exc
 
     finally:
 
@@ -974,47 +1077,65 @@ def renderDepth(node, single_pass = True):
         if single_pass:
             restoreExistingSceneViewers(node, existing_scene_viewer_data)
     
-    return
+    return success
 
 
 
 def renderAll(node):
 
-    main_geometry = checkMainInputPaths(node)
+    success = False
+
+    main_geometry = checkInputs(node)
     
     if main_geometry is None:
-        return
+        return False
 
     existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
 
-        renderFinalColor(node, False, main_geometry)
-        renderNonEmissiveColor(node, False, main_geometry)
-        renderMDC(node, False)
-        renderSurfaceNormal(node, False)
-        renderMotionVector(node, False)
-        renderDepth(node, False)
+        if renderFinalColor(node, False, main_geometry):
+            if renderNonEmissiveColor(node, False, main_geometry):
+                if renderMDC(node, False):
+                    if renderSurfaceNormal(node, False):
+                        if renderMotionVector(node, False):
+                            renderDepth(node, False)
 
-    except:
+        success = True
 
-        pass
+    except Exception as exc:
+
+        if type(exc) is not hou.OperationInterrupted:
+            raise exc
 
     finally:
 
         restoreExistingSceneViewers(node, existing_scene_viewer_data)
 
-    return
+    return success
 
 
 
-# Composite Intermediate
+# Composite
 
 
 def reloadImageFile(node, relative_path):
 
     file_node = node.node(node.path() + relative_path)
     file_node.parm('reload').pressButton()
+
+    return
+
+
+
+def reloadFinalColor(node):
+
+    reloadImageFile(node, '/comp_final_color/msg_final_color')
+
+    if node.node(node.path() + '/comp_final_color/switch_combined_alphas').parm('index').eval() == 1:
+
+        reloadImageFile(node, '/comp_final_color/msg_vol_alpha')
+        reloadImageFile(node, '/comp_final_color/msg_nonvol_alpha')
 
     return
 
@@ -1047,73 +1168,97 @@ def setPreviewImage(node):
 
             if pane is not None:
 
-                comp_viewer = pane.createTab(hou.paneTabType.CompositorViewer)
                 should_create_floating = 0
+                comp_viewer = pane.createTab(hou.paneTabType.CompositorViewer)  
 
         if should_create_floating == 1:
 
             panel = desktop.createFloatingPanel(hou.paneTabType.CompositorViewer, immediate = True)
             comp_viewer = panel.paneTabOfType(hou.paneTabType.CompositorViewer)
 
-            if comp_viewer is None:
+    if comp_viewer is None:
 
-                print ("Failed to create a Composite View Tab in a new Floating Panel.")
-                return
+        print ("Failed to find or create a Composite View Tab.")
+        return
 
     comp_viewer.setIsCurrentTab()
     comp_viewer.setPin(True)
     preview_node = node.node(node.path() + '/preview/OUT_PREVIEW')
     comp_viewer.setCurrentNode(preview_node)
 
-    if hou.getenv('OCIO') is not None:
+    # Color space settings
+
+    ocio_env = hou.getenv('OCIO')
+
+    if ocio_env is not None:
 
         comp_viewer.setUsingOCIO(True)
-        comp_viewer.setOCIODisplayView('ACES', 'Raw')
+
+        sidefxlabs_env = hou.getenv('SIDEFXLABS')
+
+        if sidefxlabs_env is None:
+            sidefxlabs_env = ''
+
+        if ocio_env == sidefxlabs_env + '/misc/ocio/aces_config.ocio':
+            # Labs Minimal OCIO ACES:
+            comp_viewer.setOCIODisplayView('sRGB', 'Raw')
+
+        else:
+            # Official Full OCIO ACES:
+            comp_viewer.setOCIODisplayView('ACES', 'Raw')
+
+    else:
+
+        comp_viewer.setUsingOCIO(False)
+
+        hou.hscript('colorsettings -g 1.0 -c')
 
     # Reloads dependent image files
     if preview_image == 1:
 
-        reloadImageFile(node, '/comp_final_color/final_color')
+        reloadFinalColor(node)
 
-    elif preview_image == 2:
+    elif preview_image <= 3:
 
-        reloadImageFile(node, '/comp_non_emissive/non_emissive_color')
+        reloadFinalColor(node)
+        reloadImageFile(node, '/comp_non_emissive/msg_non_emissive_color')
 
-    elif preview_image <= 8:
+    elif preview_image <= 9:
 
-        reloadImageFile(node, '/comp_mdc/mdc_a')
-        reloadImageFile(node, '/comp_mdc/mdc_b')
-        reloadImageFile(node, '/comp_mdc/mdc_c')
-
-    elif preview_image == 9:
-
-        reloadImageFile(node, '/comp_normal/surface_normal')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_a')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_b')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_c')
 
     elif preview_image == 10:
 
-        reloadImageFile(node, '/comp_mdc/mdc_a')
-        reloadImageFile(node, '/comp_mdc/mdc_b')
-        reloadImageFile(node, '/comp_mdc/mdc_c')
-        reloadImageFile(node, '/comp_normal/surface_normal')
+        reloadImageFile(node, '/comp_normal/msg_surface_normal')
 
-    elif preview_image <= 12:
+    elif preview_image == 11:
 
-        reloadImageFile(node, '/comp_motion_vector/motion_vector')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_a')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_b')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_c')
+        reloadImageFile(node, '/comp_normal/msg_surface_normal')
 
-    elif preview_image == 13:
+    elif preview_image <= 13:
 
-        reloadImageFile(node, '/comp_depth/depth')
+        reloadFinalColor(node)
+        reloadImageFile(node, '/comp_motion_vector/msg_motion_vector')
 
-    elif preview_image <= 18:
+    elif preview_image == 14:
 
-        reloadImageFile(node, '/comp_final_color/final_color')
-        reloadImageFile(node, '/comp_non_emissive/non_emissive_color')
-        reloadImageFile(node, '/comp_normal/surface_normal')
-        reloadImageFile(node, '/comp_mdc/mdc_a')
-        reloadImageFile(node, '/comp_mdc/mdc_b')
-        reloadImageFile(node, '/comp_mdc/mdc_c')
-        reloadImageFile(node, '/comp_motion_vector/motion_vector')
-        reloadImageFile(node, '/comp_depth/depth')
+        reloadImageFile(node, '/comp_depth/msg_depth')
+
+    elif preview_image <= 19:
+
+        reloadFinalColor(node)
+        reloadImageFile(node, '/comp_non_emissive/msg_non_emissive_color')
+        reloadImageFile(node, '/comp_normal/msg_surface_normal')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_a')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_b')
+        reloadImageFile(node, '/comp_mdc/msg_mdc_c')
+        reloadImageFile(node, '/comp_motion_vector/msg_motion_vector')
+        reloadImageFile(node, '/comp_depth/msg_depth')
 
     return
 
@@ -1130,23 +1275,50 @@ def stopPreviewImage(node):
 
 def exportTexture(node, texture_index):
 
-    stopPreviewImage(node)
+    success = False
 
-    if node.evalParm('enabletex' + str(texture_index)) == 1:
+    try:
 
-        output_node = node.node(node.path() + '/channel_pack/ROP_TEX' + str(texture_index))
-        output_node.render()
+        stopPreviewImage(node)
+    
+        if node.evalParm('enabletex' + str(texture_index)):
+    
+            output_node = node.node(node.path() + '/channel_pack/ROP_TEX' + str(texture_index))
+            output_node.render()
 
-    return
+        success = True
+
+    except Exception as exc:
+
+        print ("Error in exporting Texture " + str(texture_index) + ".")
+        raise exc
+
+    return success
 
 
 
 def exportAll(node):
 
-    exportTexture(node, 1)
-    exportTexture(node, 2)
-    exportTexture(node, 3)
-    exportTexture(node, 4)
-    exportTexture(node, 5)
+    try:
+
+        if exportTexture(node, 1):
+            if exportTexture(node, 2):
+                if exportTexture(node, 3):
+                    if exportTexture(node, 4):
+                        exportTexture(node, 5)
+
+    except Exception as exc:
+
+        if type(exc) is not hou.OperationInterrupted:
+            raise exc
+
+    return
+
+
+
+def renderAndExport(node):
+
+    if renderAll(node):
+        exportAll(node)
 
     return
