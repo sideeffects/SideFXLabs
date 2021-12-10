@@ -32,12 +32,11 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 36.2594 -65.2933
-connectornextid 1
+position -6.23545 1.63369
+connectornextid 0
 flags =  lock off model off template on footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
-0 "output1"
 }
 inputsNamed3
 {
@@ -49,7 +48,7 @@ stat
 {
   create -1
   modify -1
-  author simon@LAPTOP-UT28NOSR
+  author Paul@DESKTOP-PAFFS1R
   access 0777
 }
 color UT_Color RGB 0.8 0.8 0.8 
@@ -169,7 +168,7 @@ class OSMNode(object):
         self.lon = xml_node.attrib[\"lon\"]
         for child in xml_node:
             if child.tag == \"tag\":
-                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])#.encode(\"utf-8\")
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
                 self.tags[clean_tag] = child.attrib[\"v\"]
 
         return self
@@ -189,7 +188,7 @@ class OSMWay(object):
         self.id = xml_node.attrib[\"id\"]
         for child in xml_node:
             if child.tag == \"tag\" and \"k\" in child.attrib:
-                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])#.encode(\"utf-8\")
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
                 self.tags[clean_tag] = child.attrib[\"v\"]
 
             if child.tag == \"nd\" and \"ref\" in child.attrib:
@@ -211,7 +210,7 @@ class OSMRelation(object):
         self.id = xml_node.attrib[\"id\"]
         for child in xml_node:
             if child.tag == \"tag\" and \"k\" in child.attrib:
-                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])#.encode(\"utf-8\")
+                clean_tag = re.sub('[^a-zA-Z0-9\\n]', '_', child.attrib[\"k\"])
                 self.tags[clean_tag] = child.attrib[\"v\"]
 
             if child.tag == \"member\" and \"ref\" in child.attrib:
@@ -381,7 +380,7 @@ class OSMParser(object):
                 poly.setAttribValue(\"hou_id\", node.id)
                 poly.setAttribValue(\"hou_node\", 1)
                 for tag in node.tags:
-                    clean_value = re.sub('[^a-zA-Z0-9.,\\n]', '', node.tags[tag])#.encode(\"utf-8\")
+                    clean_value = re.sub('[^a-zA-Z0-9.,\\n]', '', node.tags[tag])
 
                     if tag == \"name\":
                         poly.setAttribValue(\"hou_name\", clean_value)
@@ -434,7 +433,7 @@ def make_file_object(filename):
     if filename.startswith(\"opdef:\") or filename.startswith(\"oplib:\"):
         return StringIO(hou.readFile(filename))
     else:
-        return open(filename, \"r\")
+        return open(filename, \"r\", encoding='utf-8', errors='replace')
 
 osm_file = hou.node(\"..\").parm(\"osm_file\").eval()
 osm_file_object = make_file_object(osm_file) 
