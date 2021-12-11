@@ -271,7 +271,7 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
 
 
 
-def setCommonSceneViewerSettings(node, scene_viewer_node):
+def setCommonSceneViewerSettings(node, scene_viewer_node, padding = 0):
 
     target_res = (node.evalParm('frameresx'), node.evalParm('frameresy'))
     pos = (node.evalParm('viewerposx'), node.evalParm('viewerposy'))
@@ -279,7 +279,7 @@ def setCommonSceneViewerSettings(node, scene_viewer_node):
     scene_viewer.showOperationBar(True)
     scene_viewer.showDisplayOptionsBar(True)
     res = scene_viewer.curViewport().resolutionInPixels()
-    res = (target_res[0] * 2 - res[0], target_res[1] * 2 - res[1])
+    res = (target_res[0] * 2 - res[0], target_res[1] * 2 - res[1] + padding * 2)
     scene_viewer.close()
     
     scene_viewer = hou.ui.curDesktop().createFloatingPaneTab(hou.paneTabType.SceneViewer, pos, res, None, True)
@@ -541,7 +541,7 @@ def renderFinalColor(node, single_pass = True, main_geometry = None):
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Display, True)
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Render, True)
 
-        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node, node.evalParm('viewportpadding'))
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
         fb_settings = setCommonFlipbookSettings(node, scene_viewer)
     
@@ -681,7 +681,7 @@ def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Display, True)
         scene_viewer_node.setGenericFlag(hou.nodeFlag.Render, True)
 
-        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node)
+        scene_viewer = setCommonSceneViewerSettings(node, scene_viewer_node, node.evalParm('viewportpadding'))
         viewport_data = setCommonViewportSettings(node, scene_viewer, 'lit')
         fb_settings = setCommonFlipbookSettings(node, scene_viewer)
     
