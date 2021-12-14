@@ -1,0 +1,164 @@
+#type:     node
+#context:  top
+#internal: labs::filecachefilter::1.0
+#icon:     TOP/filterbyrange
+
+= Labs File Cache Filter =
+
+"""Partition work items used for file caching"""
+
+== Overview ==
+
+This node is mostly used as a basic building block for [TOP Labs File Cache node|Node:top/labs::topfilecache::1.0], and used to filter work items on different cache types.
+
+== Cache Types ==
+This node differentiates between two distinctive cache types based on `frame` and `range` top attributes:
+
+* __Time Independent / Static Geometry / Model__
+    :task: To create a Time Independent work item:
+        # Create a [Range Generate node|Node:top/rangegenerate].
+        # Set all three components of the __Value Range__ parameter to 1. This will set both the `frame` and the `range` attribute on the work item to 1.
+        
+* __Time Dependent / Geometry Sequence__
+    :task: To create a Time Dependent work item:
+        # Create a [Range Generate node|Node:top/rangegenerate].
+        # Make sure the first and second values of __Value Range__ parameter are not the same. This will give you multiple work items with the same `range`, but each with different `frame` number. 
+
+Additionally, each of these cache types can be wedged, in which case top wedge attributes such as `wedgeindex`, `wedgenum`, `wedgetotal`, `wedgecount` must exist on the work items.
+
+@parameters
+
+    == Filtering ==
+
+    Filter Mode:      
+        #id: filtermode
+        Sets how to filter work items for the output. 
+        
+        Split Items:
+            Splits the work items between the left and the right output, based on if they are filtered or not.
+            
+        Create Attribute:
+            Do not split the work items, but insted only an attribute, called `filter`, that can be used later to process work items. Use only the first output of the node in this case.
+            
+    Filter Non Selected:
+        #id: filteroperation
+        Reverses the selection of the filtered work items. 
+        
+    Filter Subframes:
+        #id: filtersubframes
+        Removes any subframes, frames that are not landing on integer values, from the Time Dependent work items.
+        
+    === Time Independent ===
+
+    Filter Time Independet:
+        #id: filtertimeindependent
+        Filter work items that are `static`. Time Independent work items have their `frame` and `range` attribute values are all set to `1`.
+        
+    === Time Dependent ===
+
+    Filter Time Dependent:
+        #id: filtertimedependent
+        Filter work items that are in a sequence. Time Dependent work items have a `range` attribute that is not set to `1` for all components, and for each work item in the sequence has a different `frame` number.
+        
+    Filter by:
+        #id: trange
+        Selects the frames in the sequence to filter.
+
+        All Frames:
+            All the frames are selected.
+
+        Single Frame:
+            The current frame is selected.
+
+        Frame Range:
+            Frames in the given range will be selected. When working with substeps, make sure the 3rd component of the __Frame Range__ parameter is set to the right substep, otherwise some work items might not be selected.
+
+        Specific Frames:
+            Sets the wedge values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used. 
+
+    Override Frame:
+        #id: frameoverride
+        When __Filter by__ is set to __Single Frame__ and the checkbox to the left is on, cache this explicit frame number instead of the current frame from the timeline.
+
+    Frame Range:
+        #id: f
+        Sets the minimum and maximum valus with the range, along with the stepsize. 
+        
+    List of Frames:
+        #id: specificrange
+        Sets the frame values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used.  
+
+        Value List ||
+            Expanded Values || 
+
+        5 |            
+            5.0 
+
+        3;5 7 |            
+            3.0, 5.0, 7.0
+
+        1-3 |        
+            1.0, 2.0, 3.0
+
+        0-1:0.25 |
+            0.0, 0.25, 0.5, 0.75, 1.0
+
+        0-1:0.25 5; 8-12:2 |
+            0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0 
+
+    === Wedges ===
+
+    Filter by Wedge:
+        #id: filterwedge
+        Filter work items that has wedge attributes present (`wedgeindex`, `wedgenum`, `wedgetotal`, `wedgecount`).
+        
+    Filter by:
+        #id: wrange
+        Selects the wedges to filter.
+        
+        All Wedges:
+            Select all existing wedges.
+            
+        Single Wedge:
+            Select a single wedge (given by __Single Wedge__).
+            
+        Custom Range:
+            Wedges in the given range will be selected. 
+            
+        Specific Wedges:
+            Sets the wedge values by a list of independent range sequences or numbers. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used. In case of wedging, the wedge numbers are always integer values, so `stepsize` should not be used.
+
+    Single Wedge:
+        #id: wedgeoverride
+        Sets the wedge number to select
+
+    Wedge Range:
+        #id: wedgerange
+        Sets the minimum and maximum range of the selected wedge values.
+        
+    List of Wedges:
+        #id: specificwedges
+        Sets the wedge values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used. In case of wedging, the wedge numbers are always integer values, so `stepsize` should not be used.
+
+        Value List ||
+            Expanded Values || 
+
+        5 |            
+            5.0 
+
+        3;5 7 |            
+            3.0, 5.0, 7.0
+
+        1-3 |        
+            1.0, 2.0, 3.0
+
+        0-1:0.25 |
+            0.0, 0.25, 0.5, 0.75, 1.0
+
+        0-1:0.25 5; 8-12:2 |
+            0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0       
+    
+@related
+- [Labs File Cache |Node:sop/labs::filecache::2.0]
+- [Labs Karma |Node:lop/labs::karam::2.0]
+

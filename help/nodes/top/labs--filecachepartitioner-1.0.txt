@@ -1,0 +1,70 @@
+#type:     node
+#context:  top
+#internal: labs::filecachepartitioner::1.0
+#icon:     TOP/partitionbycombination
+
+= Labs File Cache Partitioner =
+
+"""Partitions and generates work items based on range and wedge values for file cache."""
+
+== Overview ==
+
+This node is mostly used as a basic building block for [TOP Labs File Cache node|Node:top/labs::topfilecache::1.0].
+
+TOP nodes change their work items based on their inputs. This means, for example a [ROP Geometry Output node|Node:top/ropgeometry] can give you undesired amount of frames/work items to work with just by connecting/disconnecting it's input. This can lead to a very error prone, slow, and hard to build workflows. This partitioner's job to ensure that the amount of work items generated are always correspond to the settings given on this node, and by that, to create dependencies between all incoming and newly generated work items. 
+
+== Cache Types ==
+This node differentiates between two distinctive cache types based on `frame` and `range` top attributes:
+
+* __Time Independent / Static Geometry / Model__
+    :task: To create a Time Independent work item:
+        # Create a [Range Generate node|Node:top/rangegenerate].
+        # Set all three components of the __Value Range__ parameter to 1. This will set both the `frame` and the `range` attribute on the work item to 1.
+        
+* __Time Dependent / Geometry Sequence__
+    :task: To create a Time Dependent work item:
+        # Create a [Range Generate node|Node:top/rangegenerate].
+        # Make sure the first and second values of __Value Range__ parameter are not the same. This will give you multiple work items with the same `range`, but each with different `frame` number. 
+
+== Dependencies and Partitioning ==
+
+Each of these cache types can be wedged using this node, in which case top wedge attributes such as `wedgeindex`, `wedgenum`, `wedgetotal`, `wedgecount` is added to the work items. This means that the node can generate __Time Independed__, __Wedged Time Independent__, __Time Dependent__ and __Wedged Time Dependent__ work items from any number and varition of work items of these categorised. 
+
+NOTE:
+    Wedging here does not give you access the usual wedge attribute controls you would expect from a [Wedge node|Node:top/wedge]. Here it simply controls the amount of work items needed if you are to wedge a __Time Dependent__ or __Time Independent__ cache. To add wedge attributes to the work items after this node, the [Labs Wedge node|Node:top/labs::wedge::1.0] can be used. 
+
+As general rule, incoming __Time Dependent__ caches will partition with the work item of the same frame number. If that is not found no dependency will be created, for example when the incoming frame range is longer then the generated frame range.  Incoming __Time Dependent__ work items will always collapse their frames (partition) into a single __Time Independent__ work item. While on the opposite side, an incoming __Time Independent__ work item will partition to all the frames of the generated __Time Dependent__ work items. This behaviour is similar when it comes to wedging. When you generate wedged work items, every incoming none wedged work items will partition to all wedges of the same frame. 
+
+When a work item does not have `frame` or `range` attribute, it is considered a generic work item. This is generally not recommend. However this means that all generated work items depend on this generic work item. 
+
+You can find a demoscene under SideFXLabs/hip/filecachepartitioner_demoscene.hip that demonstrates these dependencies in detail.
+
+@parameters
+
+== Frame Range ==
+
+:include /nodes/sop/filecache#timedependent:
+    
+:include /nodes/out/geometry#f:
+
+Substeps:
+    #id: substeps
+    :include /nodes/sop/filecache#substeps:
+
+Wait for All Frames:
+    #id: waitforallframes
+    This will make every single generated work item dependent on all incoming work items. So this node awaits for all upstream work items to finish before processing.
+
+== Wedging ==
+
+Enable Wedging:
+    #id: enablewedging
+    This will generate copies of the given frame range using the __Wedge Count__ parameter. The work items will contain all necessary top attributes, such as `wedgeindex` to differentiate between wedges, however this node will not generate any other wedge attributes. To add wedge attributes to the generated work items, use the [Labs Wedge node|Node:top/labs::wedge::1.0].
+
+Wedge Count:
+    #id: wedgecount
+    Sets how many copies of the the given frame range will be created. The work items will contain all necessary top attributes, such as `wedgeindex` to differentiate between wedges, however this node will not generate any other wedge attributes. To add wedge attributes to the generated work items, use the [Labs Wedge node|Node:top/labs::wedge::1.0].
+
+@related
+- [TOP Labs File Cache node|Node:top/labs::topfilecache::1.0]
+- [Labs Wedge node|Node:top/labs::wedge::1.0]
