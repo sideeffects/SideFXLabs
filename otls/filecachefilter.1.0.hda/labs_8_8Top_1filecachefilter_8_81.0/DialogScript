@@ -1,0 +1,208 @@
+# Dialog script for labs::filecachefilter::1.1 automatically generated
+
+{
+    name	labs::filecachefilter::1.1
+    script	split
+    label	"Labs File Cache Filter"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Work-Items to Filter"
+    inputlabel	2	"Input 2"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+    outputlabel	1	"Filtered Work-Items"
+    outputlabel	2	"Filtered Work-Items"
+
+    groupsimple {
+        name    "folder0"
+        label   "Filtering"
+
+        parm {
+            name    "filtermode"
+            label   "Filter Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "split"     "Split Items"
+                "attrib"    "Create Attribute"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filteroperation"
+            label   "Filter Non Selected"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filtersubframes"
+            label   "Filter Subframes"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "folder3"
+            label   "Time Independent"
+            grouptag { "sidefx::header_toggle" "filtertimeindependent" }
+
+            parm {
+                name    "filtertimeindependent"
+                label   "Filter Time Independet"
+                type    toggle
+                default { "1" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder1"
+            label   "Time Dependent"
+            grouptag { "group_default" "1" }
+            grouptag { "sidefx::header_parm" "trange" }
+            grouptag { "sidefx::header_toggle" "filtertimedependent" }
+
+            parm {
+                name    "filtertimedependent"
+                label   "Filter Time Dependent"
+                type    toggle
+                default { "1" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "trange"
+                label   "Filter by"
+                type    ordinal
+                default { "all" }
+                disablewhen "{ filtertimedependent != 1 }"
+                menu {
+                    "all"       "All Frames"
+                    "single"    "Single Frame"
+                    "range"     "Frame Range"
+                    "specific"  "Specific Frames"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "useframeoverride"
+                label   "Override Frame"
+                type    toggle
+                nolabel
+                joinnext
+                default { "off" }
+                disablewhen "{ filtertimedependent != 1 }"
+                hidewhen "{ trange != single }"
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "frameoverride"
+                label   "Override Frame"
+                type    float
+                default { "1" }
+                disablewhen "{ filtertimedependent != 1 } { useframeoverride == 0 }"
+                hidewhen "{ trange != single }"
+                range   { 1 240 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "sidefx::slider" "snap_to_int" }
+            }
+            parm {
+                name    "f"
+                label   "Frame Range"
+                type    float
+                size    3
+                default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+                disablewhen "{ filtertimedependent != 1 }"
+                hidewhen "{ trange != range }"
+                range   { 1 240 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "specificrange"
+                label   "List of Frames"
+                type    string
+                default { "`chs(\"f1\")`-`chs(\"f2\")`:`chs(\"f3\")`" }
+                disablewhen "{ filtertimedependent != 1 }"
+                hidewhen "{ trange != specific }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "folder2"
+            label   "Wedges"
+            grouptag { "group_default" "1" }
+            grouptag { "sidefx::header_parm" "wrange" }
+            grouptag { "sidefx::header_toggle" "filterwedge" }
+
+            parm {
+                name    "filterwedge"
+                label   "Filter by Wedge"
+                type    toggle
+                default { "1" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "wrange"
+                label   "Filter by"
+                type    ordinal
+                default { "all" }
+                disablewhen "{ filterwedge != 1 }"
+                menu {
+                    "all"       "All Wedges"
+                    "single"    "Single Wedge"
+                    "range"     "Custom Range"
+                    "specific"  "Specific Wedges"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "wedgeoverride"
+                label   "Single Wedge"
+                type    integer
+                default { "0" }
+                disablewhen "{ filterwedge != 1 }"
+                hidewhen "{ wrange != single }"
+                range   { 0! 49 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "sidefx::slider" "snap_to_int" }
+            }
+            parm {
+                name    "wedgerange"
+                label   "Wedge Range"
+                type    int_minmax
+                size    2
+                default { "0" "1" }
+                disablewhen "{ filterwedge != 1 }"
+                hidewhen "{ wrange != range }"
+                range   { 0! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "specificwedges"
+                label   "List of Wedges"
+                type    string
+                default { "0-1" }
+                disablewhen "{ filterwedge != 1 }"
+                hidewhen "{ wrange != specific }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

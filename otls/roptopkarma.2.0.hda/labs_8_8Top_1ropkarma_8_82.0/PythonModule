@@ -1,0 +1,248 @@
+def buildWorkItems(kwargs):
+    node = kwargs['node']
+    hou.hipFile.save(save_to_recent_files=False)    
+    node.dirtyTasks(False)
+    node.executeGraph(False,True,True,False)
+
+def setSelectedWedge(kwargs):    
+    node = kwargs['node']
+    selected_wedge_index = int(kwargs['parm'].eval())
+    pdg_node = node.getPDGNode()
+    
+    if pdg_node:
+        work_items = pdg_node.workItems            
+        work_id = 0
+        work_index = 0
+        for work_item in work_items:
+            wedge_index = work_item.numericAttribute("wedgeindex")
+            if (wedge_index == selected_wedge_index):
+                #print "id:    ", work_item.id
+                #print "index: ", work_item.index
+                #print "wedgeindex: ", wedge_index
+                work_id = work_item.id
+                break
+        node.setSelectedWorkItem(work_id)
+
+def loadRender(kwargs):
+    import os
+    import subprocess
+    
+    node = kwargs['node']   
+    
+    seq = os.path.join(os.path.dirname(node.evalParm("picture")),os.path.basename(node.evalParm("picture")).split(".")[0] + ".*" + node.parm("filetype").evalAsString())
+    
+    command = hou.text.expandString('$HB/mplay')      
+    subprocess.Popen([command, '-p', '-P loop', '-r 24', '-G 1', seq])
+
+def deleteWedges(kwargs):
+    import fileseq
+    
+    node = kwargs['node']
+    fnode = hou.node(node.path() + "/FILE_PATH")
+    
+    basedir = node.evalParm('basedir')  
+    filename = node.parm("filename").eval()
+    ver = node.evalParm('ver')
+    subver = node.evalParm('subver')
+    dowedging = node.evalParm('enablewedging')
+    wedgeidx = node.evalParm('wedgeidx')
+    filetype = node.parm("filetype").evalAsString()
+    cachetype = node.parm("cachetype").evalAsString()
+    
+    list = [filename,'*.#.*']
+    list = " ".join(list).split()
+    basename =  ".".join(list)
+  
+    pattern = os.path.join(basedir,basename)    
+    seqs = fileseq.findSequencesOnDisk(pattern=pattern)
+    
+    filtered_labels = []
+    filtered_seqs = []
+    
+    elements = {}
+    
+    for seq in seqs:      
+        components = []  # filename, version, subversion, wedge
+        basename = seq.basename()
+        regex_no_wedge    = r'([A-Za-z0-9\-\_]+)\.\d+\.\d+\.$'
+        regex_with_wedge  = r'([A-Za-z0-9\-\_]+)\.\d+\.\d+\.w\d+\.$'
+        
+        if re.match(regex_no_wedge, basename):
+            components = basename[:-1].split('.')
+            components.append("")
+            
+        elif re.match(regex_with_wedge, basename):
+            components = basename[:-1].split('.')           
+        else:
+            print('Not matching sequence {} was ignored.'.format(seq))
+            continue        
+        
+        if filename in components[0] and str(ver) in components[1] and str(subver) in components[2]: 
+           
+            label = components[3]            
+            if label not in elements:
+                elements[label] = SequenceContainer(seq)    
+            else:
+                elements[label].appendSequence(seq)
+    
+    labels = [*elements]
+    labels.sort()
+    
+    entries = []
+    for label in labels:
+        entries.append('{} ({})'.format(label,elements[label].getSize()))
+        
+    message = os.path.join(basedir,filename + "." + str(ver) + "." + str(subver) + ".*")
+    all_selected = hou.ui.selectFromList(entries, message=message,title="Delete Wedges",column_header="Cached Wedges", width=300,height=300)
+        
+    if all_selected:
+        for selected in all_selected: 
+            elements[labels[selected]].deleteSequences()   
+            
+def deleteVersions(kwargs):
+    import os
+    import subprocess
+    node = kwargs['node']
+    fnode = hou.node(node.path() + "/FILE_PATH")
+    
+    base_dir = fnode.evalParm("base_directory")
+    file_dir = fnode.evalParm("file_directory")    
+    
+    full_dirs = []
+    version_dirs = []
+    list_names = []
+    
+    if os.path.exists(os.path.join(base_dir,file_dir)):    
+        for version_dir in os.listdir(os.path.join(base_dir,file_dir)):        
+            full_dir = os.path.join(base_dir,file_dir,version_dir)
+            if os.path.isdir(full_dir):           
+                version_dirs.append(version_dir)
+        
+        version_dirs.sort()
+        
+        for version_dir in version_dirs:
+            full_dir = os.path.join(base_dir,file_dir,version_dir)
+            full_dirs.append(full_dir)
+            
+            size = subprocess.check_output(['du','-sh', full_dir]).split()[0].decode('utf-8')
+            
+            list_name = "%s (%s)" %(version_dir,size)
+            list_names.append(list_name)
+            
+        all_selected = hou.ui.selectFromList(list_names, message=file_dir,title="Delete Version...",column_header="Cached Versions", width=300,height=300)
+        
+        if all_selected:
+            import shutil
+            for selected in all_selected:
+                selected_dir = full_dirs[selected]
+                try:
+                    shutil.rmtree(selected_dir)
+                except OSError as e:
+                    print ("Error: %s - %s." % (e.filename, e.strerror))
+                
+                
+def deleteSubVersions(kwargs):
+    import os
+    import subprocess
+    node = kwargs['node']
+    fnode = hou.node(node.path() + "/FILE_PATH")
+    
+    base_dir = fnode.evalParm("base_directory")
+    file_dir = fnode.evalParm("file_directory") 
+    version_dir = fnode.evalParm("version_directory")
+    
+    full_dirs = []
+    subversion_dirs = []
+    list_names = []
+    
+    if os.path.exists(os.path.join(base_dir,file_dir,version_dir)):
+        for subversion_dir in os.listdir(os.path.join(base_dir,file_dir,version_dir)):        
+            full_dir = os.path.join(base_dir,file_dir,version_dir,subversion_dir)
+            if os.path.isdir(full_dir):           
+                subversion_dirs.append(subversion_dir)
+        
+        subversion_dirs.sort()
+        
+        for subversion_dir in subversion_dirs:
+            full_dir = os.path.join(base_dir,file_dir,version_dir,subversion_dir)
+            full_dirs.append(full_dir)
+            
+            size = subprocess.check_output(['du','-sh', full_dir]).split()[0].decode('utf-8')
+            
+            list_name = "%s (%s)" %(subversion_dir,size)
+            list_names.append(list_name)
+            
+        all_selected = hou.ui.selectFromList(list_names, message=file_dir,title="Delete Sub Version...",column_header="Cached Versions", width=300,height=300)
+        
+        if all_selected:
+            import shutil
+            for selected in all_selected:
+                selected_dir = full_dirs[selected]
+                try:
+                    shutil.rmtree(selected_dir)
+                except OSError as e:
+                    print ("Error: %s - %s." % (e.filename, e.strerror))
+                    
+def setRange(kwargs):
+
+    parm = kwargs['parm']
+    r1 = kwargs['node'].parm("f1")
+    r2 = kwargs['node'].parm("f2")
+    r3 = kwargs['node'].parm("f3")
+    
+    if parm.evalAsString() == "fstartend":
+        r1.deleteAllKeyframes()
+        r2.deleteAllKeyframes()
+        r1.setExpression('$FSTART')
+        r2.setExpression('$FEND')
+    elif parm.evalAsString() == "rfstartend":
+        r1.deleteAllKeyframes()
+        r2.deleteAllKeyframes()
+        r1.setExpression('$RFSTART')
+        r2.setExpression('$RFEND')        
+    elif parm.evalAsString() == "nosubsteps":
+        r3.deleteAllKeyframes()
+        r3.set(1)
+    elif parm.evalAsString() == "substeps2":
+        r3.deleteAllKeyframes()
+        r3.set(1.0/2.0)
+    elif parm.evalAsString() == "substeps4":
+        r3.deleteAllKeyframes()
+        r3.set(1.0/4.0)
+    elif parm.evalAsString() == "substeps5":
+        r3.deleteAllKeyframes()
+        r3.set(1.0/5.0)        
+    elif parm.evalAsString() == "every2":
+        r3.deleteAllKeyframes()
+        r3.set(2)
+    elif parm.evalAsString() == "every5":
+        r3.deleteAllKeyframes()
+        r3.set(5)
+    elif parm.evalAsString() == "every10":
+        r3.deleteAllKeyframes()
+        r3.set(10)
+        
+def versionBump(kwargs, operation='up'):  
+    node = kwargs['node']
+   
+    if 'up' in operation:
+        node.parm("version").set(node.evalParm("version") + 1)
+    else:
+        node.parm("version").set(max(node.evalParm("version") - 1,1))    
+                
+def openPath(kwargs):
+    import os
+    
+    node = kwargs['node']     
+    
+    dir = node.evalParm("basedir") 
+    if node.evalParm("filemethod"):
+        dir = os.path.dirname(node.evalParm("file"))
+    
+    if os.path.exists(dir):
+        if dir[-1] is not '/':
+            dir += '/'
+        hou.ui.showInFileBrowser(dir)
+    else:
+        hou.ui.displayMessage(text="Could not open directory:\n{dir}.".format(dir=dir),
+                              severity=hou.severityType.ImportantMessage)

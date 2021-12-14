@@ -1,0 +1,190 @@
+#type:     node
+#context:  top
+#internal: labs::wedge::1.0
+#icon:     ROP/wedge
+
+= Labs Wedge =
+
+"""Creates work items with varying attribute values."""
+
+:include /nodes/top/wedge#oview:
+
+== Labs Wedge vs Wedge ==
+
+This node was mainly created to work inside the [Labs File Cache |Node:sop/labs::filecache::2.0] and [TOP Labs File Cache|Node:top/labs::topfilecache::1.0] nodes while it also trying to improve the functionalities of creating wedged attributes. While you can use this for your own setup, it has not been tested extensively to work outside these nodes. Therefore it only contains a minimal set of parameters for wedging purposes needed on the mentioned nodes. 
+
+=== Wedge Attributes ===
+
+The [Wedge |Node:top/wedge] node provides options to wedge attributes types such as `Float Vector`, `Integer Vector`, `Color`. While these options would make sense at first, in practice they do less so. For example, while there are options to set __Start__ and __End__ vectors, there is no control over vector interpolation, or to rotate or spread a vector with certain degree. Or how to blend colors together. All of these operations have dedicated nodes for each attribute type in the form of __Attribute Adjust__ sop nodes.
+
+In addition to this, the interface of this node for wedging attributes have to be exposed to the [Labs File Cache |Node:sop/labs::filecache::2.0] node, where it is really important to keep the settings simple and compact as much as possible. Therefore this node only wedges `Float` type attributes by default, which is the most common type one would use. 
+
+To wedge other type of attributes, there is a new feature, __Attribute Values__, which lets you provide any points or primitive geometry with the desired attribute. This way you can fully customise the wedge values, either with the __Attribute Adjust__ nodes or with your own prefered method. 
+
+:task: To wedge vector attributes:
+        # In SOP context, place down a [Labs File Cache |Node:sop/labs::filecache::2.0] and a [Transform|Node:sop/xform] node.
+        # Right click on the Rotate parameter of the [Transform|Node:sop/xform] node and select Expression -> Wedge Value.
+        # From the popup window, select the just created [Labs File Cache |Node:sop/labs::filecache::2.0] node.
+        # This will generate a [Point Generate |Node:sop/pointgenerate] node to create points representing the wedge count, while the [Attribute Adjust Vector |Node:sop/attribadjustvector] will randomize the values per point. The [Labs File Cache |Node:sop/labs::filecache::2.0] node is now configured to be able to use this geometry attribute as wedge values.
+
+=== Nested Wedging ===
+
+Nested wedging is important concept that allows you to create all possible variations of multiple wedge attributes. To create nested wedging using the [Wedge |Node:top/wedge] nodes, connect two of them together, similar to the following image:
+
+[Image:/images/nested_wedging.png]
+
+When both of their __Wedge Count__ is set to `3`, the first [Wedge |Node:top/wedge] will generate 3 work items, while the second node triples that for the total of 9 work items. After setting up some wedge attributes and investigating their values on the second node, you would find that the first node's wedge attribute is now distributed in the following pattern:
+
+    Index 0 ||
+        Index 1 || 
+            Index 2 ||
+                Index 3 ||
+                    Index 4 ||
+                        Index 5 ||
+                            Index 6 ||
+                                Index 7 ||
+                                    Index 8 ||
+    0 |
+        0 |
+            0 |
+                1 |
+                    1 |
+                        1 |
+                            2 |
+                                2 |
+                                    2
+
+While wedge attributes created on the second [Wedge |Node:top/wedge] node will be generated in a periodic pattern as follows:
+
+    Index 0 ||
+        Index 1 || 
+            Index 2 ||
+                Index 3 ||
+                    Index 4 ||
+                        Index 5 ||
+                            Index 6 ||
+                                Index 7 ||
+                                    Index 8 ||
+    0 |
+        1 |
+            2 |
+                0 |
+                    1 |
+                        2 |
+                            0 |
+                                1 |
+                                    2
+
+As a drawback however, to create these nested wedge patterns, you have to chain together multiple of these nodes, which in case of the [Labs File Cache |Node:sop/labs::filecache::2.0] node would not be a valid workflow. Therefore this node was designed to be able to create such patterns using a single node, when __Wedge Type__ is set to __Batched Sequence__ or __Periodic Sequnce__.
+
+NOTE:
+    If `wedgeindex` attribute is found on the incoming work item, this node will not replicate that incoming work item as the [Wedge |Node:top/wedge] would do. In this case the number of generated work items are the same as the number of incoming work items.
+
+=== Push, Pull, Wedge Value... ===
+
+The [Wedge |Node:top/wedge] node has a Push and Pull workflow to help you assign wedge values to parameters. This workflow is not present on this node. Instead, now you can right click on a `float`, `float vector` or `integer` type parameter and under Expression, choose __Wedge Value...__. This will prompt you for a window to select existing [Labs File Cache |Node:sop/labs::filecache::2.0] or [Labs Karma |Node:lop/labs::karam::2.0]
+nodes, and will setup the wedge attribute for you.
+
+
+@parameters
+
+    Wedge Count:
+        #id: wedgecount
+        The total number of copies to create for wedging. 
+        
+    == Number of Attributes ==
+
+    === Attribute # ===
+
+    Attribute Name:
+        #id: attrib#
+        The name of the attribute to wedge. Use the `@` syntax followed by this name on any parameter in your network to make that parameter change values for each wedge.
+        
+    Wedge Type:
+        #id: wedgetype#
+        Sets how the wedge values are distributed for all wedges. 
+        
+        Automatic:
+            Distributes values in increasing fashion from `0` to `Wedge Count-1`. This is the default, as the most common wedge workflow is to change the __Select Input__ parameter of a [Switch |Node:sop/switch] node, which needs increasing integer values from `0`.
+            
+        Custom Range:
+            Evenly distributes values between __Min Value__ and __Max Value__ parameters based on the number of wedges. Use this when you want to see the affect of a parameter value between a start and an end point.
+            
+        Random Sample:
+            Randomly picks a value for each wedge, between the given range by __Min Value__ and __Max Value__.
+            
+        Batched Sequence:
+            Distributes values used for nested wedging. The number of unique values in the sequence depends on the __Batch Size__, and the values are evenly distributed between __Min Value__ and __Max Value__. __Wedge Count__ should be some multiple of __Batch Size__. 
+            
+        Periodic Sequence:
+            Distributes values used for nested wedging. The __Period Size__ sets how many times to cylce the pattern across the sequence, and the values are evenly distributed between __Min Value__ and __Max Value__. __Wedge Count__ should be some multiple of __Period Size__.
+
+        List of Values:
+            Sets the wedge values by a list of independent range sequences or numbers. 
+            
+        Attribute Values:
+            Sets the wedge values by looking up point or primitive attribute values on a geometry. The geometry attribute has to have the same name as the __Attribute Name__, and the element number corresponds the the wedge number.
+            
+    Min Value:
+        #id: minvalue#
+        Sets the minimum possible value when __Wedge Type__ is set to __Custom Range__, __Random Samples__, __Batched Sequence__ or __Periodic Sequence__.
+        
+    Max Value:
+        #id: maxvalue#
+        Sets the maximum possible value when __Wedge Type__ is set to __Custom Range__, __Random Samples__, __Batched Sequence__ or __Periodic Sequence__.
+    
+    Seed:
+        #id: randomseed#
+        All generated values depend randomly on this value. Choose a different value if the current seed produces undesirable samples. 
+
+    Batch Size:
+        #id: batchsize#
+        Sets the number of unique values to create in the sequence. __Wedge Count__ should be multiple of this value to evenly distribute the pattern.
+
+    Period Size:
+        #id: periodsize#
+         Sets how many times to cycle the pattern in the sequence. __Wedge Count__ should be multiple of this value to evenly distribute the pattern.
+
+    List of Values:
+        #id: values#
+            Sets the wedge values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used.  
+
+            NOTE:
+                Each expanded values will be assigned the same __Weight__.
+
+            Value List ||
+                Expanded Values || 
+
+            5 |            
+                5.0 
+
+            3;5 7 |            
+                3.0, 5.0, 7.0
+
+            1-3 |        
+                1.0, 2.0, 3.0
+
+            0-1:0.25 |
+                0.0, 0.25, 0.5, 0.75, 1.0
+
+            0-1:0.25 5; 8-12:2 |
+                0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0        
+        
+    Geometry Path:
+        #id: geopath#
+        The path to the geometry to use for attribute value lookup.
+        
+    Create Geometry:
+        #id: createwedgegeo#
+        This will generate a small network to help you setup the geometry for wedging in a procedural way.
+        
+    Default Value:
+        #id: valuesdefault#
+        The value given to the wedge attribute when there is a mismatch between the total number of wedges and the elements found on the geometry (when __Wedge Type__ is set to __Attribute Values__).
+        
+    
+@related
+- [Wedge |Node:top/wedge]
+- [Labs File Cache |Node:sop/labs::filecache::2.0]
+- [Labs Karma |Node:lop/labs::karam::2.0]
+
