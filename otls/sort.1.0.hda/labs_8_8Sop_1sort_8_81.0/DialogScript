@@ -1,0 +1,296 @@
+# Dialog script for labs::sort::1.0 automatically generated
+
+{
+    name	labs::sort::1.0
+    script	ebeSort
+    label	"Labs Sort"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Source data"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Output 1"
+
+    groupsimple {
+        name    "pointsFolder"
+        label   "Points"
+
+        parm {
+            name    "ptgroup"
+            label   "Point Group"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "opmenu -l -a sort ptgroup" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Points,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "ptsort"
+            label   "Point Sort"
+            type    ordinal
+            default { "none" }
+            menu {
+                "none"          "No Change"
+                "vtxord"        "By Vertex Order"
+                "byx"           "By X"
+                "byy"           "By Y"
+                "byz"           "By Z"
+                "rev"           "Reverse"
+                "seed"          "Random"
+                "shift"         "Shift"
+                "prox"          "Proximity to Point"
+                "vector"        "Along Vector"
+                "expression"    "By Expression"
+                "spatial"       "Spatial Locality"
+                "attribute"     "By Attribute"
+                "circular"      "Circular (Around Vector)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointseed"
+            label   "Seed"
+            type    integer
+            default { "0" }
+            hidewhen "{ ptsort != seed }"
+            range   { 0 200 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointoffset"
+            label   "Offset"
+            type    integer
+            default { "0" }
+            hidewhen "{ ptsort != shift }"
+            range   { 0 200 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointprox"
+            label   "Point"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            hidewhen "{ ptsort != prox }"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointobjpath"
+            label   "Vector Object"
+            type    oppath
+            invisible
+            default { "" }
+            hidewhen "{ ptsort != vector ptsort != circular }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!OBJ!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "pointdir"
+            label   "Vector"
+            type    direction
+            size    3
+            default { "0" "1" "0" }
+            hidewhen "{ ptsort != vector ptsort != circular }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointangleoffset"
+            label   "Angle Offset"
+            type    angle
+            default { "0" }
+            hidewhen "{ ptsort != vector ptsort != circular }"
+            range   { -360 360 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointexpr"
+            label   "Expression"
+            type    float
+            default { "0" }
+            hidewhen "{ ptsort != expression }"
+            range   { 0 200 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointattrib"
+            label   "Attribute"
+            type    string
+            default { "" }
+            hidewhen "{ ptsort != attribute }"
+            menureplace {
+                [ "opmenu -l sort pointattrib" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointattribcomp"
+            label   "Component"
+            type    integer
+            default { "0" }
+            hidewhen "{ ptsort != attribute }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "pointreverse"
+            label   "Reverse Point Sort"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "primitivesFolder2"
+        label   "Primitives"
+
+        parm {
+            name    "primgroup"
+            label   "Primitive Group"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "opmenu -l -a sort primgroup" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Primitives,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "primsort"
+            label   "Primitive Sort"
+            type    ordinal
+            default { "none" }
+            menu {
+                "none"          "No change"
+                "byx"           "By X"
+                "byy"           "By Y"
+                "byz"           "By Z"
+                "rev"           "Reverse"
+                "seed"          "Random"
+                "shift"         "Shift"
+                "prox"          "Proximity to Point"
+                "vector"        "Along Vector"
+                "expression"    "By Expression"
+                "spatial"       "Spatial Locality"
+                "attribute"     "By Attribute"
+                "circular"      "Circular (Around Vector)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primseed"
+            label   "Seed"
+            type    integer
+            default { "0" }
+            hidewhen "{ primsort != seed }"
+            range   { 0 200 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primoffset"
+            label   "Offset"
+            type    integer
+            default { "0" }
+            hidewhen "{ primsort != shift }"
+            range   { 0 200 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primprox"
+            label   "Point"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            hidewhen "{ primsort != prox }"
+            range   { -1 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primobjpath"
+            label   "Vector Object"
+            type    oppath
+            invisible
+            default { "" }
+            hidewhen "{ primsort != vector primsort != circular }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!OBJ!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "primdir"
+            label   "Vector"
+            type    direction
+            size    3
+            default { "0" "1" "0" }
+            hidewhen "{ primsort != vector primsort != circular }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primangleoffset"
+            label   "Angle Offset"
+            type    angle
+            default { "0" }
+            hidewhen "{ primsort != vector primsort != circular }"
+            range   { -360 360 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primexpr"
+            label   "Expression"
+            type    float
+            default { "0" }
+            hidewhen "{ primsort != expression }"
+            range   { 0 200 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primattrib"
+            label   "Attribute"
+            type    string
+            default { "" }
+            hidewhen "{ primsort != attribute }"
+            menureplace {
+                [ "opmenu -l sort primattrib" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primattribcomp"
+            label   "Component"
+            type    integer
+            default { "0" }
+            hidewhen "{ primsort != attribute }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "primreverse"
+            label   "Reverse Primitive Sort"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "vertexprimorder"
+            label   "Sort Vertices by Order in Primitives"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
