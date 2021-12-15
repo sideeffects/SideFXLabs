@@ -285,10 +285,11 @@ class State(object):
             nattribs = node.evalParm("nwedgeattribs")
             
             wedgeindex = 0            
-            if pdg.workItem():            
-                wedgeattrib = pdg.workItem()['wedgeindex']
-                if wedgeattrib:
-                    wedgeindex = wedgeattrib[0]
+            if pdg.workItem():    
+                if pdg.workItem().attrib('wedgeindex'):
+                    wedgeattrib = pdg.workItem()['wedgeindex']
+                    if wedgeattrib:
+                        wedgeindex = wedgeattrib[0]
                     
             rows[wedgecount] = nwedges             
             rows["wedgeindex"] = wedgeindex
@@ -612,16 +613,16 @@ def buildValues(node, nwedges, nattribs):
     
 # Callback for triggering an info box update.
 def updateInfoBox():
-    sv = toolutils.sceneViewer()
-    if sv.currentState() == 'sidefx_labs_filecache':
+    sv = toolutils.sceneViewer()    
+    if sv.currentState() == 'labs::filecache::2.0':
         sv.runStateCommand( 'updateInfoBox' )
         
 def createViewerStateTemplate():
     """ Mandatory entry point to create and return the viewer state 
         template to register. """
 
-    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
-    state_label = "File Cache"
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()    
+    state_label = "Labs File Cache"
     state_cat = hou.sopNodeTypeCategory()
 
     template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)

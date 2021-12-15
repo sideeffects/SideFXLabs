@@ -31,9 +31,9 @@ Content-Disposition: attachment; filename="hdaroot.def"
 Content-Type: text/plain
 
 comment ""
-position -0.5 5.85
+position -0.5 1.85
 connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress off colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render off highlight off unload off savedata off compress off colordefault on exposed on
 outputsNamed3
 {
 }
@@ -292,6 +292,8 @@ roporder	[ 0	locks=0 ]	(	"1"	)
 roppath	[ 0	locks=0 ]	(	`chsop(\"../loppath\")`	)
 usecustombutton	[ 0	locks=0 ]	(	"off"	)
 custombutton	[ 0	locks=0 ]	(	execute	)
+usereloadpath	[ 0	locks=0 ]	(	"off"	)
+reloadpath	[ 0	locks=0 ]	(	""	)
 useoppath	[ 0	locks=0 ]	(	"off"	)
 oppath	[ 0	locks=0 ]	(	`chsop(\"../loppath\")`	)
 useexternalhip	[ 0	locks=0 ]	(	"off"	)
@@ -1049,7 +1051,7 @@ outputsNamed3
 inputsNamed3
 {
 0 	restore_orig_range1 1 1 "input1"
-2 	filecachefilter1 2 1 "input2"
+2 	filecachefilter1 1 1 "input2"
 }
 inputs
 {
@@ -1111,7 +1113,7 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	filecachefilter1 1 1 "input1"
+0 	filecachefilter1 0 1 "input1"
 }
 inputs
 {
@@ -1475,7 +1477,7 @@ Content-Type: text/plain
 Content-Disposition: attachment; filename="hdaroot/filecachefilter1.init"
 Content-Type: text/plain
 
-type = labs::filecachefilter::1.1
+type = labs::filecachefilter::1.0
 matchesdef = 1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1488,12 +1490,12 @@ connectornextid 3
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress off colordefault on exposed on
 outputsNamed3
 {
-1 "output1"
-2 "output2"
+0 "output1"
+1 "output2"
 }
 inputsNamed3
 {
-0 	switch_replicate_by_wedge1 2 1 "input1"
+2 	switch_replicate_by_wedge1 2 1 "input1"
 }
 inputs
 {
@@ -1528,32 +1530,6 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../f2\") }
     }
-    channel useframeoverride {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../useframeoverride\") }
-    }
-    channel frameoverride {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = ch(\"../frameoverride\") }
-    }
-    channel f3 {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = "ch(\"../f3\") / ch(\"../substeps\")" }
-    }
-    channel wedgeoverride {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../wedgeoverride\") }
-    }
     channel trange {
       lefttype = extend
       righttype = extend
@@ -1573,11 +1549,35 @@ Content-Type: text/plain
     }
 }" }
     }
+    channel useframeoverride {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../useframeoverride\") }
+    }
+    channel frameoverride {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../frameoverride\") }
+    }
+    channel f3 {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 value = 1 1 expr = "ch(\"../f3\") / ch(\"../substeps\")" }
+    }
     channel wrange {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../wrange\") }
+    }
+    channel wedgeoverride {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../wedgeoverride\") }
     }
     channel wedgerangemin {
       lefttype = extend
@@ -1588,7 +1588,6 @@ Content-Type: text/plain
     channel wedgerangemax {
       lefttype = extend
       righttype = extend
-      default = 1
       flags = 0
       segment { length = 0 value = 1 1 expr = ch(\"../wedgerangemax\") }
     }
@@ -1600,25 +1599,25 @@ Content-Type: text/plain
 
 {
 version 0.8
-folder0	[ 0	locks=0 ]	(	0	)
-filtermode	[ 0	locks=0 ]	(	"split"	)
-filteroperation	[ 0	locks=0 ]	(	"on"	)
-filtersubframes	[ 0	locks=0 ]	(	"off"	)
-folder3	[ 0	locks=0 ]	(	0	)
-filtertimeindependent	[ 0	locks=0 ]	(	"on"	)
-folder1	[ 0	locks=0 ]	(	1	)
-filtertimedependent	[ 0	locks=0 ]	(	"on"	)
-trange	[ 8	locks=0 ]	(	[ trange	0 ] 	)
-useframeoverride	[ 8	locks=0 ]	(	[ useframeoverride	0 ] 	)
-frameoverride	[ 0	locks=0 ]	(	[ frameoverride	1 ] 	)
-f	[ 0	locks=0 ]	(	[ f1	0 ] 	[ f2	0 ] 	[ f3	1 ] 	)
-specificrange	[ 0	locks=0 ]	(	`chs(\"../specificrange\")`	)
-folder2	[ 0	locks=0 ]	(	1	)
-filterwedge	[ 0	locks=0 ]	(	"on"	)
-wrange	[ 8	locks=0 ]	(	[ wrange	0 ] 	)
-wedgeoverride	[ 0	locks=0 ]	(	[ wedgeoverride	0 ] 	)
-wedgerange	[ 0	locks=0 ]	(	[ wedgerangemin	0 ] 	[ wedgerangemax	1 ] 	)
-specificwedges	[ 0	locks=0 ]	(	`chs(\"../specificwedges\")`	)
+folder0	[ 0	locks=0	autoscope=0 ]	(	0	)
+filtermode	[ 0	locks=0	autoscope=0 ]	(	"split"	)
+filteroperation	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+filtersubframes	[ 0	locks=0	autoscope=0 ]	(	"off"	)
+folder3	[ 0	locks=0	autoscope=0 ]	(	0	)
+filtertimeindependent	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+folder1	[ 0	locks=0	autoscope=0 ]	(	1	)
+filtertimedependent	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+trange	[ 0	locks=0	autoscope=0 ]	(	[ trange	0 ] 	)
+useframeoverride	[ 0	locks=0	autoscope=0 ]	(	[ useframeoverride	0 ] 	)
+frameoverride	[ 0	locks=0	autoscope=0 ]	(	[ frameoverride	1 ] 	)
+f	[ 0	locks=0	autoscope=0 ]	(	[ f1	0 ] 	[ f2	0 ] 	[ f3	1 ] 	)
+specificrange	[ 0	locks=0	autoscope=0 ]	(	`chs(\"../specificrange\")`	)
+folder2	[ 0	locks=0	autoscope=0 ]	(	1	)
+filterwedge	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+wrange	[ 0	locks=0	autoscope=0 ]	(	[ wrange	0 ] 	)
+wedgeoverride	[ 0	locks=0	autoscope=0 ]	(	[ wedgeoverride	0 ] 	)
+wedgerange	[ 0	locks=0	autoscope=0 ]	(	[ wedgerangemin	0 ] 	[ wedgerangemax	1 ] 	)
+specificwedges	[ 0	locks=0	autoscope=0 ]	(	`chs(\"../specificwedges\")`	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1653,7 +1652,7 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	filecachefilter2 1 1 "input1"
+0 	filecachefilter2 0 1 "input1"
 }
 inputs
 {
@@ -1782,7 +1781,7 @@ Content-Type: text/plain
 Content-Disposition: attachment; filename="hdaroot/filecachefilter2.init"
 Content-Type: text/plain
 
-type = labs::filecachefilter::1.1
+type = labs::filecachefilter::1.0
 matchesdef = 1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1791,16 +1790,15 @@ Content-Type: text/plain
 
 comment ""
 position 3.5 -25.0902
-connectornextid 3
+connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress off colordefault on exposed on
 outputsNamed3
 {
-1 "output1"
-2 "output2"
+0 "output1"
 }
 inputsNamed3
 {
-0 	attributecreate_version1 1 1 "input1"
+1 	attributecreate_version1 1 1 "input1"
 }
 inputs
 {
@@ -1835,10 +1833,21 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../mergeframerange2\") }
     }
+    channel trange {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 value = 1 1 expr = "if(ch(\"../mergeframes\") > 0, ch(\"../mergeframes\") + 1, 0)" }
+    }
+    channel f3 {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 value = 1 1 expr = "ch(\"../mergeframerange3\") / ch(\"../mergesubsteps\")" }
+    }
     channel wrange {
       lefttype = extend
       righttype = extend
-      default = 1
       flags = 0
       segment { length = 0 value = 1 1 expr = "if(ch(\"../mergewedges\") > 0, ch(\"../mergewedges\") + 1, 0)" }
     }
@@ -1851,23 +1860,8 @@ Content-Type: text/plain
     channel wedgerangemax {
       lefttype = extend
       righttype = extend
-      default = 1
       flags = 0
       segment { length = 0 value = 1 1 expr = ch(\"../mergewedgeidxrangemax\") }
-    }
-    channel trange {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = "if(ch(\"../mergeframes\") > 0, ch(\"../mergeframes\") + 1, 0)" }
-    }
-    channel f3 {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = "ch(\"../mergeframerange3\") / ch(\"../mergesubsteps\")" }
     }
   }
 
@@ -1877,25 +1871,25 @@ Content-Type: text/plain
 
 {
 version 0.8
-folder0	[ 0	locks=0 ]	(	0	)
-filtermode	[ 0	locks=0 ]	(	"split"	)
-filteroperation	[ 0	locks=0 ]	(	"on"	)
-filtersubframes	[ 0	locks=0 ]	(	"off"	)
-folder3	[ 0	locks=0 ]	(	0	)
-filtertimeindependent	[ 0	locks=0 ]	(	"on"	)
-folder1	[ 0	locks=0 ]	(	1	)
-filtertimedependent	[ 0	locks=0 ]	(	"on"	)
-trange	[ 0	locks=0 ]	(	[ trange	0 ] 	)
-useframeoverride	[ 0	locks=0 ]	(	"off"	)
-frameoverride	[ 0	locks=0 ]	(	1	)
-f	[ 0	locks=0 ]	(	[ f1	0 ] 	[ f2	0 ] 	[ f3	1 ] 	)
-specificrange	[ 0	locks=0 ]	(	`chs(\"../mergespecificrange\")`	)
-folder2	[ 0	locks=0 ]	(	1	)
-filterwedge	[ 0	locks=0 ]	(	"on"	)
-wrange	[ 8	locks=0 ]	(	[ wrange	0 ] 	)
-wedgeoverride	[ 0	locks=0 ]	(	0	)
-wedgerange	[ 0	locks=0 ]	(	[ wedgerangemin	0 ] 	[ wedgerangemax	1 ] 	)
-specificwedges	[ 0	locks=0 ]	(	`chs(\"../mergespecificwedges\")`	)
+folder0	[ 0	locks=0	autoscope=0 ]	(	0	)
+filtermode	[ 0	locks=0	autoscope=0 ]	(	"split"	)
+filteroperation	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+filtersubframes	[ 0	locks=0	autoscope=0 ]	(	"off"	)
+folder3	[ 0	locks=0	autoscope=0 ]	(	0	)
+filtertimeindependent	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+folder1	[ 0	locks=0	autoscope=0 ]	(	1	)
+filtertimedependent	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+trange	[ 0	locks=0	autoscope=0 ]	(	[ trange	0 ] 	)
+useframeoverride	[ 0	locks=0	autoscope=0 ]	(	"off"	)
+frameoverride	[ 0	locks=0	autoscope=0 ]	(	1	)
+f	[ 0	locks=0	autoscope=0 ]	(	[ f1	0 ] 	[ f2	0 ] 	[ f3	1 ] 	)
+specificrange	[ 0	locks=0	autoscope=0 ]	(	`chs(\"../mergespecificrange\")`	)
+folder2	[ 0	locks=0	autoscope=0 ]	(	1	)
+filterwedge	[ 0	locks=0	autoscope=0 ]	(	"on"	)
+wrange	[ 0	locks=0	autoscope=0 ]	(	[ wrange	0 ] 	)
+wedgeoverride	[ 0	locks=0	autoscope=0 ]	(	0	)
+wedgerange	[ 0	locks=0	autoscope=0 ]	(	[ wedgerangemin	0 ] 	[ wedgerangemax	1 ] 	)
+specificwedges	[ 0	locks=0	autoscope=0 ]	(	`chs(\"../mergespecificwedges\")`	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
