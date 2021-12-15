@@ -115,9 +115,10 @@ class State(object):
         """ Updates our info box to reflect playbar change.
         """    
         
-        rows = {}
-        self._fillCacheInfo(self.node,rows)
-        self.scene_viewer.hudInfo(hud_values=rows)
+        if self.scene_viewer.currentState() == "labs::karma::2.0":
+            rows = {}       
+            self._fillCacheInfo(self.node,rows)
+            self.scene_viewer.hudInfo(hud_values=rows)
         
     def updateInfoBox(self, node):
         """ Updates our info box to reflect the current state settings.
@@ -282,10 +283,11 @@ class State(object):
             nattribs = node.evalParm("nwedgeattribs")
             
             wedgeindex = 0            
-            if pdg.workItem():            
-                wedgeattrib = pdg.workItem()['wedgeindex']
-                if wedgeattrib:
-                    wedgeindex = wedgeattrib[0]
+            if pdg.workItem(): 
+                if pdg.workItem().attrib('wedgeindex'):
+                    wedgeattrib = pdg.workItem()['wedgeindex']
+                    if wedgeattrib:
+                        wedgeindex = wedgeattrib[0]
                     
             rows[wedgecount] = nwedges             
             rows["wedgeindex"] = wedgeindex
@@ -604,7 +606,7 @@ def buildValues(node, nwedges, nattribs):
 # Callback for triggering an info box update.
 def updateInfoBox():
     sv = toolutils.sceneViewer()
-    if sv.currentState() == 'sidefx_labs_karma':
+    if sv.currentState() == 'labs::karma::2.0':
         sv.runStateCommand( 'updateInfoBox' )
         
 def createViewerStateTemplate():
@@ -612,7 +614,7 @@ def createViewerStateTemplate():
         template to register. """
 
     state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
-    state_label = "Karma"
+    state_label = "Labs Karma"
     state_cat = hou.lopNodeTypeCategory()
 
     template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
