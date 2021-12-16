@@ -31,7 +31,7 @@ def setUpOCIO():
         "This changes the viewport default color space to ACES sRGB. " \
         "Unhide Color Correction Bar at the bottom of a viewport to verify or switch color spaces. \n" \
         "Learn more about ACES at https://www.sidefx.com/docs/houdini/pyro/shading.html. \n \n" \
-        "Please restart Houdini for the settings to take effect."
+        "Please restart Houdini for the changes to take effect."
 
     print (message)
 
@@ -189,7 +189,9 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
     try:
 
         for sibling in main_geometry.parent().children():
+
             sibling.setGenericFlag(hou.nodeFlag.Template, False)
+            sibling.setGenericFlag(hou.nodeFlag.Footprint, False)
 
     except Exception as exc:
         
@@ -218,6 +220,7 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
                 merged_geos.parm('enable' + idx).set(1)
                 count += 2
 
+        # Skips merging the secondary paths if the main path is invalid
         if i == 1 and count == 0:
             break
 
@@ -305,7 +308,7 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
     if render_type == 'lit':
 
         viewport_settings.particlePointSize(node.evalParm('pointsize_lit'))
-        viewport_settings.particlePointSize(node.evalParm('wirewidth_lit'))
+        viewport_settings.wireWidth(node.evalParm('wirewidth_lit'))
         viewport_settings.setShadowMapSize(node.evalParm('shadowmapres'))
         viewport_settings.setShadowMapSizeFromLight(False)
         viewport_settings.showSpecular(node.evalParm('enablespecincols'))
@@ -344,7 +347,7 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
     elif render_type == 'unlit':
 
         viewport_settings.particlePointSize(node.evalParm('pointsize_unlit'))
-        viewport_settings.particlePointSize(node.evalParm('wirewidth_unlit'))
+        viewport_settings.wireWidth(node.evalParm('wirewidth_unlit'))
         viewport_settings.setShadowMapSize(16)
         viewport_settings.setShadowMapSizeFromLight(False)
         viewport_settings.showSpecular(False)
@@ -356,7 +359,9 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
     viewport_settings.setTransparencyQuality(hou.viewportTransparency.High)
     viewport_settings.setHdrRendering(True)
     viewport_settings.setTextureAutoReduce(False)
+    viewport_settings.setTextureAutoReduce2D(False)
     viewport_settings.setTextureAutoReduce3D(False)
+    viewport_settings.setTexture2DSettingsFor3D(False)
 
     # Volume quality
 
@@ -371,8 +376,6 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
     viewport_settings.setTextureMaxRes3D(max_res_3d)
     viewport_settings.setTextureResLimit3D(True)
     viewport_settings.setTextureBitDepthLimit3D(hou.viewportTextureDepth.HDR16)
-    viewport_settings.setTexture2DSettingsFor3D(False)
-    viewport_settings.setTextureAutoReduce3D(False)
     viewport_settings.volumeQuality(hou.viewportVolumeQuality.High)
     viewport_settings.volumeBSplines(hou.viewportVolumeBSplines.NonInteractive)
     
@@ -761,19 +764,15 @@ def renderMDC(node, single_pass = True):
             return False
     
         # Temporarily override settings on Pyro Bake Volume nodes
-    
+
         pyro_bake_volumes = []
         scatter_toggles = []
         fire_toggles = []
         secfire_toggles = []
+        color_modes = []
         smoke_rs = []
         smoke_gs = []
         smoke_bs = []
-        shadow_rs = []
-        shadow_gs = []
-        shadow_bs = []
-        shadow_densities = []
-        ambient_shadows = []
         
         for i in range(1, 6):
     
@@ -790,22 +789,29 @@ def renderMDC(node, single_pass = True):
                     scatter_toggles.append(pyro_bake_volume.evalParm('enablescatter'))
                     fire_toggles.append(pyro_bake_volume.evalParm('enablefire'))
                     secfire_toggles.append(pyro_bake_volume.evalParm('enablesecfire'))
-    
-                    smoke_rs.append(pyro_bake_volume.evalParm('smokecolorr'))
-                    smoke_gs.append(pyro_bake_volume.evalParm('smokecolorg'))
-                    smoke_bs.append(pyro_bake_volume.evalParm('smokecolorb'))
-    
-                    shadow_rs.append(pyro_bake_volume.evalParm('shadowcolorr'))
-                    shadow_gs.append(pyro_bake_volume.evalParm('shadowcolorg'))
-                    shadow_bs.append(pyro_bake_volume.evalParm('shadowcolorb'))
-    
-                    shadow_densities.append(pyro_bake_volume.evalParm('shadowint'))
-                    ambient_shadows.append(pyro_bake_volume.evalParm('ambientshadows'))
-    
+
+                    color_mode = pyro_bake_volume.evalParm('smokecolormode')
+                    r = pyro_bake_volume.evalParm('smokecolorr')
+                    g = pyro_bake_volume.evalParm('smokecolorg')
+                    b = pyro_bake_volume.evalParm('smokecolorb')
+
+                    color_modes.append(color_mode)
+                    smoke_rs.append(r)
+                    smoke_gs.append(g)
+                    smoke_bs.append(b)
+
+                    if color_mode == 1:
+
+                        color = pyro_bake_volume.parm('smokecolorramp').evalAsRamp().lookup(1.0)
+
+                        r = color[0]
+                        g = color[1]
+                        b = color[2]
+
+                    y = 0.2126 * r + 0.7152 * g + 0.0722 * b
+
                     pyro_bake_volume.setParms({'enablescatter': 0, 'enablefire': 0, 'enablesecfire': 0})
-                    pyro_bake_volume.setParms({'smokecolorr': 1, 'smokecolorg': 1, 'smokecolorb': 1})
-                    pyro_bake_volume.setParms({'shadowcolorr': 1, 'shadowcolorg': 1, 'shadowcolorb': 1})
-                    pyro_bake_volume.setParms({'shadowint': 1, 'ambientshadows': 0.5})
+                    pyro_bake_volume.setParms({'smokecolormode': 0, 'smokecolorr': y, 'smokecolorg': y, 'smokecolorb': y})
     
     
         # MDC A Pass
@@ -893,16 +899,10 @@ def renderMDC(node, single_pass = True):
             pyro_bake_volumes[i].parm('enablefire').set(fire_toggles[i])
             pyro_bake_volumes[i].parm('enablesecfire').set(secfire_toggles[i])
     
+            pyro_bake_volumes[i].parm('smokecolormode').set(color_modes[i])
             pyro_bake_volumes[i].parm('smokecolorr').set(smoke_rs[i])
             pyro_bake_volumes[i].parm('smokecolorg').set(smoke_gs[i])
             pyro_bake_volumes[i].parm('smokecolorb').set(smoke_bs[i])
-    
-            pyro_bake_volumes[i].parm('shadowcolorr').set(shadow_rs[i])
-            pyro_bake_volumes[i].parm('shadowcolorg').set(shadow_gs[i])
-            pyro_bake_volumes[i].parm('shadowcolorb').set(shadow_bs[i])
-    
-            pyro_bake_volumes[i].parm('shadowint').set(shadow_densities[i])
-            pyro_bake_volumes[i].parm('ambientshadows').set(ambient_shadows[i])
     
         # ... End of This Pass
     

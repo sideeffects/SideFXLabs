@@ -7,7 +7,9 @@
 
 """Renders, composites, and exports flipbook textures."""
 
-Labs Flipbook Textures renders, composites, and exports flipbook textures. Multiple passes can be rendered to allow for fully dynamic real-time relighting, so you do not have to bake lighting scenario into the colors. The tool comes with real-time shaders designed to work with the exported textures. Built around Houdini 19's high-quality viewport pyro rendering, Flipbook Textures ROP can help you create beautiful volumetric effects, but it is also capable of rendering particles and polygonal geometries on their own or together with volumes.
+Labs Flipbook Textures ROP renders, composites, and exports flipbook textures for real-time engines. You can render multiple passes to support fully dynamic re-lighting, smooth interframe interpolation, depth blending, etc. You do not have to bake a lighting scenario into the color passes. The tool also comes with real-time shaders, designed to work with the exported textures.
+
+Built around Houdini 19's high-quality viewport pyro rendering, Labs Flipbook Textures ROP can help you create beautiful volumetric FX. It is also capable of rendering particles and polygonal geometries, either separately on their own or together with volumes.
 
 
 @parameters
@@ -26,31 +28,32 @@ Labs Flipbook Textures renders, composites, and exports flipbook textures. Multi
             
     Render Final Color:
         #id: render_fc
-        Renders the final look of your scene. You may not want to enable lights in your scene, because without baked-in lighting scenario, you can achieve fully dynamic relighting with the exported textures.
+        Renders the final look of your scene, affected by any enabled lights. You may consider disabling all lights in your scene because without a baked-in lighting scenario, you can achieve fully dynamic re-lighting with the exported textures.
 
     Render Separate Alphas:
         #id: render_sa
-        Only applicable when you are rendering volumetric and non-volumetric geometries at the same time. When rendered in the same pass, the volumetric and non-volumetric geometries do not blend well in the alpha channel. This renders them in two separate passes so the two separate alpha channels can be blended correctly later in the compositing step. Unless this pass is explicitly skipped (this parameter is visible but disabled), *Render Final Color* implicitly and automatically executes this pass after the final color pass is successfully completed.
+        When you are rendering volumetric and non-volumetric geometries at the same time, their alphas do not blend well together. This renders them in two separate passes so that the alphas can be blended correctly in the compositing step.
+        <p>Unless this pass is explicitly skipped (when this button is visible but disabled), *Render Final Color* always implicitly executes this pass after the final color pass is successfully completed.</p>
 
     Render Non-emissive Color:
         #id: render_nc
-        Renders the non-emissive look of your current scene. This is necessary in order to create the emissive map later in the compositing step by subtracting final color with non-emissive color.
+        Renders the non-emissive look of your scene. affected by any enabled lights. This pass is necessary if you want to export a non-emissive color or emissive color map for ambient scatter or emissive scatter controls. You may consider disabling all lights in your scene because without a baked-in lighting scenario, you can achieve fully dynamic re-lighting with the exported textures.
             
     Render MDC / MDC Normal:
         #id: render_mdc
-        Renders three Multi-directional Contribution maps (A/B/C) which will later be composited into two MDC maps (1/2) for the export. MDC maps are necessary to achieve high-quality dynamic lighting and self-shadowing in shader. They are also needed to create MDC normals, a type of interpreted normals particularly good for softer and lower density volumes.
+        Renders multi-directional contributions. MDC maps are essential for achieving high-quality dynamic lighting and shadowing in engine. They are also required for compositing MDC normals, a type of interpreted normals particularly good for low-density volumes.
             
     Render Surface Normal:
         #id: render_sn
-        Renders the surface normals. For volumetric geometry, it renders voxel surface normals, which are good for thicker and higher density volumes. For non-volumetric geometry with surfaces, it renders vertex normals. For points or wires without surfaces, it outputs the default front-facing normal.
+        Renders the surface normals. For volumetric geometries, this renders voxel surface normals, which are good for higher-density volumes. For non-volumetric geometries with surfaces, this renders vertex normals. For points or wires without surfaces, this defaults to the front-facing normal.
             
     Render Motion Vector:
         #id: render_mv
-        Renders the motion vectors. Motion vectors are important in creating smooth interpolation between frames in shader and reducing the number of frames you need to export.
+        Renders the motion vectors. Motion vectors help to create smooth interpolation between frames and therefore reducing the resolutions of the flipbooks you need to export.
             
     Render Depth:
         #id: render_d
-        Renders the depth of your scene from the camera's perspective.
+        Renders the depth image of your scene from the camera's point of view.
 
     === ===
         
@@ -70,347 +73,230 @@ Labs Flipbook Textures renders, composites, and exports flipbook textures. Multi
 
     Pyro Bake Volume 2:
         #id: bakevolpath2
-        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        The path to a secondary Pyro Bake Volume SOP. The main volume path, *Pyro Bake Volume Path*, must be valid or this path will be ignored.
         
     Pyro Bake Volume 3:
         #id: bakevolpath3
-        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        The path to a secondary Pyro Bake Volume SOP. The main volume path, *Pyro Bake Volume Path*, must be valid or this path will be ignored.
         
     Pyro Bake Volume 4:
         #id: bakevolpath4
-        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        The path to a secondary Pyro Bake Volume SOP. The main volume path, *Pyro Bake Volume Path*, must be valid or this path will be ignored.
         
     Pyro Bake Volume 5:
         #id: bakevolpath5
-        The path to a secondary Pyro Bake Volume SOP. *Pyro Bake Volume Path*, as the main volume path, must first be valid. If it is not, this path will be ignored.
+        The path to a secondary Pyro Bake Volume SOP. The main volume path, *Pyro Bake Volume Path*, must be valid or this path will be ignored.
         
     === Non-volumetric Geometry Paths ===
 
     Final Color Path:
         #id: nonvolpath
-        The path to the final color version of the non-volumetric geometries. If you have multiple non-volumetric geometries to render, merge them together and then point this path a SOP that contains the merged geometries. During the merge, make sure different attributes from different geometries are initialized correctly and the attributes have expected default values.
+        The path to the final version of the non-volumetric geometries. If you have multiple non-volumetric geometries to render, merge them together first. For the merge, make sure the attributes from different geometries are initialized correctly or you may encounter unexpected color, normal, or alpha values.
         
     Emissive Property:
         #id: nonvolemissive
-        Set this according to the overall emissive property of the non-volumetric geometries. This affects how the non-emissive pass is rendered and what will be composited into the emissive map.
+        Set this according to the overall emissive property of the non-volumetric geometries. This affects what will be rendered in the non-emissive pass. When this is set to "Partially Emissive", *Non-emissive Path* must be set.
             
     Non-emissive Path:
         #id: nonvolncpath
-        The path to the non-emissive version of the non-volumetric geometries.
+        The path to the non-emissive version of the non-volumetric geometries. If you have multiple non-volumetric geometries to render, merge them together first. For the merge, make sure the attributes from different geometries are initialized correctly or you may encounter unexpected color, normal, or alpha values.
+
+    === ===
         
     Resolution Per Frame:
         #id: frameres
-        The render resolution of a single frame.
+        The render resolution of a single frame or tile. Normally, this should match the render camera's aspect ratio but not necessary the camera resolution.
             
     Columns/Rows:
         #id: gridsize
-        The grid dimension of the flipbook.
+        The grid layout of the flipbooks. This multiplied by *Resolution Per Frame* equals the total resolution of the flipbooks.
         
     Intermediate Directory:
         #id: interdir
-        The folder to store the output images from all the render pass. At the rendering step, all the output images are intermediate images, which are not yet ready for the export. By default, the compositing step will look for images from this folder to start compositing.
+        The folder to store the rendered images. These images are considered intermediate. They are not ready to be exported until after compositing. By default, the compositing step will look for images in this folder.
         
     3D Resolution Limit:
         #id: texlimit3dlvl
-        Set this according to the dedicated GPU memory of your graphic card. Higher resolution limit means higher maximum volume quality, but it may also cause Houdini to crash if the memory usage is allowed to exceed what your hardware can handle.
+        Set this according to the dedicated GPU memory of your graphic card. Higher 3D resolution limit means higher maximum volume quality, but it may also cause Houdini to crash if the memory usage exceeds what your hardware can handle.
+
+    Max 3D Resolution:
+        #id: texlimit3d
+        The specified 3D resolution limit.
         
     Color Space:
         #id: colspace
-        The color space of final color map, non-emissive map, and emissive map.
+        The color space of the final color map, non-emissive map, and emissive map.
             
     Set Up OCIO ACES:
         #id: setupocio
-        ACES color space is recommended for pyro rendering as it offers far better visual quality. Pressing this button will automatically configure the $OCIO environment variable to a minimal version of OCIO ACES 1.2 shipped with SideFX Labs. You will need to restart Houdini for this to take effect. 
-        <p>Please note that once $OCIO is set, the default viewport color space will change from Gamma 2.2 to ACES sRGB. You can unhide the Color Correction bar to switch between color spaces.</p>
-        <p>When this parameter is disabled, it means $OCIO is already set.</p>
+        OpenColorIO ACES is highly recommended for pyro rendering. Some artists recommend this for rendering in general in place of Gamma 2.2. Pressing this button will automatically configure the $OCIO environment variable to a minimal version of OCIO ACES 1.2 shipped with SideFX Labs. You will need to restart Houdini for the changes to take effect.
+        <p>Once $OCIO is set, the default viewport color space will change from Gamma 2.2 to ACES sRGB. You can unhide the Color Correction bar to switch between color spaces.</p>
+        <p>If this parameter is disabled, it means $OCIO is already set.</p>
 
-
-        
     === Advanced ===
 
     === Performance ===
 
     Warmup Time:
         #id: warmuptime
-        Pauses the execution for this many seconds before the actual render starts for each pass. This can be helpful in ensuring massive geometries are loaded properly before the render starts. It also attempts to prevent overloading your system.
+        Pauses the execution for this many seconds before the actual render starts for each pass. This help to ensure massive geometries are loaded properly for viewport renders. It may also prevent crashes.
         
     Shadow Map Resolution:
         #id: shadowmapres
+        In pixels, the resolution of the shadow maps. Increasing this will improve the shadow quality but will consume more GPU memory. The default value prioritizes quality.
         
     Single Tex Mem Limit:
         #id: singletexmemlimit
+        In megabytes, the maximum amount of memory a single texture can consume. If a texture exceeds this limit, it will be uniformly downscaled to meet the limit. The default value is very high.
         
     Minimum Near Clipping:
         #id: nearcliplimit
+        When the camera's *Near Clipping* is too low, it often creates artifacts in the volume. This forces the camera to raise its *Near Clipping* to meet this miminum. (The change to the camera will persist after the render.)
         
     Antialias:
         #id: aasamples
+        Smooths the edges of lines and polygons. Increasing this will proportionately increase the amount of framebuffer memory used. Higher values may also create noticeable and undesirable dark edges around non-volumetric geometries against a volumetric background.
             
     === Lit Passes ===
 
     Point Size:
         #id: pointsize_lit
+        In pixels, the size of particles and unconnected points in the lit passes.
         
     Wire Width:
         #id: wirewidth_lit
-        
-    Non-volumetric Albedo:
-        #id: nonvolalbedo
+        In pixels, the thickness of polylines and wireframe lines in the lit passes.
         
     Lighting:
         #id: lighting
+        The lighting mode in the lit passes.
             
     Specular in Color Passes:
         #id: enablespecincols
+        Enables the specular component in the color passes. It is generally recommended to turn this off. The specular component is always disabled for the MDC pass regardless of this parameter.
         
     === Unlit Passes ===
 
     Point Size:
         #id: pointsize_unlit
+        In pixels, the size of particles and unconnected points in the unlit passes. It is generally recommended to set this slightly higher than its lit-pass counterpart so that the data are less affected by antialising and image scaling.
         
     Wire Width:
         #id: wirewidth_unlit
+        In pixels, the thickness of polylines and wireframe lines in the unlit passes. It is generally recommended to set this slightly higher than its lit-pass counterpart so that the data are less affected by antialising and image scaling.
         
     === Non-volumetric Motion Vector ===
 
     Motion Vector Source:
         #id: nonvolmvsource
-        
-        Transform from Input Point Velocity:
-            
-        Compute from NDC-Space Displacement:
-            
-    Point Tracking:
-        #id: nonvolmvtracking
-        
-        Attempt to Match Point by ID Attribute:
-            
-        Match Point by Point Number:
-            
-        Match Point by 3D Proximity:
-            
+        The method for computing motion vectors for non-volumetric geometries.
+        <p>*Transform Input Point Velocity*: Computes motion vectors by transforming the existing point attribute _v_ on the input geometries to the texture space. This is useful when there is no good way to establish reliable point tracking between frames. </p>
+        <p>*Compute from Texture-Space Displacement*: Computes motion vectors from point displacements in texture space. This is the preferred method because it is precisely how motion vectors will be interpreted in engine. This method requires a reliable way to track which point in the current frame is which point in an adjacent frame. See *Point Tracking* for more information. </p>
+
     Frame Range Clamp:
         #id: nonvolmvclamp
-        
-        Input Animation Unavailable after End Frame:
-            
-        Input Animation Available after End Frame:
-            
-        Input Animation Loops Seamlessly:
+        Forward differences are used by default when computing motion vectors from point displacements. When the same point cannot be found on the next frame, the backward difference will be used as a fallback. This controls what to do on the two ends of the frame range.
+        <p>*Input Animation Unavailable after End Frame*: The input animation cannot be accessed after the end frame. Use backward differences on the end frame.</p>
+        <p>*Input Animation Available after End Frame*: The input animation can be accessed after the end frame. Use forward differences on the end frame by checking one increment beyond the frame range.</p>
+        <p>*Input Animation Loops Seamlessly*: The input animation loops from the end frame to the start frame. Use forward differences on the end frame, but treat the start frame as the next frame. When having to fall back to backward differences on the start frame, treat the end frame as the previous frame.</p>
+
+    Point Tracking:
+        #id: nonvolmvtracking
+        The method for tracking points between frames in order to measure point displacements.
+        <p>*Attempt to Track Point by ID Attribute*: The point with the same ID attribute on an adjacent frame is considered the same as the current point. If the attribute equals -1 or does not exist, then track by point number instead. If a point is connected to no more than one primitive, the point ID will be extended by the primitive vertex index of the vertex connected to this point; this resolves some cases of duplicated IDs, such as duplicates from Particle Trail SOPs, but it does not handle all cases.</p>
+        <p>*Track Point by Point Number*: The point with the same point number on an adjacent frame is considered the same point.</p>  
+        <p>*Track Point by 3D Proximity*: The closest point on an adjacent frame is considered the same as the current point.</p>
+
+    Detect Unresolved Duplicates after Auto ID-Serialization:
+        #id: detectidduplicates
+        Some duplicated IDs can be resolved with auto ID-serialization: if a point is connected to no more than one primitive, the point ID will be extended by the primitive vertex index of the vertex connected to this point. Turning on this parameter checks for unresolved duplicates after auto ID-serialization. It is a relatively slow operation, so turn this off if you know for certain that there will be no unresolvable duplicates.
             
     Correction Scale:
         #id: nonvolmvscale
+        When computing motion vectors from input point velocities, the input velocities may not be perfectly accurate. This uniformly scales the input velocities to correct any discrepancies if you know for certain what the correction factor should be.
         
     == Composite ==
 
     Preview Image:
         #id: previewimage
-        
-        None:
-            
-        ---------:
-            
-        Final Color - Output:
-            
-        Non-emissive Color - Output:
-            
-        Emissive Color - Output:
-            
-        ---------:
-            
-        MDC A:
-            
-        MDC B:
-            
-        MDC C:
-            
-        MDC1 - Output:
-            
-        MDC2 - Output:
-            
-        ---------:
-            
-        MDC Normal:
-            
-        Surface Normal:
-            
-        Normal - Output:
-            
-        ---------:
-            
-        Motion Vector:
-            
-        Motion Vector - Output:
-            
-        ---------:
-            
-        Depth - Output:
-            
-        ---------:
-            
-        Texture 1 - Export:
-            
-        Texture 2 - Export:
-            
-        Texture 3 - Export:
-            
-        Texture 4 - Export:
-            
-        Texture 5 - Export:
+        Sets the image to preview in a Composite View tab. This automatically sets the Composite View tab to linear color space.
+        <p>The images tagged with "Output" are the final images of their respective type. They are available on the channel packing menus on the Export tab.</p>
+        <p>The images tagged with "Export" are the channel-packed images ready to be saved to disk.</p>
             
     Single-Tile Preview:
         #id: singletilepreview
+        Isolates a single tile for the preview. When this is on, it is faster to tweak compositing parameters and preview the results.
         
     Preview Tile:
         #id: previewtile
-        
+        The preview tile index. This is the tile index, going from 1 to the total tile count. This is not the frame number. The default value is near the middle of the tile sequence.
+
     === Colors ===
 
     Export Resolution:
         #id: res_fc
+        The export resolution of the final color / non-emissive color / emissive color maps. Click on the drop-down menu on the right to set this as a percentage of the total render resolution. If one of these maps are to be channel-packed with a different map, the two maps must have the same resolution.
         
     Down/Up Res Filters:
         #id: filter_fc1
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
-            
-    Down/Up Res Filters:
-        #id: filter_fc2
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
-            
+        Generally, use the "Point" filter for data that should not be blended with the neighbouring texels; use sharper filters for downscaling; use smoother filters for upscaling.
+
     Convert to Greyscale:
         #id: greyscalemode
-        
-        Do Not Convert:
-            
-        Using Relative Luminance for ITU-R BT.709 / sRGB:
-            
-        Using Specified RGB Weighted Sum:
-            
-    R Weight:
-        #id: relluminancer
-        
-    G Weight:
-        #id: relluminanceg
-        
-    B Weight:
-        #id: relluminanceb
+        Converts color maps to greyscale. The greyscale value is a weighted sum of the RGB values. Relative luminance _Y_ follows the photometric definition of luminance _L_ including spectral weighting for human vision.
         
     === Multi-directional Contribution ===
 
     Export Resolution:
         #id: res_mdc
+        The export resolution of the MDC maps. Click on the drop-down menu on the right to set this as a percentage of the total render resolution. If one of these maps are to be channel-packed with a different map, the two maps must have the same resolution.
         
     Down/Up Res Filters:
         #id: filter_mdc1
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
-            
-    Down/Up Res Filters:
-        #id: filter_mdc2
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
+        Generally, use the "Point" filter for data that should not be blended with the neighbouring texels; use sharper filters for downscaling; use smoother filters for upscaling.
+
+    MDC Intensity:
+        #id: mdcintensity
+        By design, the brightness of the MDC maps is influenced by how much light the geometries can actually reflect. In other words, if the albedo values of the non-emissive components of the  geometries are relatively low, the MDC maps will be relatively dark, which may cause some loss of precision when exporting in 8-bit image formats, such as PNG. Adjust this parameter to remap the MDC maps to a better value range.
             
     === Normal ===
 
     Export Resolution:
         #id: res_n
-        
+        The export resolution of the normal map. Click on the drop-down menu on the right to set this as a percentage of the total render resolution. If this map is to be channel-packed with a different map, the two maps must have the same resolution.
+
     Down/Up Res Filters:
         #id: filter_n1
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
-            
-    Down/Up Res Filters:
-        #id: filter_n2
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
+        Generally, use the "Point" filter for data that should not be blended with the neighbouring texels; use sharper filters for downscaling; use smoother filters for upscaling.
             
     Output Normal:
         #id: outputnormal
-        
-        MDC Normal:
-            
-        Surface Normal:
-            
-        Surface Normal Blended over MDC Normal:
+        There are two possible types of normal maps. This sets what type(s) to use for the final output normal map.
+        <p>*MDC Normal*: Use this for low-density volumes (or if the surface normal map is not rendered or provided).</p>
+        <p>*Surface Normal*: Use this for non-volumetric geometries and high-density volumes (or if the MDC (A/B/C) maps are not rendered or provided).</p>
+        <p>*Surface Normal Blended over MDC Normal*: Use this for the best of both worlds.</p>
             
     Surface Normal Blend Weight across Frame Range:
         #id: snweight
+        Controls the surface normal map's blend weight over the MDC normal map from the start frame to the end frame. This allows the blend weight to vary over time because the volume density often change over time.
         
     MDC Normal Intensity:
         #id: mdcnormalintensity
+        Adjusts the intensity of the MDC normal map. The surface normals are considered accurate normals and therefore do not need adjustment. You can make overall adjustment directly in engine.
         
     Normal Axis System:
         #id: normalaxes
-        
-        Down-Facing Normals Are Green (Unreal Engine):
-            
-        Up-Facing Normals Are Green (Unity):
             
     === Motion Vector ===
 
     Export Resolution:
         #id: res_mv
+        The export resolution of the motion vector maps. Click on the drop-down menu on the right to set this as a percentage of the total render resolution. If this map is to be channel-packed with a different map, the two maps must have the same resolution.
         
     Down/Up Res Filters:
         #id: filter_mv1
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
-            
-    Down/Up Res Filters:
-        #id: filter_mv2
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
+        Generally, use the "Point" filter for data that should not be blended with the neighbouring texels; use sharper filters for downscaling; use smoother filters for upscaling.
+
             
     Motion Vector Encoding:
         #id: mvencoding
@@ -431,28 +317,11 @@ Labs Flipbook Textures renders, composites, and exports flipbook textures. Multi
 
     Export Resolution:
         #id: res_d
+        The export resolution of the depth maps. Click on the drop-down menu on the right to set this as a percentage of the total render resolution. If this map is to be channel-packed with a different map, the two maps must have the same resolution.
         
     Down/Up Res Filters:
         #id: filter_d1
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
-            
-    Down/Up Res Filters:
-        #id: filter_d2
-        
-        Point (Unfiltered):
-            
-        Gaussian (Smoother):
-            
-        Mitchell (Slightly Sharper):
-            
-        Catmull-Rom (Sharper):
+        Generally, use the "Point" filter for data that should not be blended with the neighbouring texels; use sharper filters for downscaling; use smoother filters for upscaling.
             
     Max Depth Allowed:
         #id: maxdepth
@@ -462,13 +331,7 @@ Labs Flipbook Textures renders, composites, and exports flipbook textures. Multi
         
     Bit Depth:
         #id: depthbitdepth
-        
-        8-Bit Integer:
-            
-        16-Bit Floating Point:
-            
-        32-Bit Floating Point:
-            
+
     === Intermediate Images ===
 
     Final Color:
@@ -526,1206 +389,36 @@ Labs Flipbook Textures renders, composites, and exports flipbook textures. Multi
         
     Asset Name:
         #id: asset
-        
-    === Texture 1 Packing ===
 
     Texture 1:
         #id: enabletex1
         
     Output Texture 1:
         #id: output_tex1
-        
-    Texture 1 R:
-        #id: tex1_r
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-    Texture 1 G:
-        #id: tex1_g
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 1 B:
-        #id: tex1_b
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 1 A:
-        #id: tex1_a
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    === Texture 2 Packing ===
 
     Texture 2:
         #id: enabletex2
         
     Output Texture 2:
         #id: output_tex2
-        
-    Texture 2 R:
-        #id: tex2_r
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-    Texture 2 G:
-        #id: tex2_g
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 2 B:
-        #id: tex2_b
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 2 A:
-        #id: tex2_a
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    === Texture 3 Packing ===
 
     Texture 3:
         #id: enabletex3
         
     Output Texture 3:
         #id: output_tex3
-        
-    Texture 3 R:
-        #id: tex3_r
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-    Texture 3 G:
-        #id: tex3_g
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 3 B:
-        #id: tex3_b
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 3 A:
-        #id: tex3_a
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    === Texture 4 Packing ===
-
+ 
     Texture 4:
         #id: enabletex4
         
     Output Texture 4:
         #id: output_tex4
-        
-    Texture 4 R:
-        #id: tex4_r
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-    Texture 4 G:
-        #id: tex4_g
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 4 B:
-        #id: tex4_b
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 4 A:
-        #id: tex4_a
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    === Texture 5 Packing ===
-
+ 
     Texture 5:
         #id: enabletex5
         
     Output Texture 5:
         #id: output_tex5
-        
-    Texture 5 R:
-        #id: tex5_r
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-    Texture 5 G:
-        #id: tex5_g
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 5 B:
-        #id: tex5_b
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
-            
-    Texture 5 A:
-        #id: tex5_a
-        
-        FinalColor.r:
-            
-        FinalColor.g:
-            
-        FinalColor.b:
-            
-        FinalColor.a:
-            
-        Non-emissive.r:
-            
-        Non-emissive.g:
-            
-        Non-emissive.b:
-            
-        Non-emissive.a:
-            
-        Emissive.r:
-            
-        Emissive.g:
-            
-        Emissive.b:
-            
-        Emissive.a:
-            
-        MDC1.r:
-            
-        MDC1.g:
-            
-        MDC1.b:
-            
-        MDC1.a:
-            
-        MDC2.r:
-            
-        MDC2.g:
-            
-        MDC2.b:
-            
-        MDC2.a:
-            
-        Normal.r:
-            
-        Normal.g:
-            
-        Normal.b:
-            
-        MotionVector.r:
-            
-        MotionVector.g:
-            
-        Depth:
-            
-        Set to 0:
-            
-        Set to 1:
             
     == Real-Time Shaders ==
 
@@ -1779,10 +472,3 @@ Labs Flipbook Textures renders, composites, and exports flipbook textures. Multi
         
     Post-Render Script Language:
         #id: lpostrender
-        
-@locals
-    
-    
-@related
-- [item | /link ]
-

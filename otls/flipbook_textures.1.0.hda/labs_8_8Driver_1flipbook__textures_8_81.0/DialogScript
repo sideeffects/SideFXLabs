@@ -675,7 +675,6 @@
                         "3" "8x AA"
                         "4" "16x AA"
                         "5" "32x AA"
-                        "6" "64x AA"
                     }
                     parmtag { "script_callback_language" "python" }
                 }
@@ -689,7 +688,7 @@
                     name    "lb_litpasslist"
                     label   "lb_litpasslist"
                     type    label
-                    default { "Final Color  /  Non-emissive Color  /  MDC and Interpreted Normal" }
+                    default { "Final Color  /  Non-emissive Color  /  MDC and MDC Normal" }
                     parmtag { "sidefx::look" "heading" }
                 }
                 parm {
@@ -706,14 +705,6 @@
                     type    float
                     default { "1" }
                     range   { 0.1! 3 }
-                    parmtag { "script_callback_language" "python" }
-                }
-                parm {
-                    name    "nonvolalbedo"
-                    label   "Non-volumetric Albedo"
-                    type    float
-                    default { "0.5" }
-                    range   { 0! 1 }
                     parmtag { "script_callback_language" "python" }
                 }
                 parm {
@@ -778,22 +769,18 @@
                         type    ordinal
                         default { "1" }
                         menu {
-                            "0" "Transform from Input Point Velocity"
-                            "1" "Compute from NDC-Space Displacement"
+                            "0" "Transform Input Point Velocity"
+                            "1" "Compute from Texture-Space Displacement"
                         }
                         parmtag { "script_callback_language" "python" }
                     }
                     parm {
-                        name    "nonvolmvtracking"
-                        label   "Point Tracking"
-                        type    ordinal
-                        default { "0" }
-                        hidewhen "{ nonvolmvsource == 0 }"
-                        menu {
-                            "0" "Attempt to Match Point by ID Attribute"
-                            "1" "Match Point by Point Number"
-                            "2" "Match Point by 3D Proximity"
-                        }
+                        name    "nonvolmvscale"
+                        label   "Correction Scale"
+                        type    float
+                        default { "1" }
+                        hidewhen "{ nonvolmvsource == 1 }"
+                        range   { 0! 5 }
                         parmtag { "script_callback_language" "python" }
                     }
                     parm {
@@ -810,12 +797,24 @@
                         parmtag { "script_callback_language" "python" }
                     }
                     parm {
-                        name    "nonvolmvscale"
-                        label   "Correction Scale"
-                        type    float
+                        name    "nonvolmvtracking"
+                        label   "Point Tracking"
+                        type    ordinal
+                        default { "0" }
+                        hidewhen "{ nonvolmvsource == 0 }"
+                        menu {
+                            "0" "Attempt to Track Point by ID Attribute"
+                            "1" "Track Point by Point Number"
+                            "2" "Track Point by 3D Proximity"
+                        }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "detectidduplicates"
+                        label   "Detect Unresolved Duplicates after Auto ID-Serialization"
+                        type    toggle
                         default { "1" }
-                        hidewhen "{ nonvolmvsource == 1 }"
-                        range   { 0! 5 }
+                        hidewhen "{ nonvolmvsource == 0 } { nonvolmvtracking != 0 }"
                         parmtag { "script_callback_language" "python" }
                     }
                 }
@@ -906,10 +905,27 @@
                 name    "res_fc"
                 label   "Export Resolution"
                 type    vector2
+                joinnext
                 size    2
-                default { "1.0 * ch(\"frameresx\") * ch(\"gridsizex\")" "1.0 * ch(\"frameresy\") * ch(\"gridsizey\")" }
+                default { "pow(2, ch(\"resfactor_fc\") - 3) * ch(\"frameresx\") * ch(\"gridsizex\")" "pow(2, ch(\"resfactor_fc\") - 3) * ch(\"frameresy\") * ch(\"gridsizey\")" }
                 disablewhen "{ enabletex1 == 0 }"
                 range   { 1! 8192 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resfactor_fc"
+                label   "Resolution Ratio"
+                type    ordinal
+                nolabel
+                default { "3" }
+                menumini {
+                    "0" "12.5%"
+                    "1" "25%"
+                    "2" "50%"
+                    "3" "100%"
+                    "4" "200%"
+                    "5" "400%"
+                }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -917,7 +933,7 @@
                 label   "Down/Up Res Filters"
                 type    ordinal
                 joinnext
-                default { "gauss" }
+                default { "catrom" }
                 menu {
                     "point"     "Point (Unfiltered)"
                     "gauss"     "Gaussian (Smoother)"
@@ -984,7 +1000,7 @@
                 name    "lb_greyscalemsg"
                 label   "lb_greyscalemsg"
                 type    label
-                default { "When you intend to convert color passes to greyscale during \nthe compositing step, it is generally recommended to set \nColor Space (on the Render Intermediate Images tab) to \n\"Linear\" in advance during the rendering step." }
+                default { "When you intend to convert color passes to greyscale during \nthe compositing step, it is generally recommended to set \nColor Space (on the Render Intermediate Images tab) to \n\"Linear\" during the rendering step." }
                 hidewhen "{ colspace == 0 } { greyscalemode == 0 }"
                 parmtag { "sidefx::look" "block" }
             }
@@ -998,10 +1014,27 @@
                 name    "res_mdc"
                 label   "Export Resolution"
                 type    vector2
+                joinnext
                 size    2
-                default { "0.5 * ch(\"frameresx\") * ch(\"gridsizex\")" "0.5 * ch(\"frameresy\") * ch(\"gridsizey\")" }
+                default { "pow(2, ch(\"resfactor_mdc\") - 3) * ch(\"frameresx\") * ch(\"gridsizex\")" "pow(2, ch(\"resfactor_mdc\") - 3) * ch(\"frameresy\") * ch(\"gridsizey\")" }
                 disablewhen "{ enabletex3 == 0 }"
                 range   { 1! 8192 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resfactor_mdc"
+                label   "Resolution Ratio"
+                type    ordinal
+                nolabel
+                default { "2" }
+                menumini {
+                    "0" "12.5%"
+                    "1" "25%"
+                    "2" "50%"
+                    "3" "100%"
+                    "4" "200%"
+                    "5" "400%"
+                }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -1032,6 +1065,14 @@
                 }
                 parmtag { "script_callback_language" "python" }
             }
+            parm {
+                name    "mdcintensity"
+                label   "MDC Intensity"
+                type    float
+                default { "1.25" }
+                range   { 0! 4 }
+                parmtag { "script_callback_language" "python" }
+            }
         }
 
         group {
@@ -1042,10 +1083,27 @@
                 name    "res_n"
                 label   "Export Resolution"
                 type    vector2
+                joinnext
                 size    2
-                default { "0.5 * ch(\"frameresx\") * ch(\"gridsizex\")" "0.5 * ch(\"frameresy\") * ch(\"gridsizey\")" }
+                default { "pow(2, ch(\"resfactor_n\") - 3) * ch(\"frameresx\") * ch(\"gridsizex\")" "pow(2, ch(\"resfactor_n\") - 3) * ch(\"frameresy\") * ch(\"gridsizey\")" }
                 disablewhen "{ enabletex4 == 0 }"
                 range   { 1! 8192 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resfactor_n"
+                label   "Resolution Ratio"
+                type    ordinal
+                nolabel
+                default { "3" }
+                menumini {
+                    "0" "12.5%"
+                    "1" "25%"
+                    "2" "50%"
+                    "3" "100%"
+                    "4" "200%"
+                    "5" "400%"
+                }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -1093,6 +1151,7 @@
                 label   "Surface Normal Blend Weight across Frame Range"
                 type    ramp_flt
                 default { "2" }
+                hidewhen "{ outputnormal != 2 }"
                 range   { 1! 10 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "parmvop" "1" }
@@ -1109,6 +1168,7 @@
                 label   "MDC Normal Intensity"
                 type    float
                 default { "1" }
+                hidewhen "{ outputnormal == 0 }"
                 range   { 0! 4 }
                 parmtag { "script_callback_language" "python" }
             }
@@ -1133,10 +1193,27 @@
                 name    "res_mv"
                 label   "Export Resolution"
                 type    vector2
+                joinnext
                 size    2
-                default { "0.5 * ch(\"frameresx\") * ch(\"gridsizex\")" "0.5 * ch(\"frameresy\") * ch(\"gridsizey\")" }
+                default { "pow(2, ch(\"resfactor_mv\") - 3) * ch(\"frameresx\") * ch(\"gridsizex\")" "pow(2, ch(\"resfactor_mv\") - 3) * ch(\"frameresy\") * ch(\"gridsizey\")" }
                 disablewhen "{ enabletex5 == 0 }"
                 range   { 1! 8192 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resfactor_mv"
+                label   "Resolution Ratio"
+                type    ordinal
+                nolabel
+                default { "3" }
+                menumini {
+                    "0" "12.5%"
+                    "1" "25%"
+                    "2" "50%"
+                    "3" "100%"
+                    "4" "200%"
+                    "5" "400%"
+                }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -1144,7 +1221,7 @@
                 label   "Down/Up Res Filters"
                 type    ordinal
                 joinnext
-                default { "catrom" }
+                default { "point" }
                 menu {
                     "point"     "Point (Unfiltered)"
                     "gauss"     "Gaussian (Smoother)"
@@ -1171,13 +1248,21 @@
                 name    "mvencoding"
                 label   "Motion Vector Encoding"
                 type    ordinal
-                default { "1" }
+                default { "0" }
                 menu {
                     "0" "R8G8 Remap to 0-1 (Faster Decoding)"
                     "1" "SideFX Labs R8G8 Encoding (Higher Accuracy)"
                     "2" "R16G16 (Highest Accuracy and Memory Footprint)"
                 }
                 parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "maxmvspeed"
+                label   "Max Speed Allowed"
+                type    float
+                default { "5" }
+                range   { 0! 10 }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -1192,7 +1277,7 @@
                 name    "mvedgealpha"
                 label   "Edge Detection Alpha"
                 type    float
-                default { "0.1" }
+                default { "0.0001" }
                 range   { 0! 1! }
                 parmtag { "script_callback_language" "python" }
             }
@@ -1207,10 +1292,27 @@
                 name    "res_d"
                 label   "Export Resolution"
                 type    vector2
+                joinnext
                 size    2
-                default { "1.0 * ch(\"frameresx\") * ch(\"gridsizex\")" "1.0 * ch(\"frameresy\") * ch(\"gridsizey\")" }
+                default { "pow(2, ch(\"resfactor_d\") - 3) * ch(\"frameresx\") * ch(\"gridsizex\")" "pow(2, ch(\"resfactor_d\") - 3) * ch(\"frameresy\") * ch(\"gridsizey\")" }
                 disablewhen "{ enabletex5 == 0 }"
                 range   { 1! 8192 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "resfactor_d"
+                label   "Resolution Ratio"
+                type    ordinal
+                nolabel
+                default { "3" }
+                menumini {
+                    "0" "12.5%"
+                    "1" "25%"
+                    "2" "50%"
+                    "3" "100%"
+                    "4" "200%"
+                    "5" "400%"
+                }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -1218,7 +1320,7 @@
                 label   "Down/Up Res Filters"
                 type    ordinal
                 joinnext
-                default { "gauss" }
+                default { "catrom" }
                 menu {
                     "point"     "Point (Unfiltered)"
                     "gauss"     "Gaussian (Smoother)"
@@ -1261,7 +1363,7 @@
             }
             parm {
                 name    "depthbitdepth"
-                label   "Bit Depth"
+                label   "Output Bit Depth"
                 type    ordinal
                 default { "1" }
                 menu {
@@ -2476,7 +2578,7 @@
             name    "lb_shaderinfo"
             label   "lb_shaderinfo"
             type    label
-            default { "Minimum Compatible Shaders:\nLabs 19.0.464 Release  -  UE4.26-5.0EA2\n\nLatest Compatible Shaders:\nLabs 19.0.465 Release  -  UE4.26-5.0EA2" }
+            default { "Minimum Compatible Shaders:\nLabs 19.0.470 Release  -  UE4.26-5.0EA2\n\nLatest Compatible Shaders:\nLabs 19.0.470 Release  -  UE4.26-5.0EA2" }
             parmtag { "sidefx::look" "block" }
         }
     }
