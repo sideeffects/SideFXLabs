@@ -343,7 +343,7 @@
                 type    toggle
                 nolabel
                 joinnext
-                default { "on" }
+                default { "0" }
                 hidewhen "{ timedependent == 0 } { inherit_frange != 0 }"
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
@@ -366,7 +366,7 @@
                 type    toggle
                 nolabel
                 joinnext
-                default { "on" }
+                default { "0" }
                 hidewhen "{ timedependent == 0 } { inherit_frange != 0 }"
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
@@ -384,18 +384,11 @@
                 parmtag { "sidefx::slider" "snap_to_int" }
             }
             parm {
-                name    "sepparm2"
-                label   "Spacer"
-                type    separator
-                default { "" }
-                hidewhen "{ timedependent == 0 }"
-                parmtag { "sidefx::layout_height" "small" }
-                parmtag { "sidefx::look" "blank" }
-            }
-            parm {
                 name    "domergeframes"
                 label   "Merge Frames"
                 type    toggle
+                nolabel
+                joinnext
                 default { "off" }
                 hidewhen "{ timedependent == 0 }"
                 parmtag { "autoscope" "0000000000000000" }
@@ -406,7 +399,8 @@
                 label   "Frames to Merge"
                 type    ordinal
                 default { "all" }
-                hidewhen "{ timedependent == 0 } { domergeframes != 1 }"
+                disablewhen "{ domergeframes != 1 }"
+                hidewhen "{ timedependent == 0 }"
                 menu {
                     "all"       "All Frames"
                     "range"     "Custom Range"
@@ -431,7 +425,7 @@
                 type    float
                 size    3
                 default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
-                hidewhen "{ timedependent == 0 } { domergeframes != 1 } { mergeframes != range }"
+                hidewhen "{ timedependent != 1 } { domergeframes != 1 } { mergeframes != range }"
                 range   { 0 10 }
                 parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
@@ -459,6 +453,8 @@
                 name    "domergewedges"
                 label   "Merge Wedges"
                 type    toggle
+                nolabel
+                joinnext
                 default { "off" }
                 hidewhen "{ enablewedging != 1 }"
                 parmtag { "autoscope" "0000000000000000" }
@@ -466,10 +462,11 @@
             }
             parm {
                 name    "mergewedges"
-                label   "Merge Wedges"
+                label   "Wedges to Merge"
                 type    ordinal
                 default { "all" }
-                hidewhen "{ enablewedging != 1 } { domergewedges != 1 }"
+                disablewhen "{ domergewedges != 1 }"
+                hidewhen "{ enablewedging != 1 }"
                 menu {
                     "all"       "All Wedges"
                     "range"     "Custom Range"
@@ -865,9 +862,9 @@
         groupcollapsible {
             name    "folder0"
             label   "Linked Parameters"
-            grouptag { "group_default" "0" }
+            grouptag { "group_default" "1" }
 
-            groupsimple {
+            groupcollapsible {
                 name    "folder1"
                 label   "General"
 
@@ -959,10 +956,9 @@
                 }
             }
 
-            groupsimple {
+            groupcollapsible {
                 name    "folder9"
                 label   "Wedging"
-                hidewhentab "{ enablewedging != 1 }"
 
                 parm {
                     name    "enablewedging"
@@ -985,7 +981,7 @@
                 }
             }
 
-            groupsimple {
+            groupcollapsible {
                 name    "folder10"
                 label   "Frame Range"
                 hidewhentab "{ timedependent != 1 }"
@@ -1052,7 +1048,7 @@
                 }
             }
 
-            groupsimple {
+            groupcollapsible {
                 name    "folder11"
                 label   "Path Construction"
 

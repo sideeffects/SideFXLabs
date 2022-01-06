@@ -1,0 +1,769 @@
+= File Cache =
+
+#type: node
+#context: sop
+#internal: labs::filecache::2.0
+#icon: SOP/filecache
+#tags: io, optimize
+#since: 19.0
+
+"""Caches (writes out once and then reads from) geometry (possibly animated) to disk."""
+
+
+== Overview ==
+
+This node is an extension over the functionalities of the [File Cache node|Node:sop/filecache] to help you build up complex caching setups with ease:
+
+
+* This node has a more extended TOP support. The main aim of this node is to provide tools for creating synchronized SOP and a TOP graphs with each other, that can cache your entire houdini scene with multiple file caches and wedging options at a click of a button.
+
+* This file cache has built in wedging capability that can help you generate quick wedge variations while never leaving the SOP context. The Lab tools also provide a way to quickly populate wedge attributes on this node by ((RMB)) on a parameter in your network (`integer`, `float` or `vector` type) and select Expression/Wedge Value... 
+
+* An extended HUD view.
+
+=== Cache Types ===
+
+When the __File Path__ is set to __Constructed__ the node provides a simple way to create all the possible cache types:
+
+* __Time Independent / Static Geometry / Model__
+    This represents a single file on disk, useful to store models, environment, etc... The file name does not contain any reference to a frame number, therefore when it is loaded, the geometry will be Time Independent. To cache a static geometry, set __Time Dependent Cache__ to `off` before caching.
+
+* __Time Dependent / Geometry Sequence__
+    This represents a sequence of files on disk, each individual file containing a reference to a frame number, which decides which file will be read in on a given frame. Therefore the loaded geometry will be Time Dependent. To cache a geometry sequence, make sure the __Time Dependent Cache__ is set to `on`.
+
+    We can further differentiate between two types of geometry sequences, based on how they are cached to disk.
+
+    * __Animated Cache__ (File Sequence without frame dependency)
+        Each frame of the sequence can be cached parallel and independently from one another, providing a fast way to cache your sequence. Useful to cache animated geometry sequences, or any other Time Dependent caches that are not based on a simulation. For this set __Simulation__ to `off`.
+
+    * __Simulation Cache__ (File Sequence with frame dependency)
+        Each frame of the sequence depends on it's previous frame. Use this for caching out simulations where the simulation advances from one frame to the next. To cache out a simulation set __Simulation__ to `on`.
+
+== SOP to TOP ==
+
+Using this node, it is very easy to create a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] referencing this node. 
+
+:task: To create a top network graph of your sop scene:
+    # Select the node and click on the [Icon:NETWORKS/top] icon in the top right corner of it's parameter interface. This will generate a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] referncing this node. The default location for this is `/obj/topnet1`, but you can change this path using the __Top File Cache In__ parameter on the this node. Now both nodes are synchronized, ensuring that caching will generate the same output for both nodes.
+    # Repeat this step to create a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] for each of your SOP [File Cache|Node:sop/filecache] nodes in your scene. 
+    # Connenct together the generated [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] in the same order as they are created in the sop network. 
+    # After all [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] are connected, cook the last node to cache your entire scene file as one large process.
+
+WARNING:
+        Do not connect any other top nodes in between the [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] nodes, such as [Wedge |Node:top/wedge] or [ROP Geometry Output|Node:top/ropgeometry] to change the work items. [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] has a built in wedging mechanism on it's own. 
+
+Every node internally contains a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] in a similar referenced fashion, to cook it's work items when you click the __Save in Background__ button. In an ideal workflow, upon clicking the [Icon:NETWORKS/top] icon, a [TOP Fetch|Node:top/topfetch] node should be generated at the given location, referencing the internal [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] of this node. However the  [TOP Fetch|Node:top/topfetch] node has limitations that currently not support this workflow:
+
+* [TOP Fetch|Node:top/topfetch] does not behave like you would expect after using similar nodes, such as [Object Merge|Node:sop/object_merge], where you can keep continue working with the merge geometry, like merging never took place. [TOP Fetch|Node:top/topfetch] can not bring in all your work items from a top node as they are, it only generates one work items per fetch, which is not ideal.
+* [TOP Fetch|Node:top/topfetch] only has one input, while multiple inputs are prefered for ease of use, such as on the [ROP Fetch|Node:rop/fetch].
+
+NOTE:
+    For the reasons above, the [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] was never designed to be used a standalone tool which would replace the [ROP Geometry Output|Node:top/ropgeometry]. Therefore you should always generate this node using the [Icon:NETWORKS/top] icon of this node.
+
+TIP:
+    It is recommended to create your top graph under `/obj`, rather then under `/tasks` [TOP Labs File Cache|Node:top/labs::topfilecache::2.0]. The reason being is, if you need to copy paste your work into other scene files you can do that simply by selecting all the nodes inside your `/obj` context at once, without forgetting anything. Any nodes live under `/tasks`, `/mat`, `/img`, etc... can easily be forgotten and might break the pasted elements in the new scene you are trying to create.
+
+== SOP to OBJ ==
+
+To render the geometry cache contained by this node, click the [Icon:NETWORKS/sop] icon on the node, which will create a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] node inside `/obj` by default. This way, you can easily generate a renderable object for all your caches needed to be rendered. [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] provides some further quality of live improvements, such as offseting frames, or merging all frames or wedges without affecting the settings on this node, while has a more compact interface with the most needed parameters for rendering.
+
+== SOP to LOP ==
+
+Currnetly, there is no straight [File Cache node|Node:sop/filecache] to LOP workflow, the recommended way now is to generate a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] and use a [SOP Import|Node:lop/sopimport] node to bring that into lop context.
+
+== File Cache and Karma ==
+
+The [Labs Karma|Node:lop/labs::karma::2.0] was designed to work together with this node. This means that it has similar interface, and provides the same control to setup renders, versioning and wedges. Therefore if you want keep working with these functionalities at the rendering stage of your work, you should be using the [Labs Karma|Node:lop/labs::karma::2.0] node. Similarly, the [Labs Karma|Node:lop/labs::karma::2.0] also has a [Icon:NETWORKS/top] icon to help you easily integrate it in into your top graph. 
+
+== Wedging ==
+
+The other important feature of this node over the [File Cache node|Node:sop/filecache] is the ability to do wedging using this node. The controls for wedging on this node trying to improve the functionalities of creating wedged attributes from what you would find on the [Wedge|Node:top/wedge] node. 
+
+The node only wedges `float` type attributes, which is the most common type one would use. 
+
+To wedge other type of attributes, there is a new feature, __Attribute Values__, which lets you provide any points or primitive geometry with the desired attribute. This way you can fully customise the wedge values, either with the __Attribute Adjust__ nodes or with your own prefered method. 
+
+:task: To wedge vector attributes:
+        # In SOP context, place down a [Labs File Cache |Node:sop/labs::filecache::2.0] and a [Transform|Node:sop/xform] node.
+        # Right click on the Rotate parameter of the [Transform|Node:sop/xform] node and select Expression -> Wedge Value.
+        # From the popup window, select the just created [Labs File Cache |Node:sop/labs::filecache::2.0] node.
+        # This will generate a [Point Generate |Node:sop/pointgenerate] node to create points representing the wedge count, while the [Attribute Adjust Vector |Node:sop/attribadjustvector] will randomize the values per point. The [Labs File Cache |Node:sop/labs::filecache::2.0] node is now configured to be able to use this geometry attribute as wedge values.
+
+=== Nested Wedging ===
+
+Nested wedging is important concept that allows you to create all possible variations of multiple wedge attributes. To create nested wedging using the [Wedge |Node:top/wedge] nodes, connect two of them together, similar to the following image:
+
+[Image:/images/nested_wedging.png]
+
+When both of their __Wedge Count__ is set to `3`, the first [Wedge |Node:top/wedge] will generate 3 work items, while the second node triples that for the total of 9 work items. After setting up some wedge attributes and investigating their values on the second node, you would find that the first node's wedge attribute is now distributed in the following pattern:
+
+    Index 0 ||
+        Index 1 || 
+            Index 2 ||
+                Index 3 ||
+                    Index 4 ||
+                        Index 5 ||
+                            Index 6 ||
+                                Index 7 ||
+                                    Index 8 ||
+    0 |
+        0 |
+            0 |
+                1 |
+                    1 |
+                        1 |
+                            2 |
+                                2 |
+                                    2
+
+While wedge attributes created on the second [Wedge |Node:top/wedge] node will be generated in a periodic pattern as follows:
+
+    Index 0 ||
+        Index 1 || 
+            Index 2 ||
+                Index 3 ||
+                    Index 4 ||
+                        Index 5 ||
+                            Index 6 ||
+                                Index 7 ||
+                                    Index 8 ||
+    0 |
+        1 |
+            2 |
+                0 |
+                    1 |
+                        2 |
+                            0 |
+                                1 |
+                                    2
+
+
+As a drawback however, to create these nested wedge patterns, you have to chain together multiple of these nodes, which in case of the this node would not be a valid workflow. 
+
+Therefore this node was designed to be able to create such patterns using a single node, when __Wedge Type__ is set to __Batched Sequence__ or __Periodic Sequnce__.
+
+@parameters
+
+Load from Disk:
+    #id: loadfromdisk
+
+    When this is on, the node reads its output from the cached disk files, rather than cooking its input. When you click __Save to Disk__ or __Save to Disk in Background__ (on the __Caching__ tab) to write out the cache files, the node automatically turns this checkbox on.
+
+:include file#reload:
+
+File Path:
+    #id: filemethod
+
+    When this is __Constructed__ (the default), the node builds up the cache file path(s) from the values of various parameters, allowing features such as versioning and animation options. If you set this to __Explicit__, you need to [manually write a single expression|/render/expressions] in the __Geometry File__ parameter with all the variables you want in the path (including the frame number when __Time dependent cache__ is on).
+
+Time Dependent Cache:
+    #id: timedependent
+
+    When this is on (the default), the node writes out a separate cache file for every frame (using the global frame start/end/increment from the timeline). If the input geometry is static (doesn't change based on the frame number), turn this off to avoid writing out multiple identical files.
+
+Base Name:
+    #id: basename
+
+    When __File Path__ is __Constructed__, this is the first part of the cache file name. The default is `$HIPNAME.$OS` (the name of the current scene file without the `.hip` extension, then a dot, then the name of this node). This is usually sufficient to prevent filename collisions between files/nodes if you give this node an meaningful, unique name (if you have two networks containing nodes both named `filecache1`, you will get a collision). The drop down menu to the right of the text field has some more possible expressions.
+
+File Type:
+    #id: filetype
+
+    The default is `.bgeo.sc`, which can handle any type of Houdini geometry and uses compression, so it's always safe to use. If _all_ the primitives in the input are _always_ VDB volumes, you can switch the file type to save the files directly as `.vdb`. When you set the __File type__ to `.vdb`, the node converts Houdini's primitive attributes to VDB grid metadata, and detail attributes to file metadata.
+
+Base Folder:
+    #id: basedir
+
+    When __File Path__ is __Constructed__, this is the folder to save the cache files into. The default is `$HIP/geo` (a folder named `geo` in the same directory as the current scene file). (When __Version__ is on it adds another directory level inside the base folder.)
+
+Open Directory:
+    #id: openbasedir
+
+    Click to show the contents of the __Base Folder__ in the file manager. This can be useful when you want to clean up old cache files.
+
+Version:
+    #id: version
+
+    When __File Path__ is __Constructed__ and the checkbox to the left is on, the node adds a directory level (and filename part) to the cache file path(s) indicating the version. This lets you [cache multiple variations|#versioning] of the input network.
+
+Geometry File:
+    #id: file
+
+    When __File Path__ is __Explicit__, the node uses this file path expression to generate the cache file path(s). This expression should [include all the variables|/render/expressions] you want in the path (including the frame number when __Time dependent cache__ is on)
+
+
+== Caching ==
+
+~~~ Cache ~~~
+
+Overwrite Existing Cache:
+    #id: overwriteexisting
+    When this is enabled, caches are always overwritten on disk, when running __Save in Background__. Disable this to not to write to any existing files to disk.
+
+:include /nodes/out/geometry#execute:
+
+Save to Disk in Background:
+    #id: cookoutputnode
+
+    Use a TOP network to cook and save the cache files to disk in a separate background process. This allows you to keep working on other parts of Houdini. The cached frames will show up as they are completed by the other process.
+
+Cancel Cook:
+    #id: dirtyall
+
+    Stops all background caching processes, if any exist.
+
+TIP:
+    You can collapse the box around these buttons as a "safety latch", to prevent yourself from clicking them and rebuilding the cache accidentally.
+
+
+~~~ Sequence ~~~
+
+Evaluate As:
+    #id: trange
+
+    When this is __Frame Range__ the node writes a cache file for every frame (see Start/End/Inc below). If you don't want pre-generate all frames at once, or if you know you only need to regenerate a single changed frame, you can set this to __Single Frame__. This makes the node write out a cache file only for the current frame (or the frame you set in __Override frame__). If you need to provide a specific list of frames use __Specfic Frames__. 
+
+    Single Frame:
+        Saves the cache on a single frame.
+        
+    Frame Range:
+        Writes the cache for every frame in the frame range (see Start/End/Inc below).
+        
+    Specific Frames:
+        Sets the frames to write based on a list of independent range sequences or numbers.
+
+Simulation:
+    #id: cachesim
+    Use this when you are caching a sequence that is generated using a simulation, that makes each frame dependent on it's previous frame. 
+
+Override Frame:
+    When __Evaluate as__ is __Single Frame__ and the checkbox to the left is on, cache this explicit frame number instead of the current frame from the timeline.
+
+:include /nodes/out/geometry#f:
+
+Substeps:
+    #id: substeps
+
+    When __Evaluate as__ is __Frame range__, this is the number of fractional sub-frames to divide each frame into. Caching sub-frames increases the quality of motion blur rendering for cached animated geometry. If you set __Substeps__ greater than `1` and you've set __File Path__ to __Explicit__, make sure your explicit path expression can handle fractional frames, by using `$T` (floating point time in seconds) or `$FF` (fractional frame number) instead of `$F` (whole frame number).
+
+List of Frames:
+    #id: specificrange
+    Sets the frame values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used. Currently this functionality is under development, and in case when __Simulation__ is set to `1`, this might not work as expected. 
+
+    Value List ||
+        Expanded Values || 
+
+    5 |            
+        5.0 
+
+    3;5 7 |            
+        3.0, 5.0, 7.0
+
+    1-3 |        
+        1.0, 2.0, 3.0
+
+    0-1:0.25 |
+        0.0, 0.25, 0.5, 0.75, 1.0
+
+    0-1:0.25 5; 8-12:2 |
+        0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0 
+
+~~~ Wedging ~~~
+
+Enable Wedging:
+    #id: enablewedging
+    Enabled wedging for this cache to create different variations of the same cache with different attribute values.
+    
+Evaluate As:
+    #id: wrange
+    When __Save in Background__ is used, it sets the amount of work items to be cached by this node. 
+
+    All Wedges:        
+        Write all wedges to disk. 
+
+    Single Wedge:
+        Write only a single given wedge.
+        
+    Custom Range:
+        Write wedges contained in the given range.
+        
+    Specific Wedges:
+        Write wedges by a list of independent range values or numbers.
+        
+Single Wedge:
+    #id: wedgeoverride
+    Sets the wedge wedge number to write to disk. Use this one you only want to correct a single wedge out of many.
+    
+List of Wedges:
+    #id: specificwedges
+    Sets the wedge values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used. 
+
+    Value List ||
+        Expanded Values || 
+
+    5 |            
+        5.0 
+
+    3;5 7 |            
+        3.0, 5.0, 7.0
+
+    1-3 |        
+        1.0, 2.0, 3.0
+
+    0-1:0.25 |
+        0.0, 0.25, 0.5, 0.75, 1.0
+
+    0-1:0.25 5; 8-12:2 |
+        0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0 
+
+    
+Wedge Range:
+    #id: wedgerange
+    All wedges in this range will be written to disk.
+
+Wedge Count:
+    #id: wedgecount
+    The total number of copies to create for wedging. 
+
+Clean Wedges:
+    #id: cleanwedges
+    Lists the available wedges of the current version in a window for deletion. 
+    
+~~~ Number of Attributes ~~~
+
+Attribute Name:
+    #id: attrib#
+    The name of the attribute to wedge. Use the `@` syntax followed by this name on any parameter in your network to make that parameter change values for each wedge.
+    
+Wedge Type:
+    #id: wedgetype#
+    Sets how the wedge values are distributed for all wedges. 
+    
+    Automatic:
+        Distributes values in increasing fashion from `0` to `Wedge Count-1`. This is the default, as the most common wedge workflow is to change the __Select Input__ parameter of a [Switch |Node:sop/switch] node, which needs increasing integer values from `0`.
+        
+    Custom Range:
+        Evenly distributes values between __Min Value__ and __Max Value__ parameters based on the number of wedges. Use this when you want to see the affect of a parameter value between a start and an end point.
+        
+    Random Sample:
+        Randomly picks a value for each wedge, between the given range by __Min Value__ and __Max Value__.
+        
+    Batched Sequence:
+        Distributes values used for nested wedging. The number of unique values in the sequence depends on the __Batch Size__, and the values are evenly distributed between __Min Value__ and __Max Value__. __Wedge Count__ should be some multiple of __Batch Size__. 
+        
+    Periodic Sequence:
+        Distributes values used for nested wedging. The __Period Size__ sets how many times to cylce the pattern across the sequence, and the values are evenly distributed between __Min Value__ and __Max Value__. __Wedge Count__ should be some multiple of __Period Size__.
+
+    List of Values:
+        Sets the wedge values by a list of independent range sequences or numbers. 
+        
+    Attribute Values:
+        Sets the wedge values by looking up point or primitive attribute values on a geometry. The geometry attribute has to have the same name as the __Attribute Name__, and the element number corresponds the the wedge number.
+        
+Min Value:
+    #id: minvalue#
+    Sets the minimum possible value when __Wedge Type__ is set to __Custom Range__, __Random Samples__, __Batched Sequence__ or __Periodic Sequence__.
+    
+Max Value:
+    #id: maxvalue#
+    Sets the maximum possible value when __Wedge Type__ is set to __Custom Range__, __Random Samples__, __Batched Sequence__ or __Periodic Sequence__.
+
+Seed:
+    #id: randomseed#
+    All generated values depend randomly on this value. Choose a different value if the current seed produces undesirable samples. 
+
+Batch Size:
+    #id: batchsize#
+    Sets the number of unique values to create in the sequence. __Wedge Count__ should be multiple of this value to evenly distribute the pattern.
+
+Period Size:
+    #id: periodsize#
+    Sets how many times to cycle the pattern in the sequence. __Wedge Count__ should be multiple of this value to evenly distribute the pattern.
+
+List of Values:
+    #id: values#
+    Sets the wedge values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used.  
+
+    Value List ||
+        Expanded Values || 
+
+    5 |            
+        5.0 
+
+    3;5 7 |            
+        3.0, 5.0, 7.0
+
+    1-3 |        
+        1.0, 2.0, 3.0
+
+    0-1:0.25 |
+        0.0, 0.25, 0.5, 0.75, 1.0
+
+    0-1:0.25 5; 8-12:2 |
+        0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0        
+
+Geometry Path:
+    #id: geopath#
+    The path to the geometry to use for attribute value lookup.
+    
+Create Geometry:
+    #id: createwedgegeo#
+    This will generate a small network to help you setup the geometry for wedging in a procedural way.
+    
+Default Value:
+    #id: valuesdefault#
+    The value given to the wedge attribute when there is a mismatch between the total number of wedges and the elements found on the geometry (when __Wedge Type__ is set to __Attribute Values__).
+           
+~~~ Load ~~~
+
+Clamp First Frame:
+    #id: clampfirst
+    Optional clamping of the first frame of the cached sequence. Use this if you want your sequence cache to exists before the start frame (by default given by __Start/End/Inc__).
+  
+Clamp Last Frame:
+    #id: clamplast
+    Optional clamping of the last frame of the cached sequence. Use this if you want your sequence cache to exists after the end frame (by default given by __Start/End/Inc__).
+    
+Merge Frames:
+    #id: domergeframes
+    Merges all the frames of a `Time Dependent` cache to a single `Time Independent` cache for the output.
+        
+    Frames to Merge:
+        #id: mergeframes
+        Sets which frames to merge together.
+
+        All Frames:
+            Merge all frames together in the range (by default given by __Start/End/Inc__).
+
+        Custom Range:
+            Proivde a custom range to merge.
+            
+        Specific Frames:
+            Sets the frame values by a list of independent range sequences or numbers.    
+            
+    Frame Range:
+        #id: mergeframerange
+        The custom range to use for merging frames toghether.
+
+    Substeps:
+        #id: mergesubsteps
+        The substeps to use for the range. Usually this should be the same as __Substeps__. 
+
+    List of Frames:
+        #id: mergespecificrange
+        Sets the frame values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used.  
+
+        Value List ||
+            Expanded Values || 
+
+        5 |            
+            5.0 
+
+        3;5 7 |            
+            3.0, 5.0, 7.0
+
+        1-3 |        
+            1.0, 2.0, 3.0
+
+        0-1:0.25 |
+            0.0, 0.25, 0.5, 0.75, 1.0
+
+        0-1:0.25 5; 8-12:2 |
+            0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0   
+
+    Merge Wedges:
+        #id: domergewedges
+         Merges all the wedges together, creating a single, either `Time Dependent` or `Time Independent` cache without wedging for the output.
+
+    Wedges to Merge:
+        #id: mergewedges
+        Sets which wedges to merge together.
+
+        All Wedges:
+            Merge all wedges together.
+
+        Custom Range:
+            Proivde a custom range to merge.
+
+        Specific Wedges:
+             Sets the wedge values by a list of independent range sequences or numbers. 
+
+    Wedge Range: 
+        #id: mergewedgeidxrange
+        The custon range to use for the merge.
+        
+    List of Wedges:
+        #id: mergespecificwedges
+        Sets the wedge values by a list of independent range sequences or numbers. The listings can be separated by whitespace, commas and semi-colons. Use the syntax `min-max:stepsize`, which expands to values between `min` and `max`, separated by `stepsize`. When `stepsize` is not provided, the default value of  `1` is used.  
+
+        Value List ||
+            Expanded Values || 
+
+        5 |            
+            5.0 
+
+        3;5 7 |            
+            3.0, 5.0, 7.0
+
+        1-3 |        
+            1.0, 2.0, 3.0
+
+        0-1:0.25 |
+            0.0, 0.25, 0.5, 0.75, 1.0
+
+        0-1:0.25 5; 8-12:2 |
+            0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0   
+
+
+:include file#loadtype:
+
+:include file#packedviewedit:
+
+:include file#viewportlod:
+
+:include file#packexpanded:
+
+:include file#delayload:
+
+:include file#index:
+
+:include file#wrap:
+
+
+== Scheduling ==
+
+:include /nodes/top/ropfetch#topscheduler:
+
+~~~ Local ~~~
+
+Frames per Batch:
+    #id: framesperbatch
+    When __Time Dependent Cache__ is enabled, and __Simulation__ is off, it sets how many frames to schedule as one unit. For every batch a new houdini process will run in the background, each opening the scene file for the period of time to cooke all the frames in the batch (by default 10). When the scene file's loading time is longer then the actual caching process, it is recommended to increase this number to even 50 or a higher number for overall faster caching. When caching time independent cache or running it as a simulation, the frames per batch value always considered as 1, therefore this parameter is disabled.
+
+One Batch at a Time:
+    #id: local_single
+    This will ensure to only run one houdini process in the background to cook all the batches. When caching time independent cache or running it as a simulation, the frames per batch value always considered as 1, therefore this parameter is disabled.
+       
+CPUs per Batch:
+    #id: local_CPUs_to_use
+    The number of logical cores to use for cooking a single batch. This will ensure to open the houdini process in the background with the given amount of logical cores. The total amount of logical cores the batches can use all combined is limited by the __CPU Count to Use__ option. 
+
+CPU Count to Use:
+    #id: maxprocsmenu
+    Sets the limit on the number of logical cores to use for the entire cooking process. The menu provides a variaty of configurations to quickly assign more logical cores to the caching process, which is displayed as a number on the right side of this parameter. 
+        
+CPU Count:
+    #id: maxprocs
+    Sets the amount of logical cores to set as the limit for the cooking process.
+
+Memory:
+    #id: local_useminfreemem
+    Sets the minimum amount of memory required.
+
+    No Minimum:
+        Do not set any memory limit.
+
+    MB Available:
+        Sets the memory limit in unit of MB.
+
+    Percent Available:
+        Sets the memory limit as percentage.
+MB:
+    #id: local_minfreemem
+    This amount of memory in MB has to be available for a batch to start the cooking process.
+
+Percent:
+    #id: local_minfreemempct
+    The precent of memory has to be free for a batch to start the cooking process.
+
+== Save Filters ==
+
+Filter Geometry by:
+    #id: filtergeo
+    Deletes geometry based on the current frame number or the current wedge index compared against an existing attribute on the incoming geometry.
+  
+    None:
+        Keep the incoming geometry
+
+    Frame Number:
+        Compares the incoming attribute value against the current frame number.
+        
+    Wedge Index:
+        Compares the incoming attribute value against the current wedge index.
+        
+Attribute Type:
+    #id: filtertype
+    The type of the attribute to use for comparison. 
+
+Piece Attribute:
+    #id: pieceattrib
+    The attribute to use for comparison. The attribute can be an `integer` type or a `string` type which ends on a numeric value for comparison. 
+
+Delete Attributes:
+    #id: deleteattributes
+
+    A space separated list of attributes to delete from the geometry before saving it. If you know there are attributes on the input geometry you don't need in the rest of the network, you can decrease the cache file size and make cache loading faster by preventing the attributes from being included in the cache. The names will match at any level (vertex, point, primitive, or detail). The node will never delete the `P` (position) point attribute. You can use patterns, for example `* ^v` to delete all attributes except `P` and `v`.
+
+Delete Groups:
+    #id: deletegroups
+
+    A space separated list of groups to delete from the geometry before saving it. This can be useful with simulation data, where there can be groups in the output you will never use. You can decrease the cache file size and make cache loading faster by preventing these groups from being included in the cache.
+
+Number of Casts:
+    #id: numcasts
+
+    If you know you don't need full precision for certain attributes in the input, this multi-parm lets you convert the attributes to lower-precision types before saving the geometry. This can make the cache files smaller and faster to load (depending on how many uses of the attribute there are). Set the number or click the plus or minus buttons to set the number of conversions to do.
+
+    See the [Attribute Cast SOP|Node:sop/attribcast] help for more information. 
+
+Class:
+    #id: class
+
+    In a "cast" multiparm instance, the level (vertex, point, primitive, or detail) of the attribute(s) you want to convert to lower precision to save space.
+
+Attributes:
+    #id: attribs
+
+    In a "cast" multiparm instance, a space-separated list of attributes at the given level (set by the __Class__ parameter above) you want to convert to lower precision to save space.
+
+Precision:
+    #id: precision
+
+    In a "cast" multiparm instance, the precision to convert the matching attributes down to, to save space.
+
+=== Create Load Attributes ===
+
+    File Name Attribute:
+        #id: filenameattrib
+        Writes the name of the file into to given primitive attribute on loading.
+
+    File Path Attribute:
+        #id: filepathattrib
+        Writes the path of the file into to given primitive attribute on loading.
+
+    File Index Attribute:
+        #id: fileindexattrib
+        Writes the wedge index of the file into to given primitive attribute on loading.
+
+== Advanced ==
+
+~~~ Save ~~~
+
+Enable Load from Disk on Save:
+    #id: loadfromdiskonsave
+
+    Whether the node will automatically turn on __Load from disk__ when you click __Save to disk__ or __Save to disk in background__.
+
+Harden Base Name on Save:
+    #id: hardenbasename
+
+    When __File Path__ is __Constructed__ and this is on, when you click __Save to disk__ or __Save to disk in background__ the node automatically converts the expression in __Base name__ to a literal string. This prevents the cache from breaking if you duplicate or rename the scene file or node.
+
+Create Intermediate Directories:
+    #id: mkpath
+
+    When writing out cache files, automatically create any intermediate directories in the file path that don't exist.
+
+:include /nodes/out/geometry#initsim:
+
+:include /nodes/out/geometry#alfprogress:
+
+:include /nodes/out/geometry#savebackground:
+
+:include /nodes/out/geometry#saveretry:
+
+:include /nodes/out/geometry#take:
+
+
+~~~ Load ~~~
+
+Missing Frame:
+    #id: missingframe
+
+    This is what the node should do (in __Load from disk__ mode) when the node can't find (or cleanly load) a cache file. __Report error__ sets an error on the node, preventing the rest of the network from cooking. This makes it obvious when a problem happens. __No geometry__ (the default) sets a warning on the node rather than an error, and outputs empty geometry. This can be useful if your network has a way of dealing with missing cache frames, or if they're not important. 
+
+:include file#cachesize:
+
+:include file#prefetch:
+
+:include /nodes/out/standard#scripts_tab:
+
+:include /nodes/out/geometry#postwrite:
+
+~~~ Scripts ~~~
+
+This section duplicates the pre/post scripts available on the [Geometry render node|Node:out/geometry].
+
+~~~ Node Generation ~~~
+
+Render Geometry In:
+    #id: rendergeopath
+    Creates a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] inside this path, when the [Icon:NETWORKS/sop] icon is clicking on the top right corner of this node.
+
+Top File Cache In:
+    #id: topfilecachepath
+    Creates a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] inside this path, when the [Icon:NETWORKS/top] icon is clicking on the top right corner of this node.
+
+Top Mantra In:
+    #id: topmantrapath
+    Currnetly not suppor
+
+~~~ Performance Logging ~~~
+
+    Enable Performance Monitor Logging:
+        #id: enableperfmon
+        Saves a performance file along with the cache to investigate the cooking perormance. Currnetly this is a work in progress feature.
+
+    Open Current Profile:
+        #id: openperffile
+        Saves a performance file along with the cache to investigate the cooking perormance. Currnetly this is a work in progress feature.
+
+~~~ Path Construction ~~~
+
+The expressions in these parameters allow an expert user to customize exactly how the node generates a cache file path. However, editing the expressions can easily break the operation of the node. The basic parameters include a lot of room for customization, so we recommend that you *do not try to customize these expressions*. However, they are available if, for example, they are necessary to conform with studio-wide conventions.
+
+Frame:
+    #id: frame
+
+    Contains the expression that computes the current frame number to cache. *Do not edit this expression*.
+
+Frame String:
+    #id: framestr
+
+    Contains the expression that generates the frame number as a padded string, including a dot prefix. *Do not edit this expression*.
+
+Version String:
+    #id: versionstr
+
+    Contains an expression that generates the "version" part of the path, including a `v` prefix. *Do not edit this expression*.
+
+Cache Folder:
+    #id: cachedir
+
+    Contains an expression that generates the parent directory path for cache files. *Do not edit this expression*.
+
+Cache Name:
+    #id: cachename
+
+    Contains an expression that generates the filename for cache files. *Do not edit this expression*.
+
+Descriptive Label:
+    #id: descriptivelabel
+
+    Contains an expression that generates the _descriptive text_ displayed next to this node (below the name and badges) in the network editor. This is set to output the cache filename pattern. *Do not edit this expression*.
+
+Output File:
+    #id: sopoutput
+
+    Contains an expression that generates the resolved, full path of the cache file for the current frame. *Do not edit this expression*.
+
+
+@related
+
+- [Labs File Cache |Node:sop/labs::filecache::2.0]
+- [Labs Karma |Node:lop/labs::karam::2.0]
+- [Labs Wedge node|Node:top/labs::wedge::1.0]
+- [Labs Render Geometry|Node:obj/labs::rendergeo::1.0]
+- [TOP Labs File Cache|Node:top/labs::topfilecache::2.0]
+
+
