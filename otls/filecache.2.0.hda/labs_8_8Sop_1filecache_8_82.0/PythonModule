@@ -777,5 +777,70 @@ def getOpenCommand(filepath):
     else:
         opener = 'xdg-open'
     return '{opener} {filepath}'.format(opener=opener, filepath=filepath)     
+ 
+def getUpstreamWedgeCount(kwargs):
+
+    node = kwargs['node']
     
-                  
+    filecaches = findAllNodesWithParms(node, 'filecache', parmlist={},
+                                   findfirsts=True)
+       
+    wedgecounts = []
+    for filecache in filecaches:
+        if filecache.evalParm('enablewedging'):
+            wedgecount = filecache.evalParm('wedgecount')
+            if wedgecount not in wedgecounts: 
+                if not filecache.evalParm('domergewedges'):
+                    wedgecounts.append(wedgecount)
+                
+    if len(wedgecounts) == 1:
+        node.parm('wedgecount').set(wedgecounts[0])
+    elif len(wedgecounts) > 1:
+        hou.ui.displayMessage(text="Upstream file caches have different wedge counts!",
+                              title="Wedge Count Missmatch",
+                              severity=hou.severityType.Warning,
+                              details="Make sure all upstream file caches work with the same amount of wedges, or merge them together on load!")
+        
+    
+def findAllNodesWithParms(startnode, nodetype, parmlist,
+                               findfirsts=False, basetypematch=True):
+    """Finds all nodes that are an ancestor of endnode, match
+        nodetype, and have the parameters & value pairs listed in the
+        parmlist dictionary.
+        If basetypematch is true, only the node type's base name is checked,
+        ie, node type's namespace and version components are ignored
+        when testing against the matchtype (eg, matchtype 'hda' will match
+        node types 'hda', 'hda::1.5' and 'userx::hda', etc). Otherwise,
+        the node type name must match exactly the matchtype string.
+    """
+    import toolutils
+    
+    result = []
+
+    searchnodes = list(startnode.inputs())
+
+    if not searchnodes:
+        return result
+
+    while searchnodes:
+        block = False
+        inputnodes = []
+
+        currentnode = searchnodes[0]    
+        searchnodes.pop(0)  
+
+        if toolutils.__nodeMatches(currentnode, nodetype, parmlist,
+                                   basetypematch):
+            result.append(currentnode)
+
+            # if only the first of the nodes needed,
+            # blocked the node not to search the upstream network anymore
+            if findfirsts:
+                block = True
+       
+        if not block:
+            inputnodes = list(currentnode.inputs())
+
+        searchnodes = inputnodes + searchnodes
+  
+    return result                  
