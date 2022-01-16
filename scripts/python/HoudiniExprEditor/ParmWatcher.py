@@ -257,7 +257,15 @@ def filechanged(file_name):
 
             template = parm.parmTemplate()
             if template.dataType() == hou.parmData.String:
-                parm.set(data)
+
+                try:
+                    parm.expressionLanguage() # throws hou.OperationFailed if it's not an expression
+
+                    parm.setExpression(data)
+
+                except hou.OperationFailed:
+                    parm.set(data)
+                    
                 return
 
             if template.dataType() == hou.parmData.Float:
