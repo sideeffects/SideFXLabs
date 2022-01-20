@@ -1,0 +1,278 @@
+# Dialog script for labs::unreal_groom_export::1.0 automatically generated
+
+{
+    name	labs::unreal_groom_export::1.0
+    script	groom_export_prototype
+    label	"Labs Unreal Groom Export"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Strands
+    inputlabel	2	Guides
+    inputlabel	3	Skin
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Alembic Primitives"
+
+    groupcollapsible {
+        name    "folder_groupids"
+        label   "Groups"
+
+        parm {
+            name    "outputgroups"
+            label   "Output Groups"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "groupidentifier"
+            label   "Group Identifier"
+            type    ordinal
+            default { "groupid" }
+            disablewhen "{ outputgroups == 0 }"
+            menu {
+                "groupid"   "Group Id"
+                "groupname" "Group Name (UE5)"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "groupidattrib"
+            label   "Group Id Attribute"
+            type    string
+            default { "groom_group_id" }
+            disablewhen "{ outputgroups == 0 } { groupidentifier != groupid }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "groupnameattrib"
+            label   "Group Name Attribute"
+            type    string
+            default { "name" }
+            disablewhen "{ outputgroups == 0 } { groupidentifier != groupname }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder_color"
+        label   "Color"
+
+        parm {
+            name    "outputcolor"
+            label   "Output Color"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "colorattrib"
+            label   "Color Attribute"
+            type    string
+            default { "Cd" }
+            disablewhen "{ outputcolor == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder_ids"
+        label   "Output Guide Ids"
+
+        parm {
+            name    "outputids"
+            label   "Output Ids"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "idsfromattrib"
+            label   "From Attribute"
+            type    toggle
+            default { "0" }
+            disablewhen "{ outputids == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "idattrib"
+            label   "Id Attribute"
+            type    string
+            default { "id" }
+            disablewhen "{ outputids == 0 } { idsfromattrib == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder_xform"
+        label   "Transform"
+
+        parm {
+            name    "doxform"
+            label   "Transform"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "t"
+            label   "Translate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            disablewhen "{ doxform == 0 }"
+            range   { -1 1 }
+            parmtag { "autoscope" "1110000000000000" }
+        }
+        parm {
+            name    "r"
+            label   "Rotate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            disablewhen "{ doxform == 0 }"
+            range   { 0 360 }
+            parmtag { "autoscope" "1110000000000000" }
+        }
+        parm {
+            name    "s"
+            label   "Scale"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            disablewhen "{ doxform == 0 }"
+            range   { -1 1 }
+            parmtag { "autoscope" "1110000000000000" }
+        }
+        parm {
+            name    "scale"
+            label   "Uniform Scale"
+            type    float
+            default { "1" }
+            disablewhen "{ doxform == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder_export"
+        label   "Export"
+
+        parm {
+            name    "execute"
+            label   "Save to Disk"
+            type    button
+            joinnext
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "takecontrol" "always" }
+        }
+        parm {
+            name    "executebackground"
+            label   "Save to Disk in Background"
+            type    button
+            joinnext
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "takecontrol" "always" }
+        }
+        parm {
+            name    "renderdialog"
+            label   "Controls..."
+            type    button
+            nolabel
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "takecontrol" "always" }
+        }
+        parm {
+            name    "trange"
+            label   "Valid Frame Range"
+            type    ordinal
+            default { "off" }
+            menu {
+                "off"       "Render Current Frame"
+                "normal"    "Render Frame Range"
+                "on"        "Render Frame Range Only (Strict)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "f"
+            label   "Start/End/Inc"
+            type    float
+            size    3
+            default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "take"
+            label   "Render with Take"
+            type    string
+            default { "_current_" }
+            menu {
+                [ "opmenu -l -a rop_alembic1 take" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "filename"
+            label   "Alembic File"
+            type    file
+            default { "$HIP/groom-export.abc" }
+            menureplace {
+                [ "opmenu -l -a rop_alembic1 filename" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_pattern" "*.abc" }
+        }
+        parm {
+            name    "format"
+            label   "Format"
+            type    ordinal
+            default { "default" }
+            menu {
+                "default"   "Default Format"
+                "hdf5"      "HDF5"
+                "ogawa"     "Ogawa"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mkpath"
+            label   "Create Intermediate Directories"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "render_full_range"
+            label   "Render Full Range (Override Frame-By-Frame)"
+            type    toggle
+            default { "on" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "initsim"
+            label   "Initialize Simulation OPs"
+            type    toggle
+            default { "off" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
