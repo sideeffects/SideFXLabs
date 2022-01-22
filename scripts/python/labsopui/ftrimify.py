@@ -12,7 +12,7 @@ def ftrimify(parm):
     """
     if not isinstance(parm.parmTemplate(), hou.StringParmTemplate):
         return
-    pattern = r"((?<!ftrim\()chs*\(.*?\))"
+    pattern = r"((?<!ftrim\()(chs*\(.*?\)|@[^`]*))"
     repl = r"ftrim(\1)"
     raw = parm.rawValue()
     # Don't do anything if no match found
