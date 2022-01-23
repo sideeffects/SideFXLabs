@@ -30,8 +30,8 @@
         parmtag { "script_callback_language" "python" }
     }
     groupsimple {
-        name    "folder0"
-        label   "Looping Settings"
+        name    "fd_loopsettings"
+        label   "Loop Settings"
 
         parm {
             name    "start_frame"
@@ -60,154 +60,172 @@
             parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
             parmtag { "script_callback_language" "python" }
         }
-        parm {
-            name    "sepparm"
-            label   "Separator"
-            type    separator
-            default { "" }
-            hidewhen "{ inputtype != 1 }"
-        }
-        parm {
-            name    "bornbeforestartmode"
-            label   "Born Before Loop Start"
-            type    ordinal
-            default { "1" }
-            disablewhen "{ inputtype != 1 }"
-            hidewhen "{ inputtype != 1 }"
-            menu {
-                "0" "Remove Particle"
-                "1" "Restart Particle Original Age at Loop Start"
+        groupsimple {
+            name    "fd_vol"
+            label   "Volume"
+            hidewhen "{ inputtype != 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "sepparm5"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
             }
-            range   { 0 10 }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "deadafterendmode"
-            label   "Dead After Loop End"
-            type    ordinal
-            default { "1" }
-            disablewhen "{ inputtype != 1 }"
-            hidewhen "{ inputtype != 1 }"
-            menu {
-                "0" "Remove Particle"
-                "1" "Clamp Particle Original Life to Loop End"
+            parm {
+                name    "lb_cachewarning"
+                label   "lb_cachewarning"
+                type    label
+                default { "It is recommended to cache memory-intensive simulations to disk \nbefore this node, because this node requires time-shifting \nthe input forward by up to half the animation duration. \n\nWithout cached files, if the necessary number of frames cannot be \nheld in memory at the same time by the solver, the looped result \nwill be incorrect." }
+                parmtag { "sidefx::look" "block" }
             }
-            range   { 0 10 }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "script_callback_language" "python" }
         }
-        parm {
-            name    "sepparm2"
-            label   "Separator"
-            type    separator
-            default { "" }
+
+        groupsimple {
+            name    "fd_particle"
+            label   "Particle"
             hidewhen "{ inputtype != 1 }"
-        }
-        parm {
-            name    "uniqueid"
-            label   "Prevent Loops from Repeating Particle IDs"
-            type    toggle
-            default { "1" }
-            disablewhen "{ inputtype != 1 }"
-            hidewhen "{ inputtype != 1 }"
-            parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "wrapmode"
-            label   "Particle Wrap Mode"
-            type    ordinal
-            default { "2" }
-            disablewhen "{ inputtype != 1 } { uniqueid == 0 }"
-            hidewhen "{ inputtype != 1 } { uniqueid == 0 }"
-            menu {
-                "0" "Stay Alive from End to Start (Houdini)"
-                "1" "Die at End and Respawn as New Particles at Start (Niagara)"
-                "2" "Spawn at Start, Hide, and Reappear near End (Niagara)"
-                "3" "Never Spawn to Avoid Wrapping"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "sepparm"
+                label   "Separator"
+                type    separator
+                default { "" }
             }
-            parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
-            parmtag { "script_callback_language" "python" }
+            parm {
+                name    "bornbeforestartmode"
+                label   "Born Before Loop Start"
+                type    ordinal
+                default { "1" }
+                menu {
+                    "0" "Remove Particle"
+                    "1" "Restart Particle Original Age at Loop Start"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "deadafterendmode"
+                label   "Dead After Loop End"
+                type    ordinal
+                default { "1" }
+                hidewhen "{ inputtype != 1 }"
+                menu {
+                    "0" "Remove Particle"
+                    "1" "Clamp Particle Original Life to Loop End"
+                }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "uniqueid"
+                label   "Prevent Loops from Repeating Particle IDs"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "wrapmode"
+                label   "Particle Wrap Mode"
+                type    ordinal
+                default { "2" }
+                disablewhen "{ uniqueid == 0 }"
+                hidewhen "{ uniqueid == 0 }"
+                menu {
+                    "0" "Stay Alive from End to Start (Houdini)"
+                    "1" "Die at End and Respawn as New Particles at Start (Niagara)"
+                    "2" "Spawn at Start, Hide, and Reappear near End (Niagara)"
+                    "3" "Never Spawn to Avoid Wrapping"
+                }
+                parmtag { "script_callback" "hou.pwd().parm(\"recomputemaxid\").pressButton()" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fadein"
+                label   "Fade In Pscale"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fadeinduration"
+                label   "Fade-In Duration"
+                type    float
+                default { "0.2" }
+                disablewhen "{ fadein == 0 }"
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fadeout"
+                label   "Fade Out Pscale"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "fadeoutduration"
+                label   "Fade-Out Duration"
+                type    float
+                default { "0.2" }
+                disablewhen "{ fadeout == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "fd_vis"
+                label   "Visualization"
+
+                parm {
+                    name    "previs"
+                    label   "Output Preview Geometry"
+                    type    toggle
+                    default { "0" }
+                    disablewhen "{ inputtype != 1 }"
+                    hidewhen "{ inputtype != 1 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "previsscale"
+                    label   "Preview Sphere Scale"
+                    type    float
+                    default { "0.2" }
+                    disablewhen "{ previs == 0 }"
+                    hidewhen "{ previs == 0 }"
+                    range   { 0! 2 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "colornage"
+                    label   "Color by Normalized Age"
+                    type    toggle
+                    default { "1" }
+                    disablewhen "{ previs == 0 }"
+                    hidewhen "{ previs == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
         }
-        parm {
-            name    "fadein"
-            label   "Fade In Pscale"
-            type    toggle
-            default { "1" }
-            hidewhen "{ inputtype != 1 }"
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "fadeinduration"
-            label   "Fade-In Duration"
-            type    float
-            default { "0.2" }
-            disablewhen "{ fadein == 0 }"
-            hidewhen "{ inputtype != 1 }"
-            range   { 0 1 }
-            parmtag { "script_callback_language" "python" }
-        }
+
         parm {
             name    "recomputemaxid"
             label   "Recompute Max ID"
             type    button
             invisible
             default { "0" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "fadeout"
-            label   "Fade Out Pscale"
-            type    toggle
-            default { "1" }
-            hidewhen "{ inputtype != 1 }"
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "fadeoutduration"
-            label   "Fade-Out Duration"
-            type    float
-            default { "0.2" }
-            disablewhen "{ fadeout == 0 }"
-            hidewhen "{ inputtype != 1 }"
-            range   { 0 10 }
-            parmtag { "script_callback_language" "python" }
-        }
-    }
-
-    groupsimple {
-        name    "folder1"
-        label   "Visualization"
-        disablewhen "{ inputtype != 1 }"
-        hidewhen "{ inputtype != 1 }"
-
-        parm {
-            name    "previs"
-            label   "Output Preview Geometry"
-            type    toggle
-            default { "0" }
-            disablewhen "{ inputtype != 1 }"
-            hidewhen "{ inputtype != 1 }"
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "previsscale"
-            label   "Preview Sphere Scale"
-            type    float
-            default { "0.2" }
-            disablewhen "{ previs == 0 }"
-            hidewhen "{ previs == 0 }"
-            range   { 0! 2 }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "colornage"
-            label   "Color by Normalized Age"
-            type    toggle
-            default { "1" }
-            disablewhen "{ previs == 0 }"
-            hidewhen "{ previs == 0 }"
             parmtag { "script_callback_language" "python" }
         }
     }
