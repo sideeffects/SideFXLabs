@@ -33,24 +33,24 @@ NOTE:
         First frame of the input animation.
     End Frame:
         Last frame of the input animation.
-    Num. of Double-Loops:
+    Num of Double-Loops:
         The loops are always created in pairs of two, e.g.: if this paramater is set to 1/2/3, you will see 2/4/6 visually repeating cycles. This is due to how the looping effect is achieved. For instance, let's say this parameter is set to N (and N is 2) and the animation duration is 200 frames:
         <p>first, the base animation is divided into N sections (2 sections); only the first section is retained and it is repeated for N times (2 times);</p>
         <p>then, the repeated first sections (100 frames per section) are copied and shifted by half the section length (50 frames);</p>
         <p>finally, the base sections (repeating 100-frame sections) and the shifted sections (repeating 100-frame sections with a 50-frame offset) are blended or added together, creating seamless transitions. As a result, in the length of a single base section (100 frames), the visuals actually repeat twice (once every 50 frames). Hence the loops are more appropriately called "double-loops".</p>
     Born Before Loop Start:
-        Sets how to handle particles born too early. For the looping to work, the birth and death of a particle must be within the range of the first double-loop, e.g.: if *Num. of Double-Loops* is set to 2, the end of the first double-loop is half-way between Start Frame and End Frame.
+        Sets how to handle particles born too early. For the looping to work, the birth and death of a particle must be within the range of the first double-loop, e.g.: if *Num of Double-Loops* is set to 2, the end of the first double-loop is half-way between Start Frame and End Frame.
     Dead After Loop End:
-        Sets how to handle particles dying too late. For the looping to work, the birth and death of a particle must be within the range of the first double-loop, e.g.: if *Num. of Double-Loops* is set to 2, the end of the first double-loop is half-way between Start Frame and End Frame.
+        Sets how to handle particles dying too late. For the looping to work, the birth and death of a particle must be within the range of the first double-loop, e.g.: if *Num of Double-Loops* is set to 2, the end of the first double-loop is half-way between Start Frame and End Frame.
         <p>It is recommended to reduce the life expectancy of your particles to fit within the range of a double-loop. But if you have to clamp particle lives at the end of the double-loop, it may result in a sudden drop in particle count as a lot of particles die at once. You can counter this with *Fade Out Pscale*.</p>
     Prevent Loops from Repeating Particle IDs:
         Offsets the point IDs from different loops to avoid repeated ID values. It is recommended to leave this on. Please note that this will not fix already repeated IDs on the input geometry.
     Particle Wrap Mode:
         Particles still alive at the end of the whole animation (from Start Frame to End Frame) will have the rest of their lifespans wrapped to the start of the animation.
-        <p>*Stay Alive ...*: is best suited for Houdini; it keeps the IDs consistent and ages the particles naturally.</p>
-        <p>*Die at the End ...*: is suited for Niagara; it offsets the ID, age, and life attributes to create two distinct groups of particles for the end and the start of the animation; it will often result in a few mismatched particles during emitter loop transitions, which can be countered with *Fade In Pscale*.</p>
-        <p>*Spawn at the Start ...*: is suited for Niagara; instead of wrapping particles, it spawns them at the start, keeps them alive throughout the animation, sets their pscales to zero when they should be invisible, and then lets them reappear near the end of the animation; it does not create mismatched particles during emitter loop transitions, but it will waste some resources moving invisible particles.</p>
-        <p>*Never Spawn ...*: premptively removes the particles that need wrapping; it sidesteps the problem, but it will result in noticeable drops in particle count during emitter loop transitions.</p>
+        <p>*Stay Alive from End to Start*: is best suited for Houdini; it keeps the IDs consistent and ages the particles naturally.</p>
+        <p>*Die at End and Respawn as New Particles at Start*: is suited for Niagara; it offsets the ID, age, and life attributes to create two distinct groups of particles for the end and the start of the animation; it will often result in a few mismatched particles during emitter loop transitions, which can be countered with *Fade In Pscale*.</p>
+        <p>*Spawn at Start, Hide, and Reappear near End*: is suited for Niagara; instead of wrapping particles, it spawns them at the start, keeps them alive throughout the animation, sets their pscales to zero when they should be invisible, and then lets them reappear near the end of the animation; it does not create mismatched particles during emitter loop transitions, but it will waste some resources moving invisible particles.</p>
+        <p>*Never Spawn to Avoid Wrapping*: premptively removes the particles that need wrapping; it sidesteps the problem, but it will result in noticeable drops in particle count during emitter loop transitions.</p>
     Fade In Pscale:
         Linearly scales the "pscale" attribute from 0% to 100% at the start of each particle's original lifespan (unaffected by any modifications to the age and life attributes from particle wrapping). This is particularly helpful when *Particle Wrap Mode* is set to "Die at End and Respawn ...", as this obfuscates the minor glitches that may happen during emitter loop transition.
     Fade-In Duration:
