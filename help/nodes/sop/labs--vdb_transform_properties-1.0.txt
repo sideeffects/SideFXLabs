@@ -1,0 +1,36 @@
+#type:     node
+#context:  sop
+#internal: labs::vdb_transform_properties::1.0
+#icon:     SOP/labs::vdb_transform_properties::1.0
+
+= Labs VDB Transform Properties =
+
+"""Converts the input volume/VDB field to a VDB vector field and updates how the vector field will respond to transformations downstream."""
+
+Labs VDB Transform Properties SOP changes how a volume/VDB field will respond to transformations applied downstream. It converts the input field to a VDB vector field and updates the vector field's primitive intrinsic attribute `vdb_vector_type`.
+
+A common use case is to convert `vel.x`, `vel.y`, and `vel.z` to a VDB contravariant relative vector field so that the velocities can respond correctly to both Transform SOPs and object transforms.
+
+
+@parameters
+
+    Source Field:
+        #id: sourcefield
+        The name of the volume/VDB field to update. If this is three scalar fields which are components of the same vector field, just type in the name of the vector field. For instance, for `vel.x`, `vel.y`, and `vel.z`, just type in `vel`.
+        
+    Vector Field Type:
+        #id: vectype
+        Sets how transformations will be applied to the vector field.
+        <p>*Tuple/Color/UVW*: Does not transform.</p>
+        <p>*Gradient/Normal*: Applies the inverse-transpose of the transform matrix, ignoring translation.</p>
+        <p>*Unit Normal*: Applies the forward transform matrix, ignoring translation.</p>
+        <p>*Displacement/Velocity/Acceleration*: Applies the forward transform matrix, ignoring translation.</p>
+        <p>*Position*: Applies “regular” transformation, vector translates.</p>
+            
+    Remove Source Scalar VDBs:
+        #id: removesource
+        Deletes the scalar VDBs once they have been merged into a single vector field.
+        
+    Output Motion Vector Visualization:
+        #id: motionvecvis
+        Outputs motion vector visualization. You can still revert the volume back to its original look downstream by deleting the detail attribute `volvis_motionvec`.
