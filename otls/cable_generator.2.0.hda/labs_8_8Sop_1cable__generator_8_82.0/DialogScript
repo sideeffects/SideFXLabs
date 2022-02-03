@@ -1,0 +1,604 @@
+# Dialog script for labs::cable_generator::2.0 automatically generated
+
+{
+    name	labs::cable_generator::2.0
+    script	Titan_Cable_tool
+    label	"Labs Cable Generator"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Curve or Surface"
+    inputlabel	2	Collision
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "inputtype"
+        label   "Input Type"
+        type    integer
+        default { "0" }
+        menu {
+            "0" "Curve"
+            "1" "Connect Surfaces"
+            "2" "Through Geometry"
+        }
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Surface Settings"
+        hidewhentab "{ inputtype != 1 }"
+
+        parm {
+            name    "surfacedistance"
+            label   "Connection Distance"
+            type    float
+            default { "20" }
+            range   { 0 30 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "surfacedensity"
+            label   "Cable Density"
+            type    float
+            default { "50" }
+            range   { 0.1 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "export_disable" "1" }
+            parmtag { "units" "m-2" }
+        }
+        parm {
+            name    "surfaceblend"
+            label   "Merge Cable Ends"
+            type    float
+            default { "0" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder3"
+        label   "Main Curve Settings"
+        hidewhentab "{ inputtype != 0 }"
+
+        parm {
+            name    "curveamountcable"
+            label   "Number of Main Cables"
+            type    integer
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "treatpolysas"
+            label   "Treat Polygons As"
+            type    ordinal
+            default { "straight" }
+            menu {
+                "straight"  "Straight Edges"
+                "subd"      "Subdivision Curves"
+                "interp"    "Interpolating Curves"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "curvespacing"
+            label   "Spacing"
+            type    float
+            default { "1" }
+            hidewhen "{ curveamountcable == 1 }"
+            range   { 0.015 0.5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "curvevariation"
+            label   "Spacing Variation"
+            type    float
+            default { "1" }
+            hidewhen "{ curveamountcable == 1 }"
+            range   { 0! 20 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "globalseed"
+            label   "Spacing Offset Seed"
+            type    float
+            default { "1.28" }
+            hidewhen "{ curveamountcable == 1 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Through Geometry"
+        hidewhentab "{ inputtype != 2 }"
+
+        parm {
+            name    "geoamountcable"
+            label   "Number of Main Cables"
+            type    integer
+            default { "5" }
+            range   { 1 20 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "geocurvetype"
+            label   "Treat Curves As"
+            type    ordinal
+            default { "interp" }
+            menu {
+                "straight"  "Straight Edges"
+                "subd"      "Subdivision Curves"
+                "interp"    "Interpolating Curves"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Main Cable Settings"
+
+        parm {
+            name    "mainscale"
+            label   "Main Radius"
+            type    float
+            default { "0.5" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "randradius"
+            label   "Random Scale"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "minscale"
+            label   "Min Scale"
+            type    float
+            joinnext
+            default { "0.5" }
+            hidewhen "{ randradius == 0 }"
+            range   { 0 2 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "maxscale"
+            label   "Max Scale"
+            type    float
+            default { "2" }
+            hidewhen "{ randradius == 0 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scaleseed"
+            label   "Seed"
+            type    float
+            default { "0" }
+            hidewhen "{ randradius == 0 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "resolutioncable"
+            label   "Resolution"
+            type    float
+            default { "0.5" }
+            range   { 0.02! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "divisions"
+            label   "Columns"
+            type    integer
+            default { "8" }
+            range   { 3! 24 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "addends"
+        label   "Add Ends"
+        type    toggle
+        default { "0" }
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    group {
+        name    "folder1_1"
+        label   "Simulation"
+
+        parm {
+            name    "simtype"
+            label   "Simulation Type"
+            type    ordinal
+            default { "0" }
+            menu usetokenvalue {
+                "0" "None"
+                "1" "Pseudo Gravity"
+                "2" "Wire Simulation"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "folder5"
+            label   "Psuedo Gravity"
+            hidewhen "{ simtype != 1 }"
+
+            parm {
+                name    "mingravity"
+                label   "Min"
+                type    float
+                joinnext
+                default { "0.1" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "maxgravity"
+                label   "Max"
+                type    float
+                default { "0.7" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "seedgravity"
+                label   "Seed"
+                type    float
+                default { "0.383" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "boostgravity"
+                label   "Gravity Multiplier"
+                type    float
+                default { "3.5" }
+                range   { 0 20 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder5_1"
+            label   "Wire Simulation"
+            hidewhen "{ simtype != 2 }"
+
+            parm {
+                name    "resimulate"
+                label   "Reset Simulation"
+                type    button
+                default { "0" }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "maincablesim"
+                label   "Simulate Main Cable"
+                type    toggle
+                default { "0" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "framesim"
+                label   "Frame"
+                type    integer
+                default { "30" }
+                range   { 0 50 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "stretch"
+                label   "Cable Stretch"
+                type    float
+                default { "1.2" }
+                range   { 0.9 1.5 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "scale"
+                label   "Add Random Stretch"
+                type    float
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "substeps"
+                label   "Substeps"
+                type    integer
+                default { "1" }
+                range   { 1 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "units" "" }
+            }
+            parm {
+                name    "staticthreshold"
+                label   "Friction"
+                type    float
+                default { "0.5" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    group {
+        name    "folder1_1_1"
+        label   "Sub Cables"
+
+        parm {
+            name    "subcables"
+            label   "Enable"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "iterations"
+            label   "Number of Sub Cables"
+            type    integer
+            default { "1" }
+            hidewhen "{ subcables == 0 }"
+            range   { 1 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "subscale"
+            label   "Sub Radius"
+            type    float
+            default { "0.07" }
+            hidewhen "{ subcables == 0 }"
+            range   { 0 0.1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "subrandradius"
+            label   "Random Scale"
+            type    toggle
+            default { "0" }
+            hidewhen "{ subcables == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "subminscale"
+            label   "Min Scale"
+            type    float
+            joinnext
+            default { "0.5" }
+            hidewhen "{ subrandradius == 0 }"
+            range   { 0 2 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "submaxscale"
+            label   "Max Scale"
+            type    float
+            default { "2" }
+            hidewhen "{ subrandradius == 0 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "subscaleseed"
+            label   "Seed"
+            type    float
+            default { "0" }
+            hidewhen "{ subrandradius == 0 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "subrange"
+            label   "Range"
+            type    float
+            default { "3.16" }
+            hidewhen "{ subcables == 0 }"
+            range   { 0 15 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "subrings"
+            label   "Twist"
+            type    float
+            default { "0.5" }
+            hidewhen "{ subcables == 0 }"
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "subresolution"
+            label   "Resolution"
+            type    float
+            default { "4" }
+            hidewhen "{ subcables == 0 }"
+            range   { 0.1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "subcolumns"
+            label   "Columns"
+            type    integer
+            default { "8" }
+            hidewhen "{ subcables == 0 }"
+            range   { 3! 24 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "treatpolysas2"
+            label   "Treat Polygons As"
+            type    ordinal
+            default { "straight" }
+            hidewhen "{ subcables == 0 }"
+            menu {
+                "straight"  "Straight Edges"
+                "subd"      "Subdivision Curves"
+                "interp"    "Interpolating Curves"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "presim"
+            label   "Add Pre Simulation"
+            type    toggle
+            default { "1" }
+            hidewhen "{ subcables == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "postsim"
+            label   "Add Post Simulation"
+            type    toggle
+            default { "1" }
+            hidewhen "{ subcables == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_1_2"
+        label   "Detangle"
+
+        parm {
+            name    "detangle"
+            label   "Enable"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "resolveclipping"
+            label   "Resolve Collision Clipping"
+            type    toggle
+            default { "1" }
+            hidewhen "{ detangle == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "detanglemain"
+            label   "Detangle Options"
+            type    ordinal
+            default { "0" }
+            hidewhen "{ detangle == 0 }"
+            menu usetokenvalue {
+                "1" "Main and Sub Cables"
+                "0" "Sub Cables Only"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "iterationdetangle"
+            label   "Iterations"
+            type    integer
+            default { "10" }
+            hidewhen "{ detangle == 0 }"
+            range   { 1 100 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "smoothdetangle"
+            label   "Smooth Amount"
+            type    float
+            default { "100" }
+            hidewhen "{ detangle == 0 }"
+            range   { 0! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder1_1_3"
+        label   "Color"
+
+        parm {
+            name    "colors"
+            label   "Enable Vertex Color"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "message"
+            label   "Message"
+            type    label
+            default { "R = Random\nG = Wind Weight\nB = AO" }
+            parmtag { "sidefx::look" "block" }
+        }
+    }
+
+    group {
+        name    "folder1_1_4"
+        label   "UV"
+
+        parm {
+            name    "sx"
+            label   "Scale"
+            type    float
+            default { "1" }
+            range   { 0.5 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "tx"
+            label   "Offset"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
