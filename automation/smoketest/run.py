@@ -35,6 +35,7 @@ my_env["SIDEFXLABS"] = os.path.abspath(os.path.join(os.path.dirname(local_dir), 
 my_env["HOUDINI_DSO_ERROR"] = "1"
 
 print (latest_houdini, os.path.isfile(latest_houdini))
+print(" ".join([latest_houdini, "-foreground", os.path.join(local_dir,"smoke_tests.py")]))
 
 if os.path.isfile(latest_houdini):
     subprocess.call([latest_houdini, "-foreground", os.path.join(local_dir,"smoke_tests.py")], env=my_env)
