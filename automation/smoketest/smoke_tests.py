@@ -234,4 +234,4 @@ if __name__ == '__main__':
     print("Completed", num_nodes, "tests")
     print("Skipped", num_skipped)
     print("Failed", num_failed)
-    hou.exit()
+    hou.exit(suppress_save_prompt=True)
