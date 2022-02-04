@@ -173,6 +173,9 @@ def add_network_image(network_editor, image_path, scale=0.4, embedded=False, rel
 def remap_material_override(material_type, material_override, mapping_file):
         CleanDict = {}
 
+        if not isinstance(material_override, dict):
+            material_override = json.loads(material_override)
+
         with open(mapping_file) as f:
             data = json.load(f)
 
@@ -182,11 +185,9 @@ def remap_material_override(material_type, material_override, mapping_file):
                 if x in Lookup.keys():
                     enabled = Lookup[x][0]
 
-                    # if not isinstance(enabled, int):
-                    #     enabled = MaterialNode.parm(enabled).evalAsInt()
-
                     if enabled == 1:
-                        CleanDict[x] = material_override[Lookup[x][1]]
+                        if Lookup[x][1] in material_override.keys():
+                            CleanDict[x] = material_override[Lookup[x][1]]
 
         return CleanDict
 

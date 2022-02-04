@@ -1,0 +1,1100 @@
+# Dialog script for labs::maps_baker::5.0 automatically generated
+
+{
+    name	labs::maps_baker::5.0
+    script	sop_attribute_to_map
+    label	"Labs Maps Baker (Labs)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"LOW Resolution Geometry"
+    inputlabel	2	"HIGH Resolution Geometry"
+    inputlabel	3	"CAGE Geometry"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Baked Map"
+
+    parm {
+        name    "intensity"
+        label   "Label"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "gamma"
+        label   "Label"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+    parm {
+        name    "pdg_logoutput"
+        label   "PDG Logging"
+        type    toggle
+        invisible
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "execute"
+        label   "Render"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().Render(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "bManualMode"
+        label   "Manual Mode"
+        type    toggle
+        default { "1" }
+    }
+    groupsimple {
+        name    "folder0"
+        label   "Bake Settings"
+
+        parm {
+            name    "sCurAttr"
+            label   "CurAttr"
+            type    string
+            invisible
+            default { "" }
+        }
+        parm {
+            name    "sCurAttrName"
+            label   "CurAttrName"
+            type    string
+            invisible
+            default { "" }
+        }
+        parm {
+            name    "vop_forcecompile"
+            label   "Bake Attributes"
+            type    button
+            invisible
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sOutputFile"
+            label   "Output Directory"
+            type    directory
+            default { "$HIP/render/${HIPNAME}_$(CHANNEL).png" }
+        }
+        parm {
+            name    "i2Resolution"
+            label   "Resolution"
+            type    integer
+            joinnext
+            size    2
+            default { "1024" "1024" }
+            range   { 1! 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "parm"
+            label   "Label"
+            type    button
+            default { "0" }
+            menumini {
+                "256 256"   "256 x 256"
+                "512 512"   "512 x 512"
+                "1024 1024" "1024 x 1024"
+                "2048 2048" "2048 x 2048"
+                "4096 4096" "4096 x 4096"
+                "8192 8192" "8192 x 8192"
+            }
+            parmtag { "script_callback" "opparm . i2Resolution (`arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)`" }
+            parmtag { "script_callback_language" "hscript" }
+        }
+        parm {
+            name    "mBakeMode"
+            label   "Tracing Mode"
+            type    ordinal
+            joinnext
+            default { "1" }
+            menu {
+                "0" "Nearest Surface"
+                "1" "Surface Normal"
+                "2" "Cage Input"
+                "3" "Copy Lowpoly"
+            }
+        }
+        parm {
+            name    "fMaxTraceDist"
+            label   "Max Trace Distance"
+            type    log
+            joinnext
+            default { "1" }
+            hidewhen "{ mBakeMode == 0 } { mBakeMode == 3 }"
+            range   { 0.001 2 }
+        }
+        parm {
+            name    "visualize"
+            label   "Visualize"
+            type    toggle
+            default { "0" }
+            hidewhen "{ mBakeMode == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "preview_channel"
+            label   "Preview Channel"
+            type    string
+            default { "ao" }
+            parmtag { "script_callback" "hou.hscript(\"glcache -c;\") #refresh te" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fRayDistance"
+            label   "Ray Distance"
+            type    float
+            invisible
+            default { "-1" }
+            range   { 0 10 }
+        }
+        groupcollapsible {
+            name    "folder13"
+            label   "Frames"
+
+            parm {
+                name    "framemode"
+                label   "Frames"
+                type    ordinal
+                joinnext
+                default { "0" }
+                menu {
+                    "0" "Current Frame"
+                    "1" "Frame Range"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "framerange"
+                label   "Range"
+                type    intvector2
+                size    2
+                default { "$RFSTART" "$RFEND" }
+                disablewhen "{ framemode == 0 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "folder2"
+        label   "Bake Options"
+
+        groupsimple {
+            name    "folder6"
+            label   "Transfer"
+
+            parm {
+                name    "bDiffuse"
+                label   "Diffuse Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sDiffuse"
+                label   "Diffuse Map"
+                type    string
+                joinnext
+                default { "diffuse" }
+                disablewhen "{ bDiffuse == 0 }"
+            }
+            parm {
+                name    "fDiffuseGamma"
+                label   "Gamma"
+                type    float
+                joinnext
+                default { "2.2" }
+                disablewhen "{ bDiffuse == 0 }"
+                range   { 1 2.2 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sDiffuseFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bNormal"
+                label   "Normal Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sNormal"
+                label   "Normal Map"
+                type    string
+                joinnext
+                default { "normal" }
+                disablewhen "{ bNormal == 0 }"
+            }
+            parm {
+                name    "fNormalGamma"
+                label   "Gamma"
+                type    float
+                joinnext
+                default { "1" }
+                disablewhen "{ bNormal == 0 }"
+                range   { 1 2.2 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sNormalFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bOpacity"
+                label   "Opacity Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sOpacity"
+                label   "Opacity Map"
+                type    string
+                joinnext
+                default { "opacity" }
+                disablewhen "{ bOpacity == 0 }"
+            }
+            parm {
+                name    "sOpacityFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bRoughness"
+                label   "Roughness Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sRoughness"
+                label   "Roughness Map"
+                type    string
+                joinnext
+                default { "roughness" }
+                disablewhen "{ bRoughness == 0 }"
+            }
+            parm {
+                name    "fRoughnessGamma"
+                label   "Gamma"
+                type    float
+                joinnext
+                default { "1" }
+                disablewhen "{ bRoughness == 0 }"
+                range   { 1 2.2 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sRoughnessFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bMetallic"
+                label   "Metallic Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sMetallic"
+                label   "Metallic Map"
+                type    string
+                joinnext
+                default { "metallic" }
+                disablewhen "{ bMetallic == 0 }"
+            }
+            parm {
+                name    "fMetallicGamma"
+                label   "Gamma"
+                type    float
+                joinnext
+                default { "1" }
+                disablewhen "{ bMetallic == 0 }"
+                range   { 1 2.2 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sMetallicFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder5"
+            label   "Generate"
+
+            parm {
+                name    "bVertexCd"
+                label   "Vertex Color Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+            }
+            parm {
+                name    "sVertexColor"
+                label   "Vertex Color"
+                type    string
+                joinnext
+                default { "color" }
+                disablewhen "{ bVertexCd == 0 }"
+            }
+            parm {
+                name    "fVertexColorGamma"
+                label   "Gamma"
+                type    float
+                joinnext
+                default { "2.2" }
+                disablewhen "{ bVertexCd == 0 }"
+                range   { 1 2.2 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sVertexColorFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bAO"
+                label   "AO Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+            }
+            parm {
+                name    "sAO"
+                label   "AO"
+                type    string
+                joinnext
+                default { "ao" }
+                disablewhen "{ bAO == 0 }"
+            }
+            parm {
+                name    "fAOGamma"
+                label   "Gamma"
+                type    float
+                default { "2.2" }
+                disablewhen "{ bAO == 0 }"
+                range   { 1 2.2 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bThickness"
+                label   "Thickness Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sThickness"
+                label   "Thickness"
+                type    string
+                joinnext
+                default { "thickness" }
+                disablewhen "{ bThickness == 0 }"
+            }
+            parm {
+                name    "fThicknessGamma"
+                label   "Gamma"
+                type    float
+                default { "1" }
+                disablewhen "{ bThickness == 0 }"
+                range   { 1 2.2 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sAOFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bCurvature"
+                label   "Curvature Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sCurvature"
+                label   "Curvature"
+                type    string
+                default { "curvature" }
+                disablewhen "{ bCurvature == 0 }"
+            }
+            parm {
+                name    "sCurvatureFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bWorldNormal"
+                label   "World Normal Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sWorldNormal"
+                label   "World Normal"
+                type    string
+                joinnext
+                default { "worldnormal" }
+                disablewhen "{ bWorldNormal == 0 }"
+            }
+            parm {
+                name    "sWorldNormalFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bHeight"
+                label   "Height Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sHeight"
+                label   "Height"
+                type    string
+                joinnext
+                default { "height" }
+                disablewhen "{ bHeight == 0 }"
+            }
+            parm {
+                name    "sHeightFormat"
+                label   "Format"
+                type    ordinal
+                nolabel
+                joinnext
+                default { "0" }
+                disablewhen "{ bHeight == 0 }"
+                menu {
+                    "0" "Default"
+                    "1" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "maxheightdistance"
+                label   "Range"
+                type    vector2
+                size    2
+                default { "-1" "1" }
+                disablewhen "{ sHeightFormat == 1 } { bHeight == 0 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bAlpha"
+                label   "Alpha Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sAlpha"
+                label   "Alpha"
+                type    string
+                joinnext
+                default { "alpha" }
+                disablewhen "{ bAlpha == 0 }"
+            }
+            parm {
+                name    "uvfill"
+                label   "UV Fill"
+                type    toggle
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sAlphaFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bPos"
+                label   "Position Map"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "sPos"
+                label   "Position"
+                type    string
+                default { "position" }
+                disablewhen "{ bPos == 0 }"
+            }
+            parm {
+                name    "usematerialid"
+                label   "Material ID"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+            }
+            parm {
+                name    "materialid"
+                label   "Material ID"
+                type    string
+                joinnext
+                default { "materialid" }
+                disablewhen "{ usematerialid == 0 }"
+            }
+            parm {
+                name    "sPositionFormat"
+                label   "Format"
+                type    ordinal
+                invisible
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Default"
+                    "1" "JPG"
+                    "2" "PNG"
+                    "3" "TGA"
+                    "4" "EXR"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "exportlow"
+            label   "Export Low"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sopoutputlow"
+            label   "Low Export"
+            type    file
+            default { "$HIP/render/${HIPNAME}_low.fbx" }
+            disablewhen "{ exportlow == 0 }"
+            menureplace {
+                [ "opmenu -l -a rop_fbx1 sopoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "exporthigh"
+            label   "Export High"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sopoutputhigh"
+            label   "High Export"
+            type    file
+            default { "$HIP/render/${HIPNAME}_high.fbx" }
+            disablewhen "{ exporthigh == 0 }"
+            menureplace {
+                [ "opmenu -l -a high_export sopoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+    }
+
+    groupsimple {
+        name    "folder4"
+        label   "Attributes"
+
+        multiparm {
+            name    "folder3"
+            label    "Custom Attributes"
+
+            parm {
+                name    "sCustomAttribute#"
+                label   "Attribute"
+                type    string
+                default { "" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "folder1"
+        label   "Advanced"
+
+        groupsimple {
+            name    "folder12"
+            label   "Padding"
+
+            parm {
+                name    "blendmethod"
+                label   "Blend Method"
+                type    ordinal
+                default { "diffusefill" }
+                menu {
+                    "fillaverage"   "Fill Average"
+                    "floodfill"     "Flood Fill"
+                    "diffusefill"   "Diffuse Fill"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "edgepadding"
+                label   "Edge Padding"
+                type    integer
+                default { "4" }
+                range   { 0 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder10"
+            label   "Sampling"
+
+            parm {
+                name    "bakename"
+                label   "Bake Per Piece Using Name"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "opacitytracing"
+                label   "Opacity Maps Affect Tracing"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "samplesscalar"
+                label   "Samples"
+                type    integer
+                joinnext
+                default { "1" }
+                range   { 1! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "downfilter"
+                label   "Filter"
+                type    string
+                default { "sinc" }
+                menu {
+                    [ "opmenu -l -a cops_baking/scale1 downfilter" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "labelparm"
+                label   "This will render a"
+                type    label
+                nolabel
+                default { "This will try to render a `ch('i2Resolution1')*ch(\"samplesscalar\")`x`ch('i2Resolution2')*ch(\"samplesscalar\")` texture before downsampling" }
+            }
+        }
+
+        groupsimple {
+            name    "folder7"
+            label   "Normal Map"
+
+            parm {
+                name    "bFlipTangentX"
+                label   "Tangent Normal Flip X"
+                type    toggle
+                default { "0" }
+            }
+            parm {
+                name    "bFlipTangentY"
+                label   "Tangent Normal Flip Y"
+                type    toggle
+                default { "0" }
+            }
+        }
+
+        groupsimple {
+            name    "folder14"
+            label   "Rounded Edge Normals"
+
+            parm {
+                name    "roundededgesamples"
+                label   "Samples"
+                type    integer
+                default { "10" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "roundededgecuspangle"
+                label   "Cusp Angle"
+                type    float
+                default { "0" }
+                range   { 0! 90 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+        groupsimple {
+            name    "folder8"
+            label   "AO Map"
+
+            parm {
+                name    "numrays"
+                label   "Number of Rays"
+                type    integer
+                default { "50" }
+                range   { 1! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "maxdist"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "10" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "bias"
+                label   "Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "conewidth"
+                label   "Cone Width"
+                type    angle
+                default { "90" }
+                range   { 1! 90! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "raybias"
+                label   "Ray Bias"
+                type    float
+                invisible
+                default { "0.001" }
+                range   { 0 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+        groupsimple {
+            name    "folder11"
+            label   "Thickness Map"
+
+            parm {
+                name    "raybias2"
+                label   "Ray Bias"
+                type    float
+                invisible
+                default { "0.001" }
+                range   { 0 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "normalizedthickness"
+                label   "Normalized Output Map"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "numrays2"
+                label   "Number of Rays"
+                type    integer
+                default { "50" }
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "minthicknessdist"
+                label   "Minimum Ray Distance"
+                type    float
+                default { "0" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "maxthicknessdist"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "1" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "conewidth2"
+                label   "Cone Width"
+                type    float
+                default { "90" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+        groupsimple {
+            name    "folder9"
+            label   "Curvature Map"
+
+            parm {
+                name    "iNumRaysCurvature"
+                label   "Number of Rays"
+                type    integer
+                default { "50" }
+                range   { 1! 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fMaxRayDistCurvature"
+                label   "Maximum Ray Distance"
+                type    float
+                default { "0.1" }
+                range   { 0! 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fCurvatureBias"
+                label   "Bias"
+                type    float
+                default { "0.5" }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fConeWidthCurvature"
+                label   "Cone Width"
+                type    angle
+                default { "90" }
+                range   { 1! 90! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fCurvaturescale"
+                label   "Scale"
+                type    float
+                default { "1" }
+                range   { 0 2 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+            parm {
+                name    "fFlatbias"
+                label   "Flatness Filter"
+                type    angle
+                default { "0.02" }
+                range   { 0.001! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "cop2" }
+            }
+        }
+
+        groupsimple {
+            name    "folder15"
+            label   "Material ID"
+
+            parm {
+                name    "materialidseed"
+                label   "Material ID Seed"
+                type    integer
+                default { "46" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "materialmapping"
+            label   "Material Mapping"
+            type    file
+            default { "$SIDEFXLABS/misc/materials/MaterialMapping.json" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
