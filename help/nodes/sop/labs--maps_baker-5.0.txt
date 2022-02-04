@@ -1,0 +1,117 @@
+= Labs Maps Baker =
+
+#type: node
+#context: sop
+#internal: labs::maps_baker
+#icon: mapsbaker
+#tags: sidefxlabs,  model
+
+""" Generates textures bakes from a high resolution to low resolution model at near interactive speeds. """
+
+The MapsBaker can transfer texture and data maps from high resolution to low resolution geometry. Unlike the games baker which relies on a mantra render, the maps baker uses a COPS network that is orders of magnitude faster than the mantra equivalent.
+
+NOTE:
+    The MapsBaker can do almost everything the Mantra based baker can, with the exception of baking lighting and procedural shaders.
+
+TIP:
+    The baker can also be used to simply reproject textures from geometry on itself with different UVs.
+
+    
+== Using Maps Baker ==
+                    
+# Use a Labs QuickMaterial Sop to assign textures to a high resolution model.
+
+# Use a Labs Soften Normal Sop on the lowpoly, with "Harden Seams" turned on to improve bake quality around UV seams.
+            
+# Connect the low resolution object to the first input, and the high resolution object to the second input.
+            
+# Turn on the checkboxes for the maps you would like to bake.
+
+# Click the 'Render' button, and textures will be baked and written to disk.
+
+
+
+@parameters
+    == Bake ==
+    Render:
+        Execute the node to write maps to disk.
+    Manual Mode:
+        Toggle if maps should be baked automatically on changes upstream, or if it should only bake when then 'Render' button is pressed.
+    Output Directory:
+        Location to write maps to, use $(CHANNEL) in the path to ensure each map is written to a separate file.
+    Resolution:
+        Resolution of baked maps in pixels. Use the dropdown for some commonly used values.
+    Tracing Mode:
+        Set the method use to transfer information between the high and low res geometry. 'Nearest Surface' will trace the shortest ray between the surfaces, while 'Surface Normal' will trace along the nomal of the low res geometry.
+    Max Trace Distance:
+        When using Surface Normal mode, the maximum length to trace a ray. A small distance can optimise the bake process, and prevent issues where a ray traces to the wrong part of the high res geometry.
+    Visualize:
+        This will visualize the cage or tracing distance specified when Tracing Mode is set to Surface Normal.
+    Preview Channel:
+        Which map to display in the viewport.
+    == Bake Options ==
+    == Transfer ==
+    Diffuse Map:
+        Name for the diffuse map.
+    Normal Map:
+        Name for the normal map.
+    Opacity Map:
+        Name for the opacity map.
+    Roughness Map:
+        Name for the roughness map.
+    Metallic Map:
+        Name for the metallic map.
+    == Generate ==
+    Vertex Color:
+        Name for the vertex color map.
+    AO:
+        Name for the AO map.
+    Thickness:
+        Name for the Thickness map.
+    Curvature:
+        Name for the Curvature map.
+    World Normal:
+        Name for the world normal map.
+    Height:
+        Name for the height map.
+    Range:
+        This allows you to specify the range that should be used for remapping the height to 0-1 when using a non HDR file format.
+    Alpha:
+        Name for the alpha map.
+    UV Fill:
+        When this toggle is enabled, the alpha map will produce an alpha mask showing the UV shells, instead of showing what pixels of the map belong to valid traced geometry.
+    Position:
+        Name for the position map.
+    == Attributes ==
+    Custom Attributes:
+        Define custom geometry attributes to be baked to maps.
+    == Advanced ==
+    Opacity Maps Affect Tracing:
+        If this checkbox is enabled, the baker will take opacitymaps into account while tracing the highpoly. This allows you to for example bake card geometry with a stencil applied, and only get hits where alpha is above 0.
+    Samples:
+        This allows you to increase the number of samples made per pixel. This number will increase the render size in COPs, which might go over the max allowed resolution in COPs. To avoid this problem, increase the Resolution Limit under Edit>Preferences>Compositing/Cooking.
+    Filter:
+        Specifies the filtering applied when multisampling.
+    == Normal Map ==
+    Tangent Normal Flip Y:
+        Invert the Y component of the normap map bake, required for certain game engines.
+    == Thickness Map ==
+    Normalized Output Map:
+        When this is enabled, the output map values will be scaled to utilize the full 0-1 range of the colorspace.
+    == AO Map ==
+    Number of Rays:
+        Rays sent out per pixel. More rays increase quality, but also increase processing time.
+    Maximum Ray Distance:
+        Long rays can sometimes introduce over-occlusion, and cause long render times. Shorter rays will create cleaner looking occlusion, only darkening very occluded areas.
+    Intensity:
+        Multiplier of the AO shading, higher values will produce darker occlusion.
+    Gamma:
+        Adjust the gamma of this map before saving to disk.
+    Cone Width:
+        How wide will rays be fired from the sample point. 180 degrees will be a full hemisphere of samples, while 10 degrees will only generate occlusion in very tight corners or high occluded areas.
+    Ray Bias:
+        Amount to move the start of a ray from its starting point. Sometimes rays can intersect from where they're fired; adjusting ray bias by small amounts can reduce self-intersection artifacts.
+
+    Material Mapping:
+        This is the material mapping file used to translate from any material node to a format that the baker understands. Adding your own material definitions to this file would allow you to bake that type of material using the baker as well.
+    
