@@ -10,6 +10,8 @@ Date Created:   April 26, 2020 - 18:38:01
 import hou, math
 import viewerstate.utils as su
 
+
+
 class State(object):
     def __init__(self, state_name, scene_viewer):
         self.state_name = state_name
@@ -38,26 +40,47 @@ class State(object):
         self.NewMultiparmEntry(kwargs)
         node.parm("iCurID").set(0)
 
-        self.SetPrompt(kwargs)
+        #self.SetPrompt(kwargs) 
+
+        NumObjects = node.node("PAINT_OBJECTS").geometry().attribValue("NumObjects")
+
+        HUD_TEMPLATE = {
+            "title": "Labs Pick and Place", "desc": "tool", "icon": "$SIDEFXLABS/help/icons/pick_and_place.svg",
+            "rows": [
+                {"type": "plain", "label":"Current Item", "value": 0, "id": "item_actual"},
+                {"type": "choicegraph", "count": NumObjects, "value": 0, "id": "item_choice"},
+
+                { "type": "divider", "label": "Keys" },
+                { "type": "plain", "label": "Place Item", "key": "LMB"},
+                { "type": "plain", "label": "Adjust Item", "key": "Ctrl + LMB"},
+                { "type": "plain", "label": "Change Item", "key": "mousewheel"},
+                { "type": "plain", "label": "Delete Item", "key": "Ctrl + MMB"},
+                { "type": "plain", "label": "Settings", "key": "RMB"}
+                
+            ]
+        }
+
+
+        self.scene_viewer.hudInfo(hud_template=HUD_TEMPLATE, show=True)
 
     def onExit(self, kwargs):
         MPInstance = self.multiparm.evalAsInt()
         self.multiparm.set(MPInstance-1)
 
-    def onResume(self, kwargs):
-        self.SetPrompt(kwargs)
+    #def onResume(self, kwargs):
+    #    self.SetPrompt(kwargs)
 
-    def SetPrompt(self, kwargs):
+    # def SetPrompt(self, kwargs):
 
-        prompt = (
-            "Mousewheel switches objects.\n"
+    #     prompt = (
+    #         "Mousewheel switches objects.\n"
 
-            "Holding CTRL and dragging objects tweaks placement of previously placed objects.\n"
+    #         "Holding CTRL and dragging objects tweaks placement of previously placed objects.\n"
 
-            "RMB provides placement settings. See docs for more."
-        )
+    #         "RMB provides placement settings. See docs for more."
+    #     )
 
-        self.scene_viewer.setPromptMessage(prompt)
+    #     self.scene_viewer.setPromptMessage(prompt)
 
 
 
@@ -162,6 +185,12 @@ class State(object):
         node.parm("iCurID").set(new_value)
         self.SetID(kwargs, node.parm("iCurID").evalAsInt())
 
+        updates = {
+            "item_actual": new_value,
+            "item_choice": new_value
+        }
+        self.scene_viewer.hudInfo(hud_values=updates)
+
         return True
 
     # Allow user to change the tweaking mode
@@ -247,12 +276,12 @@ class State(object):
             self.SetScale(kwargs, a_scale=0.0)
 
             if intersected >= 0:
-
                 if reason == hou.uiEventReason.Picked and ui_event.device().isMiddleButton():
                     ComplexCollisionGeo = node.node("OUT_COLLISIONCOMPLEX").geometry()
                     gi = su.GeometryIntersector(ComplexCollisionGeo, scene_viewer=self.scene_viewer)
                     gi.intersect(origin, direction)
                     _index = ComplexCollisionGeo.iterPrims()[gi.prim_num].intAttribValue("__MultiParmID")-1
+
                     if _index >= 0 and _index < self.multiparm.evalAsInt():
                         self.multiparm.removeMultiParmInstance(_index)
 
@@ -308,12 +337,11 @@ def createViewerStateTemplate():
     menu.addToggleItem('alignment', 'Align to surfacenormal', True)
     menu.addRadioStrip("scale_snapping", "Scale Step Size", "freehand")
 
-    #hk = su.hotkey(state_typename, 'translate', '1', 'Translate')
-    menu.addRadioStripItem("scale_snapping", "freehand", "No Snapping")#, hk)#, translate_key)
-    menu.addRadioStripItem("scale_snapping", "0.1", "0.1")#, rotate_key)
-    menu.addRadioStripItem("scale_snapping", "0.25", "0.25")#, scale_key)
-    menu.addRadioStripItem("scale_snapping", "1.0", "1.0")#, scale_key)
-    menu.addRadioStripItem("scale_snapping", "10.0", "10.0")#, scale_key)
+    menu.addRadioStripItem("scale_snapping", "freehand", "No Snapping")
+    menu.addRadioStripItem("scale_snapping", "0.1", "0.1")
+    menu.addRadioStripItem("scale_snapping", "0.25", "0.25")
+    menu.addRadioStripItem("scale_snapping", "1.0", "1.0")
+    menu.addRadioStripItem("scale_snapping", "10.0", "10.0")
 
     menu.addRadioStrip("rotate_snapping", "Rotation Step Size", "freehand")
     menu.addRadioStripItem("rotate_snapping", "freehand", "No Snapping")
@@ -325,8 +353,5 @@ def createViewerStateTemplate():
 
 
     template.bindMenu(menu)
-
-
-
 
     return template
