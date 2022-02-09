@@ -32,6 +32,30 @@ class State(object):
         self.planepos = hou.Vector3()
         self.tweakInstance = -1
 
+        # Undo trackers
+        self.placed_item = False
+        self.tweaked_item = False
+
+    def __start_place(self):
+        if not self.placed_item:
+            self.scene_viewer.beginStateUndo("Add Placed Item")
+        self.placed_item = True
+
+    def __end_place(self):
+        if self.placed_item:
+            self.scene_viewer.endStateUndo()
+        self.placed_item = False
+
+    def __start_tweak(self):
+        if not self.tweaked_item:
+            self.scene_viewer.beginStateUndo("Tweak Placed Item")
+        self.tweaked_item = True
+
+    def __end_tweak(self):
+        if self.tweaked_item:
+            self.scene_viewer.endStateUndo()
+        self.tweaked_item = False
+
 
     def onEnter(self, kwargs):
         node = kwargs["node"]
@@ -182,8 +206,9 @@ class State(object):
         new_value = node.parm("iCurID").evalAsInt() + int(scroll)
         new_value = max(0, min(new_value, node.node("PAINT_OBJECTS").geometry().attribValue("NumObjects")-1))
         
-        node.parm("iCurID").set(new_value)
-        self.SetID(kwargs, node.parm("iCurID").evalAsInt())
+        with hou.undos.disabler():
+            node.parm("iCurID").set(new_value)
+            self.SetID(kwargs, node.parm("iCurID").evalAsInt())
 
         updates = {
             "item_actual": new_value,
@@ -239,17 +264,20 @@ class State(object):
         if not device.isCtrlKey(): # Simply Placing
             # We are hovering collision geometry, or have not started placing an object yet
             if intersected == True and self.picked == False:
-                self.SetPosition(kwargs, pos, hitnormal)
-                self.SetID(kwargs, node.parm("iCurID").evalAsInt())
-                if self.copypreviousscale:
-                    self.SetScale(kwargs)
-                else:
-                    self.SetScale(kwargs, 1.0)
+                with hou.undos.disabler():
+                    self.SetPosition(kwargs, pos, hitnormal)
+                    self.SetID(kwargs, node.parm("iCurID").evalAsInt())
+                    if self.copypreviousscale:
+                        self.SetScale(kwargs)
+                    else:
+                        self.SetScale(kwargs, 1.0)
 
                 if reason == hou.uiEventReason.Start and device.isLeftButton():
                     self.picked = True
                     self.placed_pos = pos
                     self.hitnormal = hitnormal
+                    self.__start_place()
+
 
             # We started placing an object
             else:
@@ -271,9 +299,11 @@ class State(object):
                         self.NewMultiparmEntry(kwargs)
                         self.picked = False
                         self.startvector = hou.Vector3()
+                        self.__end_place()
         else:
-            # Hide the "new object", since we're tweaking existing objects
-            self.SetScale(kwargs, a_scale=0.0)
+            with hou.undos.disabler():
+                # Hide the "new object", since we're tweaking existing objects
+                self.SetScale(kwargs, a_scale=0.0)
 
             if intersected >= 0:
                 if reason == hou.uiEventReason.Picked and ui_event.device().isMiddleButton():
@@ -283,7 +313,8 @@ class State(object):
                     _index = ComplexCollisionGeo.iterPrims()[gi.prim_num].intAttribValue("__MultiParmID")-1
 
                     if _index >= 0 and _index < self.multiparm.evalAsInt():
-                        self.multiparm.removeMultiParmInstance(_index)
+                        with hou.undos.group("Delete Placed Item"):
+                            self.multiparm.removeMultiParmInstance(_index)
 
 
                 # Started placing object
@@ -296,9 +327,11 @@ class State(object):
 
                     if self.tweakInstance == -1:
                         return
-                    node.parm("iCurID").set(node.parm("iID_{}".format(self.tweakInstance)).evalAsInt())
+                    with hou.undos.disabler():
+                        node.parm("iCurID").set(node.parm("iID_{}".format(self.tweakInstance)).evalAsInt())
                     if self.startvector == hou.Vector3():
                         self.startvector = hou.Vector3(self.planepos - self.placed_pos).normalized()
+                        self.__start_tweak()
 
                 # Busy moving the object
                 elif reason == hou.uiEventReason.Active and device.isLeftButton():
@@ -315,6 +348,8 @@ class State(object):
                         self.planepos = hou.hmath.intersectPlane(self.placed_pos, self.hitnormal, origin, direction)
                         self.SetScale(kwargs, a_index=self.tweakInstance)
                         self.SetRotation(kwargs, a_index=self.tweakInstance)
+                else:
+                    self.__end_tweak()
                         
 
 def createViewerStateTemplate():
