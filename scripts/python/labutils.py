@@ -147,14 +147,15 @@ def saveBackgroundImages(node, images):
 def add_network_image(network_editor, image_path, scale=0.4, embedded=False, relativeto_path=None, bounds=None):
 
         image = hou.NetworkImage()
+        parent_path = network_editor.pwd().path()
 
         if embedded:
             data = None
             with open(image_path, "rb") as file:
                 data = file.read()
 
-            hou.node("/obj/").setDataBlock(os.path.basename(image_path), data, '')
-            image.setPath("opdatablock:/obj/{}".format(os.path.basename(image_path)))
+            hou.node(parent_path).setDataBlock(os.path.basename(image_path), data, '')
+            image.setPath("opdatablock:{}/{}".format(parent_path, os.path.basename(image_path)))
         else:
             image.setPath(image_path)
 
@@ -168,7 +169,7 @@ def add_network_image(network_editor, image_path, scale=0.4, embedded=False, rel
 
         background_images = network_editor.backgroundImages() + (image,)
         network_editor.setBackgroundImages(background_images)
-        saveBackgroundImages(hou.node("/obj/"), background_images)
+        saveBackgroundImages(hou.node(parent_path), background_images)
 
 def remap_material_override(material_type, material_override, mapping_file):
         CleanDict = {}
