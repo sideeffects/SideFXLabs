@@ -1,0 +1,58 @@
+import json 
+import hou
+
+data = []
+components = ["X", "Y", "Z", "W"]
+
+def export(node):
+
+    geo = hou.node(node.parm("export_node").evalAsString()).geometry() 
+    generate_name = node.parm("generatename").evalAsInt()
+
+    attribs = []
+    if node.parm("filtered").evalAsInt() == 1:
+        attribs = [node.parm("attribute_{}".format(x+1)).evalAsString() for x in range(node.parm("entries").evalAsInt()) ]
+        print(attribs)
+    else:
+        attribs = [x.name() for x in geo.pointAttribs()]
+        
+    for point in geo.points(): 
+        entry = {}
+
+        if generate_name == 1:
+            entry["Name"] = "Point_{}".format(point.number())
+        
+        for attrib in attribs:
+            if geo.findPointAttrib(attrib) is not None:
+                point_attr = geo.findPointAttrib(attrib)
+                size = point_attr.size() 
+                val = point.attribValue(attrib)
+                array = point_attr.isArrayType()   
+                   
+                 
+                out = val
+
+                if array:
+                    if size > 1 and size <= 4:
+                        out = []
+                        for i in range(0, len(val), size):
+                            vals = val[i:i+size]
+                            out.append(dict(zip(components, vals)))
+                    else:
+                        out = val
+                elif size > 1 and size <= 4:
+                    out = {}  
+                    for i in range(size):
+                        out[components[i]] = val[i]
+
+                else:
+                    raise hou.NodeError("Attribute {} not supported! Please report with SideFX support.".format(attrib))
+                           
+                entry[attrib] = out 
+        data.append(entry)
+     
+     
+    path = node.parm("json_path").evalAsString()
+
+    with open(path, 'w') as f:    
+        json.dump(data,  f, indent=4)  

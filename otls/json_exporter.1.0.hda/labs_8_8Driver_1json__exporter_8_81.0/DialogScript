@@ -1,0 +1,71 @@
+# Dialog script for labs::json_exporter::1.0 automatically generated
+
+{
+    name	labs::json_exporter::1.0
+    script	labs::json_exporter::1.0
+    label	"Labs JSON Exporter"
+
+    help {
+	""
+    }
+
+    parm {
+        name    "execute"
+        baseparm
+        label   "Render"
+        joinnext
+        export  none
+    }
+    parm {
+        name    "renderdialog"
+        baseparm
+        label   "Controls..."
+        nolabel
+        export  none
+    }
+    parm {
+        name    "export_node"
+        label   "Export Node"
+        type    oppath
+        default { "" }
+        help    "Export a CSV file to the specified location."
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+    parm {
+        name    "json_path"
+        label   "JSON Path"
+        type    file
+        default { "$HIP/export/export.json" }
+        help    "Location and name to save the CSV file."
+        parmtag { "filechooser_pattern" "*.json" }
+    }
+    parm {
+        name    "generatename"
+        label   "Generate Name"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "filtered"
+        label   "Filtered Export"
+        type    toggle
+        default { "0" }
+        help    "When enabled use the following multiparm to define which attributes to export, otherwise just export @P."
+    }
+    multiparm {
+        name    "entries"
+        label    "Export Attributes"
+        default 0
+        disablewhen "{ filtered == 0 }"
+
+        parm {
+            name    "attribute_#"
+            label   "Attribute"
+            type    string
+            default { "" }
+        }
+    }
+
+}
