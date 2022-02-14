@@ -1,0 +1,109 @@
+# Dialog script for labs::loops_from_selection::1.0 automatically generated
+
+{
+    name	labs::loops_from_selection::1.0
+    script	labs::loops_from_selection::1.0
+    label	"Labs Loops from Selection"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "outputmode"
+        label   "Find"
+        type    ordinal
+        joinnext
+        default { "0" }
+        menu {
+            "0" "Edge Loops"
+            "1" "Quad Loops"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "quadtermination"
+        label   "Quad Loop Termination"
+        type    ordinal
+        nolabel
+        default { "0" }
+        hidewhen "{ outputmode == 0 }"
+        menu {
+            "0" "Terminate at Non-quads"
+            "1" "Terminate before Non-quads"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "startedgegroup"
+        label   "Start Edge Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a start_edge basegroup" ]
+        }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Edges\nkwargs['inputindex'] = 0\nkwargs['ordered'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "maxsteps"
+        label   "Max Steps"
+        type    integer
+        default { "10000" }
+        range   { 0 1000 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "outputedgegroup"
+        label   "Output Edge Group"
+        type    string
+        default { "edge_loop" }
+        disablewhen "{ outputmode == 1 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "outputprimgroup"
+        label   "Output Quad Group"
+        type    string
+        default { "quad_loop" }
+        disablewhen "{ outputmode == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "groupperloop"
+        label   "Create Group Per Loop"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "vissingleloop"
+        label   "Visualize Single Loop"
+        type    toggle
+        default { "0" }
+        hidewhen "{ groupperloop == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "singleloopidx"
+        label   "Single Loop Index"
+        type    integer
+        default { "0" }
+        disablewhen "{ vissingleloop == 0 }"
+        hidewhen "{ groupperloop == 0 }"
+        range   { 0! 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+}

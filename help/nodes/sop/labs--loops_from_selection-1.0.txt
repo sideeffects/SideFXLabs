@@ -1,0 +1,51 @@
+#type:     node
+#context:  sop
+#internal: labs::loops_from_selection::1.0
+#icon:     SOP/labs::loops_from_selection::1.0
+
+= Labs Loops from Selection =
+
+"""Finds edge loops or quad loops from manually or procedurally selected start edges."""
+
+Labs Loops from Selection SOP finds edge loops or quad loops from manually or procedurally selected start edges. You can easily identify a loop with a single start edge. You can also select multiple start edges or input existing edge groups to find multiple loops at once.
+
+The node will create a group containing all the loops. It can also create an additional group for each individual loop.
+
+
+@parameters
+
+    Find:
+        #id: outputmode
+        What type of loops to find and output. The node will attempt to find a loop starting from each individual edge in *Start Edge Group*, so the output may contain one or multiple loops. The search on either side of a start edge will terminate independently if *Max Steps* has been reached on that side. Each loop type also has its own additional termination condition.
+        <p>*Edge Loops*: Each start edge indicates the direction of an edge loop. The loop only continues when there is one and only one next edge that does not belong to a primitive that contains the current edge.</p>
+        <p>*Quad Loops*: Each start edge indicates the cross-section direction of a quad loop. The loop terminates when the current primitive (or, optionally, the next primitive) is not a quad.</p>
+        <p>*Terminates at Non-quads*: The ends of quad loops can be non-quads.</p>
+        <p>*Terminates before Non-quads*: The ends of quad loops cannot be non-quads.</p>
+
+    Start Edge Group:
+        #id: startedgegroup
+        Manually select edges from the viewport or input existing edge groups. The node will attempt to find a loop starting from each individual edge in this group, so the output may contain one or multiple loops. For an edge loop, a start edge indicates the direction of a loop. For a quad loop, a start edge indicates the cross-section direction of a loop.
+        
+    Max Steps:
+        #id: maxsteps
+        The search on either side of a start edge will terminate independently if this step limit has been reached on that side.
+
+    Output Edge Group:
+        #id: outputedgegroup
+        Name of the edge group containing all the edge loops.
+        
+    Output Quad Group:
+        #id: outputprimgroup
+        Name of the primitives group containing all the quad loops.
+
+    Create Group Per Loop:
+        #id: groupperloop
+        Creates an additional group for each individual loop.
+
+    Visualize Single Group:
+        #id: vissingleloop
+        Highlights a single loop. Only applicable when *Create Group Per Loop* is on.
+
+    Single Loop Index:
+        #id: singleloopidx
+        Which loop to highlight when *Create Group Per Loop* and *Visualize Single Loop* are both on.
