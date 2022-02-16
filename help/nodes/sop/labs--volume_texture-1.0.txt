@@ -1,0 +1,87 @@
+= Labs VolumeTexture Export =
+
+#type: node
+#context: sop
+#internal: labs::volume_texture::1.0
+#icon: volume_texture
+#tags: sidefxlabs, gamedev, volumes
+
+""" Take a volume as an input and export a texture of the density field. """
+
+The Volume Texture Export is useful for converting volumes into textures that can be used in a realtime engine. Instead of creating a custom 3D texture, this outputs a 2D texture that can be read by all engines and then processed to be used as volumetric data at realtime.
+
+Use the dropdown presets to match UE4's expected volume texture inputs.
+
+Internally the volume is converted to the target output resolution. That means one voxel equals one pixel and the resulting volume is a cube.
+
+NOTE:
+    When exporting Density, make sure you are using a Fog VDB.
+
+    When exporting SDF, make sure you are using a Distance VDB.
+
+    When exporting Color, make sure you have a volume named `Cd`.
+
+@parameters
+
+    Render:
+        #id: render
+        Generate the texture.
+    Valid Frame Range:
+        #id: trange
+        Use the dropdown to render a single frame or a sequence.
+            
+    Start/End/Inc:
+        #id: f
+        Start and End Frame as well as how many increments in between.
+    Mode:
+        #id: mode
+        Select the mode which should be used for exporting the VolumeTexture.
+        
+	  Density:
+            Density will simply export the density values from your volume into a texture. All RGB values will have the same value.
+        SDF:
+            SDF will export your SDF as a texture, either raw or remapped to 0-1.
+        Color:
+            Color will export a volume named `Cd` to RGB, and optionally the `density` volume to A.
+    Equalize Range:
+        #id: equalizedensity
+        When turned on this will remap the `density` values to exactly 0-1 range.
+    Density in Alpha:
+        #id: densityalpha
+        When turned on this will export the `density` volume in the A channel when mode is set to Color.
+    Invert Density:
+        #id: invertdensity
+        When turned on this will flip the values used for exporting density.
+    Remap:
+        #id: remap
+        When mode is set to SDF this will enable remapping of values to 0-1. Use the `SDF Range` parameter to set the min and max values for the remap.
+    SDF Range:
+        #id: sdfrange
+        Set the range from which your SDF should be remapped to 0-1.
+    == Sampling ==
+
+    Up Axis:
+        #id: up_axis
+        By default, the texture is exported with Z up to match UE4.            
+    Frame Frozen:
+        #id: frozenframe
+        Optionally lets you export a specific frame in your framerange.
+    Frame:
+        #id: frame
+        Sets the frame that should be exported.
+    == Slicing ==
+
+    Slices:
+        #id: slices
+        Sets the total number of slices that should be generated.
+    Resolution per Slice:
+        #id: frameresolution
+        Sets the desired resolution per slice.
+    == Output ==
+
+    Preview:
+        #id: preview
+        Generate a preview of the texture in the viewport.
+    Output Picture:
+        #id: output_picture
+        Path of exported image.

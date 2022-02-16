@@ -1,0 +1,187 @@
+# Dialog script for labs::volume_texture::1.0 automatically generated
+
+{
+    name	labs::volume_texture::1.0
+    script	gamedev::rop_volume_texture
+    label	"Labs VolumeTexture Export"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Volume"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "render"
+        label   "Render"
+        type    button
+        default { "0" }
+    }
+    parm {
+        name    "trange"
+        label   "Valid Frame Range"
+        type    ordinal
+        default { "off" }
+        menu {
+            "off"       "Render Current Frame"
+            "normal"    "Render Frame Range"
+            "on"        "Render Frame Range Only (Strict)"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "f"
+        label   "Start/End/Inc"
+        type    float
+        size    3
+        default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] "1" }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "mode"
+        label   "Mode"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Density"
+            "1" "SDF"
+            "2" "Color"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "equalizedensity"
+        label   "Equalize Range"
+        type    toggle
+        default { "1" }
+        hidewhen "{ mode != 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "densityalpha"
+        label   "Density in Alpha"
+        type    toggle
+        default { "1" }
+        hidewhen "{ mode != 2 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "invertdensity"
+        label   "Invert Density"
+        type    toggle
+        default { "0" }
+        hidewhen "{ mode != 0 }"
+    }
+    parm {
+        name    "remap"
+        label   "Remap"
+        type    toggle
+        joinnext
+        default { "0" }
+        disablewhen "{ mode != 1 }"
+        hidewhen "{ mode != 1 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sdfrange"
+        label   "SDF Range"
+        type    vector2
+        size    2
+        default { "-1" "1" }
+        disablewhen "{ remap == 0 }"
+        hidewhen "{ mode != 1 }"
+        range   { -1 1 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "folder2"
+        label   "Sampling"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "up_axis"
+            label   "Up Axis"
+            type    ordinal
+            default { "1" }
+            menu {
+                "0" "Y"
+                "1" "Z"
+            }
+        }
+        parm {
+            name    "frozenframe"
+            label   "Frame Frozen"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "frame"
+            label   "Frame"
+            type    integer
+            default { [ "$F" hscript-expr ] }
+            disablewhen "{ frozenframe == 0 }"
+            range   { 1 240 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Slicing"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "expectedres"
+            label   "Total Resolution"
+            type    label
+            nolabel
+            default { "Total Resolution: `int(sqrt(ch(\"slices\")))*ch('frameresolution')` x `int(sqrt(ch(\"slices\")))*ch('frameresolution')`" }
+        }
+        parm {
+            name    "expectedtiles"
+            label   "Total Resolution"
+            type    label
+            nolabel
+            default { "Tiles: `int(sqrt(ch(\"slices\")))` x `int(sqrt(ch(\"slices\")))`" }
+        }
+        parm {
+            name    "slices"
+            label   "Slices"
+            type    integer
+            default { "64" }
+            range   { 4! 128 }
+        }
+        parm {
+            name    "frameresolution"
+            label   "Resolution per Slice"
+            type    integer
+            default { "256" }
+            range   { 2! 2048 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Output"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "preview"
+            label   "Preview"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "output_picture"
+            label   "Output Picture"
+            type    image
+            default { "$HIP/render/${OS}.$F4.exr" }
+        }
+    }
+
+}
