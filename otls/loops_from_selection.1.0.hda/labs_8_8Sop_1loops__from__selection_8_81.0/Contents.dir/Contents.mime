@@ -32,20 +32,17 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.5 -2.15
-connectornextid 2
+position -2.99389 0.907457
+connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
-1 "output1"
 }
 inputsNamed3
 {
-0 	testgeometry_rubbertoy1 0 1 "input1"
 }
 inputs
 {
-0 	testgeometry_rubbertoy1 0 1
 }
 stat
 {
@@ -132,7 +129,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -166,6 +163,34 @@ Content-Type: text/plain
             type    integer
             default { "0" }
             range   { 0 100 }
+        }
+        parm {
+            name    "apply_pattern"
+            label   "Apply Pattern"
+            type    toggle
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "pattern_offset"
+            label   "Pattern Offset"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "select_length"
+            label   "Select Length"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "skip_length"
+            label   "Skip Length"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
         }
         parm {
             name    "create_group_per_loop"
@@ -341,6 +366,30 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = chs(\"../outputprimgroup\") }
     }
+    channel apply_pattern {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../pattern\") }
+    }
+    channel pattern_offset {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../patternoffset\") }
+    }
+    channel select_length {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../selectlen\") }
+    }
+    channel skip_length {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../skiplen\") }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -362,6 +411,12 @@ if (max_iteration < 1) {
 }
 
 int iteration = 0;
+
+int apply_pattern = chi(\"apply_pattern\");
+int pattern_offset = chi(\"pattern_offset\");
+int select_length = chi(\"select_length\");
+int skip_length = chi(\"skip_length\");
+int period = select_length + skip_length;
 
 int start_pt0 = point(1, \"__index\", 0);
 int start_pt1 = point(1, \"__index\", 1);
@@ -493,6 +548,10 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 max_iteration	[ 0	locks=0 ]	(	[ max_iteration	0 ] 	)
+apply_pattern	[ 0	locks=0 ]	(	[ apply_pattern	0 ] 	)
+pattern_offset	[ 0	locks=0 ]	(	[ pattern_offset	0 ] 	)
+select_length	[ 0	locks=0 ]	(	[ select_length	0 ] 	)
+skip_length	[ 0	locks=0 ]	(	[ skip_length	0 ] 	)
 create_group_per_loop	[ 0	locks=0 ]	(	[ create_group_per_loop	0 ] 	)
 quads_only	[ 0	locks=0 ]	(	[ quads_only	0 ] 	)
 group_name	[ 0	locks=0 ]	(	[ group_name	"" ] 	)
@@ -889,7 +948,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector uvselect "Modify Points"
+            bindselector points "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -923,6 +982,34 @@ Content-Type: text/plain
             type    integer
             default { "0" }
             range   { 0 100 }
+        }
+        parm {
+            name    "apply_pattern"
+            label   "Apply Pattern"
+            type    toggle
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "pattern_offset"
+            label   "Pattern Offset"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "select_length"
+            label   "Select Length"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "skip_length"
+            label   "Skip Length"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
         }
         parm {
             name    "create_group_per_loop"
@@ -1086,6 +1173,30 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = chs(\"../outputedgegroup\") }
     }
+    channel apply_pattern {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../pattern\") }
+    }
+    channel pattern_offset {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../patternoffset\") }
+    }
+    channel select_length {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../selectlen\") }
+    }
+    channel skip_length {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../skiplen\") }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1108,6 +1219,12 @@ if (max_iteration < 1) {
 
 int iteration = 0;
 
+int apply_pattern = chi(\"apply_pattern\");
+int pattern_offset = chi(\"pattern_offset\");
+int select_length = chi(\"select_length\");
+int skip_length = chi(\"skip_length\");
+int period = select_length + skip_length;
+
 int start_pt0 = point(1, \"__index\", 0);
 int start_pt1 = point(1, \"__index\", 1);
 
@@ -1115,7 +1232,17 @@ string group_name = chs(\"group_name\");
 int create_group_per_loop = chi(\"create_group_per_loop\");
 int edge_index = point(1, \"__edge_index\", 0);
 
-setedgegroup(0, group_name, start_pt0, start_pt1, 1);
+if (apply_pattern) {
+
+    if ((iteration + pattern_offset) % period < select_length) {
+        setedgegroup(0, group_name, start_pt0, start_pt1, 1);
+    }
+
+} else {
+
+    setedgegroup(0, group_name, start_pt0, start_pt1, 1);
+}
+
 
 if (create_group_per_loop) {
     setedgegroup(0, group_name + itoa(edge_index), start_pt0, start_pt1, 1);
@@ -1178,7 +1305,16 @@ while (termination_code == 0) {
 
     if (count == 1) {
 
-        setedgegroup(0, group_name, this_point, next_point, 1);
+        if (apply_pattern) {
+
+            if ((iteration + pattern_offset) % period < select_length) {
+                setedgegroup(0, group_name, start_pt0, start_pt1, 1);
+            }
+
+        } else {
+
+            setedgegroup(0, group_name, start_pt0, start_pt1, 1);
+        }
 
         if (create_group_per_loop) {
             setedgegroup(0, group_name + itoa(edge_index), this_point, next_point, 1);
@@ -1300,6 +1436,10 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 max_iteration	[ 0	locks=0 ]	(	[ max_iteration	0 ] 	)
+apply_pattern	[ 0	locks=0 ]	(	[ apply_pattern	0 ] 	)
+pattern_offset	[ 0	locks=0 ]	(	[ pattern_offset	0 ] 	)
+select_length	[ 0	locks=0 ]	(	[ select_length	0 ] 	)
+skip_length	[ 0	locks=0 ]	(	[ skip_length	0 ] 	)
 create_group_per_loop	[ 0	locks=0 ]	(	[ create_group_per_loop	0 ] 	)
 group_name	[ 0	locks=0 ]	(	[ group_name	"" ] 	)
 }
@@ -1600,7 +1740,7 @@ Content-Type: text/plain
 {
 version 0.8
 group	[ 0	locks=0 ]	(	__start_edge	)
-connectends	[ 0	locks=0 ]	(	"on"	)
+connectends	[ 0	locks=0 ]	(	"off"	)
 folder0	[ 0	locks=0 ]	(	0	)
 add_polywire	[ 0	locks=0 ]	(	"off"	)
 divs	[ 0	locks=0 ]	(	9	)
