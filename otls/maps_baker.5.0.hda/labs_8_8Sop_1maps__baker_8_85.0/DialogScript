@@ -3,7 +3,7 @@
 {
     name	labs::maps_baker::5.0
     script	sop_attribute_to_map
-    label	"Labs Maps Baker (Labs)"
+    label	"Labs Maps Baker"
 
     help {
 	""
@@ -777,6 +777,7 @@
                 label   "Blend Method"
                 type    ordinal
                 default { "diffusefill" }
+                disablewhen "{ addbckcolor == 1 }"
                 menu {
                     "fillaverage"   "Fill Average"
                     "floodfill"     "Flood Fill"
@@ -790,8 +791,26 @@
                 label   "Edge Padding"
                 type    integer
                 default { "4" }
+                disablewhen "{ addbckcolor == 1 }"
                 range   { 0 100 }
                 parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "addbckcolor"
+                label   "Fill Background with Color"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bckcolor"
+                label   "Background Color"
+                type    color
+                size    3
+                default { "1" "1" "1" }
+                hidewhen "{ addbckcolor == 0 }"
+                range   { 0 1 }
                 parmtag { "script_callback_language" "python" }
             }
         }
