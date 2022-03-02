@@ -20,12 +20,16 @@
 
         parm {
             name    "generate_uvs"
-            label   "Generate New UVs"
-            type    toggle
+            label   "UV Generation"
+            type    integer
             default { "1" }
             help    "Overrides incoming UVs with a Flatten"
-            range   { 0! 10 }
-            parmtag { "autoscope" "0000000000000000" }
+            menu usetokenvalue {
+                "0" "Use Input UVs"
+                "1" "Auto Generate UVs"
+            }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "pattern_rotation"
@@ -77,10 +81,15 @@
             range   { 0 10 }
         }
         parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
             name    "enable_vertex_colors"
-            label   "Enable Random Vertex Colors"
+            label   "Random Vertex Colors"
             type    toggle
-            joinnext
             default { "0" }
             help    "Add Vertex Colors to Panels"
         }
@@ -89,6 +98,7 @@
             label   "Seed"
             type    integer
             default { "10" }
+            disablewhen "{ enable_vertex_colors == 0 }"
             range   { 1! 10000 }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
