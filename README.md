@@ -1,7 +1,7 @@
 ![SideFXLabs logo](https://github.com/sideeffects/SideFXLabs/blob/Development/help/icons/sidefxlabs_full.png)
 # SideFX Labs - Houdini 19.0
 
-SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Paul Ambrosiussen and Mai Ao. It also receives a lot of contributions from the always-active Houdini community. The toolset originates from the GameDevelopmentToolset, which got a re-launch in the Houdini 18.0 release. To get automatic bi-weekly updates, subscribe to the following thread: [Update Thread](https://www.sidefx.com/forum/topic/70854/)
+SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Mai Ao, Danicka Oglesby, and Alan Gordie. It also receives a lot of contributions from the always-active Houdini community. The toolset originates from the GameDevelopmentToolset, which got a re-launch in the Houdini 18.0 release. To get automatic bi-weekly updates, subscribe to the following thread: [Update Thread](https://www.sidefx.com/forum/topic/70854/)
 
 # Installation
 
@@ -92,6 +92,7 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 - Paul Ambrosiussen
 - Mai Ao
 - Danicka Oglesby
+- Alan Gordie
 
 ### SideFX Staff
 - Bruno Ebe
@@ -101,7 +102,6 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 - Attila Torok
 - Simon Verstraete
 - Steven Burrichter
-
 
 ### SideFX Interns
 - Roahith Raj
