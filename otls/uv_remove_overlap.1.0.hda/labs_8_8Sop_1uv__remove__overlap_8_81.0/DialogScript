@@ -1,0 +1,152 @@
+# Dialog script for labs::uv_remove_overlap::1.0 automatically generated
+
+{
+    name	labs::uv_remove_overlap::1.0
+    script	labs::uv_remove_overlap::1.0
+    label	"Labs UV Remove Overlap"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry with UVs"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "uvattrib"
+        label   "UV Attribute"
+        type    string
+        default { "uv" }
+        menureplace {
+            [ "r = []" ]
+            [ "node = kwargs['node']" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "" ]
+            [ "    if geo:" ]
+            [ "" ]
+            [ "        for a in geo.vertexAttribs():" ]
+            [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() >= 2 and a.size() <= 3:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "" ]
+            [ "        for a in geo.pointAttribs():" ]
+            [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() >= 2 and a.size() <= 3:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "" ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "detectres"
+        label   "Detection Resolution"
+        type    integer
+        joinnext
+        default { "4096" }
+        range   { 128 16384 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "resmenu"
+        label   "Choose Resolution"
+        type    button
+        default { "4096" }
+        menumini {
+            "128"   "128 × 128"
+            "256"   "256 × 256"
+            "512"   "512 × 512"
+            "1024"  "1024 × 1024"
+            "2048"  "2048 × 2048"
+            "4096"  "4096 × 4096"
+            "8192"  "8192 × 8192"
+            "16384" "16384 × 16384"
+        }
+        parmtag { "script_callback" "opparm . detectres ( `arg(\"$script_value\", 0)` `arg(\"$script_value\", 1)`)" }
+        parmtag { "script_callback_language" "hscript" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Separator"
+        type    separator
+        invisible
+        default { "" }
+    }
+    parm {
+        name    "creategroup"
+        label   "Create Group from Detected Overlaps"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "groupname"
+        label   "Group Name"
+        type    string
+        default { "overlap" }
+        disablewhen "{ creategroup == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "repairoverlaps"
+        label   "Repair Overlaps"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_guide"
+        label   "Folder Name"
+        hidewhen "{ repairoverlaps == 0 }"
+        grouptag { "sidefx::look" "blank" }
+
+        parm {
+            name    "guide"
+            label   "Guide"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "guidepos"
+            label   "Guide Position"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            disablewhen "{ guide == 0 }"
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "guidescale"
+            label   "Guide Scale"
+            type    float
+            default { "1" }
+            disablewhen "{ guide == 0 }"
+            range   { 0! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "displayorigoverlap"
+            label   "Display Overlaps in Original UVs"
+            type    toggle
+            default { "1" }
+            disablewhen "{ guide == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
