@@ -1,0 +1,92 @@
+# Dialog script for labs::clean_seams::1.0 automatically generated
+
+{
+    name	labs::clean_seams::1.0
+    script	labs::clean_seams::1.0
+    label	"Labs Clean Seams"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "seams" }
+        menutoggle {
+            [ "opmenu -l -a clean_seams group" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].parmTuple('grouptype')\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "grouptype"
+        label   "Group Type"
+        type    ordinal
+        default { "guess" }
+        menu {
+            "guess"     "Guess from Group"
+            "vertices"  "Vertices"
+            "edges"     "Edges"
+            "points"    "Points"
+            "prims"     "Primitives"
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    groupsimple {
+        name    "fd_settings"
+        label   "Seams and Islands"
+
+        parm {
+            name    "seamgroup"
+            label   "Seam Edge Group"
+            type    string
+            default { "seams" }
+            menureplace {
+                [ "hou.pwd().generateInputGroupMenu(0, group_types=hou.geometryType.Edges)" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "islandattrib"
+            label   "Island Attribute"
+            type    string
+            default { "island" }
+            menureplace {
+                [ "r = []" ]
+                [ "node = kwargs['node']" ]
+                [ "inputs = node.inputs()" ]
+                [ "" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "" ]
+                [ "    if geo:" ]
+                [ "" ]
+                [ "        for a in geo.primAttribs():" ]
+                [ "        " ]
+                [ "            if a.dataType() == hou.attribData.Int and not a.isArrayType() and a.size() == 1:" ]
+                [ "                r.extend([a.name(), a.name()])" ]
+                [ "                " ]
+                [ "            if a.dataType() == hou.attribData.String and not a.isArrayType():" ]
+                [ "                r.extend([a.name(), a.name()])" ]
+                [ "                " ]
+                [ "return r" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
