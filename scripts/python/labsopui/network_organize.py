@@ -1,6 +1,6 @@
 import hou
 
-def node_to_network_origin():
+def node_to_network_origin(move_images=False):
 
     pane_tab = hou.ui.paneTabUnderCursor()
 
@@ -33,6 +33,9 @@ def node_to_network_origin():
     
                 # Moves 'image' if it's not tied to any item
                 if image.relativeToPath() == '':
+
+                    if not move_images:
+                        continue
     
                     rect = image.rect()
                     bound_min = rect.min().__add__(offset)
