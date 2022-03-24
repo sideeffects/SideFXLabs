@@ -7,8 +7,125 @@ import time
 import numpy as np
 
 verboseDebug = False
+g_enableTiming = False
 
 if verboseDebug: print("Init Module...")
+
+
+
+# ------------------- Check Progress ---------------------
+# Returns (ProgressValueFloat, ProgressText, SleepTimeAdvice)
+# ProgressValues: 
+#  . in [0, 1] : computing
+#  . 2 : success
+#  . -3 or -4: remesher crashed
+#  . -10: "no progress file, after significant time"
+#  . -11: bad progress file format
+#  . -xxx : errors returned by engine
+class QRCheckProgressData:
+    def __init__(self):
+        self.ProgressFilename = ''
+        self.CheckProgressCounter = 0
+        self.RemeshingProcess = None
+        self.StartRemeshingTime = 0
+        self.ProgressFileHasBeenCreatedYet = False
+
+    def reset(self):
+        self.ProgressFilename = ''
+        self.CheckProgressCounter = 0
+        self.RemeshingProcess = None
+        self.StartRemeshingTime = 0
+        self.ProgressFileHasBeenCreatedYet = False
+
+    def onStartRemeshing(self):  # called just before subprocess.Popen(...)
+        self.CheckProgressCounter = 0
+        self.StartRemeshingTime = time.time()
+        self.ProgressFileHasBeenCreatedYet = False
+
+    def get_progress_status(self):
+
+        self.CheckProgressCounter = self.CheckProgressCounter+1
+
+        # outputs:
+        ProgressText = ""
+        ProgressValueFloat = None
+        SleepTimeAdvice = None
+    
+        # read progress file:
+        progressLines=[]
+        try:
+            pf = open(self.ProgressFilename, "r")
+            progressLines = pf.read().splitlines()
+            pf.close()
+        except Exception:
+            # progressFile does not exist or can't be open!
+            CurTimeFromStart = time.time() - self.StartRemeshingTime
+            if self.ProgressFileHasBeenCreatedYet == False:   # and progressFile has not yet been created previously
+                if CurTimeFromStart < 3 :
+                    return 0, "", None   # simply wait more
+                elif CurTimeFromStart < 40 :  # after 3 seconds without progressFile...
+                    if (self.RemeshingProcess != None and self.RemeshingProcess.poll() != None):
+                        ProgressText = "Remeshing Failed! (Returned without ProgressFile - 0)"
+                        return -4, ProgressText, None
+                    return 0, "", None
+                else:  # after 40 seconds without progressFile... => return error !
+                    print(' ERROR : no progressFile after 40 sec....')
+                    return -10, "", None
+            else:
+                return 0, "", None  # strange case: progressFile can't be read (dont exist) but has already been created...)
+
+        self.ProgressFileHasBeenCreatedYet = True
+
+        if len(progressLines)>=1:
+            try:
+                ProgressValueFloat = float(progressLines[0]) # value in [0,1] or <0 : error
+            except Exception:
+                return -11, "", None
+        
+            if ProgressValueFloat != None:
+                # Error ?
+                if (ProgressValueFloat < 0):
+                    if len(progressLines)>=2:
+                        ProgressText = progressLines[1]
+
+                    return ProgressValueFloat, ProgressText, 0
+            
+                # Succeded ?
+                if ProgressValueFloat == 2:
+                    return ProgressValueFloat, "", 0
+
+                # check process is running: (NB need to be done in 2 cases : during remeshing + if remesher can't
+                #if (GetProgressCounter > 5 and GetProgressCounter % 4 == 0): # only every 4 timers (~1 sec)
+                if (self.CheckProgressCounter > 5 and self.CheckProgressCounter % 4 == 0): # only every 4 timers (~1 sec)
+                    #if (RemeshingProcess.poll() != None):
+                    if (self.RemeshingProcess != None and self.RemeshingProcess.poll() != None):
+                        ProgressText = "Remeshing Failed! (Stopped without result)"
+                        return -3, ProgressText, 0
+
+                # computing...            
+                if len(progressLines)>=3:
+                    try:
+                        SleepTimeAdvice = float(progressLines[2])
+                    except Exception:
+                        SleepTimeAdvice = None
+
+                return ProgressValueFloat, ProgressText, SleepTimeAdvice
+    
+        # check process is running: (before any no progress file written)
+        if (self.CheckProgressCounter > 8 and self.CheckProgressCounter % 4 == 0):
+            if (self.RemeshingProcess != None and self.RemeshingProcess.poll() != None):
+                ProgressValueFloat = -4    # this means that the remesher crashed
+                ProgressText = "Remeshing Failed! (Returned without ProgressFile)"
+                return ProgressValueFloat, ProgressText, None
+
+        ProgressValueFloat = -11
+        ProgressText = "Remeshing Failed! (Bad ProgressFile Data)"
+        return ProgressValueFloat, ProgressText, None
+
+
+
+
+
 
 def unixifyPath(path):
     path = path.replace('\\', '/')
@@ -19,16 +136,16 @@ def getQREngineFolder():
     isMacOS = (platform.system()=="Darwin") or (platform.system()=="macosx")
     isLinux = (platform.system()=="Linux")
     if (isMacOS):
-        engineFolder = "/Users/Shared/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.1"
+        engineFolder = "/Users/Shared/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.2"
         return engineFolder
     elif (isLinux):
-        engineFolder = "~/.local/share/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.1"
+        engineFolder = "~/.local/share/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.2"
         engineFolder = os.path.expanduser(engineFolder)
         return engineFolder
     else:
         #appData = os.getenv('APPDATA')  windows ... UserName/../Roaming... 
         appData = os.getenv('ALLUSERSPROFILE')  # on windows : C:\Users\All Users == C:\ProgramData\
-        engineFolder = os.path.join(appData, "Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.1")
+        engineFolder = os.path.join(appData, "Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.2")
         return engineFolder
 
 def getQREnginePath():
@@ -45,29 +162,51 @@ def getQREnginePath():
     if verboseDebug: print("  enginePath=%s" % enginePath)
     return enginePath
  
+def debug_returnStartLoadRetopoTime(startLoadRetopoTime):
+    # NB: as load is done outside or this script, can't return the endLoadRetopoTime, only the startLoadRetopoTime..
+    try:
+        enginePath = getQREnginePath()
+        subprocess.Popen([enginePath, "-returnChrono", "-startImportRetopoTime", str(startLoadRetopoTime)])   #NB: Popen automatically add quotes around parameters when there are SPACES inside
+    except:
+        return None
     
   
 # filename = sectionname
 # returns : True:OK   False:NoSectionFound
+# doc : https://www.sidefx.com/docs/houdini/hom/hou/HDASection.html
+#       https://www.sidefx.com/docs/houdini/hom/hou/HDADefinition.html
 def installOneFileSection(node, filename, targetFolder, printErrorIfFailed=False):
     try:
-        #NB: if the file is declared in the ExtraFiles tab, hasSection returns True
+        # NB: if the file is declared in the ExtraFiles tab, hasSection returns True
         #    if the physical section file is deleted, Houdini will automatically create an empty file, and section.size() returns -1
         if node.type().definition().hasSection(filename):
             section = node.type().definition().sections().get(filename)
-            #print("copy section: "+section.name()+"   "+str(section.size())+" bytes")
+            #print("libraryFilePath = " + node.type().definition().libraryFilePath())
+            #print("extraFileOptions = " + str(node.type().definition().extraFileOptions()))
             if section.size()<=0:
+                # Labs case.... no need to print an error
+                #print("WARNING: empty section!")
                 return False
-            SectionFile = file(os.path.join(targetFolder, filename), "wb")
-            SectionFile.write(section.contents())
-            SectionFile.close()
+            if sys.version_info[0] <= 2:
+                SectionFile = file(os.path.join(targetFolder, filename), "wb")
+                SectionFile.write(section.contents())
+                SectionFile.close()
+            else:
+                # python3: file() is not supported anymore + need to use binaryContents() instead of contents()
+                #SectionFile = file(os.path.join(targetFolder, filename), "wb")
+                SectionFile = open(os.path.join(targetFolder, filename), "wb")
+                SectionFile.write(section.binaryContents())
+                SectionFile.close()
         else:
+            #print("WARNING! missing Section :"+filename)
             return False
-            print("ERROR! missing Section :"+filename)
     except:
-        print("ERRORRR")
-        if printErrorIfFailed: print("Exception raised while extracting section : "+filename)
+        import traceback
+        msg = "installOneFileSection ERROR: " + str(traceback.format_exc())
+        msg = msg + "\nzipfile = " + os.path.join(targetFolder, filename)
+        print(msg)
         return False
+
     return True
         
 def createFolder(folder):
@@ -123,7 +262,7 @@ def InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder):
         with ZipFile(zip_file_name, 'r') as zip: 
             zip.extractall(engineFolder) 
         
-    except Exception:
+    except :
         import traceback
         msg = "Install remesher Engine ERROR: Unzip Failed" + str(traceback.format_exc()) + "\n"
         print(msg)
@@ -153,6 +292,8 @@ def InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder):
             msg = "--- fix file mode failed ---" + str(traceback.format_exc()) + "\n"
             print(msg)
             return (-2, msg)
+
+    return (1, "")
             
 
 def InstallQuadRemesherEngine_Download():
@@ -172,11 +313,11 @@ def InstallQuadRemesherEngine_Download():
             zip_file_name = os.path.join(engineFolder, "install_engine.zip")
             if isMacOSX:
                 # NB: https fails on macOS here
-                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.1_macOS.zip"
+                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.2_macOS.zip"
             elif isLinux:
-                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.1_linux.zip"
+                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.2_linux.zip"
             else:
-                download_url = "https://exoside.com/quadremesherdata/quad_remesher_engine_1.1_win.zip"
+                download_url = "https://exoside.com/quadremesherdata/quad_remesher_engine_1.2_win.zip"
             if sys.version_info[0] <= 2:
                 import urllib
                 urllib.urlretrieve(download_url, zip_file_name)
@@ -528,12 +669,21 @@ def UsePrimitiveAttrib(node):
 # NB: node is the python node inside the "QuadRemesher SOP"
 def doRemeshing(node):
     global verboseDebug
+    global g_enableTiming
     
-    geo = node.geometry()
-    
+    # --------- 1st time : install remesher : 
+    installCode = InstallQuadRemesherEngineIfNeeded(node)
+    if installCode[0]<0:
+        raise hou.NodeError("Cannot install RemesherEngine!")
+        return
+
     isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
     isLinux = (platform.system()=="Linux")
 
+    if g_enableTiming: chrono_startRemeshingTime = time.time()
+
+    # get input geometry            
+    geo = node.geometry()
     node = node.parent()  # here node become the QuadRemesher SOP node
     
     # get parameters
@@ -568,24 +718,43 @@ def doRemeshing(node):
     if not os.path.exists(XRTempFolder):
         os.makedirs(XRTempFolder)
     
+    progressData = QRCheckProgressData()
+
     export_path = XRTempFolder
     exportFilename = os.path.join(export_path, 'QR_input.exomesh')
-    retopoFilename = node.parm("out_cache").eval() #os.path.join(export_path, 'QR_output.fbx')
+    retopoFilename = node.parm("out_cache").eval()
+
+    # Problem with retopoFilename with Houdini 18.5.499 :
+    #   out_cache = ${HIP}/render/${HIPNAME}_${OS}_QR_output.fbx
+    #   NB: to get this string with global var replacement : node.parm("out_cache").unexpandedString()
+    # If the scene is saved, ${HIP} returns the folder in which the file is saved! -> perfect
+    # If the scene is not yet saved:
+    #   before 18.5.499 : ${HIP} was returning C:/Users/YOUR_NAME
+    #   in 18.5.49: ${HIP} return the folder in which houdini exe is !!! (-> can't use this folder due to permission access!) THE PROBLEM IS HERE !!!
+    # FIX = detect case where the scene is not saved and change the folder !
+    if (hou.getenv("HIPNAME")=="untitled") and (hou.getenv("JOB") == hou.getenv("HIP")):   # scene not yet saved + can't save in JOB...
+        if node.parm("out_cache").unexpandedString().find("${HIP}") >= 0:
+            retopoFilename = os.path.join(export_path, 'untitled_%s_QR_output.fbx' % hou.getenv("OS"))
+            node.parm("out_cache").set(retopoFilename) # set for the sub-node which will load it!
+            
     '''
     nodehash = hash(hou.getenv("HIPNAME") + hou.pwd().path())
     retopoFilename = retopoFilename.replace("[HASHVALUE]", str(nodehash), 1)
+    '''
     if verboseDebug:
         print ("retopoFilename="+retopoFilename)
-        print ("retopoFilename="+retopoFilename)
-        print ("path ="+str(hou.pwd().path()))
+        print ("hou.pwd().path() ="+str(hou.pwd().path()))
+        print ("HIP ="+str(hou.getenv("HIP")))
         print ("HIPNAME ="+str(hou.getenv("HIPNAME")))
-        print ("node hash ="+str(nodehash))
-        return 0
-    '''
+        print ("HIPFILE="+str(hou.getenv("HIPFILE")))
+        print ("HOME ="+str(hou.getenv("HOME")))
+        print ("JOB ="+str(hou.getenv("JOB")))
+        print ("OS ="+str(hou.getenv("OS")))
+        #print ("node hash ="+str(nodehash))
+        #return 0
     
-    #retopoFilename = os.path.join(export_path, 'QR_output.obj')
     settingsFilename = os.path.join(export_path, 'RetopoSettings_Hdi.txt')
-    progressFilename = os.path.join(export_path, 'progress.txt')
+    progressData.ProgressFilename = os.path.join(export_path, 'progress.txt')
     
     engineFolder = getQREngineFolder()
     enginePath = getQREnginePath()
@@ -593,25 +762,31 @@ def doRemeshing(node):
     exportFilename = unixifyPath(exportFilename)
     retopoFilename = unixifyPath(retopoFilename)
     settingsFilename = unixifyPath(settingsFilename)
+    progressData.ProgressFilename = unixifyPath(progressData.ProgressFilename)
     enginePath = unixifyPath(enginePath)
 
-    # --------- 1st time : install remesher : 
-    installCode = InstallQuadRemesherEngineIfNeeded(node)
-    if installCode[0]<0:
-        raise hou.NodeError("Cannot install RemesherEngine!")
-        return
-            
         
     # start progress bar
     with hou.InterruptableOperation("Remeshing '"+node.name()+"' ...", open_interrupt_dialog=True) as IntOp:    
         
+        # ----- export mesh to retopo -----
+        if (exportFilename.endswith('.exomesh')):
+            exportExoMesh(exportFilename, geo, node, exportPointColors=_UseVertexColors, exportMatGroups=_UseMaterialGroups, exportNormals=_UseNormalsSplitting, exportEdgeGroups=_UseEdgeGroups, exportUVs=False)
+        else:
+            startTime = time.time()
+            geo.saveToFile(exportFilename)
+            endTime = time.time()
+            #print("export time = "+str(endTime-startTime)+" s ("+exportFilename+")")
+        if verboseDebug: print("export done!")
+        
+
         # ----- export remesh settings -----
         if verboseDebug: print("Start write settings... in:" + settingsFilename)
         settings_file = open(settingsFilename, "w")
         settings_file.write('HostApp=Houdini\n')
         settings_file.write('FileIn="%s"\n' % exportFilename)
         settings_file.write('FileOut="%s"\n' % retopoFilename)
-        settings_file.write('ProgressFile="%s"\n' % progressFilename)
+        settings_file.write('ProgressFile="%s"\n' % progressData.ProgressFilename)
         
         settings_file.write("TargetQuadCount=%s\n" % str(_TargetQuadCount))
         settings_file.write("CurvatureAdaptivness=%s\n" % str(_CurvatureAdaptivness))
@@ -634,37 +809,30 @@ def doRemeshing(node):
         settings_file.write("SymAxis=%s\n" % symStr)
         settings_file.write("SymLocal=1\n")
         
-
         # set IsProceduralRemeshing to prevent from launching multiple times the LicenseManager (at first usage...)
         settings_file.write("IsProceduralRemeshing=1\n")
-            
         
-        
+        if g_enableTiming:
+            settings_file.write("Timing_StartRemesh_Time=%f\n" % chrono_startRemeshingTime)
+            settings_file.write("Timing_InputMeshExported_Time=%f\n" % time.time()) # this time must include (partially) the txt settings writing.
+
         settings_file.close()
         if verboseDebug: print("write settings done!")
-        
-        # ----- export mesh to retopo -----
-        if (exportFilename.endswith('.exomesh')):
-            exportExoMesh(exportFilename, geo, node, exportPointColors=_UseVertexColors, exportMatGroups=_UseMaterialGroups, exportNormals=_UseNormalsSplitting, exportEdgeGroups=_UseEdgeGroups, exportUVs=False)
-        else:
-            startTime = time.time()
-            geo.saveToFile(exportFilename)
-            endTime = time.time()
-            #print("export time = "+str(endTime-startTime)+" s ("+exportFilename+")")
-        if verboseDebug: print("export done!")
         
         
         # ----- run the remeshing engine -----
         try:
             if (os.path.isfile(retopoFilename)):
                 os.remove(retopoFilename)
-            if (os.path.isfile(progressFilename)):
-                os.remove(progressFilename)
+            if (os.path.isfile(progressData.ProgressFilename)):
+                os.remove(progressData.ProgressFilename)
+
+            progressData.onStartRemeshing()
 
             # using subprocess
             #print("Launch : path=" + enginePath + "\n")
             #print("    settings_path=" + settingsFilename + "\n")
-            remeshProc = subprocess.Popen([enginePath, "-s", settingsFilename])   #NB: Popen automatically add quotes around parameters when there are SPACES inside
+            progressData.RemeshingProcess = subprocess.Popen([enginePath, "-s", settingsFilename])   #NB: Popen automatically add quotes around parameters when there are SPACES inside
         
         except Exception:
             import traceback
@@ -672,73 +840,41 @@ def doRemeshing(node):
                 
         # Wait for result:
         Aborted = False
-        SafetyCount=0
-        ProgressValueFloat = 0
+        ProgressValue = 0
         ProgressText = ""
-        sleepTime=0.1 # start with 0.1, updated after... check progress every 'sleepTime'
+        sleepTime=0.05 # start with low value, updated after... check progress every 'sleepTime'
         
         #while not os.path.exists(retopoFilename):
         while True:
         
             time.sleep(sleepTime)   # time in seconds
-            SafetyCount=SafetyCount+1
-            
-            # read progress file:
-            progressLines=[]
-            try:
-                pf = open(progressFilename, "r")
-                progressLines = pf.read().splitlines()
-                pf.close()
-            except Exception:
-                #if SafetyCount>2/sleepTime :   # after 2 seconds without progressFile..
-                #    sys.stdout.write(' WARNING : no progressFile....')
-                if SafetyCount>40/sleepTime :   # after 40 seconds without progressFile..
-                    break
-            
-            if len(progressLines)>=1:
-                #print(progressLines[0])
-                try:
-                    # don't know why there is a comma on macOS...
-                    tmp = progressLines[0].replace(',', '.', 1)
-                    ProgressValueFloat = float(tmp)
-                except Exception:
-                    print(' error in progressbar... line0=['+progressLines[0]+']')
-                        
-                if ProgressValueFloat != None:
-                    if (ProgressValueFloat < 0):
-                        if len(progressLines)>=2:
-                            ProgressText = progressLines[1]
-                        break
-                    # Succeded ?
-                    if ProgressValueFloat == 2:
-                        break
-        
-                    newPBarValue = int( (99.0 * ProgressValueFloat + 1.0) * 10.0) / 10.0
-                    try:
-                        IntOp.updateProgress(newPBarValue / 100.0)
-                    except hou.OperationInterrupted:
-                        Aborted = True
-        
-                    # update sleepTime
-                    if SafetyCount >= 3 and ProgressValueFloat < 0.6:  # in middle of long process...check less often
-                        sleepTime = 0.4
-                    if ProgressValueFloat > 0.7 and SafetyCount < 10:  # approaching end of Progress... check more often
-                        sleepTime = 0.1
-            
-            # check process is running:
-            if (remeshProc.poll() != None):
-                ProgressValueFloat = -3    # this means that the remesher crashed
-                ProgressText = "Remeshing Failed! (-3)"
+
+            ProgressValueFloat, ProgressText, SleepTimeAdvice = progressData.get_progress_status()
+
+            if ProgressValueFloat < 0:     # Error ?
                 break
-                    
+            elif ProgressValueFloat >= 2:  # success ?
+                break
+            else:
+                newPBarValue = int( (99.0 * ProgressValueFloat + 1.0) * 10.0) / 10.0
+                try:
+                    IntOp.updateProgress(newPBarValue / 100.0)
+                except hou.OperationInterrupted:
+                    Aborted = True
+        
+                # update sleepTime
+                if SleepTimeAdvice != None and SleepTimeAdvice > 0:
+                    #if sleepTime != SleepTimeAdvice: print(" Changing SleepTime : %f -> %f" % (sleepTime, SleepTimeAdvice))
+                    sleepTime = SleepTimeAdvice
+            
             if Aborted:
                 break
         # end of while loop
     # end of with InteruptableOpration
     
     if Aborted:
-        print("Aborted : kill process")
-        remeshProc.kill()
+        if verboseDebug: print("Aborted : kill process")
+        progressData.RemeshingProcess.kill()
         return
     
     if verboseDebug: print("ProgressValueFloat = "+str(ProgressValueFloat))
@@ -754,8 +890,13 @@ def doRemeshing(node):
     
     
     # ----- load retopo -----
+    # NB: now, retopo is loaded from SOP sub nodes...
     #geo.clear()
     #geo.loadFromFile(retopoFilename)
+
+    if g_enableTiming: 
+        debug_returnStartLoadRetopoTime(time.time())
+
 
 
 
@@ -770,10 +911,10 @@ def buttonCookNow(node):
         #print("Cook Now!! : isCookNowCase="+str(isCookNowCase)+"    needToCook="+str(node.needsToCook()) )
         node.cook(force=True)
     #except object as e:
-    except Exception:
+    except :
         print ("---- ERROR in CookNow... ----")
-        #import traceback
-        #print(str(traceback.format_exc()) + "\n")
+        import traceback
+        print(str(traceback.format_exc()) + "\n")
     
    
 def onPaint(args, node):
@@ -825,7 +966,7 @@ def buttonWebDoc(node):
     try:
         import webbrowser
         webbrowser.open('https://exoside.com/quadremesherdata/plugins_webdoc_link.php?App=Houdini')
-    except Exception:
+    except :
         import traceback
         print("Exception: in WebDoc..\n")
         print(str(traceback.format_exc()) + "\n")
