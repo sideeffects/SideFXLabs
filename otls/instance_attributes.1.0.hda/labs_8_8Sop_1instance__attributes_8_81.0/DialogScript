@@ -1,0 +1,503 @@
+# Dialog script for labs::instance_attributes::1.0 automatically generated
+
+{
+    name	labs::instance_attributes::1.0
+    script	Game_engine_Instance
+    label	"Labs Instance Attributes"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Points with Normals or Orients"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "valuetype"
+        label   "Type"
+        type    ordinal
+        invisible
+        default { "string" }
+        menu {
+            "float"     "Float"
+            "string"    "String"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    group {
+        name    "fd_general"
+        label   "Asset Variants"
+
+        parm {
+            name    "instanceattrib"
+            label   "Instance Attribute"
+            type    string
+            default { "instancepath" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "assetrandseed"
+            label   "Variant Random Seed"
+            type    float
+            default { "1" }
+            disablewhen "{ instancevariants < 2 }"
+            range   { 1 10000 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        multiparm {
+            name    "instancevariants"
+            label    "Instance Variants"
+            default 1
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "multistartoffset" "0" }
+
+            parm {
+                name    "variantpath#"
+                label   "Variant Path #"
+                type    string
+                default { "" }
+                hidewhen "{ valuetype == float }"
+                range   { 0 10 }
+            }
+            parm {
+                name    "variantweight#"
+                label   "Weight #"
+                type    float
+                default { "1" }
+                range   { 0! 2 }
+            }
+            parm {
+                name    "variantscale#"
+                label   "Scale #"
+                type    float
+                default { "1" }
+                range   { 0.1 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_he"
+            label   "Houdini Engine"
+            disablewhen "{ instanceattrib == \"\" }"
+
+            parm {
+                name    "createunrealpaths"
+                label   "Create Instance Attribute for Unreal Engine"
+                type    toggle
+                default { "0" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "createunitypaths"
+                label   "Create Instance Attribute for Unity"
+                type    toggle
+                default { "0" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "delinstanceattrib"
+                label   "Delete Original Instance Attribute"
+                type    toggle
+                default { "1" }
+                hidewhen "{ createunrealpaths == 0 createunitypaths == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fd_general_1"
+        label   "Point Transforms"
+
+        groupsimple {
+            name    "fd_scale"
+            label   "Scale"
+
+            parm {
+                name    "uniformscale"
+                label   "Uniform Scale"
+                type    float
+                joinnext
+                default { "1" }
+                range   { 0.1 5 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "scaletarget"
+                label   "Apply To"
+                type    ordinal
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Scaling Pscale"
+                    "1" "Scaling Scale"
+                    "2" "Scaling Both"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "randpscale"
+                label   "Randomize Pscale"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pscalemin"
+                label   "Min"
+                type    float
+                default { "1" }
+                hidewhen "{ randpscale == 0 }"
+                range   { 0 5 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pscalemax"
+                label   "Max"
+                type    float
+                default { "1" }
+                hidewhen "{ randpscale == 0 }"
+                range   { 0 5 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "noisesize"
+                label   "Noise Element Size"
+                type    float
+                default { "1" }
+                hidewhen "{ randpscale == 0 }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "noiseoffset"
+                label   "Noise Offset"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                hidewhen "{ randpscale == 0 }"
+                range   { -1 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "randscale"
+                label   "Randomize Scale"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "scalemin"
+                label   "Min"
+                type    vector
+                size    3
+                default { "0.5" "0.5" "0.5" }
+                hidewhen "{ randscale == 0 }"
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "scalemax"
+                label   "Max"
+                type    vector
+                size    3
+                default { "1" "1" "1" }
+                hidewhen "{ randscale == 0 }"
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "scalerandseed"
+                label   "Random Seed"
+                type    float
+                default { "5213" }
+                hidewhen "{ randscale == 0 }"
+                range   { 1 10000 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_rot"
+            label   "Rotation"
+
+            parm {
+                name    "initrot"
+                label   "Initial Rotation"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Attempt to Use Input N (and Up)"
+                    "1" "Attempt to Use Input Orient"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm5"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "spinaxis"
+                label   "Spin Axis/Amount"
+                type    ordinal
+                joinnext
+                default { "2" }
+                menu {
+                    "0" "X in Houdini (Side/Pitch)"
+                    "1" "Y in Houdini (Up/Yaw)"
+                    "2" "Z in Houdini (Forward/Roll)"
+                }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "spinamountmode"
+                label   "Spin Amount Mode"
+                type    ordinal
+                nolabel
+                default { "0" }
+                menu {
+                    "0" "Uniform"
+                    "1" "Random"
+                    "2" "From Attribute"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "spin_uniform"
+                label   "Spin Amount"
+                type    float
+                default { "0" }
+                hidewhen "{ spinamountmode != 0 }"
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "spin_min"
+                label   "Spin Amount Min"
+                type    float
+                default { "0" }
+                hidewhen "{ spinamountmode != 1 }"
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "spin_max"
+                label   "Spin Amount Max"
+                type    float
+                default { "360" }
+                hidewhen "{ spinamountmode != 1 }"
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "spinrandseed"
+                label   "Random Seed"
+                type    float
+                default { "4703" }
+                hidewhen "{ spinamountmode != 1 }"
+                range   { 1 10000 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "spin_attrib"
+                label   "Spin Amount Attribute"
+                type    string
+                default { "" }
+                hidewhen "{ spinamountmode != 2 }"
+                menutoggle {
+                    [ "r = []" ]
+                    [ "node = hou.pwd()" ]
+                    [ "inputs = node.inputs()" ]
+                    [ "" ]
+                    [ "if inputs and inputs[0]:" ]
+                    [ "" ]
+                    [ "    geo = inputs[0].geometry()" ]
+                    [ "" ]
+                    [ "    if geo:" ]
+                    [ "" ]
+                    [ "        attrs = geo.pointAttribs()" ]
+                    [ "        " ]
+                    [ "        for a in attrs:" ]
+                    [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                    [ "                r.extend([a.name(), a.name()])" ]
+                    [ "" ]
+                    [ "return r" ]
+                    language python
+                }
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm4"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "rand3drot"
+                label   "Randomize Rotation in 3D"
+                type    toggle
+                default { "0" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rotmin"
+                label   "Min"
+                type    float
+                default { "0" }
+                hidewhen "{ rand3drot == 0 }"
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "rotmax"
+                label   "Max"
+                type    float
+                default { "360" }
+                hidewhen "{ rand3drot == 0 }"
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "rotrandseed"
+                label   "Random Seed"
+                type    float
+                default { "1729" }
+                hidewhen "{ rand3drot == 0 }"
+                range   { 1 10000 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fd_general_2"
+        label   "Guide"
+
+        parm {
+            name    "enableguide"
+            label   "Guide"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "guidescale"
+            label   "Guide Scale"
+            type    float
+            default { "0.1" }
+            disablewhen "{ enableguide == 0 }"
+            range   { 0 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "gnomon"
+            label   "Gnomon"
+            type    toggle
+            default { "1" }
+            disablewhen "{ enableguide == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "unitcubes"
+            label   "Unit Cubes"
+            type    toggle
+            default { "1" }
+            disablewhen "{ enableguide == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "visualizevariants"
+            label   "Visualize Variants"
+            type    toggle
+            default { "0" }
+            disablewhen "{ unitcubes == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "fd_general_3"
+        label   "Cleanup"
+
+        parm {
+            name    "attribstokeep"
+            label   "Point Attributes to Keep"
+            type    string
+            default { "orient pscale scale *instance* `chs(\"instanceattrib\")`" }
+            menutoggle {
+                [ "r = []" ]
+                [ "node = kwargs['node'].node('attrib_cleanup')" ]
+                [ "inputs = node.inputs()" ]
+                [ "" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "    " ]
+                [ "    if geo:" ]
+                [ "    " ]
+                [ "       attrs = geo.pointAttribs()" ]
+                [ "       " ]
+                [ "       for a in attrs:" ]
+                [ "           r.extend([a.name(), a.name()])" ]
+                [ "            " ]
+                [ "return r" ]
+                language python
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
