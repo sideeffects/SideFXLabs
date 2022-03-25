@@ -1,0 +1,247 @@
+# Dialog script for labs::cook_with_timeout::1.0 automatically generated
+
+{
+    name	labs::cook_with_timeout::1.0
+    script	labs::timed_cooker::1.0
+    label	"Labs Cook with Timeout"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry #1"
+    inputlabel	2	"Geometry #2"
+    inputlabel	3	"Geometry #3"
+    inputlabel	4	"Geometry #4"
+
+    parm {
+        name    "targettopnetwork"
+        label   "Top Network"
+        type    oppath
+        invisible
+        default { "topnet1/ropgeometry1" }
+        parmtag { "opfilter" "!!TOP!!" }
+        parmtag { "oprelative" "." }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "cookbutton"
+        label   "Cook with PDG"
+        type    button
+        joinnext
+        default { "0" }
+        disablewhen "{ disconnect == 1 }"
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "dirtybutton"
+        label   "Dirty All"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "deletefiles"
+        label   "Delete Existing Output Files"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "cancelbutton"
+        label   "Cancel Cook"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "sepparm3"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "local_enabletimeout"
+        label   "Enable Maximum Run Time"
+        type    toggle
+        nolabel
+        joinnext
+        default { "off" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "local_maxtime"
+        label   "Time Out After"
+        type    float
+        joinnext
+        default { "60" }
+        disablewhen "{ local_enabletimeout == 0 }"
+        range   { 0! 600 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "local_timeunit"
+        label   "Time Unit"
+        type    ordinal
+        nolabel
+        default { "0" }
+        menu {
+            "0" "Seconds"
+            "1" "Minutes"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "cookpath"
+        label   "Geometry to Cook"
+        type    ordinal
+        joinnext
+        default { "0" }
+        menu {
+            "0" "Internal Editable Network"
+            "1" "External SOP"
+            "2" "Input 1"
+            "3" "Input 2"
+            "4" "Input 3"
+            "5" "Input 4"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "disconnect"
+        label   "Disconnect Network Inputs"
+        type    toggle
+        default { "0" }
+        hidewhen "{ cookpath != 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "soppath"
+        label   "SOP Path"
+        type    oppath
+        default { "" }
+        hidewhen "{ cookpath != 1 }"
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm4"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    groupcollapsible {
+        name    "fd_output"
+        label   "Output Files"
+
+        parm {
+            name    "deleteoncook"
+            label   "Delete Existing Output Files on Cook"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sopoutput"
+            label   "Output File"
+            type    file
+            default { "$HIP/geo/$HIPNAME/$OS.$F.bgeo.sc" }
+            menureplace {
+                [ "opmenu -l -a topnet1/ropgeometry1 sopoutput" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "write" }
+        }
+        parm {
+            name    "reload"
+            label   "Reload Geometry"
+            type    button
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_frames"
+        label   "Frame Range"
+
+        parm {
+            name    "framegeneration"
+            label   "Evaluate Using"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Single Frame"
+                "1" "Frame Range"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "useframeoverride"
+            label   "Override Frame"
+            type    toggle
+            nolabel
+            joinnext
+            default { "off" }
+            disablewhen "{ framegeneration != 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "frameoverride"
+            label   "Override Frame"
+            type    float
+            default { "1" }
+            disablewhen "{ useframeoverride == 0 } { framegeneration != 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "f"
+            label   "Frame Range"
+            type    float
+            size    3
+            default { [ "$FSTART" hscript-expr ] [ "$FEND" hscript-expr ] "1" }
+            disablewhen "{ framegeneration == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "singletask"
+            label   "Cook Frames as Single Work Item"
+            type    toggle
+            default { "off" }
+            disablewhen "{ framegeneration == 0 } { framegeneration == 3 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
