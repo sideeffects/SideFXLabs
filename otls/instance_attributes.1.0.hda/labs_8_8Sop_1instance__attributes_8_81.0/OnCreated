@@ -4,68 +4,6 @@
 try:
     import labutils 
     labutils.send_on_create_analytics(kwargs['node'])
-
+    
 except:
     pass
-    
-
-node = kwargs['node']
-
-if not node.isGenericFlagSet(hou.nodeFlag.DisplayComment) or node.comment() == '':
-
-    code = ''
-
-    try:
-
-        if hou.session.gtugth == 'gfyorcs0f':
-            code = 'RU'
-
-        elif hou.session.gtugth == 'vbs54x7sa':
-            code = 'X'
-
-    except:
-
-        try:
-    
-            from urllib.request import urlopen
-            from json import load
-            url = 'https://ipinfo.io/json'
-            res = urlopen(url)
-            data = load(res)
-            code = data['country']
-    
-        except:
-    
-            try:
-    
-                import requests
-                from json import loads
-                request_url = 'https://geolocation-db.com/jsonp/'
-                response = requests.get(request_url)
-                result = response.content.decode().split("(")[1].strip(")")
-                result = loads(result)
-                code = result['country_code']
-    
-            except:
-                pass
-
-        try:
-
-            if code == 'RU':
-                hou.session.gtugth = 'gfyorcs0f'
-
-            else:
-                hou.session.gtugth = 'vbs54x7sa'
-
-        except:
-            pass
-
-
-    try:
-
-        if code == 'RU':
-            node.setComment("Please help stop Russia's invasion of Ukraine! нет войне!")
-            node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
-
-    except:
-        pass
