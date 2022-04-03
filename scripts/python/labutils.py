@@ -219,3 +219,13 @@ def manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.js
     else:
         if os.path.isfile(destination):
             os.remove(destination)
+
+def manage_viewport_alt_grey(destination="$HOUDINI_USER_PREF_DIR/config/3DSceneColors.bw", install=0):
+    destination = hou.text.expandString(destination)
+
+    if install == 1:
+        create_directory_if_not_exists(os.path.dirname(destination))
+        shutil.copyfile(hou.text.expandString("$SIDEFXLABS/misc/viewport/3DSceneColors.bw"), destination)
+    else:
+        if os.path.isfile(destination):
+            os.remove(destination)
