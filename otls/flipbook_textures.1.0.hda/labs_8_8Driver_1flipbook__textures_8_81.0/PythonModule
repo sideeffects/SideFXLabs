@@ -1,19 +1,7 @@
-import datetime
-import time
+from datetime import datetime
+from time import sleep
 from labsopui import reset_viewport
-import labutils
-import json
-
-try:
-
-    reload(reset_viewport)
-
-except NameError:
-
-    from importlib import reload
-    reload(reset_viewport)
-
-
+from labutils import manage_ocio
 
 
 # Render Intermediate Images
@@ -24,7 +12,7 @@ def setUpOCIO():
     if hou.getenv('OCIO') is not None:
         return
 
-    labutils.manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.json", install=1)
+    manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.json", install=1)
 
     message = \
         "The $OCIO environment variable has been set to a minimal version of OCIO ACES 1.2 shipped with SideFX Labs. \n" \
@@ -418,16 +406,49 @@ def setCommonFlipbookSettings(node, scene_viewer):
     return fb_settings
 
 
-
 def updateTimeStamp(node, parm_name):
 
     parm = node.parm(parm_name)
     
     if node.evalParm('enabletimestamps') and parm is not None:
 
-        now = datetime.datetime.now()
-        time_stamp = now.strftime('%d %b %Y %I:%M %p')
-        parm.set(time_stamp)
+        try:
+
+            now = datetime.now()
+            time_stamp = now.strftime('%d %b %Y %I:%M %p')
+            parm.set(time_stamp)
+
+        except:
+
+            pass
+
+    return
+
+
+
+def setOCIODisplayViewSafe(display, view, viewer, viewport_settings=None):
+
+    try:
+
+        viewer.setOCIODisplayView(display, view)
+
+    except hou.OperationFailed as exc:
+
+        viewer.setUsingOCIO(False)
+
+        if type(viewport_settings) is hou.GeometryViewportSettings:
+            viewport_settings.setSceneGamma(1.0)
+
+        elif type(viewer) is hou.CompositorViewer:
+            hou.hscript('colorsettings -g 1.0 -c')
+
+        print (exc)
+        print ("Falling back to using linear color space.")
+
+    except Exception as exc2:
+
+        print (exc2)
+        raise exc2
 
     return
 
@@ -435,75 +456,53 @@ def updateTimeStamp(node, parm_name):
 
 def setColorSpace(node, color_space, scene_viewer, viewport_settings, fb_settings):
 
+    render_in_linear = color_space < 2
     ocio_env = hou.getenv('OCIO')
 
-    render_in_linear = color_space < 2
-
-    if ocio_env is not None:
-
-        scene_viewer.setUsingOCIO(True)
-
-        sidefxlabs_env = hou.getenv('SIDEFXLABS')
-
-        if sidefxlabs_env is None:
-            sidefxlabs_env = ''
-
-        if ocio_env == sidefxlabs_env + '/misc/ocio/aces_config.ocio':
-            # Labs Minimal OCIO ACES:
-
-            if render_in_linear:
-                scene_viewer.setOCIODisplayView('sRGB', 'Raw')
-
-            elif color_space == 1:
-                # Transforms this to Gamma 2.2 later in the compositing step
-                scene_viewer.setOCIODisplayView('sRGB', 'Raw')
-
-            elif color_space == 2:
-                scene_viewer.setOCIODisplayView('sRGB', 'ACES')
-
-            elif color_space == 3:
-                scene_viewer.setOCIODisplayView('Rec.709', 'ACES')
-
-            elif color_space == 4:
-                scene_viewer.setOCIODisplayView('Rec.2020', 'ACES')
-
-            elif color_space == 5:
-                scene_viewer.setOCIODisplayView('DCI-P3 D65', 'ACES')
-
-        else:
-            # Official Full OCIO ACES:
-
-            if render_in_linear:
-                scene_viewer.setOCIODisplayView('ACES', 'Raw')
-
-            elif color_space == 1:
-                # Transforms this to Gamma 2.2 later in the compositing step
-                scene_viewer.setOCIODisplayView('ACES', 'Raw')
-
-            elif color_space == 2:
-                scene_viewer.setOCIODisplayView('ACES', 'sRGB')
-
-            elif color_space == 3:
-                scene_viewer.setOCIODisplayView('ACES', 'Rec.709')
-
-            elif color_space == 4:
-                scene_viewer.setOCIODisplayView('ACES', 'Rec.2020')
-
-            elif color_space == 5:
-                scene_viewer.setOCIODisplayView('ACES', 'P3-DCI D65 simulation')
-
-    else:
+    if render_in_linear or ocio_env is None:
 
         scene_viewer.setUsingOCIO(False)
 
-        if color_space < 2:
-
+        if render_in_linear:
             viewport_settings.setSceneGamma(1.0)
 
         else:
-
             print ("OCIO ACES has not been set up.")
             raise hou.OperationFailed
+
+    else:
+
+        scene_viewer.setUsingOCIO(True)
+
+        if '/misc/labs_ocio/aces_config.ocio' in ocio_env:
+            # Labs Minimal OCIO ACES:
+
+            if color_space == 2:
+                setOCIODisplayViewSafe('sRGB', 'ACES', scene_viewer, viewport_settings)
+
+            elif color_space == 3:
+                setOCIODisplayViewSafe('Rec.709', 'ACES', scene_viewer, viewport_settings)
+
+            elif color_space == 4:
+                setOCIODisplayViewSafe('Rec.2020', 'ACES', scene_viewer, viewport_settings)
+
+            elif color_space == 5:
+                setOCIODisplayViewSafe('DCI-P3 D65', 'ACES', scene_viewer, viewport_settings)
+
+        else:
+            # Official OCIO ACES:
+
+            if color_space == 2:
+                setOCIODisplayViewSafe('ACES', 'sRGB', scene_viewer, viewport_settings)
+
+            elif color_space == 3:
+                setOCIODisplayViewSafe('ACES', 'Rec.709', scene_viewer, viewport_settings)
+
+            elif color_space == 4:
+                setOCIODisplayViewSafe('ACES', 'Rec.2020', scene_viewer, viewport_settings)
+
+            elif color_space == 5:
+                setOCIODisplayViewSafe('ACES', 'P3-DCI D65 simulation', scene_viewer, viewport_settings)
 
     fb_settings.beautyPassOnly(render_in_linear)
 
@@ -556,7 +555,7 @@ def renderFinalColor(node, single_pass = True, main_geometry = None):
 
         # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'FC.pic.gz')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_fc')
 
@@ -605,10 +604,10 @@ def renderSeparateAlphas(node, single_pass = True):
         # Starts the render
         print_progress = node.evalParm('printprogressofrops')
         rop_node = node.node(node.path() + '/opengl_vol_alpha')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         rop_node.render(ignore_inputs = True, ignore_bypass_flags = True, verbose = print_progress)
         rop_node = node.node(node.path() + '/opengl_nonvol_alpha')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         rop_node.render(ignore_inputs = True, ignore_bypass_flags = True, verbose = print_progress)
         updateTimeStamp(node, 'lb_timestamp_sa')
 
@@ -696,7 +695,7 @@ def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
     
         # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'NC.pic.gz')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_nc')
 
@@ -831,7 +830,7 @@ def renderMDC(node, single_pass = True):
         
         # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MDCa.pic.gz')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
     
         closeSceneViewer(scene_viewer)
@@ -855,7 +854,7 @@ def renderMDC(node, single_pass = True):
         
         # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MDCb.pic.gz')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
     
         closeSceneViewer(scene_viewer)
@@ -879,7 +878,7 @@ def renderMDC(node, single_pass = True):
         
         # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MDCc.pic.gz')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_mdc')
 
@@ -953,7 +952,7 @@ def renderSurfaceNormal(node, single_pass = True):
     
         # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'SN.pic.gz')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_sn')
 
@@ -1015,7 +1014,7 @@ def renderMotionVector(node, single_pass = True):
     
         # Starts the render
         fb_settings.output(node.evalParm('interdir') + 'MV.pic.gz')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         scene_viewer.flipbook(viewport_data['viewport'], fb_settings)
         updateTimeStamp(node, 'lb_timestamp_mv')
 
@@ -1061,7 +1060,7 @@ def renderDepth(node, single_pass = True):
         # Starts the render
         print_progress = node.evalParm('printprogressofrops')
         rop_node = node.node(node.path() + '/opengl_depth')
-        time.sleep(node.evalParm('warmuptime'))
+        sleep(node.evalParm('warmuptime'))
         rop_node.render(ignore_inputs = True, ignore_bypass_flags = True, verbose = print_progress)
         updateTimeStamp(node, 'lb_timestamp_d')
 
@@ -1191,28 +1190,22 @@ def setPreviewImage(node):
 
     ocio_env = hou.getenv('OCIO')
 
-    if ocio_env is not None and node.evalParm('colspace') > 1:
+    if node.evalParm('colspace') < 2 or ocio_env is None:
 
-        comp_viewer.setUsingOCIO(True)
-
-        sidefxlabs_env = hou.getenv('SIDEFXLABS')
-
-        if sidefxlabs_env is None:
-            sidefxlabs_env = ''
-
-        if ocio_env == sidefxlabs_env + '/misc/ocio/aces_config.ocio':
-            # Labs Minimal OCIO ACES:
-            comp_viewer.setOCIODisplayView('sRGB', 'Raw')
-
-        else:
-            # Official Full OCIO ACES:
-            comp_viewer.setOCIODisplayView('ACES', 'Raw')
+        comp_viewer.setUsingOCIO(False)
+        hou.hscript('colorsettings -g 1.0 -c')
 
     else:
 
-        comp_viewer.setUsingOCIO(False)
+        comp_viewer.setUsingOCIO(True)
 
-        hou.hscript('colorsettings -g 1.0 -c')
+        if '/misc/labs_ocio/aces_config.ocio' in ocio_env:
+            # Labs Minimal OCIO ACES:
+            setOCIODisplayViewSafe('sRGB', 'Raw', comp_viewer)
+
+        else:
+            # Official OCIO ACES:
+            setOCIODisplayViewSafe('ACES', 'Raw', comp_viewer)
 
     # Reloads dependent image files
     if preview_image == 1:
