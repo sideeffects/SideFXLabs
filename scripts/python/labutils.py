@@ -215,7 +215,7 @@ def manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.js
 
     if install == 1:
         create_directory_if_not_exists(os.path.dirname(destination))
-        shutil.copyfile(hou.text.expandString("$SIDEFXLABS/misc/ocio/Labs_OpenColorIO.json"), destination)
+        shutil.copyfile(hou.text.expandString("$SIDEFXLABS/misc/labs_ocio/Labs_OpenColorIO.json"), destination)
     else:
         if os.path.isfile(destination):
             os.remove(destination)
