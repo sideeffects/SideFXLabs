@@ -11,6 +11,7 @@ def ReportResult(hda_node, file, tag=None):
     return
 
     
+
 def switchMode(node):
 
     node.setParms({"override_pa": 0, "override_c": 0, "override_a": 0, "exportvtxcol": 0})
@@ -20,6 +21,7 @@ def switchMode(node):
 
     return 
     
+
 
 def toggleCustomShapes(node):
 
@@ -35,6 +37,7 @@ def toggleCustomShapes(node):
     return
     
     
+
 def cookAndRender(node):
 
     node.setParms({"enablecooking": 1})
@@ -42,6 +45,7 @@ def cookAndRender(node):
     node.parm("execute").pressButton()
     
     return
+
 
 
 def enableCooking(node):
@@ -52,6 +56,7 @@ def enableCooking(node):
         node.setParms({"persistliveupdate": 0})
     
     return
+
 
 
 def setCoordSystem(node):
@@ -71,6 +76,7 @@ def setCoordSystem(node):
         node.setParms({"coord_pos": 1, "coord_flip": 0, "coord_rot": 8})
 
     return
+
 
 
 def geoFileNameAppend(node):
@@ -103,6 +109,7 @@ def geoFileNameAppend(node):
     return
 
 
+
 def setSubDirectories(node):
 
     if hou.evalParm("addsubdir") == 0:
@@ -118,6 +125,7 @@ def setSubDirectories(node):
         node.parm("subdir_unity").revertToDefaults()
 
     return
+
 
 
 def resetInclude(node):
@@ -203,6 +211,7 @@ def resetInclude(node):
     return
 
 
+
 def postRender(node):
 
     node = hou.pwd().parent()
@@ -230,31 +239,60 @@ def postRender(node):
 
             embedded_data = ''
 
-            embedded_data += geo.attribValue("__max_z_data") + '\n'
+            # Unreal X
+            embedded_data += 'Texture Format / Position Texture Count / ' + '\n'
+            embedded_data += 'Animation UV Row Count Higher Part' + '\n'
             decoded = geo.attribValue("__bound_decoded")[2]
-            embedded_data += "{:.6f}".format(decoded) + ' [X] \n \n'
+            embedded_data += '{:.6f}'.format(decoded) + ' [X]'
 
+            uv_row_count_high = round(decoded * 100.0)
+
+            if uv_row_count_high % 25 < 0.05 or uv_row_count_high % 10 < 0.05:
+                uv_row_count_high = 0
+
+            else:
+                uv_row_count_high = 25 - abs(uv_row_count_high % 50 - 25)
+                uv_row_count_high -= uv_row_count_high // 10
+
+            embedded_data += ' / ' "{:.0f}".format(uv_row_count_high) + ' Hundred Rows \n \n'
+
+            # Unreal Y
             embedded_data += geo.attribValue("__max_y_data") + '\n'
             decoded = geo.attribValue("__bound_decoded")[1]
-            embedded_data += "{:.6f}".format(decoded) + ' [Y] \n \n'
+            embedded_data += '{:.6f}'.format(decoded) + ' [Y] \n \n'
 
+            # Unreal Z
             embedded_data += geo.attribValue("__max_x_data") + '\n'
             decoded = geo.attribValue("__bound_decoded")[0]
-            embedded_data += "{:.6f}".format(decoded) + ' [Z] \n \n'
+            embedded_data += '{:.6f}'.format(decoded) + ' [Z] \n \n'
 
+            # Unreal R
             embedded_data += geo.attribValue("__min_z_data") + '\n'
             decoded = geo.attribValue("__bound_decoded")[5]
-            embedded_data += "{:.6f}".format(decoded) + ' [R] \n \n'
+            embedded_data += '{:.6f}'.format(decoded) + ' [R] \n \n'
 
+            # Unreal G
             embedded_data += geo.attribValue("__min_x_data") + '\n'
             decoded = geo.attribValue("__bound_decoded")[3]
-            embedded_data += "{:.6f}".format(decoded) + ' [G] \n \n'
+            embedded_data += '{:.6f}'.format(decoded) + ' [G] \n \n'
 
-            embedded_data += 'Animation Frame Count / Data UV Point Row Count' + '\n'
-            decoded = size2 / geo.attribValue("__bound_decoded")[4]
-            embedded_data += "{:.6f}".format(decoded) + ' [B]'
-            decoded = geo.attribValue("__bound_decoded")[4]
-            embedded_data += ' / ' + "{:.0f}".format(decoded) + ' Row(s)'
+            # Unreal B
+            embedded_data += 'Animation Frame Count / ' + '\n'
+            embedded_data += 'Animation UV Row Count Lower Part' + '\n'
+            
+            uv_row_count_low = geo.attribValue("__bound_decoded")[4]
+            uv_row_count = uv_row_count_high * 100.0 + uv_row_count_low
+
+            if uv_row_count != 0:
+                decoded = size2 / uv_row_count
+
+            else:
+                decoded = -1
+
+            decoded = round(decoded)
+            embedded_data += "{:.0f}".format(decoded) + ' Frames [B]'
+            embedded_data += ' / ' "{:.0f}".format(uv_row_count_low) + ' Sub-hundred Row(s)'
+            embedded_data += ' / ' "{:.0f}".format(uv_row_count) + ' Total Row(s)'
             
             node.parm("embeddeddata").set(embedded_data)
 
@@ -269,6 +307,7 @@ def postRender(node):
     node.parm("previewtexsize").set(0)
 
     return
+
 
 
 def setEnginePreset(node):

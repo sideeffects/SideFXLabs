@@ -57,7 +57,7 @@ Compared to previous versions, VAT 3.0 offers more streamlined workflows, additi
     Render Pass:
         Dynamic Remeshing (Fluid) mode requires you to render output files in two separate passes in order to reduce the texture memory consumption. Leave this at "First Pass" when you are configuring the node's settings, and then press *Render All*. After the first pass is complete, change this to "Second Pass" and press *Render All* again. (Almost all other parameters are locked during the second pass, because you are not allowed to change setting between the two passes.) If *Preview Texture Size* is on, this parameter decides which pass's texture size to preview.
         <p>*First Pass*: renders Geometry, Lookup Table Texture, and optionally the Real-Time Data JSON file / the Unity Material file. </p>
-        <p>*Second Pass*: renders the animation data textures (i.e. Position Texture, Rotation Texture, Color Texture, etc.), which are much smaller in size than Lookup Table Texture.</p>
+        <p>*Second Pass*: renders the animation textures (i.e. Position Texture, Rotation Texture, Color Texture, etc.), which are much smaller in size than Lookup Table Texture.</p>
     Enable Fuse:
         Turn this off if you do not want to fuse any points.
     Fuse Point Group:
@@ -118,15 +118,17 @@ Compared to previous versions, VAT 3.0 offers more streamlined workflows, additi
     In Color Alpha:
         A custom float attribute you want to export through Color Texture's alpha channel. This attribute does not undergo any transform, conversion, or normalization. If the attribute has values outside the 0-1 range, set Texture Format to "HDR". If you have to use a non-HDR texture, you can pre-normalize the attributes in the input geometry and manually reverse the normalization in the real-time shader.
     Lookup Table Width:
-        The target width of Lookup Table Texture. In Dynamic Remeshing (Fluid) mode, *Target Texture Width* can generally be less than half of this value, as Lookup Table Texture tends to be many times larger than the animation data textures.  
+        The target width of Lookup Table Texture. In Dynamic Remeshing (Fluid) mode, Lookup Table Texture tends to be many times larger than the animation textures, so you can set *Target Texture Width* to be roughly 50% or 25% of this value.
+        <p>In Dynamic Remeshing (Fluid) mode, the max possible triangles (non-triangulated input polygons will be triangulated by this node) you can have on any frame is this value multiplied by 660. 660 is the hard upper limit of the animation UV row count 1980 divided by 3.</p>
         <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is much larger than 4096, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
     Target Texture Width:
         The target width of the output textures. If there are fewer data points per frame than this value, the output textures use the number of data points as their widths.
+        <p>The max possible points you can have on any frame is this value multiplied by 1980. 1980 is the hard upper limit of the animation UV row count.</p>
         <p>You can turn on *Preview Texture Size* to help you decide this value. Try to avoid creating textures that are too wide and short, or too narrow and tall. In Unreal Engine, if either the texture width or the height is much larger than 4096 and the animation has glitches, consider turning on *Use Full Precision UVs* in Mesh Editor if the animation has glitches.</p>
     Preview Texture Size (Slow):
         Turn this on to interactively preview the output texture size. It is somewhat slow because every time you toggle this on or some upstream parameter updates, the node will need to recheck the input geometry on every frame of the export frame range. But once it is on, updating Target Texture Width will have instant feedback. In Dynamic Remeshing (Fluid) mode, the two passes have two different texture sizes, so which preview size is displayed depends on *Render Pass*.
     Pad Texture Size to Powers of Two:
-        You normally do not need to pad animation data textures to powers of two in dimensions, because as data textures, they should not be streamed. But if the target engine or hardware only accepts powers of two textures, turn this on. In Unreal Engine, sometimes there are issues with power-of-two textures that have data in their alpha channels, in which case, consider using the HDR compression setting in engine even if you exported those textures in non-HDR formats in Houdini.
+        You normally do not need to pad animation textures to powers of two in dimensions, because as data textures, they should not be streamed. But if the target engine or hardware only accepts powers of two textures, turn this on. In Unreal Engine, sometimes there are issues with power-of-two textures that have data in their alpha channels, in which case, consider using the HDR compression setting in engine even if you exported those textures in non-HDR formats in Houdini.
     ==Input==
     TIP:
         Follow the input requirement checklist, which is specific to the current mode and target engine. Expand Legend to see more information.
