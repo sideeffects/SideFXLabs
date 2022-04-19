@@ -152,7 +152,7 @@ def mat_update(node):
 
     if os.path.isfile(path) :
 
-        _mName      = node.evalParm("assetname") + 'vertex'
+        _mName      = node.evalParm("assetname") + '_mat'
         _boundMaxX  = str(geo.attribValue("__converted_max_x"))
         _boundMaxY  = str(geo.attribValue("__converted_max_y"))
         _boundMaxZ  = str(geo.attribValue("__converted_max_z"))
