@@ -32,17 +32,19 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.5 -1.15
-connectornextid 0
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+position -0.5 -4.15
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
 }
 inputsNamed3
 {
+0 	loops_from_selection1 1 1 "input1"
 }
 inputs
 {
+0 	loops_from_selection1 0 1
 }
 stat
 {
@@ -129,7 +131,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector points "Modify Points"
+            bindselector uvselect "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -180,14 +182,14 @@ Content-Type: text/plain
         }
         parm {
             name    "select_length"
-            label   "Select Length"
+            label   "Select"
             type    integer
             default { "0" }
             range   { 0 10 }
         }
         parm {
             name    "skip_length"
-            label   "Skip Length"
+            label   "Skip"
             type    integer
             default { "0" }
             range   { 0 10 }
@@ -411,128 +413,271 @@ if (max_iteration < 1) {
 }
 
 int iteration = 0;
-
-int apply_pattern = chi(\"apply_pattern\");
-int pattern_offset = chi(\"pattern_offset\");
-int select_length = chi(\"select_length\");
-int skip_length = chi(\"skip_length\");
-int period = select_length + skip_length;
-
-int start_pt0 = point(1, \"__index\", 0);
-int start_pt1 = point(1, \"__index\", 1);
+int start_pt0 = point(1, \"_lfs_index\", 0);
+int start_pt1 = point(1, \"_lfs_index\", 1);
 
 string group_name = chs(\"group_name\");
 int create_group_per_loop = chi(\"create_group_per_loop\");
-int edge_index = point(1, \"__edge_index\", 0);
-
+int loop_index = point(1, \"_lfs_loop_index\", 0);
 int quads_only = chi(\"quads_only\");
 
-int start_hedge0 = pointhedge(0, start_pt0, start_pt1);
-int start_hedge1 = pointhedge(0, start_pt1, start_pt0);
+int apply_pattern = chi(\"apply_pattern\");
+int pattern_offset, select_length, skip_length, period;
 
-int hedge = start_hedge0;
-int prim;
+if (apply_pattern) {
+
+    pattern_offset = chi(\"pattern_offset\");
+    select_length = chi(\"select_length\");
+    skip_length = chi(\"skip_length\");
+    period = select_length + skip_length;
+}
+
+// The two search directions are identified as a and b.
+int a_this_hedge = -1;
+int b_this_hedge = -1;
 
 // Should keep going: 0
-// Current primitive is not a quad: -1
-// Next hedge is the start hedge: 1
-// Max iteration is reached: 2
-int termination_code = 0;
+// The loop is complete: 1
+// There is no next hedge: 2
+// Terminated at a non-quad: 3
+// Terminated before a non-quad: 4
+// The max iteration is reached: 10
+// There is no face attached to this edge: -1
+// The mesh is non-manifold at this edge: -3
+int a_termination_code = 0;
+int b_termination_code = 0;
 
-// Searches in the first direction
-do {
+// For one of the directions, looks for a valid hedge corresponding to this edge
 
-    prim = hedge_prim(0, hedge);
-    setprimgroup(0, group_name, prim, 1, \"set\");
+a_this_hedge = pointhedge(0, start_pt0, start_pt1);
 
-    if (create_group_per_loop) {
-        setprimgroup(0, group_name + itoa(edge_index), prim, 1, \"set\");
+if (a_this_hedge == -1) {
+
+    a_this_hedge = pointhedge(0, start_pt1, start_pt0);
+
+    if (a_this_hedge == -1) {
+        error(\"There is no edge between points %d and %d.\", start_pt0, start_pt1);
+        return;
     }
+}
 
-    if (len(primpoints(0, prim)) != 4) {
+// If the start edge is valid, looks for a valid hedge for the other direction
 
-        termination_code = -1;
+int start_hedge_equivcount = hedge_equivcount(0, a_this_hedge);
 
-        if (quads_only) {
+if (start_hedge_equivcount == 2) {
 
-            setprimgroup(0, group_name, prim, 0, \"set\");
+    b_this_hedge = hedge_nextequiv(0, a_this_hedge);
 
-            if (create_group_per_loop) {
-                setprimgroup(0, group_name + itoa(edge_index), prim, 0, \"set\");
-            }
-        }
+} else if (start_hedge_equivcount == 1) {
+
+    if (hedge_presrcpoint(0, a_this_hedge) != -1) {
+        b_termination_code = 2;
 
     } else {
+        a_termination_code = -1;
+        b_termination_code = -1;
+    }
 
-        hedge = hedge_next(0, hedge_next(0, hedge));
-        hedge = hedge_nextequiv(0, hedge);
+} else {
 
-        if (hedge == start_hedge0) {
-            termination_code = 1;
+    a_termination_code = -3;
+    b_termination_code = -3;
+}
+
+// Attempts to complete the loop from both directions
+while (a_termination_code == 0 || b_termination_code == 0) {
+
+    if (a_termination_code == 0) {
+
+        // Selects this prim according to the termination rule and the pattern.
+        // If this prim is a quad, attempts to find the next hedge.
+
+        int prim = hedge_prim(0, a_this_hedge);
+
+        if (primvertexcount(0, prim) == 4) {
+            // This prim is a quad:
+
+            if (!apply_pattern) {
+
+                setprimgroup(0, group_name, prim, 1);
+
+                if (create_group_per_loop) {
+                    setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                }
+
+            } else {
+
+                if ((iteration + pattern_offset) % period < select_length) {
+
+                    setprimgroup(0, group_name, prim, 1);
+
+                    if (create_group_per_loop) {
+                        setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                    }
+                }
+            }
+
+            a_this_hedge = hedge_next(0, hedge_next(0, a_this_hedge));
+
+            if (a_this_hedge != b_this_hedge) {
+
+                int hedge_equivcount = hedge_equivcount(0, a_this_hedge);
+
+                if (hedge_equivcount == 2) {
+                    a_this_hedge = hedge_nextequiv(0, a_this_hedge);
+
+                } else if (hedge_equivcount == 1) {
+                    a_termination_code = 2;
+
+                } else {
+                    a_termination_code = -3;
+                }
+
+            } else {
+
+                a_termination_code = 1;
+                b_termination_code = 1;
+            }
+
+        } else {
+            // This prim is not a quad:
+
+            if (!quads_only) {
+
+                if (!apply_pattern) {
+
+                    setprimgroup(0, group_name, prim, 1);
+
+                    if (create_group_per_loop) {
+                        setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                    }
+
+                } else {
+
+                    if ((iteration + pattern_offset) % period < select_length) {
+
+                        setprimgroup(0, group_name, prim, 1);
+
+                        if (create_group_per_loop) {
+                            setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                        }
+                    }
+                }
+
+                a_termination_code = 3;
+
+            } else {
+
+                a_termination_code = 4;
+            }
+        }
+    }
+
+    if (b_termination_code == 0) {
+
+        // Selects this prim according to the termination rule and the pattern.
+        // If this prim is a quad, attempts to find the next hedge.
+
+        int prim = hedge_prim(0, b_this_hedge);
+
+        if (primvertexcount(0, prim) == 4) {
+            // This prim is a quad:
+
+            if (!apply_pattern) {
+
+                setprimgroup(0, group_name, prim, 1);
+
+                if (create_group_per_loop) {
+                    setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                }
+
+            } else {
+
+                if ((-iteration - 1 + pattern_offset) % period < select_length) {
+
+                    setprimgroup(0, group_name, prim, 1);
+
+                    if (create_group_per_loop) {
+                        setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                    }
+                }
+            }
+
+            b_this_hedge = hedge_next(0, hedge_next(0, b_this_hedge));
+
+            if (b_this_hedge != a_this_hedge) {
+
+                int hedge_equivcount = hedge_equivcount(0, b_this_hedge);
+
+                if (hedge_equivcount == 2) {
+                    b_this_hedge = hedge_nextequiv(0, b_this_hedge);
+
+                } else if (hedge_equivcount == 1) {
+                    b_termination_code = 2;
+
+                } else {
+                    b_termination_code = -3;
+                }
+
+            } else {
+
+                a_termination_code = 1;
+                b_termination_code = 1;
+            }
+
+        } else {
+            // This prim is not a quad:
+
+            if (!quads_only) {
+
+                if (!apply_pattern) {
+
+                    setprimgroup(0, group_name, prim, 1);
+
+                    if (create_group_per_loop) {
+                        setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                    }
+
+                } else {
+
+                    if ((-iteration - 1 + pattern_offset) % period < select_length) {
+
+                        setprimgroup(0, group_name, prim, 1);
+
+                        if (create_group_per_loop) {
+                            setprimgroup(0, group_name + itoa(loop_index), prim, 1);
+                        }
+                    }
+                }
+
+                b_termination_code = 3;
+
+            } else {
+
+                b_termination_code = 4;
+            }
         }
     }
 
     iteration ++;
 
-    if (termination_code == 0 && iteration >= max_iteration) {
-        termination_code = 2;
+    if (iteration >= max_iteration) {
+        a_termination_code = a_termination_code == 0 ? 10 : a_termination_code;
+        b_termination_code = b_termination_code == 0 ? 10 : b_termination_code;
     }
-
-} while (termination_code == 0);
-
-
-if (termination_code == -1 || termination_code == 2) {
-
-    hedge = start_hedge1;
-    iteration = 0;
-    termination_code = 0;
-
-    // Searches in the second direction
-    do {
-
-        prim = hedge_prim(0, hedge);
-        setprimgroup(0, group_name, prim, 1, \"set\");
-
-        if (create_group_per_loop) {
-            setprimgroup(0, group_name + itoa(edge_index), prim, 1, \"set\");
-        }
-
-        if (len(primpoints(0, prim)) != 4) {
-
-            termination_code = -1;
-
-            if (quads_only) {
-
-                setprimgroup(0, group_name, prim, 0, \"set\");
-
-                if (create_group_per_loop) {
-                    setprimgroup(0, group_name + itoa(edge_index), prim, 0, \"set\");
-                }
-            }
-
-        } else {
-
-            hedge = hedge_next(0, hedge_next(0, hedge));
-            hedge = hedge_nextequiv(0, hedge);
-
-            if (hedge == start_hedge1) {
-                termination_code = 1;
-            }
-        }
-
-        iteration ++;
-
-        if (termination_code == 0 && iteration >= max_iteration) {
-            termination_code = 2;
-        }
-
-    } while (termination_code == 0);
 }
 
-
 // DEBUG ONLY
-//i@termination_code = termination_code;
-//i@iterations = iteration;"	)
+/*
+i[]@code = {};
+append(i[]@code, a_termination_code);
+append(i[]@code, b_termination_code);
+i[]@hedges = {};
+append(i[]@hedges, a_this_hedge);
+append(i[]@hedges, b_this_hedge);
+i@iterations = iteration;
+*/"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -635,7 +780,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-groupname	[ 0	locks=0 ]	(	__start_edge	)
+groupname	[ 0	locks=0 ]	(	_lfs_start_edge	)
 grouptype	[ 0	locks=0 ]	(	"edge"	)
 mergeop	[ 0	locks=0 ]	(	"replace"	)
 folder0	[ 0	locks=0 ]	(	0	)
@@ -700,7 +845,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 3.5 -3.15
+position 5.5 -3.15
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight on unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -737,9 +882,9 @@ promotions	[ 0	locks=0 ]	(	1	)
 enable1	[ 0	locks=0 ]	(	"on"	)
 fromtype1	[ 0	locks=0 ]	(	"edges"	)
 totype1	[ 0	locks=0 ]	(	"points"	)
-group1	[ 0	locks=0 ]	(	__start_edge	)
-newname1	[ 0	locks=0 ]	(	""	)
-preserve1	[ 0	locks=0 ]	(	"off"	)
+group1	[ 0	locks=0 ]	(	_lfs_start_edge	)
+newname1	[ 0	locks=0 ]	(	_lfs_start_pt	)
+preserve1	[ 0	locks=0 ]	(	"on"	)
 onlyboundary1	[ 0	locks=0 ]	(	"off"	)
 includeunshared1	[ 0	locks=0 ]	(	"on"	)
 useconnectivityattrib1	[ 0	locks=0 ]	(	"off"	)
@@ -762,14 +907,14 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/isolate_start_edge.init"
+Content-Disposition: attachment; filename="hdaroot/isolate_start_pt.init"
 Content-Type: text/plain
 
 type = blast
 matchesdef = 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/isolate_start_edge.def"
+Content-Disposition: attachment; filename="hdaroot/isolate_start_pt.def"
 Content-Type: text/plain
 
 sopflags sopflags = 
@@ -802,12 +947,12 @@ exprlanguage hscript
 end
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/isolate_start_edge.parm"
+Content-Disposition: attachment; filename="hdaroot/isolate_start_pt.parm"
 Content-Type: text/plain
 
 {
 version 0.8
-group	[ 0	locks=0 ]	(	__start_edge	)
+group	[ 0	locks=0 ]	(	_lfs_start_pt	)
 grouptype	[ 0	locks=0 ]	(	"points"	)
 computenorms	[ 0	locks=0 ]	(	"off"	)
 negate	[ 0	locks=0 ]	(	"on"	)
@@ -816,7 +961,7 @@ removegrp	[ 0	locks=0 ]	(	"off"	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/isolate_start_edge.userdata"
+Content-Disposition: attachment; filename="hdaroot/isolate_start_pt.userdata"
 Content-Type: text/plain
 
 {
@@ -877,7 +1022,7 @@ grouptype	[ 0	locks=0 ]	(	"point"	)
 usepieceattrib	[ 0	locks=0 ]	(	"off"	)
 pieceattrib	[ 0	locks=0 ]	(	name	)
 piecemode	[ 0	locks=0 ]	(	"elements"	)
-attribname	[ 0	locks=0 ]	(	__index	)
+attribname	[ 0	locks=0 ]	(	_lfs_index	)
 attribtype	[ 0	locks=0 ]	(	"int"	)
 prefix	[ 0	locks=0 ]	(	piece	)
 }
@@ -948,7 +1093,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector points "Modify Points"
+            bindselector uvselect "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -999,14 +1144,14 @@ Content-Type: text/plain
         }
         parm {
             name    "select_length"
-            label   "Select Length"
+            label   "Select"
             type    integer
             default { "0" }
             range   { 0 10 }
         }
         parm {
             name    "skip_length"
-            label   "Skip Length"
+            label   "Skip"
             type    integer
             default { "0" }
             range   { 0 10 }
@@ -1213,214 +1358,292 @@ vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"int max_iteration = chi(\"max_iteration\");
 
+// When 'max_iteration' is zero, the start edges will not
+// be selected. If the start edges are always selected, then
+// we can't correctly offset the selection pattern.
 if (max_iteration < 1) {
     return;
 }
 
 int iteration = 0;
-
-int apply_pattern = chi(\"apply_pattern\");
-int pattern_offset = chi(\"pattern_offset\");
-int select_length = chi(\"select_length\");
-int skip_length = chi(\"skip_length\");
-int period = select_length + skip_length;
-
-int start_pt0 = point(1, \"__index\", 0);
-int start_pt1 = point(1, \"__index\", 1);
+int start_pt0 = point(1, \"_lfs_index\", 0);
+int start_pt1 = point(1, \"_lfs_index\", 1);
 
 string group_name = chs(\"group_name\");
 int create_group_per_loop = chi(\"create_group_per_loop\");
-int edge_index = point(1, \"__edge_index\", 0);
+int loop_index = point(1, \"_lfs_loop_index\", 0);
 
-if (apply_pattern) {
+int apply_pattern = chi(\"apply_pattern\");
+int pattern_offset, select_length, skip_length, period;
 
-    if ((iteration + pattern_offset) % period < select_length) {
-        setedgegroup(0, group_name, start_pt0, start_pt1, 1);
+// Selects the start edges according to the pattern
+if (!apply_pattern) {
+
+    setedgegroup(0, group_name, start_pt0, start_pt1, 1);
+
+    if (create_group_per_loop) {
+        setedgegroup(0, group_name + itoa(loop_index), start_pt0, start_pt1, 1);
     }
 
 } else {
 
-    setedgegroup(0, group_name, start_pt0, start_pt1, 1);
-}
+    pattern_offset = chi(\"pattern_offset\");
+    select_length = chi(\"select_length\");
+    skip_length = chi(\"skip_length\");
+    period = select_length + skip_length;
 
+    if ((iteration + pattern_offset) % period < select_length) {
 
-if (create_group_per_loop) {
-    setedgegroup(0, group_name + itoa(edge_index), start_pt0, start_pt1, 1);
-}
-
-int prev_point = start_pt1;
-int this_point = start_pt0;
-int next_point = -1;
-
-int neighbour_pts[];
-int parallel_prims[];
-int parallel_pts[];
-
-// Should keep going: 0
-// There is not one and only one non-parallel neighbour point: -1
-// Next point is the other start point: 1
-// Max iteration is reached: 2
-int termination_code = 0;
-
-// Searches in the first direction
-while (termination_code == 0) {
-
-    // Builds the parallel points array
-
-    parallel_prims = pointprims(0, prev_point);
-    parallel_pts = {};
-
-    foreach (int prim; parallel_prims) {
-        append(parallel_pts, primpoints(0, prim));
-    }
-
-    // Loops through each neighbour point to see
-    // if there is one and only one non-parallel next point
-
-    neighbour_pts = neighbours(0, this_point);
-    int count = 0;
-
-    foreach (int pt; neighbour_pts) {
-
-        // Checks if this neighbour point is
-        // in the parallel points array
-
-        int in_parallel_pts = 0;
-
-        foreach (int parallel_pt; parallel_pts) {
-
-            if (parallel_pt == pt) {
-
-                in_parallel_pts = 1;
-                break;
-            }
-        }
-
-        if (in_parallel_pts == 0) {
-
-            next_point = pt;
-            count ++;
-        }
-    }
-
-    if (count == 1) {
-
-        if (apply_pattern) {
-
-            if ((iteration + pattern_offset) % period < select_length) {
-                setedgegroup(0, group_name, start_pt0, start_pt1, 1);
-            }
-
-        } else {
-
-            setedgegroup(0, group_name, start_pt0, start_pt1, 1);
-        }
+        setedgegroup(0, group_name, start_pt0, start_pt1, 1);
 
         if (create_group_per_loop) {
-            setedgegroup(0, group_name + itoa(edge_index), this_point, next_point, 1);
+            setedgegroup(0, group_name + itoa(loop_index), start_pt0, start_pt1, 1);
         }
-
-        prev_point = this_point;
-        this_point = next_point;
-
-        if (next_point == start_pt1) {
-            termination_code = 1;
-        }
-
-    } else {
-
-        termination_code = -1;
     }
+}
+
+if (max_iteration == 1) {
+    return;
+}
+
+max_iteration --;
+
+// The two search directions are identified as a and b.
+int a_prev_pt = start_pt0;
+int a_this_pt = start_pt1;
+int a_next_pt = -1;
+int b_prev_pt = start_pt1;
+int b_this_pt = start_pt0;
+int b_next_pt = -1;
+
+// Should keep going: 0
+// The loop is complete: 1
+// There is no unique valid next point: 2
+// The max iteration is reached: 10
+// There is no face attached to this edge: -1
+// The mesh is non-manifold at this edge: -3
+int a_termination_code = 0;
+int b_termination_code = 0;
+
+// Attempts to complete the loop from both directions
+while (a_termination_code == 0 || b_termination_code == 0) {
 
     iteration ++;
 
-    if (termination_code == 0 && iteration >= max_iteration) {
-        termination_code = 2;
-    }
-}
+    if (a_termination_code == 0) {
 
+        // Looks for a valid hedge corresponding to this edge
 
-if (termination_code == -1 || termination_code == 2) {
+        int hedge = pointhedge(0, a_prev_pt, a_this_pt);
 
-    prev_point = start_pt0;
-    this_point = start_pt1;
-    next_point = -1;
-    iteration = 0;
-    termination_code = 0;
+        if (hedge == -1) {
 
-    // Searches in the second direction
-    while (termination_code == 0) {
+            hedge = pointhedge(0, a_this_pt, a_prev_pt);
 
-        // Builds the parallel points array
-
-        parallel_prims = pointprims(0, prev_point);
-        parallel_pts = {};
-
-        foreach (int prim; parallel_prims) {
-            append(parallel_pts, primpoints(0, prim));
+            if (hedge == -1) {
+                error(\"There is no edge between points %d and %d.\", a_prev_pt, a_this_pt);
+                return;
+            }
         }
 
-        // Loops through each neighbour point to see
-        // if there is one and only one non-parallel next point
+        // Looks for a unique valid next edge to potentially select
 
-        neighbour_pts = neighbours(0, this_point);
-        int count = 0;
+        int hedge_equivcount = hedge_equivcount(0, hedge);
 
-        foreach (int pt; neighbour_pts) {
+        if (hedge_equivcount < 3) {
 
-            // Checks if this neighbour point is
-            // in the parallel points array
-
-            int in_parallel_pts = 0;
-
-            foreach (int parallel_pt; parallel_pts) {
-
-                if (parallel_pt == pt) {
-
-                    in_parallel_pts = 1;
-                    break;
+            if (hedge_equivcount == 1) {
+                if (hedge_presrcpoint(0, hedge) == -1) {
+                    a_termination_code = -1;
                 }
             }
 
-            if (in_parallel_pts == 0) {
+            if (a_termination_code == 0) {
 
-                next_point = pt;
-                count ++;
-            }
-        }
+                // Builds the invalid point array
 
-        if (count == 1) {
+                int invalid_pts[] = {};
+                append(invalid_pts, a_prev_pt);
 
-            setedgegroup(0, group_name, this_point, next_point, 1);
+                for (int i = 0; i < hedge_equivcount; i ++) {
+                    append(invalid_pts, hedge_presrcpoint(0, hedge));
+                    append(invalid_pts, hedge_postdstpoint(0, hedge));
+                    hedge = hedge_nextequiv(0, hedge);
+                }
 
-            if (create_group_per_loop) {
-                setedgegroup(0, group_name + itoa(edge_index), this_point, next_point, 1);
-            }
+                // Looks for valid next points from neighbour points
 
-            prev_point = this_point;
-            this_point = next_point;
+                int neighbour_pts[] = neighbours(0, a_this_pt);
+                int count = 0;
 
-            if (next_point == start_pt0) {
-                termination_code = 1;
+                foreach (int neighbour_pt; neighbour_pts) {
+
+                    if (find(invalid_pts, neighbour_pt) < 0) {
+                        a_next_pt = neighbour_pt;
+                        count ++;
+                    }
+                }
+
+                // If this is a unique valid next point, selects
+                // the corresponding edge according to the pattern
+
+                if (count == 1) {
+
+                    if (!apply_pattern) {
+
+                        setedgegroup(0, group_name, a_this_pt, a_next_pt, 1);
+
+                        if (create_group_per_loop) {
+                            setedgegroup(0, group_name + itoa(loop_index), a_this_pt, a_next_pt, 1);
+                        }
+
+                    } else {
+
+                        if ((iteration + pattern_offset) % period < select_length) {
+
+                            setedgegroup(0, group_name, a_this_pt, a_next_pt, 1);
+
+                            if (create_group_per_loop) {
+                                setedgegroup(0, group_name + itoa(loop_index), a_this_pt, a_next_pt, 1);
+                            }
+                        }
+                    }
+
+                    a_prev_pt = a_this_pt;
+                    a_this_pt = a_next_pt;
+
+                    if (a_this_pt == b_this_pt) {
+                        a_termination_code = 1;
+                        b_termination_code = 1;
+                    }
+
+                } else {
+
+                    a_termination_code = 2;
+                }
             }
 
         } else {
 
-            termination_code = -1;
+            a_termination_code = -3;
+        }
+    }
+
+    if (b_termination_code == 0) {
+
+        // Looks for a valid hedge corresponding to this edge
+
+        int hedge = pointhedge(0, b_prev_pt, b_this_pt);
+
+        if (hedge == -1) {
+
+            hedge = pointhedge(0, b_this_pt, b_prev_pt);
+
+            if (hedge == -1) {
+                error(\"There is no edge between points %d and %d.\", b_prev_pt, b_this_pt);
+                return;
+            }
         }
 
-        iteration ++;
+        // Looks for a unique valid next edge to potentially select
 
-        if (termination_code == 0 && iteration >= max_iteration) {
-            termination_code = 2;
+        int hedge_equivcount = hedge_equivcount(0, hedge);
+
+        if (hedge_equivcount < 3) {
+
+            if (hedge_equivcount == 1) {
+                if (hedge_presrcpoint(0, hedge) == -1) {
+                    b_termination_code = -1;
+                }
+            }
+
+            if (b_termination_code == 0) {
+
+                // Builds the invalid point array
+
+                int invalid_pts[] = {};
+                append(invalid_pts, b_prev_pt);
+
+                for (int i = 0; i < hedge_equivcount; i ++) {
+                    append(invalid_pts, hedge_presrcpoint(0, hedge));
+                    append(invalid_pts, hedge_postdstpoint(0, hedge));
+                    hedge = hedge_nextequiv(0, hedge);
+                }
+
+                // Looks for valid next points from neighbour points
+
+                int neighbour_pts[] = neighbours(0, b_this_pt);
+                int count = 0;
+
+                foreach (int neighbour_pt; neighbour_pts) {
+
+                    if (find(invalid_pts, neighbour_pt) < 0) {
+                        b_next_pt = neighbour_pt;
+                        count ++;
+                    }
+                }
+
+                // If this is a unique valid next point, selects
+                // the corresponding edge according to the pattern
+
+                if (count == 1) {
+
+                    if (!apply_pattern) {
+
+                        setedgegroup(0, group_name, b_this_pt, b_next_pt, 1);
+
+                        if (create_group_per_loop) {
+                            setedgegroup(0, group_name + itoa(loop_index), b_this_pt, b_next_pt, 1);
+                        }
+
+                    } else {
+
+                        if ((-iteration + pattern_offset) % period < select_length) {
+
+                            setedgegroup(0, group_name, b_this_pt, b_next_pt, 1);
+
+                            if (create_group_per_loop) {
+                                setedgegroup(0, group_name + itoa(loop_index), b_this_pt, b_next_pt, 1);
+                            }
+                        }
+                    }
+
+                    b_prev_pt = b_this_pt;
+                    b_this_pt = b_next_pt;
+
+                    if (b_this_pt == a_this_pt) {
+                        a_termination_code = 1;
+                        b_termination_code = 1;
+                    }
+
+                } else {
+
+                    b_termination_code = 2;
+                }
+            }
+
+        } else {
+
+            b_termination_code = -3;
         }
+    }
+
+    if (iteration >= max_iteration) {
+        a_termination_code = a_termination_code == 0 ? 10 : a_termination_code;
+        b_termination_code = b_termination_code == 0 ? 10 : b_termination_code;
     }
 }
 
-
 // DEBUG ONLY
-//i@termination_code = termination_code;
-//i@iterations = iteration;"	)
+/*
+i[]@code = {};
+append(i[]@code, a_termination_code);
+append(i[]@code, b_termination_code);
+i[]@end_pts = {};
+append(i[]@end_pts, a_this_pt);
+append(i[]@end_pts, b_this_pt);
+i@iterations = iteration + 1;
+*/"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -1694,86 +1917,6 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edgegroup_to_curve1.init"
-Content-Type: text/plain
-
-type = labs::edgegroup_to_curve::1.0
-matchesdef = 1
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edgegroup_to_curve1.def"
-Content-Type: text/plain
-
-sopflags sopflags = 
-comment ""
-position 7.5 -3.15
-connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
-outputsNamed3
-{
-1 "output1"
-}
-inputsNamed3
-{
-0 	start_edge_count 1 1 "input1"
-}
-inputs
-{
-0 	start_edge_count 0 1
-}
-stat
-{
-  create -1
-  modify -1
-  author maia@truro
-  access 0777
-}
-color UT_Color RGB 0.8 0.8 0.8 
-delscript ""
-exprlanguage hscript
-end
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edgegroup_to_curve1.parm"
-Content-Type: text/plain
-
-{
-version 0.8
-group	[ 0	locks=0 ]	(	__start_edge	)
-connectends	[ 0	locks=0 ]	(	"off"	)
-folder0	[ 0	locks=0 ]	(	0	)
-add_polywire	[ 0	locks=0 ]	(	"off"	)
-divs	[ 0	locks=0 ]	(	9	)
-polywire_color	[ 0	locks=0 ]	(	1	0	0	1	)
-poly_wire_thickness	[ 0	locks=0 ]	(	0.01	)
-folder1	[ 0	locks=0 ]	(	0	)
-transferattr	[ 0	locks=0 ]	(	"off"	)
-pointattribs	[ 0	locks=0 ]	(	""	)
-vertattribs	[ 0	locks=0 ]	(	""	)
-primattribs	[ 0	locks=0 ]	(	""	)
-detailattribs	[ 0	locks=0 ]	(	""	)
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edgegroup_to_curve1.userdata"
-Content-Type: text/plain
-
-{
-	"___Version___":{
-		"type":"string",
-		"value":"___EXTERNAL___"
-	},
-	"___toolcount___":{
-		"type":"string",
-		"value":"1"
-	},
-	"___toolid___":{
-		"type":"string",
-		"value":"paste_nodes"
-	}
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/start_edge_count.init"
 Content-Type: text/plain
 
@@ -1825,7 +1968,7 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"detail"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"i@__start_edge_count = nedgesgroup(0, \"__start_edge\");"	)
+snippet	[ 0	locks=0 ]	(	"i@_lfs_start_edge_count = nedgesgroup(0, \"_lfs_start_edge\");"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -1853,19 +1996,19 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/connectivity1.init"
+Content-Disposition: attachment; filename="hdaroot/loop_indices.init"
 Content-Type: text/plain
 
 type = connectivity
 matchesdef = 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/connectivity1.def"
+Content-Disposition: attachment; filename="hdaroot/loop_indices.def"
 Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 7.5 -6.15
+position 7.5 -7.15
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -1893,13 +2036,13 @@ exprlanguage hscript
 end
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/connectivity1.parm"
+Content-Disposition: attachment; filename="hdaroot/loop_indices.parm"
 Content-Type: text/plain
 
 {
 version 0.8
 connecttype	[ 0	locks=0 ]	(	"point"	)
-attribname	[ 0	locks=0 ]	(	__edge_index	)
+attribname	[ 0	locks=0 ]	(	_lfs_loop_index	)
 attribtype	[ 0	locks=0 ]	(	"int"	)
 prefix	[ 0	locks=0 ]	(	piece	)
 createvarmap	[ 0	locks=0 ]	(	"off"	)
@@ -1910,7 +2053,7 @@ uvattrib	[ 0	locks=0 ]	(	uv	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/connectivity1.userdata"
+Content-Disposition: attachment; filename="hdaroot/loop_indices.userdata"
 Content-Type: text/plain
 
 {
@@ -1933,7 +2076,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 7.5 -5.15
+position 7.5 -6.15
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -1942,11 +2085,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	convertline1 1 1 "input1"
+0 	isolate_start_edge_new 1 1 "input1"
 }
 inputs
 {
-0 	convertline1 0 1
+0 	isolate_start_edge_new 0 1
 }
 stat
 {
@@ -1993,67 +2136,6 @@ Content-Type: text/plain
 	"___Version___":{
 		"type":"string",
 		"value":"___EXTERNAL___"
-	}
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/convertline1.init"
-Content-Type: text/plain
-
-type = convertline
-matchesdef = 1
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/convertline1.def"
-Content-Type: text/plain
-
-sopflags sopflags = 
-comment ""
-position 7.5 -4.15
-connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
-outputsNamed3
-{
-1 "output1"
-}
-inputsNamed3
-{
-0 	edgegroup_to_curve1 1 1 "input1"
-}
-inputs
-{
-0 	edgegroup_to_curve1 0 1
-}
-stat
-{
-  create -1
-  modify -1
-  author maia@truro
-  access 0777
-}
-color UT_Color RGB 0.8 0.8 0.8 
-delscript ""
-exprlanguage hscript
-end
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/convertline1.parm"
-Content-Type: text/plain
-
-{
-version 0.8
-computelength	[ 0	locks=0 ]	(	"off"	)
-lengthname	[ 0	locks=0 ]	(	restlength	)
-}
-
---HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/convertline1.userdata"
-Content-Type: text/plain
-
-{
-	"___Version___":{
-		"type":"string",
-		"value":""
 	}
 }
 
@@ -2227,7 +2309,7 @@ Content-Type: text/plain
       righttype = extend
       default = 3
       flags = 0
-      segment { length = 0 value = 3 3 expr = "detail(-1, \"__start_edge_count\", 0)" }
+      segment { length = 0 value = 3 3 expr = "detail(-1, \"_lfs_start_edge_count\", 0)" }
     }
   }
 
@@ -2281,7 +2363,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.4984 -9.1528
+position -0.4984 -10.1528
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -2439,7 +2521,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 1.5016 -10.1528
+position 9.5016 -10.1528
 connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -2500,7 +2582,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 3.5 -11.15
+position 5.5 -11.15
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -2587,7 +2669,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-group	[ 0	locks=0 ]	(	"@__edge_index==`detail(-1, \"iteration\", 0)`"	)
+group	[ 0	locks=0 ]	(	"@_lfs_loop_index==`detail(-1, \"iteration\", 0)`"	)
 grouptype	[ 0	locks=0 ]	(	"points"	)
 computenorms	[ 0	locks=0 ]	(	"off"	)
 negate	[ 0	locks=0 ]	(	"on"	)
@@ -2684,7 +2766,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -0.4984 -8.1528
+position -0.4984 -9.1528
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -2747,7 +2829,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 5.5016 -9.1528
+position 5.5016 -10.1528
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -2811,7 +2893,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 5.5016 -8.1528
+position 5.5016 -9.1528
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -2968,7 +3050,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 5.5 -7.1502
+position 5.5 -8.1502
 connectornextid 3
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -2977,13 +3059,13 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	edge_index 1 1 "input1"
-1 	connectivity1 1 1 "input2"
+0 	loop_index 1 1 "input1"
+1 	loop_indices 1 1 "input2"
 }
 inputs
 {
-0 	edge_index 0 1
-1 	connectivity1 0 1
+0 	loop_index 0 1
+1 	loop_indices 0 1
 }
 stat
 {
@@ -3142,7 +3224,7 @@ type1	[ 0	locks=0 ]	(	"attribval"	)
 expr1	[ 0	locks=0 ]	(	0	)
 attribtype1	[ 0	locks=0 ]	(	"all"	)
 attribowner1	[ 0	locks=0 ]	(	"detail"	)
-attributes1	[ 0	locks=0 ]	(	__start_edge_count	)
+attributes1	[ 0	locks=0 ]	(	_lfs_start_edge_count	)
 attribvaltype1	[ 0	locks=0 ]	(	"flt"	)
 attribfloatcomp1	[ 0	locks=0 ]	(	"greater"	)
 attribstringcomp1	[ 0	locks=0 ]	(	"equal"	)
@@ -3168,19 +3250,19 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edge_index.init"
+Content-Disposition: attachment; filename="hdaroot/loop_index.init"
 Content-Type: text/plain
 
 type = attribwrangle
 matchesdef = 1
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edge_index.def"
+Content-Disposition: attachment; filename="hdaroot/loop_index.def"
 Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 3.497 -6.151
+position 3.497 -7.151
 connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -3189,11 +3271,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	isolate_start_edge 1 1 "input1"
+0 	isolate_start_pt 1 1 "input1"
 }
 inputs
 {
-0 	isolate_start_edge 0 1
+0 	isolate_start_pt 0 1
 }
 stat
 {
@@ -3208,7 +3290,7 @@ exprlanguage hscript
 end
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edge_index.parm"
+Content-Disposition: attachment; filename="hdaroot/loop_index.parm"
 Content-Type: text/plain
 
 {
@@ -3219,7 +3301,7 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"i@__edge_index = 0;"	)
+snippet	[ 0	locks=0 ]	(	"i@_lfs_loop_index = 0;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -3236,7 +3318,7 @@ vex_precision	[ 0	locks=0 ]	(	auto	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/edge_index.userdata"
+Content-Disposition: attachment; filename="hdaroot/loop_index.userdata"
 Content-Type: text/plain
 
 {
@@ -3258,10 +3340,10 @@ Content-Disposition: attachment; filename="hdaroot/output0.def"
 Content-Type: text/plain
 
 sopflags sopflags = 
-comment ""
+comment "HDA code: lfs"
 position -0.5 -20.15
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on displaycomment on
 outputsNamed3
 {
 }
@@ -3355,11 +3437,165 @@ deletions	[ 0	locks=0 ]	(	1	)
 removegrp	[ 0	locks=0 ]	(	"off"	)
 enable1	[ 0	locks=0 ]	(	"on"	)
 grouptype1	[ 0	locks=0 ]	(	"any"	)
-group1	[ 0	locks=0 ]	(	__start_edge	)
+group1	[ 0	locks=0 ]	(	_lfs_start_edge	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/group_cleanup.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/rebuild_start_edges.init"
+Content-Type: text/plain
+
+type = attribwrangle
+matchesdef = 1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/rebuild_start_edges.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 7.497 -4.151
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
+outputsNamed3
+{
+2 "output1"
+}
+inputsNamed3
+{
+0 	grouppromote1 1 1 "input1"
+}
+inputs
+{
+0 	grouppromote1 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author maia@truro
+  access 0777
+}
+color UT_Color RGB 0 0 0 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/rebuild_start_edges.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+folder0	[ 0	locks=0 ]	(	0	0	)
+group	[ 0	locks=0 ]	(	_lfs_start_pt	)
+grouptype	[ 0	locks=0 ]	(	"points"	)
+class	[ 0	locks=0 ]	(	"point"	)
+vex_numcount	[ 0	locks=0 ]	(	10	)
+vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
+snippet	[ 0	locks=0 ]	(	"int neighbours[] = neighbours(0, i@_lfs_index);
+
+foreach (int neighbour; neighbours) {
+
+    if (i@_lfs_index < neighbour) {
+        if (inedgegroup(0, \"_lfs_start_edge\", i@_lfs_index, neighbour)) {
+            
+            setprimgroup(0, \"_lfs_start_edge_new\", addprim(0, \"polyline\", @ptnum, neighbour), 1);
+        }
+    }
+}"	)
+exportlist	[ 0	locks=0 ]	(	*	)
+vex_strict	[ 0	locks=0 ]	(	"off"	)
+autobind	[ 0	locks=0 ]	(	"on"	)
+bindings	[ 0	locks=0 ]	(	0	)
+groupautobind	[ 0	locks=0 ]	(	"on"	)
+groupbindings	[ 0	locks=0 ]	(	0	)
+vex_cwdpath	[ 0	locks=0 ]	(	.	)
+vex_outputmask	[ 0	locks=0 ]	(	*	)
+vex_updatenmls	[ 0	locks=0 ]	(	"off"	)
+vex_matchattrib	[ 0	locks=0 ]	(	id	)
+vex_inplace	[ 0	locks=0 ]	(	"off"	)
+vex_selectiongroup	[ 0	locks=0 ]	(	""	)
+vex_precision	[ 0	locks=0 ]	(	auto	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/rebuild_start_edges.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":""
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/isolate_start_edge_new.init"
+Content-Type: text/plain
+
+type = blast
+matchesdef = 0
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/isolate_start_edge_new.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 7.5 -5.15
+connectornextid 2
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
+outputsNamed3
+{
+1 "output1"
+}
+inputsNamed3
+{
+0 	rebuild_start_edges 2 1 "input1"
+}
+inputs
+{
+0 	rebuild_start_edges 0 1
+}
+stat
+{
+  create -1
+  modify -1
+  author maia@truro
+  access 0777
+}
+color UT_Color RGB 0.8 0.8 0.8 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/isolate_start_edge_new.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+group	[ 0	locks=0 ]	(	_lfs_start_edge_new	)
+grouptype	[ 0	locks=0 ]	(	"prims"	)
+computenorms	[ 0	locks=0 ]	(	"off"	)
+negate	[ 0	locks=0 ]	(	"on"	)
+fillhole	[ 0	locks=0 ]	(	"off"	)
+removegrp	[ 0	locks=0 ]	(	"off"	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/isolate_start_edge_new.userdata"
 Content-Type: text/plain
 
 {
@@ -3377,16 +3613,14 @@ Content-Type: text/plain
 select_quad_loop
 start_edge
 grouppromote1
-isolate_start_edge
+isolate_start_pt
 enumerate1
 select_edge_loop
 edge_loop
 quad_loop
-edgegroup_to_curve1
 start_edge_count
-connectivity1
+loop_indices
 facet1
-convertline1
 foreach_end1
 foreach_begin1
 switch_mode
@@ -3398,9 +3632,11 @@ foreach_begin2
 compile_begin2
 switch_mode1
 switch_multi_edge
-edge_index
+loop_index
 output0
 group_cleanup
+rebuild_start_edges
+isolate_start_edge_new
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.net"
