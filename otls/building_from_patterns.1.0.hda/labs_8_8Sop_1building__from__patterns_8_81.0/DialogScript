@@ -1,0 +1,194 @@
+# Dialog script for labs::building_from_patterns::1.0 automatically generated
+
+{
+    name	labs::building_from_patterns::1.0
+    script	Labs_Building_v2
+    label	"Labs Building from Patterns"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Blockout
+    inputlabel	2	Patterns
+    inputlabel	3	Cutout
+    inputlabel	4	"Override Floor"
+    outputlabel	1	Geometry
+    outputlabel	2	"Point Cloud"
+    outputlabel	3	Floors
+
+    parm {
+        name    "btn_random_fill"
+        label   "Random Fill Patterns"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().randompattern(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "btn_showfloors"
+        label   "Show Floors"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "button_icon" "" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().settingvalues(kwargs)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "floor_names"
+        label   "Floor Names"
+        type    string
+        nolabel
+        default { "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    group {
+        name    "fd_general"
+        label   "Patterns"
+
+        multiparm {
+            name    "styles"
+            label    "Add Building Styles"
+            default 1
+
+            parm {
+                name    "group#"
+                label   "Group"
+                type    string
+                default { "" }
+                menutoggle {
+                    [ "opmenu -l -a blast1 group" ]
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+            }
+            parm {
+                name    "pattern#"
+                label   "Pattern"
+                type    string
+                default { "<Generic>" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm#"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+        }
+
+        parm {
+            name    "lb_spacemsg"
+            label   "lb_spacemsg"
+            type    label
+            nolabel
+            default { "Spaces in patterns are ignored." }
+        }
+    }
+
+    group {
+        name    "fd_general_1"
+        label   "Settings"
+
+        parm {
+            name    "height_scale"
+            label   "Force Height Scaling"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "override_maxdist"
+            label   "Override Radius"
+            type    float
+            default { "10" }
+            range   { 1 30 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "folder1"
+            label   "Geometry Output"
+
+            parm {
+                name    "Preview_colors"
+                label   "Override Color"
+                type    integer
+                default { "0" }
+                menu {
+                    "0" "From Input"
+                    "1" "Color"
+                    "2" "Random"
+                }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pack_modules"
+                label   "Pack and Instance"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "folder1_1"
+            label   "Point Cloud Output"
+
+            parm {
+                name    "get_instance"
+                label   "Get Instances from Patterns"
+                type    toggle
+                default { "0" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "engine"
+                label   "Game Engine"
+                type    string
+                default { "unreal_instance" }
+                hidewhen "{ get_instance == 0 }"
+                menu {
+                    "unreal_instance"   "Unreal Engine"
+                    "unity_instance"    "Unity"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "input"
+                label   "Output Orient Attribute for Rotations"
+                type    toggle
+                default { "1" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "set_middle"
+                label   "Module Pivot Location"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Corner"
+                    "1" "Bottom Middle"
+                }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

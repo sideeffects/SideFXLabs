@@ -1,0 +1,72 @@
+import toolutils
+import hou
+import random
+import time
+
+
+
+
+#Show all the floor option available 
+def settingvalues(scriptargs):
+
+    geo = hou.node("OUT_Floors").geometry()
+    All_floors = geo.attribValue("module_name")
+    hou.parm('floor_names').set(All_floors)
+
+
+
+#Fill in random pattern    
+def randompattern(scriptargs):
+
+    geo = hou.node("OUT_Floors").geometry()
+    floorArray = geo.attribValue("Patterns")
+    totalFloors = len(floorArray)
+    
+
+    count = hou.evalParm('styles')
+    
+    for i in range(count):
+    
+        random.seed( time.time() )
+        #rand = random.randrange(0,totalFloors,1) #min,max,step
+        randfloor_amount = random.randrange(1,4,1)
+        floorPattern = ""
+        
+        #make firstfloor
+        
+        #firstfloor = "["
+        
+        #make basefloors
+        basefloor = '<'
+        
+        for y in range(randfloor_amount):
+        
+            random.seed((i + 1) * (y + 1) * time.time())
+            rand = random.randrange(0,totalFloors,1)
+            basefloor += floorArray[rand]
+          
+            if y != randfloor_amount - 1:
+                basefloor += "-"
+            
+        basefloor += '>'
+        floorPattern += basefloor
+        
+        #make Lastfloor
+        
+        #setting the final value
+        index = i + 1
+        hou.parm("pattern%d" % index).set(floorPattern)
+
+
+  
+
+
+       
+        
+        
+        
+        
+        
+        
+    
+
