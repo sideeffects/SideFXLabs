@@ -81,10 +81,25 @@
             parmtag { "autoscope" "0000000000000000" }
         }
         parm {
+            name    "udimsuffix"
+            label   "UDIM Suffix"
+            type    string
+            invisible
+            default { "`ifs(ch(\"outputudims\"), \".%(UDIM)d\", \"\")`" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
             name    "sOutputFile"
             label   "Output Directory"
             type    directory
-            default { "$HIP/render/${HIPNAME}_$(CHANNEL).png" }
+            default { "$HIP/render/${HIPNAME}_$(CHANNEL)`chs(\"udimsuffix\")`.png" }
+        }
+        parm {
+            name    "outputudims"
+            label   "Output UDIMs"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "i2Resolution"
