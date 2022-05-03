@@ -1,0 +1,76 @@
+# Dialog script for labs::udim_tile_number::1.0 automatically generated
+
+{
+    name	labs::udim_tile_number::1.0
+    script	labs::udim_tile_number::1.0
+    label	"Labs UDIM Tile Number"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "uvattrib"
+        label   "UV Attribute"
+        type    string
+        default { "uv" }
+        menureplace {
+            [ "r = []" ]
+            [ "node = hou.pwd()" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    " ]
+            [ "    if geo:" ]
+            [ "        " ]
+            [ "        if geo.findPointAttrib(node.parm(\"uvattrib\").evalAsString()):" ]
+            [ "            attrs = geo.pointAttribs()" ]
+            [ "            " ]
+            [ "        else:" ]
+            [ "            attrs = geo.vertexAttribs()" ]
+            [ "            " ]
+            [ "        for a in attrs:" ]
+            [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "                " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "udimattrib"
+        label   "UDIM Tile Attribute"
+        type    string
+        joinnext
+        default { "udim_tile" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "udimattribclass"
+        label   "UDIM Tile Attribute Class"
+        type    ordinal
+        nolabel
+        default { "0" }
+        menu {
+            "0" "Primitive"
+            "1" "Point"
+            "2" "Vertex"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "visualize"
+        label   "Visualize UDIM Tile Numbers"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+}
