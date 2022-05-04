@@ -1,0 +1,278 @@
+# Dialog script for labs::building_generator_utility::2.0 automatically generated
+
+{
+    name	labs::building_generator_utility::2.0
+    script	gamedev::sop_building_generator_utility
+    label	"Labs Building Generator Utility"
+
+    help {
+	""
+    }
+    bindhandle tx boundingbox "Bounding_Box" centerx "ownerop('box1')"
+    bindhandle ty boundingbox "Bounding_Box" centery "ownerop('box1')"
+    bindhandle tz boundingbox "Bounding_Box" centerz "ownerop('box1')"
+    bindhandle rx boundingbox "Bounding_Box" rx "ownerop('box1')"
+    bindhandle ry boundingbox "Bounding_Box" ry "ownerop('box1')"
+    bindhandle rz boundingbox "Bounding_Box" rz "ownerop('box1')"
+    bindhandle sizex boundingbox "Bounding_Box" sizex "ownerop('box1')"
+    bindhandle sizey boundingbox "Bounding_Box" sizey "ownerop('box1')"
+    bindhandle sizez boundingbox "Bounding_Box" sizez "ownerop('box1')"
+    bindhandle scale boundingbox "Bounding_Box" uniform_scale "ownerop('box1')"
+
+    inputlabel	1	"Action Item"
+    inputlabel	2	"Bounding Volumes"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupradio {
+        name    "folder0"
+        label   "Building Module"
+
+        parm {
+            name    "name1"
+            label   "Module Name"
+            type    string
+            joinnext
+            default { "" }
+            help    "Name to assign incoming geo."
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "weight"
+            label   "Weight"
+            type    float
+            default { "1" }
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "FillDimensions"
+            label   "Auto fill Dimensions"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "f2ModuleDimensions"
+            label   "Module Dimensions"
+            type    float
+            size    2
+            default { "0" "0" }
+            help    "Target width and height of module in Houdini units. This is manually defined as the automatic bounds may not correspond to intent; eg flagpoles that extend away from the module surface."
+            disablewhen "{ FillDimensions == 1 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "priority"
+            label   "Priority"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        multiparm {
+            name    "variations"
+            label    "Variations"
+
+            parm {
+                name    "variation#"
+                label   "Variation #"
+                type    string
+                joinnext
+                default { "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "variationweight#"
+                label   "Weight"
+                type    float
+                default { "1" }
+                range   { 0 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupradio {
+        name    "folder0_1"
+        label   "Floor Description"
+
+        parm {
+            name    "name2"
+            label   "Module Name"
+            type    string
+            joinnext
+            default { "" }
+            help    "Name to assign incoming geo."
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "weight2"
+            label   "Weight"
+            type    float
+            default { "1" }
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "hasexpandedform2"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "expanded2"
+            label   "Expanded Form"
+            type    string
+            default { "" }
+            help    "Name to assign incoming geo."
+            disablewhen "{ hasexpandedform == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "corners"
+            label   "Corners"
+            type    string
+            size    2
+            default { "" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "f2ModuleDimensions3"
+            label   "Module Dimensions"
+            type    float
+            size    2
+            default { "0" "0" }
+            help    "Target width and height of module in Houdini units. This is manually defined as the automatic bounds may not correspond to intent; eg flagpoles that extend away from the module surface."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "priority2"
+            label   "Priority"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        multiparm {
+            name    "variations2"
+            label    "Variations"
+
+            parm {
+                name    "variation2_#"
+                label   "Variation #"
+                type    string
+                joinnext
+                default { "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "variationweight2_#"
+                label   "Weight"
+                type    float
+                default { "1" }
+                range   { 0 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupradio {
+        name    "folder0_2"
+        label   "Handplaced Override"
+
+        parm {
+            name    "action"
+            label   "Action"
+            type    ordinal
+            default { "hide" }
+            help    "Display or hide the bounding box reference."
+            menu {
+                "hide"      "Hide Bounding Box"
+                "expose"    "Show Bounding Box"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "bUseInternalBBox"
+            label   "Use Embedded Boundingbox"
+            type    toggle
+            default { "1" }
+            help    "Enable the bounding box utility to visually set the dimensions of this handplaced module."
+        }
+        groupsimple {
+            name    "folder1"
+            label   "Bounds Properties"
+            grouptag { "group_type" "simple" }
+
+            parm {
+                name    "t"
+                label   "Center"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "Center of module."
+                disablewhen "{ bUseInternalBBox == 0 }"
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "size"
+                label   "Size"
+                type    vector
+                size    3
+                default { "1" "1" "1" }
+                help    "Size of module."
+                disablewhen "{ bUseInternalBBox == 0 }"
+                range   { -1 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "scale"
+                label   "Uniform Scale"
+                type    float
+                default { "1" }
+                help    "Uniform scale of module, the 3-value scale is multiplied by this value."
+                disablewhen "{ bUseInternalBBox == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "r"
+                label   "Rotate"
+                type    vector
+                size    3
+                default { "0" "0" "0" }
+                help    "Rotation of this module."
+                disablewhen "{ bUseInternalBBox == 0 }"
+                range   { 0 360 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    groupradio {
+        name    "folder0_3"
+        label   "Volumetric Override"
+
+        parm {
+            name    "string1"
+            label   "Module Name"
+            type    string
+            default { "" }
+            help    "Module to apply within the bounding box(es) connected to the second input."
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+}
