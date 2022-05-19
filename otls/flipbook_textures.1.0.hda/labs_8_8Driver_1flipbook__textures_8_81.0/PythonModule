@@ -69,6 +69,8 @@ def checkInputs(node):
 def pinSelectionFollowingTabs(node):
 
     tabs = [pane_tab for pane_tab in hou.ui.paneTabs() if isinstance(pane_tab, hou.PathBasedPaneTab)]
+    selection_following_tabs = []
+    selection_following_tab_nodes = []
 
     for tab in tabs:
 
@@ -76,8 +78,10 @@ def pinSelectionFollowingTabs(node):
 
             if tab.linkGroup() == hou.paneLinkType.FollowSelection:
                 tab.setPin(True)
+                selection_following_tabs.append(tab)
+                selection_following_tab_nodes.append(tab.currentNode())
 
-    return
+    return {'free_tabs': selection_following_tabs, 'free_tab_nodes': selection_following_tab_nodes}
 
 
 
@@ -85,10 +89,8 @@ def pinSelectionFollowingTabs(node):
 # Returns a dictionary of Scene Viewer data, which are needed to restore these Scene Viewers after rendering. 
 def clearExistingSceneViewers(node):
 
-    pinSelectionFollowingTabs(node)
-
+    tab_data = pinSelectionFollowingTabs(node)
     scene_viewers = [pane_tab for pane_tab in hou.ui.paneTabs() if pane_tab.type() == hou.paneTabType.SceneViewer]
-
     scene_viewer_nodes = []
     link_groups = []
 
@@ -100,7 +102,7 @@ def clearExistingSceneViewers(node):
         scene_viewer.setCurrentNode(node.node(node.path() + '/empty/clear_scene_viewer_gpu_mem'))
         reset_viewport.resetSceneViewer(scene_viewer)
 
-    return {'scene_viewer_nodes': scene_viewer_nodes, 'link_groups': link_groups}
+    return {'scene_viewer_nodes': scene_viewer_nodes, 'link_groups': link_groups, 'free_tabs': tab_data['free_tabs'], 'free_tab_nodes': tab_data['free_tab_nodes']}
 
 
 
@@ -135,6 +137,17 @@ def restoreExistingSceneViewers(node, scene_viewer_data):
             # Sometimes irrelevant exceptions are raised even though the operation has succeeded.
             # It's not worth raising those exceptions to confuse the users.
             pass  
+
+    for i in range(len(scene_viewer_data['free_tabs'])):
+
+        try:
+            tab = scene_viewer_data['free_tabs'][i]
+            tab.setPin(False)
+            tab.setCurrentNode(scene_viewer_data['free_tab_nodes'][i])
+        except:
+            # Sometimes irrelevant exceptions are raised even though the operation has succeeded.
+            # It's not worth raising those exceptions to confuse the users.
+            pass
 
     return
 
