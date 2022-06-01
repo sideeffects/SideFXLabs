@@ -205,49 +205,6 @@
                 parmtag { "script_callback_language" "python" }
             }
             parm {
-                name    "enablefuse"
-                label   "Enable Fuse"
-                type    toggle
-                nolabel
-                joinnext
-                default { "0" }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "fusegroup"
-                label   "Fuse Point Group"
-                type    string
-                default { "" }
-                disablewhen "{ mode == 2 fluidpass == 1 } { enablefuse == 0 }"
-                menutoggle {
-                    [ "r = []" ]
-                    [ "node = hou.node(hou.parm(\"soppath\").evalAsString())" ]
-                    [ "inputs = node.inputs()" ]
-                    [ "if inputs and inputs[0]:" ]
-                    [ "    geo = inputs[0].geometry()" ]
-                    [ "    if geo:" ]
-                    [ "        c = 'point'" ]
-                    [ "        if c == 'point':" ]
-                    [ "            groups = geo.pointGroups()" ]
-                    [ "            " ]
-                    [ "        for g in groups:" ]
-                    [ "            r.extend([g.name(), g.name()])" ]
-                    [ "            " ]
-                    [ "return r" ]
-                    language python
-                }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "fusedist"
-                label   "Fuse Distance"
-                type    float
-                default { "0.01" }
-                disablewhen "{ mode == 2 fluidpass == 1 } { enablefuse == 0 }"
-                range   { 0 10 }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
                 name    "packnorm_fluid"
                 label   "Export Compressed Normals in Position Alpha"
                 type    toggle
@@ -274,6 +231,70 @@
                 parmtag { "script_callback" "if kwargs[\"node\"].evalParm(\"fluiduvinrg\") == 1 : kwargs[\"node\"].setParms({\"override_c\": 0})" }
                 parmtag { "script_callback_language" "python" }
             }
+            groupcollapsible {
+                name    "fd_fluid_clean"
+                label   "Cleanup"
+
+                parm {
+                    name    "enablefuse"
+                    label   "Enable Fuse"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fusegroup"
+                    label   "Fuse Point Group"
+                    type    string
+                    default { "" }
+                    disablewhen "{ mode == 2 fluidpass == 1 } { enablefuse == 0 }"
+                    menutoggle {
+                        [ "r = []" ]
+                        [ "node = hou.node(hou.parm(\"soppath\").evalAsString())" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "if inputs and inputs[0]:" ]
+                        [ "    geo = inputs[0].geometry()" ]
+                        [ "    if geo:" ]
+                        [ "        c = 'point'" ]
+                        [ "        if c == 'point':" ]
+                        [ "            groups = geo.pointGroups()" ]
+                        [ "            " ]
+                        [ "        for g in groups:" ]
+                        [ "            r.extend([g.name(), g.name()])" ]
+                        [ "            " ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fusedist"
+                    label   "Fuse Distance"
+                    type    float
+                    default { "0.01" }
+                    disablewhen "{ mode == 2 fluidpass == 1 } { enablefuse == 0 }"
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "fixoverlaps"
+                    label   "Fix Overlaps"
+                    type    toggle
+                    default { "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "deleteoverlappairs"
+                    label   "Delete Overlap Pairs"
+                    type    toggle
+                    default { "0" }
+                    hidewhen "{ fixoverlaps == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
         }
 
         groupsimple {
@@ -781,7 +802,7 @@
                 label   "lb_maxptcount"
                 type    label
                 nolabel
-                default { "Max Possible Points per Frame (Target Texture Width × 1980): `ch(\"targettexsize\") * 1980`" }
+                default { "Input Point Limit per Frame (Based on Target Texture Width and Frame Range): `ch(\"targettexsize\") * min(floor(8192 / (ch(\"f2\") - ch(\"f1\") + 1)), 1980)`" }
                 hidewhen "{ mode == 2 }"
             }
             parm {
@@ -789,8 +810,16 @@
                 label   "lb_maxtricount"
                 type    label
                 nolabel
-                default { "Max Possible Triangles per Frame (Lookup Table Width × 660): `ch(\"targettexsize_lookup\") * 660`" }
+                default { "Input Point Triangle per Frame (Based on Lookup Table Width and Frame Range): `floor(ch(\"targettexsize_lookup\") * min(floor(8192 / (ch(\"f2\") - ch(\"f1\") + 1)), 1980) / 3)`" }
                 hidewhen "{ mode != 2 }"
+            }
+            parm {
+                name    "sepparm5"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
             }
         }
 
