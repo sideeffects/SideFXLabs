@@ -1,0 +1,244 @@
+# Dialog script for labs::road_generator::1.2 automatically generated
+
+{
+    name	labs::road_generator::1.2
+    script	labs::road_generator::1.0
+    label	"Labs Road Generator"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Road Curves"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Road Geometry"
+    outputlabel	2	"Road lines"
+    outputlabel	3	"Point cloud"
+    outputlabel	4	Cloudpoints
+
+    groupsimple {
+        name    "folder2"
+        label   "General"
+
+        parm {
+            name    "width"
+            label   "Width Scalar"
+            type    float
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "min_width"
+            label   "Minimal Road Width"
+            type    float
+            default { "1" }
+            range   { 0.1 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_resample"
+        label   "Curve Resample"
+
+        parm {
+            name    "resampleseglen"
+            label   "Max Segment Length"
+            type    float
+            default { "10" }
+            range   { 0! 100 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "inlinedist"
+            label   "Inline Points Threshold"
+            type    float
+            default { "0.001" }
+            range   { 0 0.1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fusedist"
+            label   "Fuse Distance"
+            type    float
+            default { "0.001" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0_1"
+        label   "Road Module"
+
+        parm {
+            name    "T_custom_m"
+            label   "Custom"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "objpath1"
+            label   "Custom Module"
+            type    oppath
+            default { "" }
+            disablewhen "{ T_custom_m == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "opfilter" "!!SOP!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "width_model"
+            label   "Module Width"
+            type    float
+            default { "5" }
+            range   { 0.1 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "modular_size"
+            label   "Module Length"
+            type    float
+            default { "5" }
+            range   { 0.1 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder0"
+        label   "Intersection"
+
+        parm {
+            name    "value2v1"
+            label   "Road Length"
+            type    float
+            default { "30" }
+            range   { 1 75 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "domainu1"
+            label   "Roundness"
+            type    float
+            default { "0.8" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "amount"
+            label   "Convexity"
+            type    float
+            default { "0" }
+            range   { 0 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "cvex" }
+        }
+        parm {
+            name    "segs"
+            label   "Resolution"
+            type    integer
+            default { "10" }
+            range   { 1! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "T_subdivide"
+            label   "Subdivide"
+            type    toggle
+            invisible
+            default { "0" }
+            help    "Helps with smoothing and UV"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sharp_corner"
+            label   "Sharp Corner"
+            type    float
+            default { "70" }
+            range   { 0 120 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "iterations"
+            label   "Blur sharp corner"
+            type    integer
+            default { "25" }
+            range   { 0 100 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bevel_amount"
+            label   "Normal corner amount"
+            type    float
+            default { "1" }
+            range   { 0.2 1.5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "uv_scale"
+            label   "UV scale"
+            type    vector2
+            size    2
+            default { "1" "1" }
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "folder1"
+        label   "Advanced"
+
+        parm {
+            name    "T_bridge"
+            label   "Bridge Support"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "T_vis"
+            label   "Visualize Type"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
