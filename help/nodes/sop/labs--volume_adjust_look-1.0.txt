@@ -1,0 +1,109 @@
+#type:     node
+#context:  sop
+#internal: labs::volume_adjust_look::1.0
+#icon:     SOP/labs::volume_adjust_look::1.0
+
+= Labs Volume Adjust Look =
+
+"""Adjusts volume visualization mode (default / normals / motion vectors), density, colors (including greyscale colors), emission, and viewport rendering quality."""
+
+This node can convert volumes to greyscale, normal visualization mode, or motion vector visualization mode. It can also adjust volume density, diffuse color, emission color, shadow, and viewport rendering quality.
+
+TIP:
+    Compared to _Volume Visualization SOP_ and _Pyro Bake Volume SOP_, this node offers similar but simpler controls. What those two nodes do not offer are greyscale conversion, normal / motion vector modes, viewport rendering quality adjustments, and per-component color scaling.
+
+
+@parameters
+
+    Mode:
+        #id: mode
+        The overall visualization mode.  
+        <p>*Adjust Colors*: Default visualization mode.</p>
+        <p>*Visualize Normals*: Normal visualization mode, affected by density. Sets the detail attribute `volvis_normals` to 1.</p>            
+        <p>*Visualize Motion Vectors*: Motion vector visualization mode, affected by density and emission. Sets the detail attribute `volvis_motionvec` to 1.</p>
+
+    Convert to Greyscale:
+        #id: greyscalemode
+        How to convert the diffuse and emissive colors to greyscale.
+        <p>*Do Not Convert*: Does not perform conversion.</p>   
+        <p>*Using Relative Luminance for ITU-R BT.709 / sRGB*: Performs conversion using ITU-R BT.709 / sRGB relative luminance coefficients. This reflects spectral weighting for human vision. The BT.709 coefficients (Y = 0.2126 R + 0.7152 G + 0.0722 B) differ from the older BT.601 coefficients (Y = 0.299 R + 0.587 G + 0.114 B).</p>
+        <p>*Using Specified RGB Weighted Sum*: Performs conversion using specified RGB weights. The weights are used as they are and not normalized. The default weights are the same as the ITU-R BT.709 / sRGB coefficients.</p>
+            
+    R Weight:
+        #id: relluminancer
+        How much the red value contributes to the greyscale value. 
+
+    G Weight:
+        #id: relluminanceg
+        How much the green value contributes to the greyscale value.
+        
+    B Weight:
+        #id: relluminanceb
+        How much the blue value contributes to the greyscale value.
+        
+    Density Multiplier:
+        #id: densitymul
+        Adjusts the smoke density. The `density` volume is multiplied by this value.
+
+    Shadow Multiplier:
+        #id: shadowmul
+        Adjusts the shadow intensity. The detail attribute `volvis_shadowscale` is multiplied by this value.
+        
+    Diffuse Color Multiplier:
+        #id: diffusemul
+        Adjusts the smoke color. The primitive attribute `Cd`, the `Cd` volume, and the detail attribute `volvis_cdramp` are multiplied by this value.
+    
+    Diffuse Scale Multiplier:
+        #id: diffusescalemul
+        Adjusts the overall smoke color intensity. *Diffuse Color Multiplier* is internally multiplied again by this value.
+
+    Emit Color Multiplier:
+        #id: emitmul
+        Adjusts the emission color. The `scatter` volume, the `Ce` volume, and the detail attribute `volvis_emitcdramp` are multiplied by this value.
+        
+    Emit Scale Multiplier:
+        #id: emitscalemul
+        Adjusts the overall emission intensity. The detail attribute `volvis_emitscale` is multiplied by this value.
+        
+    Adjust Emission Intensity Volume Binding:
+        #id: adjustemitfield
+        Adjusts the volume used to scale emission intensity.
+        
+    Intensity Volume:
+        #id: emitfield
+        The volume used to scale emission intensity.
+        
+    Source Range:
+        #id: emitrange
+        The min and max values of the intensity volume. The emission intensity is mapped from the intensity volume across this range.
+        <p>The default values are the min and max values of the original input intensity volume, so if *Intensity Volume* is different from the input detail attribute `volvis_emitfield`, consider adjusting this range accordingly as the new intensity volume may have a different source range.</p>
+        
+    Adjust Viewport Volume Quality:
+        #id: adjustquality
+        Adjusts the viewport volume quality (specifically, the ambient occlusion quality). You can improve the AO quality to reduce certain horizontal banding artifacts.
+        
+    AO Texture Size:
+        #id: mapsize
+        The size of the texture for rendering the volume in viewport. Higher values mean better quality, slower rendering, and higher memory consumption.
+        
+    AO Sampling Step Size:
+        #id: steprate
+        The step size for sampling the volume in viewport. Lower values mean better quality and slower rendering.
+        
+    == Volume Names ==
+
+    Density Volume:
+        #id: vol_density
+        The node will treat this volume as the `density` volume. Right-click > Unlock Parameter to override this.
+        
+    Diffuse Color Volume:
+        #id: vol_cd
+        The node will treat this volume as the `Cd` volume. Right-click > Unlock Parameter to override this.
+        
+    Scatter Volume:
+        #id: vol_scatter
+        The node will treat this volume as the `scatter` volume. Right-click > Unlock Parameter to override this.
+        
+    Emission Color Volume:
+        #id: vol_ce
+        The node will treat this volume as the `Ce` volume. Right-click > Unlock Parameter to override this.

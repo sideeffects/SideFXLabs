@@ -1,0 +1,47 @@
+def setLayoutByName(scene_viewer, layout_name):
+    
+    if layout_name == "DoubleSide":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.DoubleSide)
+    elif layout_name == "DoubleStack":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.DoubleStack)
+    elif layout_name == "Quad":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.Quad)
+    elif layout_name == "QuadBottomSplit":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.QuadBottomSplit)
+    elif layout_name == "QuadLeftSplit":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.QuadLeftSplit)
+    elif layout_name == "Single":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.Single)
+    elif layout_name == "TripleBottomSplit":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.TripleBottomSplit)
+    elif layout_name == "TripleLeftSplit":
+        scene_viewer.setViewportLayout(hou.geometryViewportLayout.TripleLeftSplit)
+    else:
+        pass
+
+    return
+
+
+def forceViewportUpdate(node):
+
+    scene_viewer = hou.ui.curDesktop().paneTabOfType(hou.paneTabType.SceneViewer)
+    
+    if scene_viewer:
+    
+        layout_name = scene_viewer.viewportLayout().name()
+        default_layout_name = node.parm('defaultlayout').evalAsString()
+        
+        if layout_name == default_layout_name:
+            # Switches to a non-default layout:
+        
+            if layout_name != 'Single':
+                setLayoutByName(scene_viewer, 'Single')
+            else:
+                setLayoutByName(scene_viewer, 'DoubleSide')
+                
+        else:
+            # Reverts back to the default layout:
+        
+            setLayoutByName(scene_viewer, default_layout_name)
+    
+    return

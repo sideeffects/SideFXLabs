@@ -1,0 +1,240 @@
+# Dialog script for labs::volume_adjust_look::1.0 automatically generated
+
+{
+    name	labs::volume_adjust_look::1.0
+    script	labs::volume_detail_attributes::1.0
+    label	"Labs Volume Adjust Look"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Volume / VDB"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "mode"
+        label   "Mode"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Adjust Colors"
+            "1" "Visualize Normals"
+            "2" "Visualize Motion Vectors"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_adjustcolors"
+        label   "Adjust Colors"
+        grouptag { "sidefx::look" "blank" }
+
+        parm {
+            name    "greyscalemode"
+            label   "Convert to Greyscale"
+            type    ordinal
+            default { "0" }
+            disablewhen "{ mode != 0 }"
+            menu {
+                "0" "Do Not Convert"
+                "1" "Using Relative Luminance for ITU-R BT.709 / sRGB"
+                "2" "Using Specified RGB Weighted Sum"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "relluminancer"
+            label   "R Weight"
+            type    float
+            default { "0.2126" }
+            disablewhen "{ mode != 0 }"
+            hidewhen "{ greyscalemode < 2 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "relluminanceg"
+            label   "G Weight"
+            type    float
+            default { "0.7152" }
+            disablewhen "{ mode != 0 }"
+            hidewhen "{ greyscalemode < 2 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "relluminanceb"
+            label   "B Weight"
+            type    float
+            default { "0.0722" }
+            disablewhen "{ mode != 0 }"
+            hidewhen "{ greyscalemode < 2 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "densitymul"
+            label   "Density Multiplier"
+            type    float
+            default { "1" }
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "shadowmul"
+            label   "Shadow Multiplier"
+            type    float
+            default { "1" }
+            disablewhen "{ mode != 0 }"
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "diffusemul"
+            label   "Diffuse Color Multiplier"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            disablewhen "{ mode != 0 }"
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "diffusescalemul"
+            label   "Diffuse Scale Multiplier"
+            type    float
+            default { "1" }
+            disablewhen "{ mode != 0 }"
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "emitmul"
+            label   "Emit Color Multiplier"
+            type    vector
+            size    3
+            default { "1" "1" "1" }
+            disablewhen "{ mode == 1 }"
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "emitscalemul"
+            label   "Emit Scale Multiplier"
+            type    float
+            default { "1" }
+            disablewhen "{ mode == 1 }"
+            range   { 0 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "adjustemitvol"
+            label   "Adjust Emission Intensity Volume Binding"
+            type    toggle
+            default { "0" }
+            disablewhen "{ mode == 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "emitfield"
+            label   "Intensity Volume"
+            type    string
+            default { "flame" }
+            disablewhen "{ mode == 1 }"
+            hidewhen "{ adjustemitvol == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "emitrange"
+            label   "Source Range"
+            type    float
+            size    2
+            default { "detail(0, \"volvis_emitrange\", 0)" "detail(0, \"volvis_emitrange\", 1)" }
+            disablewhen "{ mode == 1 }"
+            hidewhen "{ adjustemitvol == 0 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "adjustao"
+            label   "Adjust Viewport Volume Quality"
+            type    toggle
+            default { "0" }
+            disablewhen "{ mode != 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mapsize"
+            label   "AO Texture Size"
+            type    float
+            default { "0.5" }
+            disablewhen "{ mode != 0 }"
+            hidewhen "{ adjustao == 0 }"
+            range   { 0.1! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "steprate"
+            label   "AO Sampling Step Size"
+            type    float
+            default { "4" }
+            disablewhen "{ mode != 0 }"
+            hidewhen "{ adjustao == 0 }"
+            range   { 1! 10! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "lb_help"
+            label   "lb_help"
+            type    label
+            default { "If the volume is not updating as expected, try rotating the viewport \nslightly to force an update." }
+            hidewhen "{ mode == 0 shadowmul == 1 emitscalemul == 1 adjustemitvol == 0 adjustao == 0 }"
+            parmtag { "sidefx::look" "block" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_vols"
+        label   "Volume Names"
+
+        parm {
+            name    "vol_density"
+            label   "Density Volume"
+            type    string
+            default { "density" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vol_cd"
+            label   "Diffuse Color Volume"
+            type    string
+            default { "Cd" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vol_scatter"
+            label   "Scatter Volume"
+            type    string
+            default { "scatter" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vol_ce"
+            label   "Emission Color Volume"
+            type    string
+            default { "Ce" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
