@@ -39,7 +39,10 @@ def add_actions():
             
     # Save changes
     hou.hotkeys.saveOverrides()
-    
+
+    print ("Network Walk hotkeys assigned: \nPageUp = Move Up\nPageDown = Move Down\nInsert = Move Left\nHome = Move Right\n")
+    print ("Restart Houdini for the change to take effect.\n")
+
     return
     
 def remove_actions(dirs=('Up','Down','Left','Right'),remove=True):       
@@ -57,6 +60,9 @@ def remove_actions(dirs=('Up','Down','Left','Right'),remove=True):
     hou.hotkeys.addAssignment('h.pane.wsheet.down','PageDown')
     hou.hotkeys.saveOverrides()
     
+    if remove:
+        print ("Network Walk hotkeys removed.\n")
+
     return
 
 ##########################################################
