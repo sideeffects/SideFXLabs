@@ -27,7 +27,30 @@
                 <insertBefore>help_menu</insertBefore>
             </modifyItem>
             <label>Labs</label>
-            
+
+            <scriptItem id="parameter_diff">
+                <label>Node Parameter Differences</label>
+                <scriptCode>
+                    <![CDATA[
+import pyper.widgets.diff as diffmodule
+
+try:
+    reload(diffmodule)
+except NameError:
+    from importlib import reload
+    reload(diffmodule)
+
+win = diffmodule.run()
+hou.session.dummy = win
+                ]]>
+                </scriptCode>
+            </scriptItem>
+
+            <separatorItem id="labs_network_view_menu_sep1"/>
+
+            <titleItem id="annotation_title">
+                <label>Network Annotation</label>
+            </titleItem>
 
             <scriptItem id="labs_paint">
                 <label>Paint</label>
@@ -36,11 +59,10 @@
 from labsopui import networkeditordrawing
 
 try:
-  reload(networkeditordrawing)
+    reload(networkeditordrawing)
 except NameError:
-  from importlib import reload
-  reload(networkeditordrawing)
-
+    from importlib import reload
+    reload(networkeditordrawing)
 
 networkeditordrawing.paint_in_editor(kwargs['editor'])
                 ]]>
@@ -54,17 +76,15 @@ networkeditordrawing.paint_in_editor(kwargs['editor'])
 from labsopui import screensampling
 
 try:
-  reload(screensampling)
+    reload(screensampling)
 except NameError:
-  from importlib import reload
-  reload(screensampling)
-
+    from importlib import reload
+    reload(screensampling)
 
 screensampling.capture_and_embed(kwargs['editor'])
                 ]]>
                 </scriptCode>
             </scriptItem>
-
 
             <scriptItem id="labs_sticker">
                 <label>Sticker Placer</label>
@@ -73,11 +93,10 @@ screensampling.capture_and_embed(kwargs['editor'])
 from labsopui import stickerplacer
 
 try:
-  reload(stickerplacer)
+    reload(stickerplacer)
 except NameError:
-  from importlib import reload
-  reload(stickerplacer)
-
+    from importlib import reload
+    reload(stickerplacer)
 
 dialog = stickerplacer.StickerPlacer(hou.qt.mainWindow())
 dialog.show()
@@ -85,6 +104,28 @@ dialog.show()
                 </scriptCode>
             </scriptItem>
 
+            <separatorItem id="labs_network_view_menu_sep2"/>
+
+            <scriptItem id="labs_check_node_versions">
+                <label>Scan for Non-latest Labs Nodes</label>
+                <scriptCode>
+                    <![CDATA[
+labs_nodes = [n for n in hou.node("/").allSubChildren() if n.type().nameComponents()[1] == "labs"]
+all_up_to_date = 1
+for node in labs_nodes:
+    if node.type().name() != node.type().namespaceOrder()[0]:
+        print (node.path())
+        all_up_to_date = 0
+if all_up_to_date:
+    if len(labs_nodes) == 0:
+        print ("No Labs node is found in the scene.\n")
+    else:
+        print ("All Labs nodes found in the scene are using the latest versions.\n")
+else:
+    print ("The above Labs nodes are not using the latest versions.\n")
+]]>
+                </scriptCode>
+            </scriptItem>
 
             <scriptItem id="labs_node_to_network_origin">
                 <label>Node to Network Origin</label>
@@ -96,10 +137,9 @@ network_organize.node_to_network_origin()
                 </scriptCode>
             </scriptItem>
 
-            <separatorItem id="labs_network_view_menu_sep1"/>
-
             <subMenu id="labs_network_view_menu_more">
                 <label>More</label>
+
                 <scriptItem id="labs_node_to_network_origin_with_images">
                     <label>Node to Network Origin with Images</label>
                     <scriptCode>
@@ -110,7 +150,24 @@ network_organize.node_to_network_origin(move_images=True)
                     </scriptCode>
                 </scriptItem>
 
+                <scriptItem id="labs_networkwalk_hotkeys">
+                    <label>Network Walk Hotkeys</label>
+                    <scriptCode>
+                    <![CDATA[
+from labsopui import networkwalk
+
+action = hou.ui.displayMessage("Would you like to assign or remove Network Walk hotkeys?", buttons=('Assign',"Remove","Cancel"), severity=hou.severityType.Message, default_choice=2, close_choice=2, help=None, title="Network Walk", details=None, details_label=None, details_expanded=False)
+
+if action == 0:
+    networkwalk.add_actions()
+elif action == 1:
+    networkwalk.remove_actions()
+                    ]]>
+                    </scriptCode>
+                </scriptItem>
+
             </subMenu>
+
         </subMenu>
     </menuBar>
 </mainMenu>
