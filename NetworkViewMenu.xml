@@ -46,6 +46,27 @@ hou.session.dummy = win
                 </scriptCode>
             </scriptItem>
 
+            <scriptItem id="labs_check_node_versions">
+                <label>Scan for Non-latest Labs Nodes</label>
+                <scriptCode>
+                    <![CDATA[
+labs_nodes = [n for n in hou.node("/").allSubChildren() if n.type().nameComponents()[1] == "labs"]
+all_up_to_date = 1
+for node in labs_nodes:
+    if node.type().name() != node.type().namespaceOrder()[0]:
+        print (node.path())
+        all_up_to_date = 0
+if all_up_to_date:
+    if len(labs_nodes) == 0:
+        print ("No Labs node is found in the scene.\n")
+    else:
+        print ("All Labs nodes found in the scene are using the latest versions.\n")
+else:
+    print ("The above Labs nodes are not using the latest versions.\n")
+]]>
+                </scriptCode>
+            </scriptItem>
+
             <separatorItem id="labs_network_view_menu_sep1"/>
 
             <titleItem id="annotation_title">
@@ -105,27 +126,6 @@ dialog.show()
             </scriptItem>
 
             <separatorItem id="labs_network_view_menu_sep2"/>
-
-            <scriptItem id="labs_check_node_versions">
-                <label>Scan for Non-latest Labs Nodes</label>
-                <scriptCode>
-                    <![CDATA[
-labs_nodes = [n for n in hou.node("/").allSubChildren() if n.type().nameComponents()[1] == "labs"]
-all_up_to_date = 1
-for node in labs_nodes:
-    if node.type().name() != node.type().namespaceOrder()[0]:
-        print (node.path())
-        all_up_to_date = 0
-if all_up_to_date:
-    if len(labs_nodes) == 0:
-        print ("No Labs node is found in the scene.\n")
-    else:
-        print ("All Labs nodes found in the scene are using the latest versions.\n")
-else:
-    print ("The above Labs nodes are not using the latest versions.\n")
-]]>
-                </scriptCode>
-            </scriptItem>
 
             <scriptItem id="labs_node_to_network_origin">
                 <label>Node to Network Origin</label>
