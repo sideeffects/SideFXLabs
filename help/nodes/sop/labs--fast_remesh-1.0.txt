@@ -1,0 +1,127 @@
+#type:     node
+#context:  sop
+#internal: labs::fast_remesh::1.0
+#icon:     sidefx_labs_default
+
+= Labs Fast Remesh =
+
+"""This node performs the remeshing operation on geometry in pieces in parallel, greatly reducing the calculation time of traditional remeshing."""
+
+
+
+@parameters
+
+    == Segmentation ==
+
+    Segment Geo by:
+	
+		__Custom Attribute__ divides the mesh into pieces according to a custom integer attribute.
+		
+		__Connectivity__ remeshes pieces based on individual connectivity.
+		
+		__Cluster__	divides the mesh evenly-spaced pieces.
+		
+		__UVs__	divides the mesh into pieces corresponding to separate UV islands.
+	#id: sectionpieces
+        
+    Attribute Name:
+        #id: customattname
+	Custom attribute to use for dividing the mesh.
+        
+    Number of Clusters:
+        #id: numclusters
+	The number of pieces the mesh will be divided into to remesh. More clusters may speed up calculations when working with dense meshes.
+        
+    Cluster Seed:
+        #id: clusterseed
+	Randomize cluster arrangement.
+        
+    Visualize Pieces:
+        #id: visualizepieces
+	Assigns a random color to each segmented piece.
+        
+    == Remesh Settings ==
+
+    Remesh Target Type:
+		__Edge Length__ remeshes according to specified edge length or edge length multiplier.
+		
+		__Polycount__ remeshes according to desired polycount results or polycount multiplier.
+		
+		__Adaptive__ uses bigger triangles in broad areas and smaller triangles in detailed areas. Can set the min and max edge length desired.
+        #id: remeshtarget
+        
+    Remesh Iterations:
+        #id: remeshiterations
+	Increasing this increases the quality of the generated mesh but takes more time. More iterations will produce triangles that are more equilateral. Increasing this parameter while performing Adaptive remeshing may cause holes in geometry.
+
+        
+    Smoothing:
+        #id: smoothing
+	The amount of additional smoothing to apply after remeshing.
+	
+    Preserve UVs:
+        #id: preserveuvs
+	Keeps UVs intact through the remeshing process
+
+    === Edge Length ===
+
+    Target Edge Length:
+        #id: targetedge
+	How long (in Houdini units) to make the triangle edge lengths. 
+        
+    Use Multiplier for Edge Length:
+        #id: usemultedge
+	Use a multiplier and the average edge length of the input mesh to set the edge length. 
+        
+    Edge Length Multiplier:
+        #id: edgemult
+	Sets the target edge length to the average edge length times the multiplier. A multiplier of 2 will make the edge lengths twice as long.
+	
+        
+    === Polycount ===
+
+    Target Polycount:
+        #id: targetpolycount
+	Target polycount goal to achieve with resulting mesh. Higher remesh iterations will more closely reach this goal.
+        
+    Use Multiplier for Polycount:
+        #id: usemultpoly
+	Use a multiplier and the average edge length of the input mesh to set the edge length.
+		   
+    Polycount Multiplier:
+        #id: polymult
+	Sets the target polycount goal to the number of current polygons times the multiplier. A multiplier of two will aim for twice the number of polygons.
+        
+    === Adaptive ===
+
+    Target Edge Length Min:
+        #id: targetlengthmin
+	Minimum target edge length.
+        
+    Target Edge Length Max:
+        #id: targetlengthmax
+	Maximum target edge length.
+        
+    Gradation:
+        #id: gradation
+	The rate at which edge lengths are allowed to change from one triangle to the next. Higher values generate fewer triangles but overall quality is lower.
+        
+        
+    == Post Settings ==
+
+    Remesh Seams:
+        #id: remeshseams
+	Resulting seams can be visible in the resulting mesh, especially in adaptive remeshing. Remesh Seams only remeshes these affected areas, blending them into the whole mesh.
+        
+    Fuse Pieces:
+        #id: fusepieces
+	Fuses segmented pieces into a whole mesh.
+        
+    Recompute Normals:
+        #id: recomputenormals
+        
+    
+    
+@related
+- [Remesh|Node:sop/remesh]
+
