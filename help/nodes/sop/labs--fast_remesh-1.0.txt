@@ -8,89 +8,74 @@
 """This node performs the remeshing operation on geometry in pieces in parallel, greatly reducing the calculation time of traditional remeshing."""
 
 
-
 @parameters
 
-    == Segmentation ==
+    == Parallel Processing ==
 
-    Segment Geo by:
-	
-		__Custom Attribute__ divides the mesh into pieces according to a custom integer attribute.
-		
-		__Connectivity__ remeshes pieces based on individual connectivity.
-		
-		__Cluster__	divides the mesh evenly-spaced pieces.
-		
-		__UVs__	divides the mesh into pieces corresponding to separate UV islands.
-	#id: sectionpieces
+    Partition By:
+        #id: partitionby
+	Connectivity and Bucket Size will have options to partition by connectivity, UV islands, and clusters of primitives. Custom Attribute partitions geometry by a custom primitive integer attribute.
+        
+    === Connectivity ===
+
+    3D Connectivity:
+        #id: connectivity
+	Partitions geometry based on individual connectivity.
+        
+    3D and UV Connectivity:
+        #id: uvislands
+	Partitions and geometry based on separate UV islands. Remeshing by connectivity is included in this option.
+        
+    Bucket Size:
+        #id: bucketsize
+	Partitions geometry by clustering primitives.
+        
+    Target Bucket Size:
+        #id: targetbucket
+	The target number of polygons in each cluster. A lower value will generate more clusters.
+        
+    Bucket Seed:
+        #id: clusterseed
+	Randomize geometry clusters.
         
     Attribute Name:
         #id: customattname
-	Custom attribute to use for dividing the mesh.
+	The name of the custom primitive integer attribute used to partition geometry.
         
-    Number of Clusters:
-        #id: numclusters
-	The number of pieces the mesh will be divided into to remesh. More clusters may speed up calculations when working with dense meshes.
-        
-    Cluster Seed:
-        #id: clusterseed
-	Randomize cluster arrangement.
-        
-    Visualize Pieces:
+    Visualize Partitions:
         #id: visualizepieces
-	Assigns a random color to each segmented piece.
+	Assigns a random color to each partition.
         
-    == Remesh Settings ==
+    == Remesh ==
 
     Remesh Target Type:
-		__Edge Length__ remeshes according to specified edge length or edge length multiplier.
-		
-		__Polycount__ remeshes according to desired polycount results or polycount multiplier.
-		
-		__Adaptive__ uses bigger triangles in broad areas and smaller triangles in detailed areas. Can set the min and max edge length desired.
         #id: remeshtarget
-        
-    Remesh Iterations:
-        #id: remeshiterations
-	Increasing this increases the quality of the generated mesh but takes more time. More iterations will produce triangles that are more equilateral. Increasing this parameter while performing Adaptive remeshing may cause holes in geometry.
-
-        
-    Smoothing:
-        #id: smoothing
-	The amount of additional smoothing to apply after remeshing.
+	__Target Edge Length__ sets the 
 	
-    Preserve UVs:
-        #id: preserveuvs
-	Keeps UVs intact through the remeshing process
-
-    === Edge Length ===
-
+	__Target Polycount__
+	
+	__Ratio of Average Input Edge Length__
+	
+	__Ratio of Input Polycount__
+	
+	__Adaptive Remeshing__
+		
     Target Edge Length:
-        #id: targetedge
-	How long (in Houdini units) to make the triangle edge lengths. 
+        #id: targetedgetemp
+	Target length (in Houdini units) of resulting triangle edge lengths.
         
-    Use Multiplier for Edge Length:
-        #id: usemultedge
-	Use a multiplier and the average edge length of the input mesh to set the edge length. 
-        
-    Edge Length Multiplier:
+    Edge Length Ratio:
         #id: edgemult
-	Sets the target edge length to the average edge length times the multiplier. A multiplier of 2 will make the edge lengths twice as long.
-	
+	Ratio of the target edge length to the average input edge length. A ratio of 2 will make edge lengths twice as long.
         
-    === Polycount ===
-
     Target Polycount:
         #id: targetpolycount
-	Target polycount goal to achieve with resulting mesh. Higher remesh iterations will more closely reach this goal.
+	Target polycount goal for resulting mesh. Higher remesh iterations will more closely reach this goal.
         
-    Use Multiplier for Polycount:
-        #id: usemultpoly
-	Use a multiplier and the average edge length of the input mesh to set the edge length.
-		   
-    Polycount Multiplier:
+    Polycount Ratio:
         #id: polymult
-	Sets the target polycount goal to the number of current polygons times the multiplier. A multiplier of two will aim for twice the number of polygons.
+	Ratio of the target polycount to the input polycount. A ratio of 2 will double the amount of polygons.
+		
         
     === Adaptive ===
 
@@ -104,24 +89,33 @@
         
     Gradation:
         #id: gradation
-	The rate at which edge lengths are allowed to change from one triangle to the next. Higher values generate fewer triangles but overall quality is lower.
+	The rate at which edge lengths are allowed to change from one triangle to the next. Higher values generate fewer triangles but the overall quality is lower.
         
+    Remesh Iterations:
+        #id: remeshiterations
+	Increasing this increases the quality of the generated mesh but takes more time. More iterations will produce triangles that are more equilateral. Increasing this parameter while performing Adaptive remeshing may cause holes in geometry.
         
-    == Post Settings ==
+    Smoothing:
+        #id: smoothing
+	The amount of additional smoothing to apply after remeshing.
+        
+    == Post-processing ==
 
     Remesh Seams:
         #id: remeshseams
 	Resulting seams can be visible in the resulting mesh, especially in adaptive remeshing. Remesh Seams only remeshes these affected areas, blending them into the whole mesh.
         
-    Fuse Pieces:
+    Fuse Remaining Seams:
         #id: fusepieces
-	Fuses segmented pieces into a whole mesh.
+	Fuses remaining partitions into a complete mesh.
         
     Recompute Normals:
         #id: recomputenormals
+	Recalculates the normals of output geometry.
         
+@locals
     
     
 @related
-- [Remesh|Node:sop/remesh]
+- [item | /link ]
 
