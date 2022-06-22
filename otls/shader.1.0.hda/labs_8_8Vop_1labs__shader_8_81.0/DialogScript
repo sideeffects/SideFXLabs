@@ -1,0 +1,540 @@
+# Dialog script for labs::labs_shader::1.0 automatically generated
+
+{
+    name	labs::labs_shader::1.0
+    script	gamedev::mat_gamedev_shader
+    label	"Labs PBR Shader"
+
+    rendermask	VMantra
+    shadertype	vopmaterial
+    input	vector	uv	""
+    input	vector	basecolor	"Base Color"
+    input	float	IOR	""
+    input	float	rough	Roughness
+    input	float	metallic	Metallic
+    input	float	transparency	Transparency
+    input	int	basecolor_useTexture	"Use Texture"
+    input	string	basecolor_texture	Texture
+    input	int	rough_monoChannel	Channel
+    input	string	rough_texture	Texture
+    input	int	rough_useTexture	"Use Texture"
+    input	int	metallic_useTexture	"Use Texture"
+    input	string	metallic_texture	Texture
+    input	int	metallic_monoChannel	Channel
+    input	int	opaccolor_useTexture	"Use Texture"
+    input	string	opaccolor_texture	Texture
+    input	int	emitcolor_useTexture	"Use Texture"
+    input	string	emitcolor_texture	Texture
+    input	vector	emitcolor	"Emission Color"
+    input	float	emitint	"Emission Intensity"
+    input	int	baseBumpAndNormal_enable	Enable
+    input	float	baseNormal_scale	"Effect Scale"
+    input	string	baseNormal_texture	"Texture Path"
+    input	int	baseNormal_flipX	"Flip X"
+    input	int	baseNormal_flipY	"Flip Y"
+    input	vector2	st	""
+    input	int	use_mikkt	"Use Model's Tangent"
+    inputflags	uv	2
+    inputflags	basecolor	2
+    inputflags	IOR	2
+    inputflags	rough	2
+    inputflags	metallic	2
+    inputflags	transparency	2
+    inputflags	basecolor_useTexture	2
+    inputflags	basecolor_texture	2
+    inputflags	rough_monoChannel	2
+    inputflags	rough_texture	2
+    inputflags	rough_useTexture	2
+    inputflags	metallic_useTexture	2
+    inputflags	metallic_texture	2
+    inputflags	metallic_monoChannel	2
+    inputflags	opaccolor_useTexture	2
+    inputflags	opaccolor_texture	2
+    inputflags	emitcolor_useTexture	2
+    inputflags	emitcolor_texture	2
+    inputflags	emitcolor	2
+    inputflags	emitint	2
+    inputflags	baseBumpAndNormal_enable	2
+    inputflags	baseNormal_scale	2
+    inputflags	baseNormal_texture	2
+    inputflags	baseNormal_flipX	2
+    inputflags	baseNormal_flipY	2
+    inputflags	st	2
+    inputflags	use_mikkt	2
+    signature	"Default Inputs"	default	{ vector vector float float float float int string int string int int string int int string int string vector float int float string int int vector2 int }
+
+    outputoverrides	default
+    {
+    }
+
+    help {
+	""
+    }
+
+    group {
+        name    "diffuse_folder_15"
+        label   "Surface"
+
+        groupsimple {
+            name    "folder7"
+            label   "Albedo"
+
+            parm {
+                name    "basecolor"
+                label   "Base Color"
+                type    color
+                size    3
+                default { "0.8" "0.8" "0.8" }
+                range   { 0 1 }
+                parmtag { "ogl_diff" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "basecolor_useTexture"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                parmtag { "ogl_use_tex1" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "basecolor_texture"
+                label   "Texture"
+                type    image
+                default { "" }
+                hidewhen "{ basecolor_useTexture == 0 }"
+                parmtag { "ogl_tex1" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+        }
+
+        groupsimple {
+            name    "folder4"
+            label   "Roughness"
+
+            parm {
+                name    "IOR"
+                label   "IOR"
+                type    float
+                default { "1.5" }
+                range   { 1 3 }
+                parmtag { "ogl_ior" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "rough"
+                label   "Roughness"
+                type    float
+                default { "0.3" }
+                range   { 0 1 }
+                parmtag { "ogl_rough" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "horizon_fade"
+                label   "Horizon Smoothing"
+                type    float
+                default { "1" }
+                help    "Fade the lighting at steep glancing angles in order to reduce light bleeding (Not reflected in Mantra)"
+                hidewhen "{ useBaseColor == 0 }"
+                range   { 0 1 }
+                parmtag { "ogl_rough" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "invert_rough"
+                label   "Invert Roughness"
+                type    toggle
+                default { "off" }
+                help    "Inverts the roughness so it behaves like Gloss (Not reflected in Mantra Shader)"
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                parmtag { "ogl_invert_roughmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "rough_useTexture"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                parmtag { "ogl_use_roughmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "rough_texture"
+                label   "Texture"
+                type    image
+                default { "" }
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                hidewhen "{ rough_useTexture == 0 }"
+                parmtag { "ogl_roughmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "rough_monoChannel"
+                label   "Channel"
+                type    integer
+                default { "0" }
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                hidewhen "{ rough_useTexture == 0 }"
+                menu {
+                    "0" "Luminance"
+                    "1" "Red"
+                    "2" "Green"
+                    "3" "Blue"
+                }
+                range   { 0 10 }
+                parmtag { "ogl_roughmap_comp" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+        }
+
+        groupsimple {
+            name    "folder12"
+            label   "Metallic"
+
+            parm {
+                name    "metallic"
+                label   "Metallic"
+                type    float
+                default { "0" }
+                range   { 0 1 }
+                parmtag { "ogl_metallic" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "metallic_useTexture"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                parmtag { "ogl_use_metallicmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "metallic_texture"
+                label   "Texture"
+                type    image
+                default { "" }
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                hidewhen "{ metallic_useTexture == 0 }"
+                parmtag { "ogl_metallicmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "metallic_monoChannel"
+                label   "Channel"
+                type    integer
+                default { "0" }
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                hidewhen "{ metallic_useTexture == 0 }"
+                menu {
+                    "0" "Luminance"
+                    "1" "Red"
+                    "2" "Green"
+                    "3" "Blue"
+                }
+                range   { 0 10 }
+                parmtag { "ogl_metallicmap_comp" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+        }
+
+        groupsimple {
+            name    "shading_16"
+            label   "Normal"
+
+            parm {
+                name    "baseBumpAndNormal_enable"
+                label   "Enable"
+                type    toggle
+                default { "off" }
+                parmtag { "ogl_use_normalmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "baseNormal_texture"
+                label   "Texture Path"
+                type    image
+                default { "" }
+                disablewhen "{ baseBumpAndNormal_enable == 0 }"
+                hidewhen "{ baseBumpAndNormal_enable == 0 }"
+                parmtag { "ogl_normalmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "baseNormal_scale"
+                label   "Effect Scale"
+                type    float
+                joinnext
+                default { "1" }
+                disablewhen "{ baseBumpAndNormal_enable == 0 }"
+                hidewhen "{ baseBumpAndNormal_enable == 0 }"
+                range   { 0 1 }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "baseNormal_flipX"
+                label   "Flip X"
+                type    toggle
+                joinnext
+                default { "off" }
+                disablewhen "{ baseBumpAndNormal_enable == 0 }"
+                hidewhen "{ baseBumpAndNormal_enable == 0 }"
+                parmtag { "ogl_normalflipx" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "baseNormal_flipY"
+                label   "Flip Y"
+                type    toggle
+                default { "off" }
+                disablewhen "{ baseBumpAndNormal_enable == 0 }"
+                hidewhen "{ baseBumpAndNormal_enable == 0 }"
+                parmtag { "ogl_normalflipy" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "use_mikkt"
+                label   "Use Model's Tangent"
+                type    toggle
+                default { "off" }
+                help    "Use the Model's TangentU Attribute"
+                disablewhen "{ baseBumpAndNormal_enable == 0 }"
+                hidewhen "{ baseBumpAndNormal_enable == 0 }"
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+        }
+
+        groupsimple {
+            name    "folder14"
+            label   "Occlusion"
+
+            parm {
+                name    "occlusion"
+                label   "Occlusion"
+                type    float
+                default { "0" }
+                help    "Controls the intensity of the AO map"
+                range   { 0 1 }
+            }
+            parm {
+                name    "occlusion_useTexture"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                help    "Enable AO Map"
+                parmtag { "ogl_use_occlusionmap" "1" }
+            }
+            parm {
+                name    "occlusion_texture"
+                label   "Texture"
+                type    image
+                default { "" }
+                help    "Ambient Occlusion Map"
+                hidewhen "{ occlusion_useTexture == 0 }"
+                parmtag { "ogl_occlusionmap" "1" }
+            }
+            parm {
+                name    "occlusion_monoChannel"
+                label   "Channel"
+                type    integer
+                default { "0" }
+                disablewhen "{ refl_enable == 0 } { refl_lights == 0 refl_objs == 0 }"
+                hidewhen "{ occlusion_useTexture == 0 }"
+                menu {
+                    "0" "Luminance"
+                    "1" "Red"
+                    "2" "Green"
+                    "3" "Blue"
+                }
+                range   { 0 10 }
+                parmtag { "ogl_occlusionmap_comp" "1" }
+            }
+        }
+
+        groupsimple {
+            name    "folder9"
+            label   "Emissive"
+
+            parm {
+                name    "emitint"
+                label   "Emission Intensity"
+                type    float
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "ogl_emit_intensity" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "emitcolor"
+                label   "Emission Color"
+                type    color
+                size    3
+                default { "0" "0" "0" }
+                range   { 0 1 }
+                parmtag { "ogl_emit" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "emitcolor_useTexture"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                parmtag { "ogl_use_emissionmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "emitcolor_texture"
+                label   "Texture"
+                type    image
+                default { "" }
+                hidewhen "{ emitcolor_useTexture == 0 }"
+                parmtag { "ogl_emissionmap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+        }
+
+        groupsimple {
+            name    "folder13"
+            label   "Transparency"
+
+            parm {
+                name    "transparency"
+                label   "Transparency"
+                type    float
+                default { "0" }
+                range   { 0 1 }
+                parmtag { "ogl_transparency" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "opaccolor_useTexture"
+                label   "Use Texture"
+                type    toggle
+                default { "off" }
+                parmtag { "ogl_use_opacitymap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+            parm {
+                name    "opaccolor_texture"
+                label   "Texture"
+                type    image
+                default { "" }
+                hidewhen "{ opaccolor_useTexture == 0 }"
+                parmtag { "ogl_opacitymap" "1" }
+                parmtag { "parmvop" "1" }
+                parmtag { "shaderparmcontexts" "surface" }
+            }
+        }
+
+    }
+
+    group {
+        name    "diffuse_folder_15_1"
+        label   "Advanced"
+
+        parm {
+            name    "importance_sampling_diffuse"
+            label   "Importance Sampled Ambient"
+            type    toggle
+            default { "0" }
+            help    "Use a fancier way of sampling the diffuse information from Environment Lights"
+        }
+        parm {
+            name    "nbSamples_diff"
+            label   "Number of Diffuse Samples"
+            type    integer
+            default { "32" }
+            help    "Number of Samples of the Environment Light during diffuse calculations"
+            range   { 0 10 }
+        }
+        parm {
+            name    "importance_sampling"
+            label   "Importance Sampled Reflections"
+            type    toggle
+            default { "1" }
+            help    "Realtime blurring of the cubemap based on the roughness of the object"
+        }
+        parm {
+            name    "nbSamples"
+            label   "Number of Specular Samples"
+            type    integer
+            default { "32" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "frontface"
+            label   "Shade Both Sides As Front"
+            type    toggle
+            default { "on" }
+            parmtag { "parmvop" "1" }
+            parmtag { "shaderparmcontexts" "surface" }
+        }
+    }
+
+    parm {
+        name    "specmodel"
+        label   "OpenGL Specular Model"
+        type    string
+        invisible
+        default { "ggx" }
+        parmtag { "ogl_spec_model" "1" }
+    }
+    parm {
+        name    "coatspecmodel"
+        label   "OpenGL Coat Specular Model"
+        type    string
+        invisible
+        default { "ggx" }
+        parmtag { "ogl_coat_model" "1" }
+    }
+    parm {
+        name    "uv"
+        label   "uv"
+        type    float
+        invisible
+        size    3
+        default { "0" "0" "0" }
+        range   { 0 10 }
+        parmtag { "parmvop" "1" }
+        parmtag { "shaderparmcontexts" "surface displace" }
+    }
+    parm {
+        name    "st"
+        label   "st"
+        type    float
+        invisible
+        size    2
+        default { "0" "0" }
+        range   { 0 10 }
+        parmtag { "parmvop" "1" }
+        parmtag { "shaderparmcontexts" "surface displace" }
+    }
+}
