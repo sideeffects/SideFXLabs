@@ -7,11 +7,13 @@
 
 """Adjusts volume visualization mode (default / normals / motion vectors), density, colors (including greyscale colors), emission, and viewport rendering quality."""
 
-This node can convert volumes to greyscale, normal visualization mode, or motion vector visualization mode. It can also adjust volume density, diffuse color, emission color, shadow, and viewport rendering quality.
+This node can convert volumes to greyscale, normal visualization mode, or motion vector visualization mode. It can also adjust volume density, diffuse color, emission color, shadow, and viewport rendering quality (which has an effect on certain banding artifacts).
 
 TIP:
-    Compared to _Volume Visualization SOP_ and _Pyro Bake Volume SOP_, this node offers similar but simpler controls. What those two nodes do not offer are greyscale conversion, normal / motion vector modes, viewport rendering quality adjustments, and per-component color scaling.
+    Compared to _Volume Visualization SOP_ and _Pyro Bake Volume SOP_, this node offers similar but simpler controls. What those two nodes do not offer are greyscale conversion, normal / motion vector visualization modes, per-component color scaling, and viewport rendering quality adjustments.
 
+NOTE:
+    This node replaces _Volume Detail Attributes SOP_, which will be removed in Houdini 20.
 
 @parameters
 
@@ -24,10 +26,11 @@ TIP:
 
     Convert to Greyscale:
         #id: greyscalemode
-        How to convert the diffuse and emissive colors to greyscale.
+        How to convert the diffuse and emissive colors to greyscale. The [relative luminance|https://en.wikipedia.org/wiki/Relative_luminance] coefficients reflects the spectral weighting for human vision. The Rec.709 standard is newer than the the Rec.601 standard, but both are still widely used. Their differences are rather complicated. You can default to Rec.709 unless you know what standard you should use.
         <p>*Do Not Convert*: Does not perform conversion.</p>   
-        <p>*Using Relative Luminance for ITU-R BT.709 / sRGB*: Performs conversion using ITU-R BT.709 / sRGB relative luminance coefficients. This reflects spectral weighting for human vision. The BT.709 coefficients (Y = 0.2126 R + 0.7152 G + 0.0722 B) differ from the older BT.601 coefficients (Y = 0.299 R + 0.587 G + 0.114 B).</p>
-        <p>*Using Specified RGB Weighted Sum*: Performs conversion using specified RGB weights. The weights are used as they are and not normalized. The default weights are the same as the ITU-R BT.709 / sRGB coefficients.</p>
+        <p>*Using Rec.709 Relative Luminance Coefficients*: Performs conversion using the Rec.709 relative luminance coefficients (Y = 0.2126 R + 0.7152 G + 0.0722 B).</p>
+        <p>*Using Rec.601 Relative Luminance Coefficients*: Performs conversion using the Rec.601 relative luminance coefficients (Y = 0.299 R + 0.587 G + 0.114 B).</p>
+        <p>*Using Custom RGB Weighted Sum*: Performs conversion using custom RGB weights. The weights will be used as they are and will not be normalized. The default weights are the same as the Rec.709 coefficients.</p>
             
     R Weight:
         #id: relluminancer
@@ -71,12 +74,12 @@ TIP:
         
     Intensity Volume:
         #id: emitfield
-        The volume used to scale emission intensity.
+        The volume used to scale emission intensity. This sets the detail attribute `volvis_emitfield`.
         
     Source Range:
         #id: emitrange
-        The min and max values of the intensity volume. The emission intensity is mapped from the intensity volume across this range.
-        <p>The default values are the min and max values of the original input intensity volume, so if *Intensity Volume* is different from the input detail attribute `volvis_emitfield`, consider adjusting this range accordingly as the new intensity volume may have a different source range.</p>
+        The min and max values of the intensity volume. When the intensity volume is used to scale the emission intensity, it is clamped to this range first.
+        <p>The default values are the min and max values of the input intensity volume, so if *Intensity Volume* is different from the input detail attribute `volvis_emitfield`, consider adjusting this range accordingly as the new intensity volume may have a different source range.</p>
         
     Adjust Viewport Volume Quality:
         #id: adjustquality
