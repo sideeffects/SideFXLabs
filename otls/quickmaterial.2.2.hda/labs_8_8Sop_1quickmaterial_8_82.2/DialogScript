@@ -1,0 +1,450 @@
+# Dialog script for labs::quickmaterial::2.2 automatically generated
+
+{
+    name	labs::quickmaterial::2.2
+    script	gamedev::sop_quickmaterial
+    label	"Labs Quick Material"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry To Add Material To"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "switchoriginal"
+        label   "Switch to Original Materials"
+        type    button
+        joinnext
+        default { "0" }
+        parmtag { "script_callback" "kwargs['node'].hm().Original(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "usemikkt"
+        label   "Use MikkT"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    multiswitcher {
+        name    "mMaterialEntries"
+        label    "Materials"
+        default 1
+        parmtag { "script_callback" "" }
+        parmtag { "script_callback_language" "python" }
+
+        parm {
+            name    "materialdefinition_#"
+            label   "Material Type"
+            type    ordinal
+            joinnext
+            default { "principledshader1" }
+            menu usetokenvalue {
+                "principledshader1" "Principled Shader"
+                "matcap1"           "MatCap Shader"
+                "labspbrshader"     "Labs PBR Shader"
+            }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "refreshpbrshader_#"
+            label   "Refresh Shader"
+            type    button
+            default { "0" }
+            hidewhen "{ materialdefinition_# != 2 }"
+            parmtag { "script_callback" "kwargs['node'].hm().refreshPBRShader(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "materialname_#"
+            label   "Material Name"
+            type    string
+            default { "Material_#" }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "groupselection_#"
+            label   "Group"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "opmenu -l group1 basegroup" ]
+            }
+            parmtag { "script_action" "import soputils\nsoputils.selectMaterialGroupParm(kwargs)\n" }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "sepparm#"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "medium" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        groupsimple {
+            name    "folder0_#"
+            label   "Principled Shader"
+            hidewhentab "{ materialdefinition_# != 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            groupsimple {
+                name    "basecolorfolder_#"
+                label   "Base Color"
+
+                parm {
+                    name    "principledshader_basecolor_texture_#"
+                    label   "BaseColor Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "principledshader_basecolor_#"
+                    label   "Tint"
+                    type    color
+                    size    3
+                    default { "1" "1" "1" }
+                    range   { 0 1 }
+                }
+            }
+
+            groupsimple {
+                name    "opacityfolder_#"
+                label   "Opacity"
+
+                parm {
+                    name    "principledshader_opaccolor_texture_#"
+                    label   "Opacity Texture"
+                    type    image
+                    default { "" }
+                }
+            }
+
+            groupsimple {
+                name    "normalfolder_#"
+                label   "Normal"
+
+                parm {
+                    name    "principledshader_baseNormal_texture_#"
+                    label   "Normal Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "principledshader_baseNormal_flipY_#"
+                    label   "Flip Y"
+                    type    toggle
+                    default { "0" }
+                }
+                parm {
+                    name    "principledshader_roundedEdge_enable_#"
+                    label   "Rounded Edge"
+                    type    toggle
+                    joinnext
+                    default { "0" }
+                }
+                parm {
+                    name    "principledshader_roundedEdge_radius_#"
+                    label   "Radius"
+                    type    float
+                    joinnext
+                    default { "0" }
+                    disablewhen "{ principledshader_roundedEdge_enable_# == 0 }"
+                    range   { 0 0.1 }
+                }
+                parm {
+                    name    "principledshader_roundedEdge_mode_#"
+                    label   "Mode"
+                    type    integer
+                    default { "0" }
+                    disablewhen "{ principledshader_roundedEdge_enable_# == 0 }"
+                    menu {
+                        "both"      "Concave and Convex Edges"
+                        "concave"   "Concave Edges"
+                        "convex"    "Convex Edges"
+                    }
+                    range   { 0 10 }
+                }
+            }
+
+            groupsimple {
+                name    "roughnessfolder_#"
+                label   "Roughness"
+
+                parm {
+                    name    "principledshader_rough_texture_#"
+                    label   "Roughness Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "principledshader_rough_#"
+                    label   "Roughness"
+                    type    float
+                    default { "0.652" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "principledshader_ior_#"
+                    label   "IOR"
+                    type    float
+                    default { "1.1" }
+                    range   { 0 3 }
+                }
+            }
+
+            groupsimple {
+                name    "folder0_#_4"
+                label   "Occlusion"
+
+                parm {
+                    name    "principledshader_occlusion_texture_#"
+                    label   "Occlusion Texture"
+                    type    image
+                    default { "" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "ogl_occlusionmap" "1" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "surface" }
+                }
+                parm {
+                    name    "principledshader_occlusion_textureIntensity_#"
+                    label   "Tint Intensity"
+                    type    float
+                    default { "1" }
+                    range   { 0 2 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "surface" }
+                }
+            }
+
+            groupsimple {
+                name    "metallicfolder_#"
+                label   "Metallic"
+
+                parm {
+                    name    "principledshader_metallic_texture_#"
+                    label   "Metallic Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "principledshader_metallic_#"
+                    label   "Metallic"
+                    type    float
+                    default { "0" }
+                    range   { 0 1 }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "folder0_#_2"
+            label   "MatCap Shader"
+            hidewhentab "{ materialdefinition_# != 1 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "matcapshader_basecolor_texture_#"
+                label   "MatCap Texture"
+                type    image
+                default { "$HH/pic/MatCap/OilClay.pic" }
+            }
+            parm {
+                name    "matcapshader_use_texture_alpha_#"
+                label   "Use MatCap Alpha"
+                type    toggle
+                default { "0" }
+            }
+        }
+
+        groupsimple {
+            name    "folder0_#_3"
+            label   "Labs PBR Shader"
+            hidewhentab "{ materialdefinition_# != 2 }"
+            grouptag { "sidefx::look" "blank" }
+
+            groupsimple {
+                name    "labs_basecolorfolder_#"
+                label   "Base Color"
+
+                parm {
+                    name    "labspbrshader_basecolor_texture_#"
+                    label   "BaseColor Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "labspbrshader_basecolor_#"
+                    label   "Tint"
+                    type    color
+                    size    3
+                    default { "1" "1" "1" }
+                    range   { 0 1 }
+                }
+            }
+
+            groupsimple {
+                name    "labs_normalfolder_#"
+                label   "Normal"
+
+                parm {
+                    name    "labspbrshader_baseNormal_texture_#"
+                    label   "Normal Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "labspbrshader_baseNormal_scale_#"
+                    label   "Effect Scale"
+                    type    float
+                    default { "1" }
+                    range   { 0 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labspbrshader_use_mikkt_#"
+                    label   "Use MikkT Tangents"
+                    type    toggle
+                    default { "1" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labspbrshader_baseNormal_flipY_#"
+                    label   "Flip Y"
+                    type    toggle
+                    default { "0" }
+                }
+            }
+
+            groupsimple {
+                name    "labs_roughnessfolder_#"
+                label   "Roughness"
+
+                parm {
+                    name    "labspbrshader_rough_texture_#"
+                    label   "Roughness Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "labspbrshader_rough_#"
+                    label   "Roughness"
+                    type    float
+                    default { "0.652" }
+                    range   { 0 1 }
+                }
+                parm {
+                    name    "labspbrshader_ior_#"
+                    label   "IOR"
+                    type    float
+                    default { "1.1" }
+                    range   { 0 3 }
+                }
+            }
+
+            groupsimple {
+                name    "labs_metallicfolder_#"
+                label   "Metallic"
+
+                parm {
+                    name    "labspbrshader_metallic_texture_#"
+                    label   "Metallic Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "labspbrshader_metallic_#"
+                    label   "Metallic"
+                    type    float
+                    default { "0" }
+                    range   { 0 1 }
+                }
+            }
+
+            groupsimple {
+                name    "labs_emissionfolder_#"
+                label   "Emission"
+
+                parm {
+                    name    "labspbrshader_emitcolor_texture_#"
+                    label   "Emission Color Texture"
+                    type    image
+                    default { "" }
+                }
+                parm {
+                    name    "labspbrshader_emitint_#"
+                    label   "Emission Intensity"
+                    type    float
+                    default { "0" }
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labspbrshader_emitcolor_#"
+                    label   "Tint"
+                    type    color
+                    size    3
+                    default { "0" "0" "0" }
+                    range   { 0 1 }
+                }
+            }
+
+            groupsimple {
+                name    "labs_occlusionFolder0_#"
+                label   "Occlusion"
+
+                parm {
+                    name    "labspbrshader_occlusion_texture_#"
+                    label   "Occlusion Texture"
+                    type    image
+                    default { "" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "ogl_occlusionmap" "1" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "surface" }
+                }
+                parm {
+                    name    "labspbrshader_occlusion_#"
+                    label   "Occlusion"
+                    type    float
+                    default { "1" }
+                    range   { 0 2 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "shaderparmcontexts" "surface" }
+                }
+            }
+
+            groupsimple {
+                name    "labs_opacityfolder_#"
+                label   "Opacity"
+
+                parm {
+                    name    "labspbrshader_transparency_#"
+                    label   "Transparency"
+                    type    float
+                    default { "0" }
+                    range   { 0 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "labspbrshader_opaccolor_texture_#"
+                    label   "Opacity Texture"
+                    type    image
+                    default { "" }
+                }
+            }
+
+        }
+
+    }
+
+}
