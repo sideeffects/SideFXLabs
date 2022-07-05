@@ -210,6 +210,10 @@ def create_node_help(nodetypename, context, directory):
     from labsopui import labsdocs
     labsdocs.create_node_help(nodetypename, context, directory)
 
+def create_node_help_auto(node):
+    from labsopui import labsdocs
+    labsdocs.create_node_help_auto(node)
+
 def manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.json", install=0):
     destination = hou.text.expandString(destination)
 
