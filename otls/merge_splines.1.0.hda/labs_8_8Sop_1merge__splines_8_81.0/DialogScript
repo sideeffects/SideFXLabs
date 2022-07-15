@@ -1,0 +1,747 @@
+# Dialog script for labs::merge_splines::1.0 automatically generated
+
+{
+    name	labs::merge_splines::1.0
+    script	UTIL_MergeSplines
+    label	"Labs Merge Splines"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Polylines to Merge"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Output
+    outputlabel	2	"Guide Visual Output"
+
+    groupsimple {
+        name    "folder6"
+        label   "Merge Splines"
+
+        parm {
+            name    "showLabels"
+            label   "Show Help"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Show or hide the Help labels on each tab, hide to compress the menu for easier reading."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "labelparm"
+            label   "Label"
+            type    label
+            nolabel
+            default { "Configure how and which subsection of curves provided to the tool are merged." }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "sepparm13"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "fuseDistance"
+            label   "Fuse / Snap Distance"
+            type    float
+            default { "0.001" }
+            help    "Specify the snapping range of points to help connect disconnected polylines. Best to keep at reasonable levels, as oversnapping can cause undesirable results."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fuseTargets"
+            label   "Fuse Targets"
+            type    ordinal
+            default { "0" }
+            help    "When enabled, only input spline ends with 1 neighbour point and optionally intersections with more than 2 neighbout points will be counted as fuse or merge targets. Spline points with only 2 neighbours will be ignored."
+            menu {
+                "0" "Any Point"
+                "1" "Only End Points & Existing Intersections"
+                "2" "Only End Points"
+            }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "preFuseFilter_Tgl"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            help    "Enable the options for a custom fuse filter, all points are fused by default when disabled."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "preFuseFilter"
+            label   "Fuse Filter"
+            type    string
+            default { "" }
+            help    "If input primitive lines are disconnected, select by point group which splines should be merged by their points. If points between polylines are already connected and \"Only Merge on Fuse Filter Selection\" is enabled, only these points and their connected primitives will be merged, others will be left untouched."
+            disablewhen "{ preFuseFilter_Tgl == 0 }"
+            menutoggle {
+                [ "opmenu -l -a groupsToMatchMerge querygroup" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Points,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select query geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "limitMergeOperations"
+            label   "Only Merge on Fuse Filter Selection"
+            type    toggle
+            default { "0" }
+            help    "When a Fuse Filter point group is provided, only merge polylines connected to the \"fuse filter\" point selection, all other geometry is ignored. This is faster as only the affected geometry is re-calculated, while unaffected geometry is kept untouched. Useful when you need to merge curves into a much larger curve network without unnecessary overhead."
+            disablewhen "{ preFuseFilter_Tgl == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm8"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "onlyMergeIfMatching"
+            label   "Only Merge When Primitive Attributes Match"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Only merge curves that share one or multiple primitive attributes. Any differences in the specified attributes will prevent 2 polylines from being merged."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "labelSpacer"
+            label   "Label"
+            type    label
+            nolabel
+            default { "" }
+        }
+        parm {
+            name    "attributeToMatch"
+            label   "Attributes to Match"
+            type    string
+            default { "" }
+            help    "Specify the attribute names to match for merge. (Supported attributes: Int, Float, String, Vector)"
+            hidewhen "{ onlyMergeIfMatching == 0 }"
+            menutoggle {
+                [ "opmenu -l -a attribsToMatch inname" ]
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupcollapsible {
+        name    "advancedFuseBehaviour3"
+        label   "Advanced Fuse Behaviour"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "labelparm3"
+            label   "Label"
+            type    label
+            nolabel
+            default { "Configures how points are snapped when they are fused together." }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "sepparm12"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "usetargetgroup"
+            label   "Target Group"
+            type    toggle
+            nolabel
+            joinnext
+            default { "off" }
+            help    "When enabled, only snap points to the positions of a target point group."
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "targetgroup"
+            label   "Target Group"
+            type    string
+            default { "" }
+            help    "When enabled, this is the subset of points that will be snapped to points that are allowed to fuse. Otherwise, the fuse points are also the target group."
+            disablewhen "{ usetargetgroup == 0 }"
+            menutoggle {
+                [ "opmenu -l -a groupsToMatchMerge querygroup" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Points,)\nkwargs['inputindex'] = -1\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select target geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+            parmtag { "sop_input" "1" }
+        }
+        parm {
+            name    "useradiusattrib"
+            label   "Radius Attribute"
+            type    toggle
+            nolabel
+            joinnext
+            default { "off" }
+            help    "When enabled, the point attribute with this name is used to specify the radii of the points. Two points will be able to fuse together if the closest distance between their spheres with the corresponding radius is within the Snap Distance."
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "radiusattrib"
+            label   "Radius Attribute"
+            type    string
+            default { "pscale" }
+            help    "When enabled, the point attribute with this name is used to specify the radii of the points. Two points will be able to fuse together if the closest distance between their spheres with the corresponding radius is within the Snap Distance."
+            disablewhen "{ useradiusattrib == 0 }"
+            menureplace {
+                [ "opmenu -l -a snapPosition radiusattrib" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "sop_input" "1" }
+        }
+        parm {
+            name    "onlyFuseIfMatching"
+            label   "Only Fuse when Primitive Attribute Matches"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Only fuse points from curves that share a primitive attributes. Any differences in the specified attribute will prevent 2 polylines from being fused."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "labelSpacer2"
+            label   "Label"
+            type    label
+            nolabel
+            default { "" }
+        }
+        parm {
+            name    "attributeToMatchFuse"
+            label   "Attribute to Match"
+            type    string
+            default { "" }
+            help    "Specify an attribute name to match for fusing. (Supported attributes: Int, Float, String, Vector)"
+            hidewhen "{ onlyFuseIfMatching == 0 }"
+            menutoggle {
+                [ "opmenu -l -a attribsToMatch inname" ]
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm17"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "positionsnapmethod"
+            label   "Output Positions"
+            type    ordinal
+            joinnext
+            default { "average" }
+            help    "The method to use to combine values of Position Attribute when snapping points together. If a \"By Attribute\" method is selected, use the specified point attribute to determine the snap position."
+            menu {
+                "average"   "Average Position"
+                "lowest"    "Point Number [First Value]"
+                "highest"   "Point Number [Last Value]"
+                "max"       "Maximum Position"
+                "min"       "Minimum Position"
+                "mode"      "Mode of Position"
+                "median"    "Median of Position"
+                "10"        "By Attribute [First Value]"
+                "11"        "By Attribute [Last Value]"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pointFusePointOrder"
+            label   "Sort By [Point Attrib]"
+            type    string
+            default { "" }
+            help    "Specify a point attribute that will act as a weight to determine the points position to fuse to. (sorts by numerical or alphabetical order)."
+            disablewhen "{ positionsnapmethod != 10 positionsnapmethod != 11 }"
+            menureplace {
+                [ "opmenu -l -a attribsToMatchPoint inname" ]
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm7"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder7"
+        label   "Primitive Behaviour on Merge"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "labelparm2"
+            label   "Label"
+            type    label
+            nolabel
+            default { "Configures how primitive attributes & vertex order are resolved on curves that are merged together." }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "sepparm10"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "primAttribMethod"
+            label   "Prim Attrib Promotion"
+            type    ordinal
+            joinnext
+            default { "first" }
+            help    "Specify how primitive attributes should be promoted upon merge. If set to \"By Attribute\", a specified attribute can be used to prioritize attribute Promotion."
+            menu {
+                "max"       "Maximum Value"
+                "min"       "Minimum Value"
+                "mean"      "Average"
+                "mode"      "Mode"
+                "median"    "Median"
+                "sum"       "Sum"
+                "sumsquare" "Sum of Squares"
+                "rms"       "Root Mean Square"
+                "first"     "By Prim Number [First Value]"
+                "last"      "By Prim Number [Last Value]"
+                "array"     "Array of All"
+                "12"        "By Attribute [First Value]"
+                "13"        "By Attribute [Last Value]"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "primattrib"
+            label   "  Sort By"
+            type    string
+            default { "" }
+            help    "If using \"By Attribute\", all primitive attribute conflicts will be resolved by the order of this attribute value (numerical or alphabetical)."
+            disablewhen "{ primAttribMethod != 12 primAttribMethod != 13 }"
+            menureplace {
+                [ "opmenu -l -a attribsToMatch inname" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vertexOrderMethod"
+            label   "Vertex Order [Direction]"
+            type    ordinal
+            joinnext
+            default { "0" }
+            help    "Control how the Vertex Order is promoted for each merged primitive. By default, copies the vertex order set by the \"Prim Attrib Promotion\" method (If set to First/Last \"Prim number\" or \"By Attribute\" mode).  Or it can inherit the Vertex Order from the First/Last Primitive Number between merged primitives.  Alternatively, uses a separate attribute to set the Vertex Order by the First/Last Attribute Value. If values are equal in a merged set of primitives, Defaults to the First Prim Number, unless \"Reverse\" is selected, in which case the Last Prim Number in a matching set is sampled."
+            menu {
+                "0" "Match Prim Attrib Promotion"
+                "1" "By Attribute [First Value]"
+                "2" "By Attribute [Last Value ]"
+                "3" "By Attribute [First Value / Reverse]"
+                "4" "By Attribute [Last Value / Reverse]"
+                "5" "By Prim Number [First Value]"
+                "6" "By Prim Number [Last Value]"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "primattribVertexOrder"
+            label   "  Sort By"
+            type    string
+            default { "" }
+            help    "If using \"By Attribute\", all primitive attribute conflicts will be resolved by the order of this attribute value (numerical or alphabetical)."
+            disablewhen "{ vertexOrderMethod == 0 } { vertexOrderMethod >= 5 }"
+            menureplace {
+                [ "opmenu -l -a attribsToMatch inname" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "medium" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder8"
+        label   "Point Behaviour on Fuse"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "labelparm4"
+            label   "Label"
+            type    label
+            nolabel
+            default { "Configures how point attributes and point groups are resolved when they are fused." }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ showLabels == 0 }"
+        }
+        multiparm {
+            name    "numpointattribs"
+            label    "Attribs to Snap"
+            default 1
+            parmtag { "autoscope" "0000000000000000" }
+
+            parm {
+                name    "attribsnapmethod#_2"
+                label   "Point Attribs Promotion"
+                type    ordinal
+                joinnext
+                default { "8" }
+                help    "Specify per point attribute, how they should be resolved upon a merge."
+                menu {
+                    "max"       "Maximum"
+                    "min"       "Minimum"
+                    "mean"      "Average"
+                    "mode"      "Mode"
+                    "median"    "Median"
+                    "sum"       "Sum"
+                    "sumsquare" "Sum of Squares"
+                    "rms"       "Root Mean Square"
+                    "first"     "By Point Number [First Value]"
+                    "last"      "By Point Number [Last Value]"
+                    "10"        "By Attribute [First Value]"
+                    "11"        "By Attribute [Last Value]"
+                }
+            }
+            parm {
+                name    "pointAttribType#_2"
+                label   "Sort Type"
+                type    ordinal
+                default { "0" }
+                help    "When using \"By Attribute\" methods for point attrib promotion, specify if the weight attribute should be obtained from the points being fused, or from their connected primitives."
+                disablewhen "{ attribsnapmethod# != 10 attribsnapmethod# != 11 }"
+                menu {
+                    "0" "Point Attribute"
+                    "1" "Prim Attribute"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pointAttribPointOrder#_2"
+                label   "Sort By [Point Attrib]"
+                type    string
+                default { "" }
+                help    "Specify the attribute name for the point attribute used as a weight value for the \"By Attribute\" Method. (sorts by numerical or alphabetical order)."
+                disablewhen "{ attribsnapmethod# != 10 attribsnapmethod# != 11 }"
+                hidewhen "{ pointAttribType# != 0 }"
+                menureplace {
+                    [ "opmenu -l -a attribsToMatchPoint inname" ]
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pointAttribPrimOrder#_2"
+                label   "Sort By [Prim Attrib]"
+                type    string
+                default { "" }
+                help    "Specify the attribute name for the prim attribute used as a weight value for the \"By Attribute\" Method. (sorts by numerical or alphabetical order)."
+                disablewhen "{ attribsnapmethod# != 10 attribsnapmethod# != 11 }"
+                hidewhen "{ pointAttribType# != 1 }"
+                menureplace {
+                    [ "opmenu -l -a attribsToMatch inname" ]
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "pointattribnames#_2"
+                label   "Point Attributes"
+                type    string
+                default { "" }
+                help    "Specify which point attributes to resolve."
+                menutoggle {
+                    [ "opmenu -l -a attribsToMatchPoint inname" ]
+                }
+                parmtag { "sop_input" "1" }
+            }
+        }
+
+        parm {
+            name    "sepparm11"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        multiparm {
+            name    "numgroups"
+            label    "Groups to Snap"
+            default 1
+            parmtag { "autoscope" "0000000000000000" }
+
+            parm {
+                name    "grouppropagation#_2"
+                label   "Group Propagation"
+                type    ordinal
+                default { "2" }
+                help    "Specify per point group, how they should be resolved upon a merge."
+                menu {
+                    "leastpointnumber"      "Least Point Number"
+                    "greatestpointnumber"   "Greatest Point Number"
+                    "union"                 "Union"
+                    "intersect"             "Intersect"
+                    "mode"                  "Most Common"
+                }
+            }
+            parm {
+                name    "pointgroupnames#_2"
+                label   "Point Group Names"
+                type    string
+                default { "*" }
+                help    "Specify which point groups to resolve."
+                menutoggle {
+                    [ "opmenu -l -a groupsToMatchMerge querygroup" ]
+                }
+                parmtag { "sop_input" "1" }
+            }
+        }
+
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "vertexAttribMethod"
+            label   "Vertex Attrib Promotion"
+            type    ordinal
+            default { "first" }
+            help    "Specify how vertex attributes should be promoted when two curves are merged together."
+            menu {
+                "max"       "Maximum"
+                "min"       "Minimum"
+                "mean"      "Average"
+                "mode"      "Mode"
+                "median"    "Median"
+                "sum"       "Sum"
+                "sumsquare" "Sum of Squares"
+                "rms"       "Root Mean Square"
+                "first"     "By Point Number [First Value]"
+                "last"      "By Point Number [Last Value]"
+                "array"     "Array of All"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm16"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "sortByVertexOrder"
+            label   "Sort By Vertex Order"
+            type    toggle
+            default { "1" }
+            help    "When enabled, sorts the output geometry point numbers by their vertex order."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm6"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupcollapsible {
+        name    "xn__visualFeedback3_moa"
+        label   "Visual Feedback"
+        parmtag { "group_default" "0" }
+
+        parm {
+            name    "labelparm6"
+            label   "Label"
+            type    label
+            nolabel
+            default { "Configures how the guide output is displayed." }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "sepparm15"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "guideScale"
+            label   "Guide Scale"
+            type    float
+            default { "5" }
+            help    "Set the scale of wireframe guide objects visible when the node is selected and that are provided from output 2."
+            range   { 0! 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "showSourceVertexOrder"
+            label   "Show Source Vertex Order"
+            type    toggle
+            default { "1" }
+            help    "Displays the Original Polyline Vertex Order as smaller Direction Guides."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm5"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "colorSegments"
+            label   "Color Segments"
+            type    toggle
+            joinnext
+            default { "0" }
+            help    "Enable primitive color visualization on the output primitives per primitive."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "colorSeed"
+            label   "Seed"
+            type    float
+            default { "0" }
+            hidewhen "{ colorSegments == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm18"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "outGuideColorClass"
+            label   "Guide Color"
+            type    ordinal
+            default { "2" }
+            help    "Specify what color class the Guide Visual Output should be. Useful for color attribute compatibility when merged with other geometry."
+            menu {
+                "0" "Primitive Color"
+                "1" "Point Color"
+                "2" "Vertex Color"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outGuidePacked"
+            label   "Pack Guide Output"
+            type    toggle
+            default { "1" }
+            help    "Output the Guide Visual Geometry as Packed Geometry instead."
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "sepparm9"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupcollapsible {
+        name    "nonPolylineInput3"
+        label   "Clean Nurbs and Bezier Curves upon Input"
+        parmtag { "group_default" "0" }
+
+        parm {
+            name    "labelparm5"
+            label   "Label"
+            type    label
+            nolabel
+            default { "This utility only outputs polylines, configure here how to process NURBS and Bezier Curves." }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "sepparm14"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ showLabels == 0 }"
+        }
+        parm {
+            name    "conversionMethod"
+            label   "Clean Method"
+            type    ordinal
+            default { "0" }
+            help    "Configures how to clean non-supported geometry types, such as NURBS and Bezier Curves."
+            menu {
+                "0" "Skip non-Polyline Curves"
+                "1" "Convert using Level of Detail"
+                "2" "Convert using Divisions per Span"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "lodu"
+            label   "Level of Detail"
+            type    float
+            default { "0.5" }
+            help    "Point density along the curves U direction."
+            hidewhen "{ conversionMethod != 1 }"
+            range   { 0.001! 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "divu"
+            label   "Divisions Per Span"
+            type    integer
+            default { "2" }
+            help    "Point count along the curves U direction."
+            hidewhen "{ conversionMethod != 2 }"
+            range   { 0! 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

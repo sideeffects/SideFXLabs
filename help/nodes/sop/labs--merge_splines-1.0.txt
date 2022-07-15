@@ -1,0 +1,283 @@
+#type:     node
+#context:  sop
+#internal: labs::merge_splines::1.0
+#icon:     SOP/labs::merge_splines::1.0
+#since:    19.5
+
+= Labs Merge Splines =
+
+"""Merges disconnected Polylines together like the Polypath Sop, cutting them at intersections. 
+But with specified conditions, while preserving and merging attributes and groups."""
+
+The Merge splines node is able to merge together intersecting polylines while maintaining attributes and curve direction.
+It works similar to the Poly path SOP’s base behaviour to cut and process polylines into segments. But it has 3 distinct functions the poly path lacks.
+
+[Image:/images/merge_splines_splash.png]
+
+- 1. You can specify how the geometry should be merged via groups and attributes.
+- 2. It can propagate both primitive groups and attributes, as well as merge vertex attributes.
+- 3. It has support for maintaining vertex order (curve direction), and can merge the vertex order of splines as if they were attributes.
+
+Can be very useful when re-combining splines with attributes that need to be maintained.
+Common use cases range from road network curves and paths to combining grids for pathfinding.
+
+
+@parameters
+
+    == Merge Splines == 
+
+        *Configure how and which subsection of curves provided to the tool are merged.*
+
+    Fuse / Snap Distance:    
+        #id: fuseDistance
+        Specify the snapping range of points to help connect disconnected polylines. Best to keep at reasonable levels, as over snapping can cause undesirable results.    
+
+    Fuse Targets:
+        #id: fuseTargets
+        When enabled, only input spline ends with 1 neighbour point and optionally intersections with more than 2 neighbout points will be counted as fuse or merge targets. Spline points with only 2 neighbours will be ignored.
+        
+    Fuse Filter:
+        #id: preFuseFilter
+        Enables the options for a custom fuse filter, all points are fused by default when disabled.
+        If input primitive lines are disconnected, select by point group which splines should be merged by their points. 
+        If points between polylines are already connected and "Only Merge on Fuse Filter Selection" is enabled, only these points and their connected primitives will be merged, others will be left untouched.
+        Otherwise, all connected geometry will be merged. Uses standard group syntax, such as * to select all the points in the input geometry.
+        
+    Only Merge on Fuse Filter Selection:
+        #id: limitMergeOperations
+        When a Fuse Filter point group is provided, only merge polylines connected to the "fuse filter" point selection, all other geometry is ignored. This is faster as only the affected geometry is re-calculated, while unaffected geometry is kept untouched. Useful when you need to merge curves into a much larger curve network without unnecessary overhead.
+        
+    Only Merge If Matching:
+        #id: onlyMergeIfMatching
+        Only merge curves that share one or multiple primitive attributes. Any differences in the specified attributes will prevent 2 polylines from being merged.    
+        
+    Attributes To Match:
+        #id: attributeToMatch
+        Specify the attribute names to match for merge. (Supported attribute types: Int, Float, String, Vector).
+
+    == Advanced Fuse Behaviour ==
+
+        *Configures how points are snapped when they are fused together.*
+
+    Target Group:
+        #id: targetgroup
+        When enabled, this is the subset of points that will be snapped to points that are allowed to fuse. Otherwise, the fuse points are also the target group.
+        
+    Radius Attrib:
+        #id: radiusattrib
+        When enabled, the point attribute with this name is used to specify the radii of the points. Two points will be able to fuse together if the closest distance between their spheres with the corresponding radius is within the Snap Distance.
+
+    Only Fuse when Primitive Attribute Matches:
+        #id: onlyFuseIfMatching
+        Only fuse points from curves that share a primitive attribute. Any differences in the specified attribute will prevent 2 polylines from being fused or snapped.
+        
+    Attribute to Match:    
+        #id: attributeToMatchFuse
+        Specify an attribute name to match for fusing. (Supported attributes: Int, Float, String, Vector)    
+        
+    Output Position:
+        #id: positionsnapmethod
+        The method to use to combine values of Position Attribute when snapping points together. If a "By Attribute" method is selected, use the specified point attribute to determine the snap position.
+        
+    Sort By Point Attrib:
+        #id: pointFusePointOrder
+        Specify a point attribute that will act as a weight to determine the points position to fuse to. (sorts by numerical or alphabetical order).
+        
+        
+    == Primitive Behavior on Merge == 
+        
+        *Configures how primitive attributes & vertex order are resolved on curves that are merged together.*
+        
+    Prim Attrib Promotion:
+        #id: primAttribMethod
+        Specify how primitive attributes should be promoted upon merging 2 or more primitive polylines.
+        
+        - *Maximum* -
+        Picks the largest match.
+
+        - *Minimum* -
+        Picks the smallest match.
+
+        - *Average* -
+        The mean, or the sum of all matches divided by the number of matches.
+
+        - *Mode* -
+        The most common match. If there is more than one most common, it will be the minimum of the most common.
+
+        - *Median* -
+        The middle of the matches. If there is an even number of elements, it is the higher of the two possible middles.
+
+        - *Sum* -
+        All of the matches added together.
+
+        - *Sum of Squares* -
+        All of the matches squared, and then added together.
+
+        - *Root Mean Square* -
+        The square root of the average of the squares of all the matches.
+
+        - *By Prim Number First Value* -
+        The first valid primitive number per merge operation is taken for its attributes. You can pre-sort the primitives before providing them to the asset.
+
+        - *By Prim Number Last Value* -
+        The last valid primitive number per merge operation is taken for its attributes.  
+
+        - *Array of All* -
+        Provided the source attribute is a tuple attribute, a new array attribute is created. The array attribute is populated with all the values of the matches.    
+        
+        - *By Attribute First Value* -
+        If a valid attribute name is specified, samples the attributes from the primitive with the lowest value. If multiple primitive share this lowest value, uses the first primitive number of this subset.
+            
+        - *By Attribute Last Value* -
+        If a valid attribute name is specified, samples the attributes from the primitive with the highest value. If multiple primitive share this highest value, uses the first primitive number of this subset.
+        
+    Sort By:
+        #id: primattrib
+        When using "By Attribute" methods, all primitive attribute conflicts will be resolved by the order of this attribute value (numerical or alphabetical).
+        
+    Vertex Order Direction:
+        #id: vertexOrderMethod
+        Control how the Vertex Order is promoted for each merged primitive. By default, copies the vertex order of the First/Last prim number or attribute. Alternatively, it can match the primitive order, or use a separate attribute to set orientation.
+        
+        - *Match Prim Attrib Promotion* -
+        Uses the Prim Attrib Promotion method to choose which primitive to sample the vertex order from. Methods that influence this are *Prim Number Match* methods and the *By Attribute Match* methods.
+        
+        - *By Attribute First Value* -
+        If a valid attribute name is specified, samples the vertex order from the primitive with the lowest value. In case of matching values, picks the vertex order from the lowest primitive number.
+
+        - *By Attribute Last Value* -
+        If a valid attribute name is specified, samples the vertex order from the primitive with the highest value. In case of matching values, picks the vertex order from the lowest primitive number.
+        
+        - *By Attribute First Value / Reverse* -
+        If a valid attribute name is specified, samples the vertex order from the primitive with the lowest value. In case of matching values, picks the vertex order from the highest primitive number.
+
+        - *By Attribute Last Value / Reverse* -
+        If a valid attribute name is specified, samples the vertex order from the primitive with the highest value. In case of matching values, picks the vertex order from the highest primitive number.   
+
+        - *By Prim Number First Value* -
+        The first valid primitive number per merge operation is taken for its vertex order.
+
+        - *By Prim Number Last Value* -
+        The last valid primitive number per merge operation is taken for its vertex order.
+        
+    Sort By:
+        #id: primattribVertexOrder
+        Paired with the Vertex Order Direction methods "By Attribute First Match" & "By Attribute Last Match" to pick which primitive polyline to grab the vertex order from.
+
+    == Point Behaviour on Fuse ==    
+        *Configures how point attributes and point groups are resolved when they are fused by the fuse distance.*
+        
+    Point Attribs Promotion:
+        #id: attribsnapmethod
+        Specify per point attribute, how it should be resolved upon being fused with other points. Only certain types of attributes can be used for each Snap Method.
+        Can resolve attributes by the value of the attribute itself, or by sorting by the point numbers or a separate weight attribute.
+
+    Sort Type:
+        #id: pointAttribType
+        When using "By Attribute" methods for point attrib promotion, specify if the weight attribute should be obtained from the points being fused, or from their connected primitives.
+        
+    Sort By:
+        #id: Sort By Point Attrib
+        Specify the attribute name for the point (or primitive) attribute used as a weight value for the "By Attribute" Method. (sorts by numerical or alphabetical order).
+        
+        
+    Point Attributes:
+        #id: pointattribnames
+        Specify which point attributes to resolve.
+
+
+    Group Propagation:
+        #id: grouppropagation
+        Specify per point group, how they should be resolved upon a merge.
+        
+    Point Group Names:
+        #id: pointgroupnames
+        Specify which point groups to resolve.
+        
+        
+    Vertex Attrib Promotion Method:
+        #id: vertexAttribMethod
+        Specify how vertex attributes should be promoted upon merge. Users similar promotion methods as the Prim Attrib Promotion method, minus the By attribute options.
+
+    Sort By Vertex Order:    
+        #id: sortByVertexOrder
+        When enabled, sorts the output geometry point numbers by their vertex order.    
+        
+        
+    == Visual Feedback == 
+
+        *Configure how the guide display & output are rendered*
+        
+       
+    Guide Scale:
+        #id: guideScale
+        Set the scale of wireframe guide objects visible when the node is selected, and that are provided from output 2.
+
+    Show Source Vertex Order:
+        #id: showSourceVertexOrder
+        Displays the original polyline vertex order as smaller direction guide arrows.
+
+
+    Color Segments:
+        #id: colorSegments
+        Enable primitive color visualization on the output primitives per primitive.
+
+    Seed:
+        #id: colorSeed
+        Set the seed value for the random color assigned per primitive.
+        
+    Guide Color:
+        #id: outGuideColorClass
+        Specify what color class the Guide Visual Output should be. ( Useful for color attribute compatibility when merged with other geometry.)
+        
+    Pack Guide Output:
+        #id: outGuidePacked
+        Output the Guide Visual Geometry as Packed Geometry instead.    
+
+    == Clean NURBS and Bezier Curves upon Input ==
+
+        *This utility only outputs polylines, configures here how to process NURBS and Bezier Curves.*
+        
+    Clean Method:
+        #id: conversionMethod
+        Configures how to clean non-supported geometry types, such as NURBS and Bezier Curves.
+
+    Level of Detail:
+        #id: lodu
+        Point density along the curves U direction.
+        
+    Divisions Per Span:
+        #id: divu
+        Point count along the curves U direction.
+
+@guides
+
+*Guides become visible when the node is selected and help you understand how polylines are (or are not) merged together.*
+
+[Image:/images/merge_splines_guide_legend.png]
+
+- *Bright yellow arrows* indicate the vertex order of processed (or unprocessed) polylines.
+- *Dark yellow arrows* indicate the original vertex order of pre-merged polylines, the bright yellow arrows are placed on these to indicate which was used for the final merged polyline.
+- *Red arrows* indicate that the polyline ends at this point location and does not merge or connect with other polylines.
+- *Green spheres* indicate that a point was merged and fused.
+- *Orange spheres* indicate that a point was merged, but not fused ( Possible because the point was already fused with the participating primitives of the merge. )
+- *Blue spheres* indicate a point was fused, but not merged ( Possibly due to it ending on an intersection. )
+
+Guides are also provided from output 2 so you can implement them as a visual output of your tools.
+
+NOTE:
+    Internally, the asset uses groups and attributes prefixed with "temp_", if attributes or groups with this prefix are provided to the tool they will be removed.
+
+
+@info
+
+This node is originally developed as part of the Mentoring and Consulting work done at at E-Houdini Academy.
+Version 1.5 was added to Labs on 21-July-2022 as the Labs Merge Splines 1.0
+
+Original Author: Erwin Heyms.
+    
+Created in Houdini Version H19.5.284.
+    
+Last updated on 10-July-2022 as V1.0.1
+
+[ Erwin Heyms - EhoudiniAcademy | https://ehoudiniacademy.com ]
