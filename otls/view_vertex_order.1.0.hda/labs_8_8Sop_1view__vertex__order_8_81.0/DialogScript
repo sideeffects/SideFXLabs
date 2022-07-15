@@ -1,0 +1,156 @@
+# Dialog script for labs::view_vertex_order::1.0 automatically generated
+
+{
+    name	labs::view_vertex_order::1.0
+    script	EHA_UTIL_ViewVertexOrder
+    label	"Labs View Vertex Order"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Poly Splines"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Output
+
+    groupsimple {
+        name    "group2"
+        label   "Group"
+
+        parm {
+            name    "groupname"
+            label   "Group Name"
+            type    string
+            default { "" }
+            help    "Specify a primitive group selection to filter where to create vertex order indicators."
+            menureplace {
+                [ "opmenu -l -a isolateGroup group" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "visualFeedback2"
+        label   "Visual Feedback"
+
+        parm {
+            name    "arrowScale"
+            label   "Arrow Scale"
+            type    float
+            default { "1" }
+            help    "The display size of the arrows located at the center of each primitives vertices."
+            range   { 0! 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outclass"
+            label   "Arrow Color"
+            type    ordinal
+            joinnext
+            default { "primitive" }
+            menu {
+                "primitive" "Primitive Color"
+                "point"     "Point Color"
+                "vertex"    "Vertex Color"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "arrowColorMethod"
+            label   " "
+            type    ordinal
+            joinnext
+            default { "0" }
+            help    "Set the mode for the color of the arrow indicators."
+            menu {
+                "0" "From Source Color"
+                "1" "As Static Color"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "color"
+            label   "Arrow Color"
+            type    color
+            nolabel
+            size    3
+            default { "5" "5" "0" }
+            help    "Set a global color for arrow indicators."
+            hidewhen "{ arrowColorMethod == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "xn__2_"
+        label   "Output"
+
+        parm {
+            name    "groupTgl"
+            label   "Group Arrows"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            help    "When enabled, creates a group on the arrow indicators."
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "groupArrows"
+            label   "Group Arrows"
+            type    string
+            default { "VertexOrderArrows" }
+            help    "Set the group name for the arrow indicators."
+            disablewhen "{ groupTgl == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputPrimNumberTgl"
+            label   "Output Prim Number"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            help    "When enabled, copies the primimtive number to a new attribute and set it on the source primitives and their respective arrow geometry"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "primNumber"
+            label   "Prim Number Attrib"
+            type    string
+            default { "PrimNumber" }
+            help    "Set the primitive attribute name for the primitive number."
+            disablewhen "{ outputPrimNumberTgl == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "includeSourceGeometry"
+            label   "Include Source Geometry in Output"
+            type    toggle
+            default { "0" }
+            help    "When enabled, includes the input geometry with the output."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
