@@ -1,0 +1,177 @@
+#type:     node
+#context:  sop
+#internal: labs::kelvin_wakes_deformer::1.0
+#icon:     SOP/labs::kelvin_wakes_deformer::1.0
+#since:    19.5
+
+= Kelvin Wakes Deformer =
+
+"""Deforms input geometry in the shape of water wakes that form behind objects
+moving at a constant speed."""
+
+[Image:/images/kelvin_wakes_deformer.png]
+
+_Kelvin wakes_ refer to the steady-state wave patterns that develop behind
+objects moving on water at a constant speed. Shapes of these wakes do not
+change, but they are dragged continnually by motion of the floating body. This
+node generates such wakes; it can be used to cheaply emulate waves from a ship
+or ripple patterns that emerge behind floating characters.
+
+First input to this SOP is the geometry that will be deformed. The
+__Deformation Target__ parameter must be set according to the type of this
+input: __Points__ or __Heightfield__. In either case, deformation is done in the
+plane perpendicular to __Up Axis__.
+
+Second input to the Kelvin Wakes Deformer SOP must contain the objects that
+generate the wakes. When __Input__ is set to __Objects as Points__, points of
+this geometry each represent a floating body whose constant velocity is expected
+in the `v` attribute. For a turning object, the path must be converted to a
+curve and __Input__ set to __Trajectory Curve__. In this mode, only a single
+curve is accepted at a time--but wakes from more objects can be added by
+chaining multiple nodes.
+
+NOTE:
+    Although this node produces correct results for gentler turns, it may have
+    trouble at higher curvatures or when different parts of the curve are in
+    close proximity.
+
+
+@parameters
+
+    Up Axis:
+        #id: normal
+        Deformation is done in the plane perpendicular to this axis. That is,
+        coordinates of each point are projected to this plane before the
+        deformation function is calculated.
+        
+    Gravity:
+        #id: gravity
+        Acceleration due to gravity. Larger values of __Gravity__ result in less
+        deformation and smaller wavelengths for the generated waves.
+        
+    Deformation Target:
+        #id: target
+        Type of geometry to deform. The value of this parameter must correspond
+        to the type of the first input.
+
+    Input:
+        #id: input
+        Specifies type of the second input. When set to __Objects as Points__,
+        each point will generate a wake behind it based on its velocity (stored
+        in the `v` attribute). When set to __Trajectory Curve__, a single curve
+        is expected representing the object's path.
+
+        NOTE:
+            The curve is linearly extrapolated beyond its endpoints. That is,
+            the object is assumed to move in a straight line before reaching the
+            curve (before __Curve Start Frame__) and after hitting its end.
+        
+    Curve Start Frame:
+        #id: curvestart
+        When __Input__ is set to __Trajectory Curve__, the object will reach the
+        beginning of the curve at this frame.
+        
+    Traversal Speed:
+        #id: speed
+        Speed at which the object traverses its path. With a larger
+        __Traversal Speed__, the object will move along the curve faster and
+        generate waves of longer wavelength.
+
+        NOTE:
+            This operator works with the assumption that objects move with a
+            constant speed; thus, this parameter cannot be animated.
+        
+    Supersample:
+        #id: supersample_dx
+        Distance calculations may be blocky near turns, and supersampling can
+        help to mitigate this. Turn this feature on if you notice blockiness in
+        the pattern. The distance should be set large enough to smooth out the
+        problematic areas, but small enough to avoid larger scale distortion.
+        
+    == Falloffs ==
+
+    Edge Blend:
+        #id: edgeblend
+        The amount of flattening near outer edges of the wake. Larger values
+        perform more gradual blending, but may deteriorate the internal pattern.
+        
+    Suppress Radius:
+        #id: suppress_radius
+        The amount of flattening near the generating body. This is required to
+        remove unphysical spikes close to the object.
+        
+    Attenuate by Distance:
+        #id: enable_falloff
+        When enabled, heights of waves farther from the generating object are
+        reduced.
+        
+    Falloff Range is Relative to Speed:
+        #id: relative_falloff
+        When this is turned on (along with __Attenuate by Distance__), values in
+        the __Falloff Range__ will be relative to the object's speed; that is,
+        bodies that are moving faster will have longer wakes. If
+        __Falloff Range is Relative to Speed__ is disabled, values in the
+        __Falloff Range__ represent absolute distances.
+        
+    Falloff Range:
+        #id: falloff_range
+        Controls the distance at which the disturbances behind the boat are
+        attenuated, when __Attenuate by Distance__ is turned on.
+        
+    == Spectrum ==
+
+    Magnitude Multiplier:
+        #id: magnitude_multiplier
+        Controls the overall amplitude of the wakes.
+        
+    Magnitude Ramp:
+        #id: magnitude_ramp
+        Determines magnitudes of the wave coefficients at each angle. Values
+        near the middle and endpoints of this ramp control _transverse_ and
+        _divergent_ components, respectively. _Transverse_ waves face in the
+        same direction as the object, while _divergent_ components are
+        responsible for the patterns that emerge near wake edges. Left and right
+        sides of this ramp correspond to the respective sides of the wake.
+        
+    Phase Offset:
+        #id: phase_offset
+        A global phase offset for the wave coefficients. Changing this value 
+        will shift the wake pattern without changing the shape.
+        
+    Phase Ramp:
+        #id: phase_ramp
+        Determines phases of the wave coefficients at each angle. You can use
+        this ramp to tweak the look of the waves without affecting the overall
+        shape. Left and right sides of this ramp correspond to the respective
+        sides of the wake.
+
+    == Output ==
+       
+    Displacement:
+        #id: outputdispattrib
+        When enabled, the specified point attribute will store the amount of
+        displacement at each point. Only available when __Deformation Target__
+        is set to __Points__.
+
+    Deformation Mask:
+        #id: outputmaskattrib
+        When enabled, the specified point attribute will store the mask applied
+        at each point. This mask is calculated using parameters under the
+        __Falloffs__ section. Only available when __Deformation Target__ is set
+        to __Points__. When __Input__ is __Objects as Points__, the exported
+        value corresponds to the mask from the closest object.
+
+    Local Coordinates:
+        #id: outputcoordattrib
+        When enabled, the specified point attribute will store the
+        two-dimensional local coordinate of each point with respect to the
+        floating body. First coordinate is aligned with motion of the object,
+        while the second is perpendicular. Only available when
+        __Deformation Target__ is set to __Points__. When __Input__ is
+        __Objects as Points__, the exported value corresponds to coordinates in
+        the frame of the closest object.
+
+    Height Layer:
+        #id: heightlayer
+        Name of the layer to adjust when __Deformation Target__ is set to
+        __Heightfield__.

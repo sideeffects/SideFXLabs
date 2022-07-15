@@ -1,0 +1,331 @@
+# Dialog script for labs::kelvin_wakes_deformer::1.0 automatically generated
+
+{
+    name	labs::kelvin_wakes_deformer::1.0
+    script	kelvinwakes
+    label	"Kelvin Wakes Deformer"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry to Deform"
+    inputlabel	2	"Generating Geometry"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Deformed Geometry"
+
+    parm {
+        name    "normal"
+        label   "Up Axis"
+        type    ordinal
+        default { "y" }
+        menu {
+            "x" "X"
+            "y" "Y"
+            "z" "Z"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "gravity"
+        label   "Gravity"
+        type    float
+        default { "9.8" }
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "target"
+        label   "Deformation Target"
+        type    ordinal
+        default { "0" }
+        menu {
+            "points"        "Points"
+            "heightfield"   "Heightfield"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm3"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "input"
+        label   "Input"
+        type    ordinal
+        default { "objects" }
+        menu {
+            "objects"   "Objects as Points"
+            "curve"     "Trajectory Curve"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "treatpolysas"
+        label   "Treat Polygons As"
+        type    ordinal
+        default { "straight" }
+        hidewhen "{ input != curve }"
+        menu {
+            "straight"  "Straight Edges"
+            "subd"      "Subdivision Curves"
+            "interp"    "Interpolating Curves"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "curvestart"
+        label   "Curve Start Frame"
+        type    float
+        default { "1" }
+        hidewhen "{ input != curve }"
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "speed"
+        label   "Traversal Speed"
+        type    float
+        default { "1" }
+        hidewhen "{ input != curve }"
+        range   { 0! 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "enable_supersample"
+        label   "Supersample"
+        type    toggle
+        nolabel
+        joinnext
+        default { "0" }
+        hidewhen "{ input != curve }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "supersample_dx"
+        label   "Supersample"
+        type    float
+        default { "0.1" }
+        disablewhen "{ enable_supersample == 0 }"
+        hidewhen "{ input != curve }"
+        range   { 0! 1 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "folder3"
+        label   "Falloffs"
+
+        parm {
+            name    "edgeblend"
+            label   "Edge Blend"
+            type    float
+            default { "0.2" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "suppress_radius"
+            label   "Suppress Radius"
+            type    float
+            default { "10" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "enable_falloff"
+            label   "Attenuate by Distance"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "relative_falloff"
+            label   "Falloff Range is Relative to Speed"
+            type    toggle
+            default { "1" }
+            disablewhen "{ enable_falloff == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "falloff_range"
+            label   "Falloff Range"
+            type    vector2
+            size    2
+            default { "15" "20" }
+            disablewhen "{ enable_falloff == 0 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "folder4"
+        label   "Spectrum"
+
+        parm {
+            name    "magnitude_multiplier"
+            label   "Magnitude Multiplier"
+            type    float
+            default { "1" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "magnitude_ramp"
+            label   "Magnitude Ramp"
+            type    ramp_flt
+            default { "5" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( monotonecubic ) 2pos ( 0.34999999403953552 ) 2value ( 0.10000000149011612 ) 2interp ( monotonecubic ) 3pos ( 0.5 ) 3value ( 0.40000000000000002 ) 3interp ( monotonecubic ) 4pos ( 0.64999997615814209 ) 4value ( 0.10000000149011612 ) 4interp ( monotonecubic ) 5pos ( 1 ) 5value ( 1 ) 5interp ( monotonecubic )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "phase_offset"
+            label   "Phase Offset"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "phase_ramp"
+            label   "Phase Ramp"
+            type    ramp_flt
+            default { "1" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( constant )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "folder5"
+        label   "Folder Name"
+        invisibletab
+        tabbreak
+
+    }
+
+    groupcollapsible {
+        name    "folder6"
+        label   "Output"
+
+        parm {
+            name    "heightlayer"
+            label   "Height Layer"
+            type    string
+            default { "height" }
+            hidewhen "{ target != heightfield }"
+            menureplace {
+                [ "node = kwargs['node']" ]
+                [ "r = []" ]
+                [ "" ]
+                [ "inputs = node.inputs()" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "    if geo:" ]
+                [ "        attrib = geo.findPrimAttrib('name')" ]
+                [ "        if attrib:" ]
+                [ "            for prim in geo.prims():" ]
+                [ "                typename = prim.intrinsicValue('typename')" ]
+                [ "                if typename == 'Volume':" ]
+                [ "                    vol = prim.stringAttribValue(attrib)" ]
+                [ "                    r.extend([vol, vol])" ]
+                [ "return r" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputdisp"
+            label   "Displacement"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ target != points }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputdispattrib"
+            label   "Displacement"
+            type    string
+            default { "displacement" }
+            disablewhen "{ outputdisp == 0 }"
+            hidewhen "{ target != points }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputmask"
+            label   "Deformation Mask"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ target != points }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputmaskattrib"
+            label   "Deformation Mask"
+            type    string
+            default { "mask" }
+            disablewhen "{ outputmask == 0 }"
+            hidewhen "{ target != points }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputcoord"
+            label   "Local Coordinates"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            hidewhen "{ target != points }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputcoordattrib"
+            label   "Local Coordinates"
+            type    string
+            default { "coord" }
+            disablewhen "{ outputcoord == 0 }"
+            hidewhen "{ target != points }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
