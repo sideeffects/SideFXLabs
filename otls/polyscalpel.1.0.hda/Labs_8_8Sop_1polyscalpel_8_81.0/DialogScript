@@ -1,0 +1,771 @@
+# Dialog script for Labs::polyscalpel::1.0 automatically generated
+
+{
+    name	Labs::polyscalpel::1.0
+    script	UTIL_PolySlice
+    label	"Labs PolyScalpel"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry to Cut"
+    inputlabel	2	"Cutting Geometry"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Output
+
+    groupsimple {
+        name    "input3"
+        label   "Geometry Input"
+
+        parm {
+            name    "inputGeoType"
+            label   "Source Geo Type"
+            type    ordinal
+            default { "0" }
+            help    "Set the type of geometry you are trying to cut."
+            menu {
+                "0" "Polylines"
+                "1" "Polygon Surfaces"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cuttingGeoType"
+            label   "Cutting Geo Type"
+            type    ordinal
+            default { "0" }
+            help    "Set the type of geometry you are trying to cut the input geometry with."
+            menu {
+                "0" "Points"
+                "1" "Polylines"
+                "2" "Polygon Surfaces"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "useConnectivity"
+            label   "Use Source Mesh Connectivity"
+            type    toggle
+            joinnext
+            default { "1" }
+            help    "When enabled, cuts are assigned to a connected set of primitives by assigning it a Connectivity ID. However in some cases you may want to treat all disconnected meshes as a single mesh, in which case the Connectitivy ID is set to -1. This option when disabled, can provide a performance boost when dealing with many disconnected Source and Cutting Primitives. (Alternatively, you may use \"Bind Cuts to Nearest Source Primitive\" for this as well). However, disabling connectivity checks can cause issues when meshes overlap, and previously disconnected source geometry may be fused together at their cuts. Enabled by default."
+            hidewhen "{ cuttingGeoType == 2 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "bindToNearestSourcePrim"
+            label   "Bind Cuts to Nearest Source Primitive (Faster)"
+            type    toggle
+            default { "0" }
+            help    "When enabled, cutting primitives check from their center which connected source primitives are closest and assigns only to those primitives. Other disconnected primitives are ignored for that cutting primitive. Disabled by default, which allows one cutting primitive to affect multiple disconnected meshes at once without allowing them to fuse. In case many disconnected Source and Cutting primitives are provided, this option can provide a performance boost."
+            disablewhen "{ useConnectivity == 0 }"
+            hidewhen "{ cuttingGeoType != 1 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "crossCutSurface"
+            label   "Cross Cut for Planar Surfaces"
+            type    toggle
+            default { "0" }
+            help    "When enabled, this option interpolates the intersection as an edge hull instead, based on the cutting surface normal direction. Useful when 2 coincident non-planar surfaces / primitives are used as source and cutting inputs. The Cross Cut Depth affects the depth of the edge hull."
+            hidewhen "{ cuttingGeoType != 2 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "extractIntersectionPoints"
+            label   "Cut with Intersection Points from Cutting Geo"
+            type    toggle
+            default { "0" }
+            help    "When enabled, you can provide Polyline Source Geometry to both inputs. This will detect intersections between the polylines and inject points on the Source Geometry with these points. High snap distance may over-detect and confuse intersections with geometry points nearby."
+            hidewhen "{ cuttingGeoType != 0 } { inputGeoType != 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "crossCutDepth"
+            label   "Cross-Cut Depth"
+            type    float
+            default { "0.2" }
+            help    "When using \"Cross Cut for Planar Surfaces\", determines the distance of the Cross Cut perpendicular from the cutting surface edges."
+            hidewhen "{ cuttingGeoType != 2 } { crossCutSurface == 0 }"
+            range   { 0! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm6"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "sourceGroup"
+            label   "Source Geo Group"
+            type    string
+            default { "" }
+            help    "Specify a group selection of the Source Primitives that can be Cut using the Cutting Geo Input"
+            menutoggle {
+                [ "opmenu -l -a splitBySourceGeoGroup group" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Primitives,)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)\n" }
+            parmtag { "script_action_help" "Select geometry from an available viewport." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "cuttingGroup"
+            label   "Cutting Geo Group"
+            type    string
+            default { "" }
+            help    "Specify a group selection of the Cutting Primitives that are allowed to make cuts. Takes a primitive group when cutting with surfaces or polylines. Takes points groups when cutting with points, except if \"Cut with intersection points\" is enabled, in this case it also requires a primitive group."
+            menutoggle {
+                [ "opmenu -l -a splitByCuttingGeoGroup group" ]
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Primitives,)\nval = kwargs['node'].parm(\"cuttingGeoType\").eval()\nif val == 0:\n    kwargs['geometrytype'] = (hou.geometryType.Points,)\n    \nkwargs['inputindex'] = 1\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+    }
+
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupsimple {
+        name    "output3"
+        label   "Geometry Output"
+
+        parm {
+            name    "surfaceOutput"
+            label   "Surface Output"
+            type    ordinal
+            default { "1" }
+            help    "Determines the type of Output. To either inject New Points on edges, or to cut a surface with a spline. Is enabled when cutting surfaces with Poly Surfaces or Poly Curves."
+            hidewhen "{ inputGeoType == 0 } { cuttingGeoType == 0 }"
+            menu {
+                "0" "Points On Edges"
+                "1" "Slice Surfaces"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "surfaceCuttingMethod"
+            label   "Slicing Method"
+            type    ordinal
+            default { "1" }
+            help    "Determines how Surfaces are cut with Surfaces, Boolean based Slicing or point injection in general is more efficient, but it cannot use snapping features. Polysplit mode does feature snapping support and can auto complete cuts that don't slice an entire surface. PolySplit mode can be limited by its slow processing speed on large pieces of geometry, and may require high precision mode be enabled on dense geometry. If you need to cut a dense mesh with a surface, boolean mode is prefered."
+            hidewhen "{ inputGeoType != 1 } { cuttingGeoType != 2 }"
+            menu {
+                "0" "Poly Split - [ Slower / Supports Snapping / Scale Sensitive ]"
+                "1" "Boolean Shatter - [ Faster / Avoid Coincident Inputs ]"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "surfaceCuttingMethod_Dummy"
+            label   "Slicing Method"
+            type    ordinal
+            default { "1" }
+            help    "Normally determines how Surfaces are cut with Surfaces. Disabled when not in the Surface cuts Surface Mode."
+            disablewhen "{ cuttingGeoType != 100 }"
+            hidewhen "{ inputGeoType == 1 cuttingGeoType == 2 }"
+            menu {
+                "0" "Poly Split - [ Slower / Supports Snapping ]"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "includeSharedEdges"
+            label   "Include Shared Edges From Cutting Geometry"
+            type    toggle
+            default { "0" }
+            help    "When using the \"Boolean\" Surface Cutting Method with overlapping surfaces, shared edges of the Cutting geometry planar with the Source Geometry may be stamped into the Source Geometry. When this setting is enabled these edges are included in the Cut Edge Group and Cusp Cut Edges operations. Be aware that when using the Boolean Shatter Method, overlapping Cutting Geometry can only correctly detect cuts like these when they are in exact overlap with a Source Surface and both surfaces are planar and oriented in a cardinal angle !"
+            disablewhen "{ surfaceOutput == 0 }"
+            hidewhen "{ inputGeoType != 1 } { cuttingGeoType != 2 } { surfaceCuttingMethod == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "preventIncompleteSlices"
+            label   "Prevent Incomplete Slices"
+            type    toggle
+            default { "0" }
+            help    "Cuts performed using the \"Poly Split\" Surface Cutting Method need to be continuous, so it at least needs to touch the edges of the primitive it tries to cut on both ends of the cut. With this enabled, slices that do not conform to these criteria are ignored."
+            disablewhen "{ cuttingGeoType == 0 } { surfaceOutput == 0 } { inputGeoType == 1 cuttingGeoType == 2 surfaceOutput == 1 surfaceCuttingMethod == 1 }"
+            hidewhen "{ inputGeoType == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sliceEdgesNBGrpSelection"
+            label   "Slice Edges Neighbouring the Source Group"
+            type    toggle
+            default { "1" }
+            help    "When enabled, if a source geometry group is selected, also cuts the edges of the non-selected geometry that intersect with a cut. This keeps the geometry clean and intact. Also propagates edge and point groups to non-selected geometry."
+            disablewhen "{ inputGeoType == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cuspCutEdges"
+            label   "Cusp Cut Edges"
+            type    toggle
+            default { "0" }
+            help    "When enabled, cusps the cut edges on surfaces, spliting the geometry at the cut. When a Source group is used and \"Slice Edges Neighbouring Source Geo Groups\" is enabled, it also cusps the edge between grouped and non-grouped geometry to ensure proper cusping."
+            disablewhen "{ inputGeoType == 1 surfaceOutput == 0 }"
+            hidewhen "{ inputGeoType == 0 } { cuttingGeoType == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cuspCutPoints"
+            label   "Cusp Cut Points"
+            type    toggle
+            default { "0" }
+            help    "When enabled, Cusps the cut points on a polyline, seperating the geometry at the cut."
+            hidewhen "{ inputGeoType != 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "sepparm2"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupsimple {
+        name    "Precision5"
+        label   "Tool Precision"
+
+        groupsimple {
+            name    "Precision6"
+            label   "PolySplit Precision"
+            hidewhentab "{ inputGeoType == 1 cuttingGeoType == 2 surfaceCuttingMethod == 1 }"
+
+            parm {
+                name    "highPrecisionMode"
+                label   "High Precision Mode [Experimental]"
+                type    integer
+                invisible
+                default { "0" }
+                help    "When enabled, all tolerance and snapping values are set to very low levels. Creating cleaner cuts, but disables snapping."
+                hidewhen "{ cuttingGeoType != 2 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "PointCutHelp2"
+                label   "PointCutHelp2"
+                type    label
+                default { "Point Cutting: Snap distance should be high enough to detect intersections with the Source Geo." }
+                hidewhen "{ cuttingGeoType != 0 }"
+                parmtag { "sidefx::look" "block" }
+            }
+            parm {
+                name    "EdgeCutHelp2"
+                label   "EdgeCutHelp2"
+                type    label
+                default { "Polyline Cutting: Snap distance needs to be high enough to detect intersections if Geo does not perfectly overlap." }
+                hidewhen "{ cuttingGeoType != 1 }"
+                parmtag { "sidefx::look" "block" }
+            }
+            parm {
+                name    "SurfaceCutHelp2"
+                label   "SurfaceCutHelp2"
+                type    label
+                default { "Surface Cutting: the Snap distance should be set low enough to prevent over-snapping." }
+                hidewhen "{ inputGeoType != 1 } { cuttingGeoType != 2 }"
+                parmtag { "sidefx::look" "block" }
+            }
+            parm {
+                name    "highPrecisionPolysplit"
+                label   "Boost Slice Sensitivity For Micro-scale or Dense Inputs"
+                type    integer
+                invisible
+                default { "0" }
+                help    "When enabled, makes the PolySplit SOP inside the asset more sensitive. This can be enabled when very dense cutting splines or surfaces are used. However, higher sensitivity may cause some cuts to fail or overcut if the cutting geometry is too large. Best to enable when cuts have detail smaller than 0.01 meters. Is enabled by default in High Precision Mode."
+                hidewhen "{ highPrecisionMode == 1 } { autoPrecisionCorrection == 1 } { surfaceOutput == 0 } { inputGeoType == 0 }"
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm12"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "autoPrecisionCorrection"
+                label   "Auto Precision Correction"
+                type    toggle
+                joinnext
+                default { "1" }
+                help    "When enabled, automatically clamps internal values based on the median sizes of the input geometry. This helps to regulate the snapping stength relative to the geometry scale and density provided. Be aware that manually set snapping values that are set too high or low compared to the Source Input scale, may cause bad cuts or model collapse along cuts. ( To be improved in v2.0 ). The exact formula for this is: The minimum value between [Input 1] Median Edge Length & [Input 2] Median Edge Length, multiplied by 0.1. Disable this function to manually set snapping values."
+                disablewhen "{ cuttingGeoType == 2 highPrecisionMode == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "autoNonPlanarCorrection"
+                label   "Auto Correct Non-Planar Tolerance"
+                type    toggle
+                joinnext
+                default { "0" }
+                help    "When enabled, automatically boosts Non-Planar Tolerance values based on the median sizes of the input geometry. Attempts to correct settings for non-planar geometry when cutting complex surfaces with surfaces of different sizes. Less suitable for simple planar geometry, in which case it is best practice to keep this option disabled and set the Non-Planar Tolerance manually. The exact formula for this is: The \"Non-Planar Tolerance\", multiplied by Square root of the [Input 1] Median Edge Length, multiplied by 1000. Disable this function to manually set Multiplication values for Non-Planar Tolerance."
+                disablewhen "{ cuttingGeoType == 2 highPrecisionMode == 1 } { autoPrecisionCorrection == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "autoPrecisionCorrectionLimit"
+                label   "|"
+                type    ordinal
+                default { "0" }
+                help    "In most cases, \"Auto Precision Correction’s\" upper and lower limits are designed to support models at a wide range of scales by automatically detecting the median sizes of a models primitives. However, if a model has a large discrepancy between its primitives surface areas, Auto correction may overcorrect. This setting can disable some of the limits such as the lower limit, to not clamp Snapping values unnecessarily."
+                disablewhen "{ autoPrecisionCorrection == 0 }"
+                menu {
+                    "0" "Correct Upper and Lower Limit"
+                    "1" "Correct Upper Limit"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "astFeedbackFolder2"
+                label   "ASP Feedback"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "messageAutoCorrection2"
+                    label   "messageAutoCorrection2"
+                    type    label
+                    default { "Auto Correction - Snap Dist: [`ceil( ch(\"snapCtrl/snapDist\") * 10000000 )/10000000`]     Intersect Dist: [`ceil( ch(\"snapCtrl/proxTol\") * 10000000 )/10000000`]     Non-Planar Depth:[`ceil(ch(\"snapCtrl/nonPlanarTol\")*10000)/10000`]\n" }
+                    hidewhen "{ autoPrecisionCorrection == 0 } { cuttingGeoType == 2 highPrecisionMode == 1 }"
+                    parmtag { "sidefx::look" "block" }
+                }
+                parm {
+                    name    "messageHighPrecisionMode2"
+                    label   "messageHighPrecisionMode2"
+                    type    label
+                    default { "High Precision - Snap Dist: [`ch(\"snapCtrl/snapDist\")`]     Intersect Dist: [`ch(\"snapCtrl/proxTol\")`]\n" }
+                    hidewhen "{ cuttingGeoType != 2 } { highPrecisionMode == 0 }"
+                    parmtag { "sidefx::look" "block" }
+                }
+            }
+
+            parm {
+                name    "sepparm9"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "snapDist"
+                label   "Snap Distance"
+                type    float
+                default { "0.001" }
+                help    "Set the distance for cutting geometry to snap to the source geometry. When cutting with points or polylines it helps register cuts, when the distance falls within this value. Even if the cutting geometry is not exactly on the source geometry. When cutting with surfaces this helps avoid sliver cuts in corners by snapping the cuts to the geometry. When precise cuts must be made, smaller values produce higher levels of precision. In v1.0 high snap values can cause the model to collapse along cuts, best kept at reasonable levels. This is to be addressed in v2.0. By default, also sets the Intersect Tolerance unless manually overwritten. Automatically adjusted when Auto Precision Correction is enabled."
+                disablewhen "{ highPrecisionMode == 1 cuttingGeoType == 2 }"
+                range   { 0! 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "proxTolTgl"
+                label   "Intersect Tolerance    "
+                type    toggle
+                joinnext
+                default { "0" }
+                help    "When enabled, allows for a seperate Intersection Tolerance from the snapping distance."
+                disablewhen "{ highPrecisionMode == 1 cuttingGeoType == 2 }"
+                range   { 0! 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "proxtol"
+                label   "proxtol"
+                type    float
+                nolabel
+                default { "0.01" }
+                help    "Determines the distance for points to detect an intersection between Input 1 and 2. Smaller values produce higher levels of precision. Works best if matching the Snap Distance, only change when required."
+                disablewhen "{ highPrecisionMode == 1 cuttingGeoType == 2 } { proxTolTgl == 0 }"
+                range   { 0! 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "LimitProxTol"
+                label   "Disable Tolerance for Polyline Intersection Checks"
+                type    toggle
+                default { "0" }
+                help    "This value disables the Intersection Tolerance for all polyline intersection checks. Normally, these intersection checks are limited by a tolerance value. However, in some cases, especially with very dense cutting geometries, it may fail to detect intersections. Turning this off changes the checking behavior, but REQUIRES that both input geometries overlap perfectly and are planar to a cardinal world axis. Intersection Tolerance is enabled by default."
+                hidewhen "{ cuttingGeoType == 0 } { inputGeoType == 1 cuttingGeoType == 2 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "PrecisionOff3"
+            label   "Boolean Precision"
+            hidewhentab "{ inputGeoType != 1 } { cuttingGeoType != 2 } { surfaceCuttingMethod != 1 }"
+
+            parm {
+                name    "lengththreshold"
+                label   "Edge Length Threshold"
+                type    float
+                default { "1e-05" }
+                help    "When in Boolean Shatter Mode, Allows tiny edges to be collapsed if under this length. Best kept at low values to avoid holes in the mesh. Also drives the precision of point injection to unselected geometry adjacent to a cut."
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm8"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "nonPlanarTol"
+            label   "Non-Planar Tolerance"
+            type    float
+            default { "2" }
+            help    "When cutting Non-Planar Surfaces, boosts the detection of primitives and edges overlapping the cuts. Allows mid-primitive points and cuts to detect their surfaces by this multiplication of the Intersection Tolerance. Is also used when transferring edge groups back to the source mesh after cutting, to ensure a proper transfer on Non-Planer surfaces & Non-Linear edges. High values may over-cut when paired with high Snap Dist values. Acts like a multiplier when Auto Correct Non-Planar Tolerance is enabled."
+            range   { 1e-08! 20 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pointSnapPrecisionFactor"
+            label   "Point Snap Factor"
+            type    float
+            default { "1" }
+            help    "    Modifies the snapping strength to source geometry points by this value to a power of 10. When making very fine Cuts on the edges of a primitive, cuts in corners may be allowed to be so tiny they fall outside the tolerance values, which could result in tiny uncut primitive corners. By forcing a second point snap at a higher snapping strength, these uncut corners are collapsed to their nearby corner points. Beware, over-use may collapse cuts."
+            disablewhen "{ inputGeoType == 1 cuttingGeoType == 2 surfaceOutput == 1 surfaceCuttingMethod == 1 }"
+            hidewhen "{ highPrecisionMode == 1 cuttingGeoType == 2 }"
+            range   { 0! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pointSnapPrecisionFactorHP"
+            label   "Point Snap Factor"
+            type    float
+            invisible
+            default { "1" }
+            help    "Increases the snapping strength to source points of this value to a power of 10. When making very fine Cuts on the edges of a primitive, cuts in corners may be allowed to be so tiny they fall outside the tolerance values, which would result in tiny uncut primitive corners. By forcing a second point snap at a higher snapping strength, these uncut corners are collapsed to their nearby corner points."
+            disablewhen "{ inputGeoType == 1 cuttingGeoType == 2 surfaceOutput == 1 surfaceCuttingMethod == 1 }"
+            hidewhen "{ highPrecisionMode == 0 } { cuttingGeoType != 2 }"
+            range   { 0! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "cutPrecisionFactor"
+            label   "Cut Precision Factor"
+            type    float
+            invisible
+            default { "1" }
+            help    "Increases the snapping strength of Points in the middle of a cut to Source points of this value to a power of 10. Can be used to prevents tiny cuts from causing errors."
+            range   { 1! 4 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "sepparm7"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupsimple {
+        name    "folder6"
+        label   "Groups Output"
+
+        parm {
+            name    "edgeGroupTgl"
+            label   "Output Edge Group"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "prim_Group_Name"
+            label   "Cut Edge Group"
+            type    string
+            default { "cut" }
+            help    "Set the edge group for any cuts the tool makes on surfaces."
+            disablewhen "{ edgeGroupTgl == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "avoidGroupingIncompleteAutoSlices"
+            label   "Avoid Grouping Incomplete Auto-Slices"
+            type    toggle
+            default { "0" }
+            help    "When incomplete slices are allowed, the connecting slice will be added to the edge group. When this option is enabled, it tries to auto-exclude this edge from that group.  Also affects Edge Cusping."
+            disablewhen "{ edgeGroupTgl == 0 } { preventIncompleteSlices == 1 }"
+            hidewhen "{ inputGeoType == 1 cuttingGeoType == 2 surfaceCuttingMethod == 1 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "pointGroup_Tgl"
+            label   "pointGroup_Tgl"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            help    "Mark Cut Intersections with this point group."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pointGroup_Group"
+            label   "Cut Point Group"
+            type    string
+            default { "cutPoint" }
+            help    "Mark Cut Intersections with this point group."
+            disablewhen "{ pointGroup_Group == 0 } { pointGroup_Tgl == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "snapped_Tgl"
+            label   "snapped_Tgl"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            help    "Mark Points on cuts that have their Points Snapped to nearby points on the source geometry with this point group. "
+            disablewhen "{ inputGeoType == 1 cuttingGeoType == 2 surfaceOutput == 1 surfaceCuttingMethod == 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "snapped_Group"
+            label   "Snap Point Group"
+            type    string
+            default { "cutSnapped" }
+            help    "Mark Points on cuts that have their Points Snapped to nearby points on the source geometry with this point group. "
+            disablewhen "{ outputPrGrp == 0 } { snapped_Tgl == 0 } { inputGeoType == 1 cuttingGeoType == 2 surfaceOutput == 1 surfaceCuttingMethod == 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "center_Tgl"
+            label   "Output Prim Group"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "center_Group"
+            label   "Center Point Group"
+            type    string
+            default { "cutIntersection" }
+            disablewhen "{ outputPrGrp == 0 } { center_Tgl == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm11"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "filterEdgeGroups"
+            label   "Preserve Edge Groups"
+            type    string
+            default { "*" }
+            help    "Filter which edge groups are preserved between the source input and output. If this field is empty or *, all edge groups are preserved, but the copying process could be costly if a lot of edge groups exist on the geometry."
+            menutoggle {
+                [ "opmenu -l -a getIntrinsicEdgeGroups group" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "sepparm4"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupcollapsible {
+        name    "folder7"
+        label   "Cleanup"
+
+        parm {
+            name    "sortByConnectivityID"
+            label   "Sort Primitives by Connectivity ID"
+            type    toggle
+            default { "0" }
+            help    "When enabled, upon output sorts the primitive order along the connectivity ID order."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sortByVertexOrder"
+            label   "Sort Points By Vertex Order"
+            type    toggle
+            default { "0" }
+            help    "When enabled, upon output sorts the point order along the vertex order."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "recomputeNormals"
+            label   "Post-Compute Normals"
+            type    toggle
+            default { "0" }
+            help    "When enabled, re-computes the normals on the entire mesh, otherwise, tries to approximate the original normals from the source input."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "recomputeNormalsFolder3"
+            label   "Normals"
+            hidewhentab "{ recomputeNormals == 0 }"
+
+            parm {
+                name    "normalType"
+                label   "Normal Type"
+                type    ordinal
+                default { "typevertex" }
+                help    "Sets the element type to write the normals to."
+                menu {
+                    "typepoint"     "Points"
+                    "typevertex"    "Vertices"
+                    "typeprim"      "Primitives"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cuspangle"
+                label   "Cusp Angle"
+                type    float
+                default { "60" }
+                help    "The angle at which recomputed normals switch from soft to hard normals."
+                range   { 0! 180! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "method"
+                label   "Weighting Method"
+                type    integer
+                default { "2" }
+                help    "This sets the method by which the normals are computed."
+                menu {
+                    "uniform"   "Each Vertex Equally"
+                    "angle"     "By Vertex Angle"
+                    "area"      "By Face Area"
+                }
+                range   { 0! 2! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    parm {
+        name    "sepparm5"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    groupcollapsible {
+        name    "folder8"
+        label   "Visual Feedback & Performance"
+
+        parm {
+            name    "meshConnectionID_Tgl"
+            label   "meshConnectionID_Tgl"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "inputConnectionID_Attrib"
+            label   "Input Connection ID"
+            type    string
+            default { "meshConnection_ID" }
+            help    "When enabled, writes the Mesh Connectivity ID from the Source Input under the specified primitive attribute name."
+            disablewhen "{ meshConnectionID_Tgl == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputConnectivity"
+            label   "Display Output Connectivity as Primitive Color"
+            type    toggle
+            default { "0" }
+            help    "Use this to debug and display the connectivity of the meshes for the Poly Scalpel Output. Can be used to debug bad cuts or to display disconnected segments. Is distinct from the Input Connectivity ID. Overwrites all Color attributes on the mesh with a primitive color attribute."
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "seed"
+            label   "Color Seed"
+            type    float
+            default { "0" }
+            help    "Seed value for the Output Connectivity Color."
+            hidewhen "{ outputConnectivity == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm13"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "displayCuttingGuide"
+            label   "Always Display Cutting Guide"
+            type    toggle
+            default { "1" }
+            help    "When the node is rendered, always display a guide geometry wireframe to show where the cutting geometry is. Only displays cross cut guides when disabled."
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm10"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "doCompile"
+            label   "Enable Compiling Inside Assets"
+            type    toggle
+            default { "1" }
+            help    "Enable Compiling for most of this asset, speeds up the Utility"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
