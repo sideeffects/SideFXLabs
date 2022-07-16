@@ -1,0 +1,173 @@
+# Dialog script for labs::attribute_normalize_float::1.0 automatically generated
+
+{
+    name	labs::attribute_normalize_float::1.0
+    script	gamedev::sop_min_max_average
+    label	"Labs Attribute Normalize Float"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry with Attributes"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "attrib"
+        label   "Attribute"
+        type    string
+        default { "" }
+        menureplace {
+            [ "r = []" ]
+            [ "node = kwargs['node']" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    " ]
+            [ "    if geo:" ]
+            [ "    " ]
+            [ "        c = node.parm('class').evalAsInt()" ]
+            [ "        " ]
+            [ "        if c == 0:" ]
+            [ "            attrs = geo.primAttribs()" ]
+            [ "            " ]
+            [ "        elif c == 1:" ]
+            [ "            attrs = geo.pointAttribs()" ]
+            [ "            " ]
+            [ "        elif c == 2:" ]
+            [ "            attrs = geo.vertexAttribs()" ]
+            [ "            " ]
+            [ "        else:" ]
+            [ "            attrs = geo.pointAttribs()" ]
+            [ "        " ]
+            [ "        attrib_type = node.parm('type').evalAsInt()" ]
+            [ "            " ]
+            [ "        for a in attrs:" ]
+            [ "" ]
+            [ "            if attrib_type == 0 and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "                " ]
+            [ "            if attrib_type == 1 and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "                " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "class"
+        label   "Class"
+        type    ordinal
+        default { "1" }
+        menu {
+            "0" "Primitive"
+            "1" "Point"
+            "2" "Vertex"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "rename"
+        label   "Rename Attribute"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "newname"
+        label   "New Name"
+        type    string
+        default { "`chs(\"attrib\")`_nml" }
+        hidewhen "{ rename == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "keeporig"
+        label   "Keep Original"
+        type    toggle
+        default { "0" }
+        hidewhen "{ rename == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "fd_detail"
+        label   "Min and Max Detail Attributes"
+
+        parm {
+            name    "reportlimitvals"
+            label   "Report Min and Max Input Values"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "reportlimitelems"
+            label   "Report Min and Max Input Element Numbers"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "minmaxprefix"
+            label   "Detail Attribute Prefix"
+            type    string
+            default { "`chs(\"attrib\")`_" }
+            hidewhen "{ reportlimitvals == 0 reportlimitelems == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "fd_advanced"
+            label   "Advanced"
+            hidewhen "{ reportlimitelems == 0 }"
+
+            parm {
+                name    "tolerance"
+                label   "Equivalence Tolerance"
+                type    float
+                default { "1e-10" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "fd_output"
+        label   "Remap Output"
+
+        parm {
+            name    "outrange"
+            label   "Output Range"
+            type    float
+            size    2
+            default { "0" "1" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "useramp"
+            label   "Use Ramp"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "remapramp"
+            label   "Remap Ramp"
+            type    ramp_flt
+            default { "2" }
+            hidewhen "{ useramp == 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
