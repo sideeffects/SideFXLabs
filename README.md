@@ -1,5 +1,5 @@
 ![SideFXLabs logo](https://github.com/sideeffects/SideFXLabs/blob/Development/help/icons/sidefxlabs_full.png)
-# SideFX Labs - Houdini 19.0
+# SideFX Labs - Houdini 19.5
 
 SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Mai Ao, Danicka Oglesby, Alan Gordie, and Christos Stavridis. It also receives a lot of contributions from the always-active Houdini community. The toolset originates from the GameDevelopmentToolset, which got a re-launch in the Houdini 18.0 release. To get automatic bi-weekly updates, subscribe to the following thread: [Update Thread](https://www.sidefx.com/forum/topic/70854/)
 
@@ -7,12 +7,12 @@ SideFX Labs is a completely free, open-source toolset geared towards assisting H
 
 You can install the SideFX Labs Toolset directly from inside Houdini, (Requires Houdini 18.0 or newer) or install it manually using the packages system.
 
-## Method 1 (Recommended): Built-in Updater
+## Method 1 (Recommended): Houdini Launcher
 
-Use the built-in Updater in Houdini 18.0 or newer to install a version of the toolset. The updater can be found in the SideFX Labs shelf.
+Open Houdini Launcher and navigate to Labs/Packages section to install a version of SideFX Labs.
 
-The updater provides several options of installation depending on your needs / limitations.
-1. If you do not have internet access, the updater allows you to install a local version of the toolset. This local version is tied to which version of Houdini you are running the updater from. (Ex Houdini 18.0.274 would install 274 of the toolset) To obtain a newer version, you would need a more recent version of Houdini.
+The launcher provides several options of installation depending on your needs / limitations.
+1. If you do not have internet access, the launcher allows you to install a local version of the toolset. This local version is tied to which version of Houdini you are running the updater from. (Ex Houdini 19.5.303 would install 303 of the toolset) To obtain a newer version, you would need a more recent version of Houdini.
 2. REQUIRES INTERNET ACCESS. Download a production build from Github. A production build is released every four weeks. This type of build will not contain the cutting edge additions to the toolset, but will have had more production testing prior to release than a development build. (These builds can be found in the releases section of this repository and are marked as "Release")
 3. REQUIRES INTERNET ACCESS. Download a development build from SideFX.com. A development build gets released every 24 hours. These builds will contain bugfixes that have been implemented in the day prior. To get access to these type of builds, untick the "Production Builds Only" checkbox in the updater. 
 
@@ -33,7 +33,7 @@ updater.install_embedded_toolset() # Installs embedded version of the toolset. N
 
 # Tip: Check the contents of updater.production_releases or updater.development_releases
 # to see which most recent versions are available.
-updater.update_toolset_version(VERSION_NUMBER) # Installs a specific version, e.g., '18.5.533'
+updater.update_toolset_version(VERSION_NUMBER) # Installs a specific version, e.g., '19.5.303'
 
 updater.uninstall_toolset() # Uninstalls the toolset from Houdini. Did we do something wrong? :(
 ```
@@ -42,8 +42,8 @@ In addition to the above examples, you can also run a headless session of Hython
 You can for example do this in Command Prompt:
 
 ```
-set HFS=C:/Program Files/Side Effects Software/Houdini 18.5.532
-"%HFS%/bin/hython2.7.exe" "%HFS%/houdini/python2.7libs/sidefxlabs.py" -p
+set HFS=C:/Program Files/Side Effects Software/Houdini 19.5.303
+"%HFS%/bin/hython3.9.exe" "%HFS%/houdini/python3.9libs/sidefxlabs.py" -p
 
 The available arguments are:
 -p/--installs latest production release 
@@ -53,17 +53,17 @@ The available arguments are:
 -u/--uninstalls
 ```
 
-You can also search for and run Houdini's own Command Line Tools 18.5.533 (or whatever Houdini version you have; this is a separate program on your system that comes with Houdini). In Command Line Tools, you do not have to set the variable HFS since it will already be set for you. You may also skip the double quotes in the second line:
+You can also search for and run Houdini's own Command Line Tools 19.5.303 (or whatever Houdini version you have; this is a separate program on your system that comes with Houdini). In Command Line Tools, you do not have to set the variable HFS since it will already be set for you. You may also skip the double quotes in the second line:
 
 ```
-%HFS%/bin/hython2.7.exe %HFS%/houdini/python2.7libs/sidefxlabs.py -p
+%HFS%/bin/hython3.9.exe %HFS%/houdini/python3.9libs/sidefxlabs.py -p
 ```
 
 ## Method 3: Manually Download from Github
 
 1. Download the repository using the green Clone or Download Button and unzip contents into the folder of your choosing.
 
-2. Copy the SideFXLabs.json file from the location used in step 1 to `$HOME/Houdini18.0/packages`, and change the contained paths to match the location chosen in step 1. [Information on Packages](https://www.sidefx.com/docs/houdini/ref/plugins.html)
+2. Copy the SideFXLabs.json file from the location used in step 1 to `$HOME/Houdini19.5/packages`, and change the contained paths to match the location chosen in step 1. [Information on Packages](https://www.sidefx.com/docs/houdini/ref/plugins.html)
 
 
 # Additional Information
@@ -117,3 +117,5 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 - Guillaume Jobst
 - Baku Hashimoto
 - Shari Solo
+- Erwin Heyms
+- Andrea Di Nardo
