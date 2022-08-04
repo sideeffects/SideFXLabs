@@ -5,28 +5,29 @@
 
 = Labs Curve Resample By Density =
 
-"""Resamples a curve based on a density attribute."""
+"""Redistributes curve points based on a density ramp."""
 
-[Image:/images/sidefxlabs_banner.jpg]
+This node resamples and adjusts the positions of points on curves based on a density ramp. It can operate on multiple curves at once using the same settings.
 
-This node resamples and adjusts the position of points on a curve based on a density attribute.
-
+NOTE:
+    This node replaces _Labs Progressive Resample SOP_, which will be removed in Houdini 20.5.
 
 @parameters
 
-    Resample:
+    Resample by Segment Count:
         #id: resample
-	Manually set the number of segments for the resample of the curve.
-
+        Resamples the input curves by a specified segment count per count.
+        
     Segments:
         #id: segments
-	The number of segments for the curve.
-
-    Density:
-        #id: density
-	This ramp represents the density attribute for the resample.
+        The number of segments each output curve should have.
         
-    
-@related
-- [item | /link ]
+    Density along Curve:
+        #id: densityramp
+        Controls the density of the redistributed points along each curve. The X axis of the ramp represents the full length of each curve. (The direction is the increasing direction of the curve's parametric u coordinate.) The Y axis represents the concentration of points. Higher values mean denser distribution of points.
+        
+    == Advanced ==
 
+    Density Ramp Samples:
+        #id: rampsamples
+        You generally do not need to change this. The area under the density ramp is integrated over this many discrete slices. The more slices there are, the more accurately the ramp is intepreted. Only consider increasing this value if your ramp has many ups and downs.
