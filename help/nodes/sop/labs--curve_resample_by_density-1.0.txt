@@ -5,29 +5,45 @@
 
 = Labs Curve Resample By Density =
 
-"""Redistributes curve points based on a density ramp."""
+"""Redistributes curve points based on density."""
 
-This node resamples and adjusts the positions of points on curves based on a density ramp. It can operate on multiple curves at once using the same settings.
+This node resamples and adjusts the positions of points on curves based on a density ramp, a weight attribute, or curvature. It can operate on multiple curves at once using the same settings.
 
 NOTE:
     This node replaces _Labs Progressive Resample SOP_, which will be removed in Houdini 20.5.
 
 @parameters
 
-    Resample by Segment Count:
-        #id: resample
-        Resamples the input curves by a specified segment count per count.
+    Maximum Segments:
+        #id: maxsegments
+        Specify the maximum number of edges for each curve.
         
     Segments:
         #id: segments
-        The number of segments each output curve should have.
+        The maximum number of edges for each curve.
+
+    == Resample ==
         
+    Resample by:
+        #id: resampleby
+	There are three different ways to resample the curves. Resample by Ramp, by an Attribute, or by Curvature.
+
+    === Ramp ===
+
     Density along Curve:
-        #id: densityramp
-        Controls the density of the redistributed points along each curve. The X axis of the ramp represents the full length of each curve. (The direction is the increasing direction of the curve's parametric u coordinate.) The Y axis represents the concentration of points. Higher values mean denser distribution of points.
-        
-    == Advanced ==
+    	#id: densityramp
+    	Controls the density of the redistributed points along each curve. The X axis of the ramp represents the full length of each curve. (The direction is the increasing direction of the curve's parametric u coordinate.) The Y axis represents the concentration of points. Higher values mean denser distribution of points.
 
     Density Ramp Samples:
         #id: rampsamples
         You generally do not need to change this. The area under the density ramp is integrated over this many discrete slices. The more slices there are, the more accurately the ramp is intepreted. Only consider increasing this value if your ramp has many ups and downs.
+
+    === Weight Attribute ===
+
+    Weight Attribute:
+    	#id: weightAttribute
+    	Controls the density of the redistributed points along each curve based on a weight attribute.
+
+    === Curvature ===
+
+    	Controls the density of the redistributed points along each curve based on the curvature of each curve.
