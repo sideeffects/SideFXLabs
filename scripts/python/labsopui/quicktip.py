@@ -9,7 +9,7 @@ class Tip_Dialog(QtWidgets.QDialog):
         super(Tip_Dialog, self).__init__(parent)
 
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.setWindowTitle("Quick Tips!")
+        self.setWindowTitle("Quick Tips")
 
         self.csvfile = hou.text.expandString("$SIDEFXLABS/misc/tips/Tip_Data.csv")
         self.numtips = 0
