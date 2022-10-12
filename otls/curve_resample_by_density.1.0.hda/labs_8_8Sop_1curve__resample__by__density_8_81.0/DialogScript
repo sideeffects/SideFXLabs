@@ -15,8 +15,8 @@
     inputlabel	4	"Sub-Network Input #4"
 
     parm {
-        name    "resample"
-        label   "Resample by Segment Count"
+        name    "maxsegments"
+        label   "Maximum Segments"
         type    toggle
         default { "0" }
         parmtag { "script_callback_language" "python" }
@@ -25,38 +25,61 @@
         name    "segments"
         label   "Segments"
         type    integer
-        default { "10" }
-        disablewhen "{ resample == 0 }"
-        range   { 1! 50 }
+        default { "50" }
+        disablewhen "{ maxsegments == 0 }"
+        range   { 1! 100 }
         parmtag { "autoscope" "0000000000000000" }
         parmtag { "script_callback_language" "python" }
     }
-    parm {
-        name    "sepparm"
-        label   "Separator"
-        type    separator
-        default { "" }
-    }
-    parm {
-        name    "densityramp"
-        label   "Density along Curve"
-        type    ramp_flt
-        default { "2" }
-        range   { 1! 10 }
-        parmtag { "autoscope" "0000000000000000" }
-        parmtag { "rampbasisdefault" "monotonecubic" }
-        parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0.5 ) 1interp ( monotonecubic ) 2pos ( 1 ) 2value ( 0.5 ) 2interp ( monotonecubic )" }
-        parmtag { "script_callback_language" "python" }
-    }
-    groupcollapsible {
-        name    "advanced_folder"
-        label   "Advanced"
+    groupsimple {
+        name    "resample_folder"
+        label   "Resample"
 
+        parm {
+            name    "resampleby"
+            label   "Resample by"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Ramp"
+                "1" "Attribute"
+                "2" "Curvature"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "weightAttribute"
+            label   "Attribute"
+            type    string
+            default { "weight" }
+            hidewhen "{ resampleby != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "densityramp"
+            label   "Density along Curve"
+            type    ramp_flt
+            default { "2" }
+            hidewhen "{ resampleby != 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampbasisdefault" "monotonecubic" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0.5 ) 1interp ( monotonecubic ) 2pos ( 1 ) 2value ( 0.5 ) 2interp ( monotonecubic )" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ resampleby != 0 }"
+        }
         parm {
             name    "rampsamples"
             label   "Density Ramp Samples"
             type    integer
             default { "500" }
+            hidewhen "{ resampleby != 0 }"
             range   { 250 500 }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }

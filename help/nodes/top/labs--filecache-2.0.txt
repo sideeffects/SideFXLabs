@@ -44,18 +44,18 @@ When the __File Path__ is set to __Constructed__ the node provides a simple way 
 Using this node, it is very easy to create a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] referencing this node. 
 
 :task: To create a top network graph of your sop scene:
-    # Select the node and click on the [Icon:NETWORKS/top] icon in the top right corner of it's parameter interface. This will generate a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] referncing this node. The default location for this is `/obj/topnet1`, but you can change this path using the __Top File Cache In__ parameter on the this node. Now both nodes are synchronized, ensuring that caching will generate the same output for both nodes.
+    # Select the node and click on the [Icon:NETWORKS/top] icon in the top right corner of its parameter interface. This will generate a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] referencing this node. The default location for this is `/obj/topnet1`, but you can change this path using the __Top File Cache In__ parameter on the this node. Now both nodes are synchronized, ensuring that caching will generate the same output for both nodes.
     # Repeat this step to create a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] for each of your SOP [File Cache|Node:sop/filecache] nodes in your scene. 
-    # Connenct together the generated [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] in the same order as they are created in the sop network. 
+    # Connect together the generated [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] in the same order as they are created in the sop network. 
     # After all [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] are connected, cook the last node to cache your entire scene file as one large process.
 
 WARNING:
-        Do not connect any other top nodes in between the [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] nodes, such as [Wedge |Node:top/wedge] or [ROP Geometry Output|Node:top/ropgeometry] to change the work items. [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] has a built in wedging mechanism on it's own. 
+        Do not connect any other top nodes in between the [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] nodes, such as [Wedge |Node:top/wedge] or [ROP Geometry Output|Node:top/ropgeometry] to change the work items. [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] has a built in wedging mechanism on its own. 
 
-Every node internally contains a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] in a similar referenced fashion, to cook it's work items when you click the __Save in Background__ button. In an ideal workflow, upon clicking the [Icon:NETWORKS/top] icon, a [TOP Fetch|Node:top/topfetch] node should be generated at the given location, referencing the internal [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] of this node. However the  [TOP Fetch|Node:top/topfetch] node has limitations that currently not support this workflow:
+Every node internally contains a [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] in a similar referenced fashion, to cook its work items when you click the __Save in Background__ button. In an ideal workflow, upon clicking the [Icon:NETWORKS/top] icon, a [TOP Fetch|Node:top/topfetch] node should be generated at the given location, referencing the internal [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] of this node. However the  [TOP Fetch|Node:top/topfetch] node has limitations that currently not support this workflow:
 
 * [TOP Fetch|Node:top/topfetch] does not behave like you would expect after using similar nodes, such as [Object Merge|Node:sop/object_merge], where you can keep continue working with the merge geometry, like merging never took place. [TOP Fetch|Node:top/topfetch] can not bring in all your work items from a top node as they are, it only generates one work items per fetch, which is not ideal.
-* [TOP Fetch|Node:top/topfetch] only has one input, while multiple inputs are prefered for ease of use, such as on the [ROP Fetch|Node:rop/fetch].
+* [TOP Fetch|Node:top/topfetch] only has one input, while multiple inputs are preferred for ease of use, such as on the [ROP Fetch|Node:rop/fetch].
 
 NOTE:
     For the reasons above, the [TOP Labs File Cache|Node:top/labs::topfilecache::2.0] was never designed to be used a standalone tool which would replace the [ROP Geometry Output|Node:top/ropgeometry]. Therefore you should always generate this node using the [Icon:NETWORKS/top] icon of this node.
@@ -65,11 +65,11 @@ TIP:
 
 == SOP to OBJ ==
 
-To render the geometry cache contained by this node, click the [Icon:NETWORKS/sop] icon on the node, which will create a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] node inside `/obj` by default. This way, you can easily generate a renderable object for all your caches needed to be rendered. [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] provides some further quality of live improvements, such as offseting frames, or merging all frames or wedges without affecting the settings on this node, while has a more compact interface with the most needed parameters for rendering.
+To render the geometry cache contained by this node, click the [Icon:NETWORKS/sop] icon on the node, which will create a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] node inside `/obj` by default. This way, you can easily generate a renderable object for all your caches needed to be rendered. [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] provides some further quality of live improvements, such as offsetting frames, or merging all frames or wedges without affecting the settings on this node, while has a more compact interface with the most needed parameters for rendering.
 
 == SOP to LOP ==
 
-Currnetly, there is no straight [File Cache node|Node:sop/filecache] to LOP workflow, the recommended way now is to generate a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] and use a [SOP Import|Node:lop/sopimport] node to bring that into lop context.
+Currently, there is no straight [File Cache node|Node:sop/filecache] to LOP workflow, the recommended way now is to generate a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] and use a [SOP Import|Node:lop/sopimport] node to bring that into lop context.
 
 == File Cache and Karma ==
 
@@ -81,7 +81,7 @@ The other important feature of this node over the [File Cache node|Node:sop/file
 
 The node only wedges `float` type attributes, which is the most common type one would use. 
 
-To wedge other type of attributes, there is a new feature, __Attribute Values__, which lets you provide any points or primitive geometry with the desired attribute. This way you can fully customise the wedge values, either with the __Attribute Adjust__ nodes or with your own prefered method. 
+To wedge other type of attributes, there is a new feature, __Attribute Values__, which lets you provide any points or primitive geometry with the desired attribute. This way you can fully customise the wedge values, either with the __Attribute Adjust__ nodes or with your own preferred method. 
 
 :task: To wedge vector attributes:
         # In SOP context, place down a [Labs File Cache |Node:sop/labs::filecache::2.0] and a [Transform|Node:sop/xform] node.
@@ -140,7 +140,7 @@ While wedge attributes created on the second [Wedge |Node:top/wedge] node will b
 
 As a drawback however, to create these nested wedge patterns, you have to chain together multiple of these nodes, which in case of the this node would not be a valid workflow. 
 
-Therefore this node was designed to be able to create such patterns using a single node, when __Wedge Type__ is set to __Batched Sequence__ or __Periodic Sequnce__.
+Therefore this node was designed to be able to create such patterns using a single node, when __Wedge Type__ is set to __Batched Sequence__ or __Periodic Sequence__.
 
 @parameters
 
@@ -221,7 +221,7 @@ TIP:
 Evaluate As:
     #id: trange
 
-    When this is __Frame Range__ the node writes a cache file for every frame (see Start/End/Inc below). If you don't want pre-generate all frames at once, or if you know you only need to regenerate a single changed frame, you can set this to __Single Frame__. This makes the node write out a cache file only for the current frame (or the frame you set in __Override frame__). If you need to provide a specific list of frames use __Specfic Frames__. 
+    When this is __Frame Range__ the node writes a cache file for every frame (see Start/End/Inc below). If you don't want pre-generate all frames at once, or if you know you only need to regenerate a single changed frame, you can set this to __Single Frame__. This makes the node write out a cache file only for the current frame (or the frame you set in __Override frame__). If you need to provide a specific list of frames use __Specific Frames__. 
 
     Single Frame:
         Saves the cache on a single frame.
@@ -234,7 +234,7 @@ Evaluate As:
 
 Simulation:
     #id: cachesim
-    Use this when you are caching a sequence that is generated using a simulation, that makes each frame dependent on it's previous frame. 
+    Use this when you are caching a sequence that is generated using a simulation, that makes each frame dependent on its previous frame. 
 
 Override Frame:
     When __Evaluate as__ is __Single Frame__ and the checkbox to the left is on, cache this explicit frame number instead of the current frame from the timeline.
@@ -352,7 +352,7 @@ Wedge Type:
         Distributes values used for nested wedging. The number of unique values in the sequence depends on the __Batch Size__, and the values are evenly distributed between __Min Value__ and __Max Value__. __Wedge Count__ should be some multiple of __Batch Size__. 
         
     Periodic Sequence:
-        Distributes values used for nested wedging. The __Period Size__ sets how many times to cylce the pattern across the sequence, and the values are evenly distributed between __Min Value__ and __Max Value__. __Wedge Count__ should be some multiple of __Period Size__.
+        Distributes values used for nested wedging. The __Period Size__ sets how many times to cycle the pattern across the sequence, and the values are evenly distributed between __Min Value__ and __Max Value__. __Wedge Count__ should be some multiple of __Period Size__.
 
     List of Values:
         Sets the wedge values by a list of independent range sequences or numbers. 
@@ -443,7 +443,7 @@ Merge Frames:
             
     Frame Range:
         #id: mergeframerange
-        The custom range to use for merging frames toghether.
+        The custom range to use for merging frames together.
 
     Substeps:
         #id: mergesubsteps
@@ -538,7 +538,7 @@ Merge Frames:
 
 Frames per Batch:
     #id: framesperbatch
-    When __Time Dependent Cache__ is enabled, and __Simulation__ is off, it sets how many frames to schedule as one unit. For every batch a new houdini process will run in the background, each opening the scene file for the period of time to cooke all the frames in the batch (by default 10). When the scene file's loading time is longer then the actual caching process, it is recommended to increase this number to even 50 or a higher number for overall faster caching. When caching time independent cache or running it as a simulation, the frames per batch value always considered as 1, therefore this parameter is disabled.
+    When __Time Dependent Cache__ is enabled, and __Simulation__ is off, it sets how many frames to schedule as one unit. For every batch a new houdini process will run in the background, each opening the scene file for the period of time to cook all the frames in the batch (by default 10). When the scene file's loading time is longer then the actual caching process, it is recommended to increase this number to even 50 or a higher number for overall faster caching. When caching time independent cache or running it as a simulation, the frames per batch value always considered as 1, therefore this parameter is disabled.
 
 One Batch at a Time:
     #id: local_single
@@ -550,7 +550,7 @@ CPUs per Batch:
 
 CPU Count to Use:
     #id: maxprocsmenu
-    Sets the limit on the number of logical cores to use for the entire cooking process. The menu provides a variaty of configurations to quickly assign more logical cores to the caching process, which is displayed as a number on the right side of this parameter. 
+    Sets the limit on the number of logical cores to use for the entire cooking process. The menu provides a variety of configurations to quickly assign more logical cores to the caching process, which is displayed as a number on the right side of this parameter. 
         
 CPU Count:
     #id: maxprocs
@@ -706,17 +706,17 @@ Top File Cache In:
 
 Top Mantra In:
     #id: topmantrapath
-    Currnetly not suppor
+    Currently not supported.
 
 ~~~ Performance Logging ~~~
 
     Enable Performance Monitor Logging:
         #id: enableperfmon
-        Saves a performance file along with the cache to investigate the cooking perormance. Currnetly this is a work in progress feature.
+        Saves a performance file along with the cache to investigate the cooking performance. Currently this is a work in progress feature.
 
     Open Current Profile:
         #id: openperffile
-        Saves a performance file along with the cache to investigate the cooking perormance. Currnetly this is a work in progress feature.
+        Saves a performance file along with the cache to investigate the cooking performance. Currently this is a work in progress feature.
 
 ~~~ Path Construction ~~~
 
