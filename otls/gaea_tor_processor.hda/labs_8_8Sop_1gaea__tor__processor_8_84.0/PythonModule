@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import subprocess, os, platform
 
 
+
 def GetGaeaRegistryInstall(a_node):
     if platform.system() == "Windows":
 
@@ -15,16 +16,19 @@ def GetGaeaRegistryInstall(a_node):
                 hKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\\QuadSpinner\\Gaea Bleeding Edge\\1.0")
             else:
                 hKey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\\QuadSpinner\\Gaea\\1.0")
-
-            return os.path.normpath(winreg.QueryValueEx(hKey, None)[0]).replace("\\", "/"), winreg.QueryValueEx(hKey, "Version")[0][2:5]
+            return os.path.normpath(winreg.QueryValueEx(hKey, None)[0]).replace("\\", "/"), winreg.QueryValueEx(hKey, "Version")[0][2:5]     
         except:
             raise hou.Error("Cannot Find Gaea installed.")
+
+
 
 def ValidateGaeaInstalled(a_dir):
     if os.path.isdir(a_dir):
         if os.path.isfile(os.path.join(a_dir, "Gaea.Build.exe").replace("\\", "/")):
             return
     raise hou.Error("Cannot Find Gaea at specified location")
+
+
 
 def GetAutomationFile(a_node):
     returnvalue = a_node.parm("automation_file").evalAsString()
@@ -53,6 +57,7 @@ def GetAutomationFile(a_node):
     return returnvalue.replace("\\", "/")
 
 
+
 # This is the main function to process a Gaea Graph inside of Houdini
 def ProcessTor(a_node):
 
@@ -62,6 +67,12 @@ def ProcessTor(a_node):
     gaea_path = os.path.join(gaea_dir, "Gaea.Build.exe").replace("\\", "/")
     automation_file = GetAutomationFile(a_node)
 
+    # Generates the automation file xml
+    _cmd = '"'+gaea_path+'" "'+automation_file+'" --nodemap"'
+    _cmd = _cmd.replace("/","\\")
+    os.system('"'+_cmd)
+    # Community contribution by Bleeck (from SideFX Forum)
+    
     if automation_file == "" or not os.path.isfile(automation_file):
         raise hou.Error("Missing Automation Tor File.")
 
@@ -70,7 +81,6 @@ def ProcessTor(a_node):
 
     # Export All Maps
     a_node.node("EXPORT").cook(force=True)
-    
 
     # Get landscape resolution
     resolution = 512 # default of 512
@@ -86,7 +96,6 @@ def ProcessTor(a_node):
         cmd.append("--cpulimit1")
     cmd.append("--resolution{0}".format(nextPowerOf2(resolution)))
     cmd.append("--houdini")
-
 
     # These are the From and To parameter folders. All parms found here will be used for dynamic maps export/import
     ToGaeaParms = a_node.parmsInFolder(("Gaea Controls", "To Gaea"))
@@ -123,7 +132,7 @@ def ProcessTor(a_node):
                 Extension = "r32" if NameComponents[0] == "c1" else "png"
                 SanitizedName = "_".join(name.split("_")[1:])
                 value = '"'+os.path.join(a_node.parm("sTempDir").evalAsString(), "read_{0}_{1}_{2}.{3}".format(a_node.parm("sUniqueID").evalAsString(),a_node.parm("sExtraData").evalAsString(), value, Extension)).replace("\\", "/")+'"'
-
+                
             MapsToExport.append(value)
             if parm.evalAsString() == "":
                 raise hou.NodeError('Missing "{0}" input mapping in "From Gaea" parameter group.'.format(parm.description()))
@@ -133,17 +142,37 @@ def ProcessTor(a_node):
         else:
             cmd.append("{0}:{1}".format(name, value))
 
+    # Forces Gaea to output to the specified Cache Directory
+    cmd.append("--folder:\"{0}\"".format(a_node.parm("sTempDir").evalAsString()))
+    # Community contribution by Bleeck (from SideFX Forum)       
+    
     # Run Gaea with the provided Tor file and parameter values
     RunGaea(a_node, cmd, gaea_dir)
+    
+    # Cleanup
+    for _a_map in MapsToExport:
+
+        _g_file_name = _a_map[_a_map.find("__") + 2:-1]
+        _r_file_path = _a_map[1:_a_map.rfind("/")] + "/"
+        _gaea_file = _r_file_path + _g_file_name
+        _houdini_file = _a_map[1:-1]
+
+        if (os.path.exists(_gaea_file)):
+
+            if(os.path.exists(_houdini_file)):
+                os.remove(_houdini_file)
+
+            os.rename(_gaea_file, _houdini_file)
+    # Community contribution by Bleeck (from SideFX Forum)
 
     if a_node.parm("pdg_logoutput").evalAsInt() == 1:
         for value in MapsToExport:
             print("OUTPUT_FILE: {0}; file/image".format(value[1:-1]))
-
     
     # Forcing some node cooks
     a_node.node("extract_inputmaps").cook(force=True)
     a_node.node("import_maps").cook(force=True)
+
 
 
 # Run Gaea with specified command line arguments
@@ -156,11 +185,13 @@ def RunGaea(a_node, cmd, gaea_dir):
 
     hide_gaea_dialog = a_node.parm("hide_gaea_dialog").eval()
     si = None
-    if os.name == 'nt':  
+
+    if os.name == 'nt':
+
         si = subprocess.STARTUPINFO()
         if hide_gaea_dialog:
             si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
+            
     with hou.InterruptableOperation(a_node.name(), open_interrupt_dialog=True) as Operation:
         Process = subprocess.Popen(" ".join(cmd), startupinfo=si, stdout=subprocess.PIPE, cwd=gaea_dir)
         # Process is still running
@@ -170,6 +201,7 @@ def RunGaea(a_node, cmd, gaea_dir):
             # User interrupted
             except hou.OperationInterrupted:
                 Process.kill()
+
 
 
 # Resets entire interface with Gaea Parms
@@ -184,10 +216,13 @@ def ResetInterface(a_node):
     
     LoadXML(a_node)
 
+
+
 def SetFromPreset(a_node):
     PresetFile = a_node.parm("sPresetFile").evalAsString()
     a_node.parm("automation_file").set(PresetFile.replace("\\", "/"))
     ResetInterface(a_node)
+
 
 
 def nextPowerOf2(n): 
@@ -198,12 +233,15 @@ def nextPowerOf2(n):
         p <<= 1   
     return p
 
+
+
 def ParmCallback(a_node):
     pass
 
+
+
 # Extract an XML file from a .Tor file, and dynamically generate a parameter interface for it
 def LoadXML(a_node):
-
 
     # Mandatory Stuff
     gaea_dir, version = GetGaeaRegistryInstall(a_node)
@@ -225,7 +263,10 @@ def LoadXML(a_node):
     automation_xml = os.path.abspath(automation_file.replace(".tor", ".xml"))
 
     if not os.path.isfile(automation_xml):
-        raise hou.Error("Could not find XML file. Please make sure Houdini has writing privileges in the directory where the .tor file is located!")
+        message = \
+            "Could not load the XML file, likely because the specified Presets Directory has restricted writing access.\n"\
+            "Try using a different Presets Directory and putting the TOR file there."
+        raise hou.Error(message)
 
     XMLTree = ET.parse(automation_xml)
     XMLRoot = XMLTree.getroot()
@@ -258,8 +299,6 @@ def LoadXML(a_node):
             parmtype = LineEntry['Type']
             default = LineEntry['Default']
             owner = LineEntry["Owner"]
-
-
 
             # If these parms don't exist yet.. Create them
             if a_node.parm(name) == None:
