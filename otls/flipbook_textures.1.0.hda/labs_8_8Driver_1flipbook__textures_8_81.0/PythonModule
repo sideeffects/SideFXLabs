@@ -377,8 +377,11 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
     viewport_settings.setTextureMaxRes3D(max_res_3d)
     viewport_settings.setTextureResLimit3D(True)
     viewport_settings.setTextureBitDepthLimit3D(hou.viewportTextureDepth.HDR16)
-    viewport_settings.volumeQuality(hou.viewportVolumeQuality.High)
     viewport_settings.volumeBSplines(hou.viewportVolumeBSplines.NonInteractive)
+    if node.evalParm('volquality') == 0:
+        viewport_settings.volumeQuality(hou.viewportVolumeQuality.Normal)
+    elif node.evalParm('volquality') == 1:
+        viewport_settings.volumeQuality(hou.viewportVolumeQuality.High)
     
     # Viewport displays
 
