@@ -54,8 +54,11 @@ def resetSceneViewer(old_scene_viewer, external_object_visibility = 0):
         new_scene_viewer.setPickFacing(old_scene_viewer.pickFacing())
         if old_scene_viewer.viewerType() != hou.stateViewerType.SceneGraph:
             new_scene_viewer.setPickingCurrentNode(old_scene_viewer.isPickingCurrentNode())
-            
+        
         #new_scene_viewer.setHydraRenderer(old_scene_viewer.currentHydraRenderer())
+        new_scene_viewer.setOCIODisplayView(old_scene_viewer.getOCIODisplay(), old_scene_viewer.getOCIOView())
+        new_scene_viewer.setUsingOCIO(old_scene_viewer.usingOCIO())
+
 
         # Group List
         new_scene_viewer.setGroupListColoringGeometry(old_scene_viewer.isGroupListColoringGeometry())
@@ -112,6 +115,7 @@ def resetSceneViewer(old_scene_viewer, external_object_visibility = 0):
             new_display_options.showsName(old_display_options.showName())
             new_display_options.showsCameraName(old_display_options.showCameraName())
             new_display_options.setLighting(old_display_options.lighting())
+            hou.hscript('colorsettings -g {0} -v'.format(old_display_options.sceneGamma()))
         
 
         old_scene_viewer.close()
