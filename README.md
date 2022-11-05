@@ -34,7 +34,7 @@ To install the latest production build, the latest daily build, or to uninstall 
 
 To replace part of a hard-coded path with an environment variable, you need to first define the environment variable on the machine that executes the commands.
 
-Search for **Edit environment variables for your account**, and then click **New...** on the **Environment Variables** window to add a new variable.
+Press the Windows key to search for **Edit environment variables for your account**, and then click **New...** on the **Environment Variables** window to add a new variable.
 
 Please note that Houdini-specific environment variables, such as `HSITE`, `HOME`, etc., are not automatically recognized in **Command Prompt** or **Houdini Command Line Tools** when you type in commands. For command line installation purposes, adding environment variables to `houdini.env` or a Houdini package definition JSON file is not enough. You have to define them in the system.
 
@@ -63,7 +63,7 @@ https://github.com/sideeffects/SideFXLabs/archive/refs/tags/19.5.100.tar.gz
 
 Step 1. [Option B] Click on the top-right **Code** button on the main page of this repository and select **Download ZIP**. This allows you to get the same-day updates before the next day's release is downloadable.
 
-Step 1. [Option C] (Advanced) Clone this repository.
+Step 1. [Option C] (Advanced) Clone this repository into a custom SideFXLabs directory of your choosing. Skip Step 2.
 
 Step 2. If you have downloaded a zipped version of the package in Step 1, unzip it into a custom SideFXLabs directory of your choosing.
 
@@ -77,7 +77,7 @@ If SideFX Labs is successfully installed, launch Houdini and you should see a **
 # Additional Information
 
 ## Live Development
-We're actively developing the tools in this Repository. The [releases](https://github.com/sideeffects/SideFXLabs/releases) provide safe checkpoints in the code for you to download. The internal Houdini Updater uses the releases to install the tools.  
+We're actively developing the tools in this repository. The [releases](https://github.com/sideeffects/SideFXLabs/releases) provide safe checkpoints in the code for you to download.
 
 ## Expanded HDAs
 All of the HDAs are using the expanded format that was introduced in H16. This allows better diffing of the tools so you can see what our changes are doing and choose to integrate them back into your production.
@@ -93,7 +93,7 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 1. "SIDEFXLABS_NOINSTALL_MESSAGE = Your message here" - Disables the installing of the toolset on the machine, and shows the text stored in the environment variable.
 2. "SIDEFXLABS_ADMIN_UPDATES = 1" - This prevents users from updating the already installed toolset on their machine. Useful for studios where one version of the toolset is enforced.
 
-## Contributor Credits
+## Contributors
 ### SideFX Labs Team
 - Luiz Kruel
 - Mike Lyndon
@@ -117,7 +117,7 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 - Ryan Gold
 - Ciara Cipponeri
 
-### Community Contributors
+### Community
 - Magnus Larsson
 - Jake Rice
 - Richard C Thomas
