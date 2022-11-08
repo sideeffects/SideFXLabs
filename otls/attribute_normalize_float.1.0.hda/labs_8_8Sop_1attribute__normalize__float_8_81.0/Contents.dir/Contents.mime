@@ -32,19 +32,20 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -4.5 -3.15
-connectornextid 1
+position -2.5 -7.15
+connectornextid 2
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
+1 "output1"
 }
 inputsNamed3
 {
-0 	physical_ambient_occlusion1 1 1 "input1"
+0 	measure1 1 1 "input1"
 }
 inputs
 {
-0 	physical_ambient_occlusion1 0 1
+0 	measure1 0 1
 }
 stat
 {
@@ -91,7 +92,7 @@ sopflags sopflags =
 comment "HDA code: anm"
 position -0.5 -10.15
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on displaycomment on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on displaycomment on
 outputsNamed3
 {
 }
@@ -197,7 +198,7 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector points "Modify Points"
+            bindselector uvselect "Modify Points"
                 "Select the points to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
@@ -232,27 +233,6 @@ Content-Type: text/plain
             size    2
             default { "0" "0" }
             range   { 0 10 }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "record_limit_elems"
-            label   "Record Limit Elems"
-            type    integer
-            default { "0" }
-            range   { 0 10 }
-        }
-        parm {
-            name    "tolerance"
-            label   "Tolerance"
-            type    float
-            default { "0" }
-            range   { 0 1 }
-        }
-        parm {
-            name    "minmax_prefix"
-            label   "Detail Attribute Prefix"
-            type    string
-            default { "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -418,30 +398,11 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../outrange2\") }
     }
-    channel minmax_prefix {
-      lefttype = extend
-      righttype = extend
-      defaultString = \"\"
-      flags = 0
-      segment { length = 0 expr = chs(\"../minmaxprefix\") }
-    }
-    channel record_limit_elems {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../reportlimitelems\") }
-    }
     channel use_ramp {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../useramp\") }
-    }
-    channel tolerance {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../tolerance\") }
     }
   }
 
@@ -464,22 +425,14 @@ float out_max = chf(\"out_range2\");
 float input_value = f@_anm_attrib;
 
 if (chi(\"use_ramp\")) {
+
     float normalized_value = fit(input_value, min, max, 0, 1);
     normalized_value = chramp(\"../remapramp\", normalized_value);
     f@_anm_attrib = fit01(normalized_value, out_min, out_max);
+
 } else {
+
     f@_anm_attrib = fit(input_value, min, max, out_min, out_max);
-}
-
-if (chi(\"record_limit_elems\")) {
-
-    if (abs(input_value - min) < chf(\"tolerance\")) {
-        setdetailattrib(0, chs(\"minmax_prefix\") + \"min_elem\", @elemnum);
-    }
-
-    if (abs(input_value - max) < chf(\"tolerance\")) {
-        setdetailattrib(0, chs(\"minmax_prefix\") + \"max_elem\", @elemnum);
-    }
 }"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
@@ -496,9 +449,6 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 out_range	[ 0	locks=0 ]	(	[ out_range1	0 ] 	[ out_range2	0 ] 	)
-record_limit_elems	[ 0	locks=0 ]	(	[ record_limit_elems	0 ] 	)
-tolerance	[ 0	locks=0 ]	(	[ tolerance	0 ] 	)
-minmax_prefix	[ 0	locks=0 ]	(	[ minmax_prefix	"" ] 	)
 use_ramp	[ 0	locks=0 ]	(	[ use_ramp	0 ] 	)
 bindname1	[ 0	locks=0 ]	(	[ bindname1	"" ] 	)
 bindparm1	[ 8	locks=0 ]	(	_anm_attrib	)
@@ -708,7 +658,7 @@ sopflags sopflags =
 comment ""
 position -0.5 -0.155
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 0 "output1"
@@ -755,14 +705,14 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/attrib_rename.init"
+Content-Disposition: attachment; filename="hdaroot/attrib_rename__cleanup.init"
 Content-Type: text/plain
 
 type = attribute
 matchesdef = 0
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/attrib_rename.def"
+Content-Disposition: attachment; filename="hdaroot/attrib_rename__cleanup.def"
 Content-Type: text/plain
 
 sopflags sopflags = 
@@ -795,7 +745,7 @@ exprlanguage hscript
 end
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/attrib_rename.parm"
+Content-Disposition: attachment; filename="hdaroot/attrib_rename__cleanup.parm"
 Content-Type: text/plain
 
 {
@@ -815,7 +765,7 @@ primdel	[ 0	locks=0 ]	(	""	)
 primkeep	[ 0	locks=0 ]	(	*	)
 _label4_	[ 0	locks=0 ]	(	From	To	)
 detailrenames	[ 0	locks=0 ]	(	5	)
-dtldel	[ 0	locks=0 ]	(	"`ifs(ch(\"../reportlimitvals\"), \"\", \"_anm_*\")`"	)
+dtldel	[ 0	locks=0 ]	(	"`ifs(!ch(\"../reportlimitvals\"), \"_anm_*\", \"\")`"	)
 dtlkeep	[ 0	locks=0 ]	(	*	)
 _label5_	[ 0	locks=0 ]	(	RiName	RiType	Offset	""	)
 rmanconversions	[ 0	locks=0 ]	(	5	)
@@ -853,10 +803,10 @@ frompr3	[ 0	locks=0 ]	(	""	)
 topr3	[ 0	locks=0 ]	(	""	)
 frompr4	[ 0	locks=0 ]	(	""	)
 topr4	[ 0	locks=0 ]	(	""	)
-fromdtl0	[ 8	locks=0 ]	(	"`ifs(ch(\"../reportlimitvals\"), \"_anm_input_min\", \"\")`"	)
-todtl0	[ 0	locks=0 ]	(	`chs(\"../attrib\")`_min	)
+fromdtl0	[ 0	locks=0 ]	(	"`ifs(ch(\"../reportlimitvals\"), \"_anm_input_min\", \"\")`"	)
+todtl0	[ 0	locks=0 ]	(	`chs(\"../minmaxprefix\")`min	)
 fromdtl1	[ 0	locks=0 ]	(	"`ifs(ch(\"../reportlimitvals\"), \"_anm_input_max\", \"\")`"	)
-todtl1	[ 0	locks=0 ]	(	`chs(\"../attrib\")`_max	)
+todtl1	[ 0	locks=0 ]	(	`chs(\"../minmaxprefix\")`max	)
 fromdtl2	[ 0	locks=0 ]	(	""	)
 todtl2	[ 0	locks=0 ]	(	""	)
 fromdtl3	[ 0	locks=0 ]	(	""	)
@@ -886,7 +836,7 @@ rioff4	[ 0	locks=0 ]	(	0	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
-Content-Disposition: attachment; filename="hdaroot/attrib_rename.userdata"
+Content-Disposition: attachment; filename="hdaroot/attrib_rename__cleanup.userdata"
 Content-Type: text/plain
 
 {
@@ -918,12 +868,12 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	attrib_rename 1 1 "input1"
+0 	attrib_rename__cleanup 1 1 "input1"
 1 	INPUT 0 1 "input2"
 }
 inputs
 {
-0 	attrib_rename 0 1
+0 	attrib_rename__cleanup 0 1
 1 	INPUT 0 1
 }
 stat
@@ -939,15 +889,36 @@ exprlanguage hscript
 end
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/copy_orig_attrib.chn"
+Content-Type: text/plain
+
+{
+    channel srcgrouptype {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = 2-ch(\"../class\") }
+    }
+    channel destgrouptype {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"srcgrouptype\") }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/copy_orig_attrib.parm"
 Content-Type: text/plain
 
 {
 version 0.8
 srcgroup	[ 0	locks=0 ]	(	""	)
-srcgrouptype	[ 0	locks=0 ]	(	"points"	)
+srcgrouptype	[ 8	locks=0 ]	(	[ srcgrouptype	1 ] 	)
 destgroup	[ 0	locks=0 ]	(	""	)
-destgrouptype	[ 0	locks=0 ]	(	"points"	)
+destgrouptype	[ 8	locks=0 ]	(	[ destgrouptype	1 ] 	)
 matchbyattribute	[ 0	locks=0 ]	(	"off"	)
 attributetomatch	[ 0	locks=0 ]	(	piece	)
 attrib	[ 0	locks=0 ]	(	"otherattrib"	)
@@ -992,12 +963,12 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	attrib_rename 1 1 "input1"
+0 	attrib_rename__cleanup 1 1 "input1"
 1 	copy_orig_attrib 2 1 "input2"
 }
 inputs
 {
-0 	attrib_rename 0 1
+0 	attrib_rename__cleanup 0 1
 1 	copy_orig_attrib 0 1
 }
 stat
@@ -1044,7 +1015,7 @@ testinput	[ 0	locks=0 ]	(	"first"	)
 tests	[ 0	locks=0 ]	(	2	)
 enable1	[ 0	locks=0 ]	(	"on"	)
 type1	[ 0	locks=0 ]	(	"expr"	)
-expr1	[ 0	locks=0 ]	(	[ expr1	1 ] 	)
+expr1	[ 8	locks=0 ]	(	[ expr1	1 ] 	)
 attribtype1	[ 0	locks=0 ]	(	"all"	)
 attribowner1	[ 0	locks=0 ]	(	"point"	)
 attributes1	[ 0	locks=0 ]	(	""	)
@@ -1060,7 +1031,7 @@ countval1	[ 0	locks=0 ]	(	0	)
 hasinputtype1	[ 0	locks=0 ]	(	"wired"	)
 enable2	[ 0	locks=0 ]	(	"on"	)
 type2	[ 0	locks=0 ]	(	"expr"	)
-expr2	[ 0	locks=0 ]	(	[ expr2	1 ] 	)
+expr2	[ 8	locks=0 ]	(	[ expr2	1 ] 	)
 attribtype2	[ 0	locks=0 ]	(	"all"	)
 attribowner2	[ 0	locks=0 ]	(	"point"	)
 attributes2	[ 0	locks=0 ]	(	""	)
@@ -1237,40 +1208,6 @@ Content-Disposition: attachment; filename="hdaroot/vis.chn"
 Content-Type: text/plain
 
 {
-    channel class {
-      lefttype = extend
-      righttype = extend
-      default = 2
-      flags = 0
-      segment { length = 0 value = 2 2 expr = ch(\"../class\")+1 }
-    }
-    channel ramprange1 {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../outrange1\") }
-    }
-    channel ramprange2 {
-      lefttype = extend
-      righttype = extend
-      default = 1
-      flags = 0
-      segment { length = 0 value = 1 1 expr = ch(\"../outrange2\") }
-    }
-    channel rampattribute {
-      lefttype = extend
-      righttype = extend
-      defaultString = \"\"
-      flags = 0
-      segment { length = 0 expr = chs(\"../attrib\") }
-    }
-    channel ramp {
-      lefttype = extend
-      righttype = extend
-      default = 2
-      flags = 0
-      segment { length = 0 value = 2 2 expr = ch(\"../visramp\") }
-    }
     channel ramp1pos {
       lefttype = extend
       righttype = extend
@@ -1333,6 +1270,140 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 value = 1 1 expr = ch(\"../visramp2interp\") }
     }
+    channel class {
+      lefttype = extend
+      righttype = extend
+      default = 2
+      flags = 0
+      segment { length = 0 value = 2 2 expr = ch(\"../class\")+1 }
+    }
+    channel ramprange1 {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../outrange1\") }
+    }
+    channel ramprange2 {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../outrange2\") }
+    }
+    channel rampattribute {
+      lefttype = extend
+      righttype = extend
+      defaultString = \"\"
+      flags = 0
+      segment { length = 0 expr = "ifs(ch(\"../rename\"), chs(\"../newname\"), chs(\"../attrib\"))" }
+    }
+    channel ramp {
+      lefttype = extend
+      righttype = extend
+      default = 2
+      flags = 0
+      segment { length = 0 value = 4 4 expr = ch(\"../visramp\") }
+    }
+    channel ramp3pos {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp3pos\") }
+    }
+    channel ramp3cr {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp3cr\") }
+    }
+    channel ramp3cg {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp3cg\") }
+    }
+    channel ramp3cb {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp3cb\") }
+    }
+    channel ramp3interp {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../visramp3interp\") }
+    }
+    channel ramp4pos {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp4pos\") }
+    }
+    channel ramp4cr {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp4cr\") }
+    }
+    channel ramp4cg {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp4cg\") }
+    }
+    channel ramp4cb {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp4cb\") }
+    }
+    channel ramp4interp {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../visramp4interp\") }
+    }
+    channel ramp5pos {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp5pos\") }
+    }
+    channel ramp5cr {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp5cr\") }
+    }
+    channel ramp5cg {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp5cg\") }
+    }
+    channel ramp5cb {
+      lefttype = extend
+      righttype = extend
+      flags = 0
+      segment { length = 0 expr = ch(\"../visramp5cb\") }
+    }
+    channel ramp5interp {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = ch(\"../visramp5interp\") }
+    }
+    channel deleteallcolorattribs {
+      lefttype = extend
+      righttype = extend
+      default = 1
+      flags = 0
+      segment { length = 0 value = 1 1 expr = "hasprimattrib(0, \"Cd\") || haspointattrib(0, \"Cd\") || hasvertexattrib(0, \"Cd\")" }
+    }
   }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1343,20 +1414,29 @@ Content-Type: text/plain
 version 0.8
 group	[ 0	locks=0 ]	(	""	)
 grouptype	[ 0	locks=0 ]	(	"guess"	)
-deleteallcolorattribs	[ 0	locks=0 ]	(	"on"	)
+deleteallcolorattribs	[ 0	locks=0 ]	(	[ deleteallcolorattribs	0 ] 	)
 class	[ 8	locks=0 ]	(	[ class	2 ] 	)
 colortype	[ 0	locks=0 ]	(	3	)
 color	[ 0	locks=0 ]	(	1	1	1	)
 seed	[ 0	locks=0 ]	(	0	)
-rampattribute	[ 0	locks=0 ]	(	[ rampattribute	"" ] 	)
+rampattribute	[ 8	locks=0 ]	(	[ rampattribute	"" ] 	)
 ramprange	[ 0	locks=0 ]	(	[ ramprange1	0 ] 	[ ramprange2	1 ] 	)
-ramp	[ 0	locks=0 ]	(	[ ramp	2 ] 	)
+ramp	[ 0	locks=0 ]	(	[ ramp	5 ] 	)
 ramp1pos	[ 0	locks=0 ]	(	[ ramp1pos	0 ] 	)
 ramp1c	[ 0	locks=0 ]	(	[ ramp1cr	0 ] 	[ ramp1cg	0 ] 	[ ramp1cb	0 ] 	)
 ramp1interp	[ 0	locks=0 ]	(	[ ramp1interp	1 ] 	)
 ramp2pos	[ 0	locks=0 ]	(	[ ramp2pos	0 ] 	)
 ramp2c	[ 0	locks=0 ]	(	[ ramp2cr	0 ] 	[ ramp2cg	0 ] 	[ ramp2cb	0 ] 	)
 ramp2interp	[ 0	locks=0 ]	(	[ ramp2interp	1 ] 	)
+ramp3pos	[ 0	locks=0 ]	(	[ ramp3pos	0 ] 	)
+ramp3c	[ 0	locks=0 ]	(	[ ramp3cr	0 ] 	[ ramp3cg	0 ] 	[ ramp3cb	0 ] 	)
+ramp3interp	[ 0	locks=0 ]	(	[ ramp3interp	1 ] 	)
+ramp4pos	[ 0	locks=0 ]	(	[ ramp4pos	0 ] 	)
+ramp4c	[ 0	locks=0 ]	(	[ ramp4cr	0 ] 	[ ramp4cg	0 ] 	[ ramp4cb	0 ] 	)
+ramp4interp	[ 0	locks=0 ]	(	[ ramp4interp	1 ] 	)
+ramp5pos	[ 0	locks=0 ]	(	[ ramp5pos	0 ] 	)
+ramp5c	[ 0	locks=0 ]	(	[ ramp5cr	0 ] 	[ ramp5cg	0 ] 	[ ramp5cb	0 ] 	)
+ramp5interp	[ 0	locks=0 ]	(	[ ramp5interp	1 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1388,7 +1468,7 @@ normalize_float
 min_to_detail
 max_to_detail
 INPUT
-attrib_rename
+attrib_rename__cleanup
 copy_orig_attrib
 switch_keep_orig_attrib
 switch_vis
