@@ -15,6 +15,18 @@
     inputlabel	4	"Sub-Network Input #4"
 
     parm {
+        name    "class"
+        label   "Class"
+        type    ordinal
+        default { "1" }
+        menu {
+            "0" "Primitive"
+            "1" "Point"
+            "2" "Vertex"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
         name    "attrib"
         label   "Attribute"
         type    string
@@ -41,36 +53,12 @@
             [ "        else:" ]
             [ "            attrs = geo.pointAttribs()" ]
             [ "        " ]
-            [ "            " ]
             [ "        for a in attrs:" ]
             [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
             [ "                r.extend([a.name(), a.name()])" ]
             [ "  " ]
             [ "return r" ]
             language python
-        }
-        parmtag { "script_callback_language" "python" }
-    }
-    parm {
-        name    "class"
-        label   "Class"
-        type    ordinal
-        default { "1" }
-        menu {
-            "0" "Primitive"
-            "1" "Point"
-            "2" "Vertex"
-        }
-        parmtag { "script_callback_language" "python" }
-    }
-    parm {
-        name    "vecop"
-        label   "Vector Operation"
-        type    ordinal
-        default { "0" }
-        menu {
-            "0" "Output Unit Directional Vectors"
-            "1" "Normalize Vector Magnitudes"
         }
         parmtag { "script_callback_language" "python" }
     }
@@ -82,35 +70,86 @@
         parmtag { "script_callback_language" "python" }
     }
     parm {
+        name    "lb_helpP"
+        label   "lb_helpP"
+        type    label
+        default { "Warning: Renaming attribute \"P\" is not permitted." }
+        hidewhen "{ attrib != P } { rename == 0 }"
+        parmtag { "sidefx::look" "block" }
+    }
+    parm {
         name    "newname"
         label   "New Name"
         type    string
-        default { "`chs(\"attrib\")`_nml" }
+        default { "`chs(\"attrib\")`_norm" }
         hidewhen "{ rename == 0 }"
         parmtag { "script_callback_language" "python" }
     }
     parm {
         name    "keeporig"
-        label   "Keep Original"
+        label   "Keep Original Attribute"
         type    toggle
         default { "0" }
         hidewhen "{ rename == 0 }"
         parmtag { "script_callback_language" "python" }
     }
+    parm {
+        name    "vis"
+        label   "Visualize Output"
+        type    toggle
+        default { "0" }
+        disablewhen "{ outputunit == 1 }"
+        parmtag { "script_callback_language" "python" }
+    }
     groupcollapsible {
-        name    "fd_detail"
-        label   "Min and Max Detail Attributes"
+        name    "fd_output"
+        label   "Remap Output"
 
         parm {
-            name    "reportlimitvals"
-            label   "Report Min and Max Input Values"
+            name    "outputunit"
+            label   "Output Unit Vectors"
             type    toggle
-            default { "0" }
+            default { "1" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "reportlimitelems"
-            label   "Report Min and Max Input Element Numbers"
+            name    "outrange"
+            label   "Output Length Range"
+            type    float
+            size    2
+            default { "0" "1" }
+            disablewhen "{ outputunit == 1 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "useramp"
+            label   "Remap Output Length Gradient"
+            type    toggle
+            default { "0" }
+            disablewhen "{ outputunit == 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "remapramp"
+            label   "Output Length Gradient over Input Length Range"
+            type    ramp_flt
+            default { "2" }
+            hidewhen "{ useramp == 0 } { outputunit == 1 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_metadata"
+        label   "Metadata"
+
+        parm {
+            name    "reportlimitvals"
+            label   "Report Min/Max Input Lengths"
             type    toggle
             default { "0" }
             parmtag { "script_callback_language" "python" }
@@ -120,58 +159,33 @@
             label   "Detail Attribute Prefix"
             type    string
             default { "`chs(\"attrib\")`_" }
-            hidewhen "{ reportlimitvals == 0 reportlimitelems == 0 }"
-            parmtag { "script_callback_language" "python" }
-        }
-        groupcollapsible {
-            name    "fd_advanced"
-            label   "Advanced"
-            hidewhen "{ reportlimitvals == 0 reportlimitelems == 0 }"
-
-            parm {
-                name    "tolerance"
-                label   "Equivalence Tolerance"
-                type    float
-                default { "1e-10" }
-                range   { 0 10 }
-                parmtag { "script_callback_language" "python" }
-            }
-        }
-
-    }
-
-    groupcollapsible {
-        name    "fd_output"
-        label   "Remap Output"
-        hidewhen "{ vecop == 0 }"
-
-        parm {
-            name    "outrange"
-            label   "Magnitude Range"
-            type    float
-            size    2
-            default { "0" "1" }
-            range   { 0 10 }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "useramp"
-            label   "Use Ramp"
-            type    toggle
-            default { "0" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "remapramp"
-            label   "Remap Ramp"
-            type    ramp_flt
-            default { "2" }
-            hidewhen "{ useramp == 0 }"
-            range   { 1! 10 }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            disablewhen "{ reportlimitvals == 0 }"
             parmtag { "script_callback_language" "python" }
         }
     }
 
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+        hidewhen "{ vis == 0 } { outputunit == 1 }"
+    }
+    parm {
+        name    "visramp"
+        label   "Visualization Ramp"
+        type    ramp_rgb
+        default { "5" }
+        hidewhen "{ vis == 0 } { outputunit == 1 }"
+        range   { 1! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "parmvop" "1" }
+        parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+        parmtag { "rampbasisdefault" "linear" }
+        parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0.20000000298023224 0 1 ) 1interp ( linear ) 2pos ( 0.25 ) 2c ( 0 0.85000002384185791 1 ) 2interp ( linear ) 3pos ( 0.5 ) 3c ( 0 1 0.10000000149011612 ) 3interp ( linear ) 4pos ( 0.75 ) 4c ( 0.94999998807907104 1 0 ) 4interp ( linear ) 5pos ( 1 ) 5c ( 1 0 0 ) 5interp ( linear )" }
+        parmtag { "rampcolortype" "rgb" }
+        parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+        parmtag { "rampshowcontrolsdefault" "0" }
+        parmtag { "rampvalues_var" "vecramp_the_key_values" }
+    }
 }
