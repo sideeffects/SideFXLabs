@@ -20,8 +20,8 @@
         type    ordinal
         default { "1" }
         menu {
-            "0" "Polygon Centroids"
-            "1" "Connected Polygon Neighbours"
+            "0" "Polygon Centroids Only"
+            "1" "Polygon Centroids and Neighbour Connections"
         }
         parmtag { "script_callback_language" "python" }
     }
@@ -30,6 +30,49 @@
         label   "Copy Primitive Attributes to Points"
         type    toggle
         default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "attribstocopy"
+        label   "Attributes to Copy"
+        type    string
+        default { "" }
+        disablewhen "{ copyattrib == 0 }"
+        menutoggle {
+            [ "r = []" ]
+            [ "node = kwargs['node']" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    " ]
+            [ "    if geo:" ]
+            [ "        for a in geo.primAttribs():" ]
+            [ "            r.extend([a.name(), a.name()])" ]
+            [ "    " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "copygroup"
+        label   "Copy Primitive Groups to Points"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "groupstocopy"
+        label   "Groups to Copy"
+        type    string
+        default { "" }
+        disablewhen "{ copygroup == 0 }"
+        menutoggle {
+            [ "kwargs['node'].generateInputGroupMenu(0, group_types=hou.geometryType.Primitives, include_name_attrib=False)" ]
+            language python
+        }
         parmtag { "script_callback_language" "python" }
     }
 }
