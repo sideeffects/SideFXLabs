@@ -50,7 +50,7 @@ Once the environment variable is set (e.g. MY_SIDEFXLABS = D:\studio\sidefxlabs)
 
 For more on how to download, install, upgrade, and uninstall Houdini and its components, please visit [here](https://www.sidefx.com/docs/houdini/ref/utils/launcher.html).
 
-## Method 3 (More Versions): Download from GitHub
+## Method 3 (Specific Versions / Steam Houdini Users): Download from GitHub
 
 Sometimes you may need to access an earlier release or to get the same-day updates before the next day's release is downloadable. In those cases, you can get the package directly from this GitHub repository.
 
