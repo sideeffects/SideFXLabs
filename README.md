@@ -67,7 +67,7 @@ Step 1. [Option C] (Advanced) Clone this repository into a custom SideFXLabs dir
 
 Step 2. If you have downloaded a zipped version of the package in Step 1, unzip it into a custom SideFXLabs directory of your choosing.
 
-Step 3. Go to your custom SideFXLabs directory that now contains the unzipped contents, copy the package definition template file `SideFXLabs.json` to `C:\Users\...\Documents\houdini19.5\packages`. Rename the destination copy to `SideFXLabs19.5.json`. Open this file and replace `"$HOUDINI_PACKAGE_PATH/SideFXLabs19.5"` (line 8) with the path to your own SideFXLabs directory. When Houdini launches, it relies on this file to discover the location of your SideFX Labs package.
+Step 3. Go to your custom SideFXLabs directory that now contains the unzipped contents, copy the package definition template file `SideFXLabs.json` to `C:\Users\...\Documents\houdini19.5\packages`. Rename the destination copy to `SideFXLabs19.5.json`. Open this file and replace `"$HOUDINI_PACKAGE_PATH/SideFXLabs19.5"` (line 8) with the path to your own SideFXLabs directory. When Houdini launches, it relies on this file to discover the location of your SideFX Labs package. (Step 3 only needs to be done once for every major Houdini X.Y release. To update SideFX Labs for the same Houdini X.Y version, simply delete the existing contents of your custom SideFXLabs directory and unzip the updated package into that folder.)
 
 For more on how to manage Houdini packages, please visit [here](https://www.sidefx.com/docs/houdini/ref/plugins.html).
 
