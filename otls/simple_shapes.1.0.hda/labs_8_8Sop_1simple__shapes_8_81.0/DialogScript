@@ -1,0 +1,559 @@
+# Dialog script for labs::simple_shapes::1.0 automatically generated
+
+{
+    name	labs::simple_shapes::1.0
+    script	polygon_generator
+    label	"Labs Simple Shapes"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "shape"
+        label   "Shape"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Triangle"
+            "1" "Quad"
+            "2" "N-gon/Circle"
+            "3" "Star"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "startype"
+        label   "Star Type"
+        type    ordinal
+        default { "0" }
+        hidewhen "{ shape != 3 }"
+        menu {
+            "0" "Regular Star"
+            "1" "Double Star"
+            "2" "Square Star"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "useradius"
+        label   "Set by Radius"
+        type    toggle
+        default { "0" }
+        hidewhen "{ shape > 1 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "equilateral"
+        label   "Equal Sides"
+        type    toggle
+        default { "1" }
+        hidewhen "{ shape > 1 } { useradius == 1 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sides"
+        label   "Sides"
+        type    integer
+        default { "6" }
+        hidewhen "{ shape < 2 }"
+        range   { 3! 32 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "top"
+        label   "Top"
+        type    float
+        default { "1" }
+        disablewhen "{ equilateral == 1 }"
+        hidewhen "{ shape != 1 } { useradius == 1 }"
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "base"
+        label   "Base"
+        type    float
+        default { "1" }
+        hidewhen "{ shape > 1 } { useradius == 1 }"
+        range   { 0 5 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "height"
+        label   "Height"
+        type    float
+        default { "1" }
+        disablewhen "{ equilateral == 1 }"
+        hidewhen "{ shape > 1 } { useradius == 1 }"
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "radius"
+        label   "Radius"
+        type    float
+        default { "1" }
+        disablewhen "{ useradius != 1 shape < 2 }"
+        hidewhen "{ shape < 2 useradius == 0 }"
+        range   { 0.001 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "radiusmiddle"
+        label   "Middle Radius"
+        type    float
+        default { "0.75" }
+        disablewhen "{ startype != 1 }"
+        hidewhen "{ shape < 3 }"
+        range   { 0.001 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "radiusinner"
+        label   "Inner Radius"
+        type    float
+        default { "0.5" }
+        hidewhen "{ shape != 3 }"
+        range   { 0.001 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "shear"
+        label   "Shear"
+        type    float
+        default { "0" }
+        disablewhen "{ equilateral == 1 }"
+        hidewhen "{ shape > 1 } { useradius == 1 }"
+        range   { -10 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm3"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "orientation"
+        label   "Orientation"
+        type    ordinal
+        default { "2" }
+        menu {
+            "0" "XY Plane"
+            "1" "ZY Plane"
+            "2" "XZ Plane"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "translate"
+        label   "Translate"
+        type    vector
+        size    3
+        default { "0" "0" "0" }
+        range   { -1 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "rotate"
+        label   "Rotate"
+        type    float
+        default { "0" }
+        range   { 0 360 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "reversepointorder"
+        label   "Reverse Point Order"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "sidesegments"
+        label   "Side Segments"
+        type    integer
+        default { "1" }
+        range   { 1! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "fillshape"
+        label   "Fill Shape"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "adduvs"
+        label   "Add UVs"
+        type    toggle
+        default { "0" }
+        hidewhen "{ fillshape == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "fd_corners"
+        label   "Corners"
+
+        parm {
+            name    "roundcorners"
+            label   "Round Corners"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rounddistance"
+            label   "Distance"
+            type    float
+            default { "0.1" }
+            range   { 0.001 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rounddivisions"
+            label   "Divisions"
+            type    integer
+            default { "2" }
+            range   { 1! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_concavecorners"
+            label   "Concave Corners"
+            hidewhen "{ shape < 3 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "sepparm5"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "roundcornersconcave"
+                label   "Round Concave Corners"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rounddistanceconcave"
+                label   "Distance"
+                type    float
+                default { "0.1" }
+                range   { 0.001 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rounddivisionsconcave"
+                label   "Divisions"
+                type    integer
+                default { "2" }
+                range   { 1! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_convexcorners"
+            label   "Convex Corners"
+            hidewhen "{ shape < 3 } { startype != 1 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "sepparm6"
+                label   "Separator"
+                type    separator
+                default { "" }
+            }
+            parm {
+                name    "roundcornersconvex"
+                label   "Round Convex Corners"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rounddistanceconvex"
+                label   "Distance"
+                type    float
+                default { "0.1" }
+                range   { 0.001 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rounddivisionsconvex"
+                label   "Divisions"
+                type    integer
+                default { "2" }
+                range   { 1! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupcollapsible {
+        name    "fd_hole"
+        label   "Hole"
+
+        parm {
+            name    "cuthole"
+            label   "Cut Hole"
+            type    toggle
+            default { "0" }
+            disablewhen "{ shape < 2 equilateral == 0 useradius == 0 } { fillshape == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "holeshape"
+            label   "Shape"
+            type    ordinal
+            default { "0" }
+            hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { fillshape == 0 }"
+            menu {
+                "0" "N-gon/Circle"
+                "1" "Custom Shape"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "holepath"
+            label   "Path"
+            type    oppath
+            default { "" }
+            hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { holeshape == 0 } { fillshape == 0 }"
+            parmtag { "oprelative" "." }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "holesides"
+            label   "Sides"
+            type    integer
+            default { "16" }
+            hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { holeshape == 1 } { fillshape == 0 }"
+            range   { 3! 32 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "holerelativescale"
+            label   "Relative Scale"
+            type    float
+            default { "0.5" }
+            hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { holeshape == 1 } { fillshape == 0 }"
+            range   { 0! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "holerotate"
+            label   "Rotate"
+            type    float
+            default { "0" }
+            hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { holeshape == 1 } { fillshape == 0 }"
+            range   { 0 360 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_output"
+        label   "Output Groups"
+
+        groupsimple {
+            name    "fd_pointgroups"
+            label   "Point Groups"
+
+            parm {
+                name    "outcornerspoints"
+                label   "outcornerspoints"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cornerspoints"
+                label   "Corners"
+                type    string
+                default { "corners_points" }
+                disablewhen "{ outcornerspoints == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outconcavecornerspoints"
+                label   "outconcavecornerspoints"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ shape < 3 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "concavecornerspoints"
+                label   "Concave Corners"
+                type    string
+                default { "concave_corners_points" }
+                disablewhen "{ outconcavecornerspoints == 0 }"
+                hidewhen "{ shape < 3 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outconvexcornerspoints"
+                label   "outconvexcornerspoints"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ shape < 3 } { startype != 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "convexcornerspoints"
+                label   "Convex Corners"
+                type    string
+                default { "convex_corners_points" }
+                disablewhen "{ outconvexcornerspoints == 0 }"
+                hidewhen "{ shape < 3 } { startype != 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outholepoints"
+                label   "outholepoints"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { fillshape == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "holepoints"
+                label   "Hole Points"
+                type    string
+                default { "hole_points" }
+                disablewhen "{ outholepoints == 0 }"
+                hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { fillshape == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_edgegroups"
+            label   "Edge Groups"
+
+            parm {
+                name    "outflatedges"
+                label   "outflatedges"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "flatedges"
+                label   "Flat Edges"
+                type    string
+                default { "flat_edges" }
+                disablewhen "{ outflatedges == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outcornersedges"
+                label   "outcornersedges"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ roundcorners == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "cornersedges"
+                label   "Corners"
+                type    string
+                default { "corners_edges" }
+                disablewhen "{ outcornersedges == 0 }"
+                hidewhen "{ roundcorners == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outconcavecornersedges"
+                label   "outconcavecornersedges"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ shape < 3 } { roundcornersconcave == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "concavecornersedges"
+                label   "Concave Corners"
+                type    string
+                default { "concave_corners_edges" }
+                disablewhen "{ outconcavecornersedges == 0 }"
+                hidewhen "{ shape < 3 } { roundcornersconcave == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outconvexcornersedges"
+                label   "outconvexcornersedges"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ shape < 3 } { startype != 1 } { roundcornersconvex == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "convexcornersedges"
+                label   "Convex Corners"
+                type    string
+                default { "convex_corners_edges" }
+                disablewhen "{ outconvexcornersedges == 0 }"
+                hidewhen "{ shape < 3 } { startype != 1 } { roundcornersconvex == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outholeedges"
+                label   "outholeedges"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { fillshape == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "holeedges"
+                label   "Hole Edges"
+                type    string
+                default { "hole_edges" }
+                disablewhen "{ outholeedges == 0 }"
+                hidewhen "{ cuthole == 0 } { shape < 2 equilateral == 0 useradius == 0 } { fillshape == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}
