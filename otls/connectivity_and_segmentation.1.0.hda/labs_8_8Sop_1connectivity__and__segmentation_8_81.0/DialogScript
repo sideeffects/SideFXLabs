@@ -1,0 +1,214 @@
+# Dialog script for labs::connectivity_and_segmentation::1.0 automatically generated
+
+{
+    name	labs::connectivity_and_segmentation::1.0
+    script	labs::partition::1.0
+    label	"Labs Connectivity and Segmentation"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Polygons
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "fd_segmentation2"
+        label   "Segmentation Mode"
+
+        parm {
+            name    "connectivitytoggle"
+            label   "connectivitytoggle"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "connectmenu"
+            label   "Connectivity"
+            type    ordinal
+            default { "2" }
+            disablewhen "{ connectivitytoggle == 0 }"
+            menu usetokenvalue {
+                "1" "3D"
+                "2" "3D and UV"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "inputattr"
+            label   "Input Attribute"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "attrname"
+            label   "Input Attribute"
+            type    string
+            default { "id" }
+            disablewhen "{ inputattr == 0 }"
+            menureplace {
+                [ "r = []" ]
+                [ "node = kwargs['node']" ]
+                [ "inputs = node.inputs()" ]
+                [ "" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "    " ]
+                [ "    if geo:" ]
+                [ "    " ]
+                [ "        attrs = geo.primAttribs()" ]
+                [ "       " ]
+                [ "        for a in attrs:" ]
+                [ "            if a.dataType() == hou.attribData.Int and not a.isArrayType() and a.size() == 1:" ]
+                [ "                r.extend([a.name(), a.name()])" ]
+                [ "                " ]
+                [ "return r" ]
+                language python
+            }
+            parmtag { "editor" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "buckettoggle"
+            label   "Bucket Toggle"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "targetbucket"
+            label   "Target Bucket Size"
+            type    integer
+            default { "2048" }
+            disablewhen "{ buckettoggle == 0 }"
+            range   { 0 4096 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "clusterseed"
+            label   "Bucket Seed"
+            type    float
+            default { "1" }
+            disablewhen "{ buckettoggle == 0 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "fd_refinesegments2"
+            label   "Refine Bucket Boundary"
+            hidewhen "{ buckettoggle == 0 }"
+
+            parm {
+                name    "enable"
+                label   "Enable"
+                type    toggle
+                default { "0" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "depth"
+                label   "Search Depth"
+                type    ordinal
+                default { "1" }
+                disablewhen "{ enable == 0 }"
+                menu {
+                    "0" "Immediate Neighbours"
+                    "1" "Extended Neighbours"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "extweight"
+                label   "Extended Influence"
+                type    float
+                default { "10" }
+                disablewhen "{ enable == 0 }"
+                hidewhen "{ depth == 0 }"
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "iterations"
+                label   "Iterations"
+                type    integer
+                default { "10" }
+                disablewhen "{ enable == 0 }"
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm3"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "visualizesegments"
+            label   "Visualize Segments"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "sepparm2"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    groupsimple {
+        name    "fd_output2"
+        label   "Output"
+
+        parm {
+            name    "segmentattrib"
+            label   "Segment Attribute"
+            type    string
+            default { "segment" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "edgegroupoutput"
+            label   "Boundary Edges"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "edgegroup"
+            label   "Boundary Edges"
+            type    string
+            default { "segment_edges" }
+            disablewhen "{ edgegroupoutput == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
