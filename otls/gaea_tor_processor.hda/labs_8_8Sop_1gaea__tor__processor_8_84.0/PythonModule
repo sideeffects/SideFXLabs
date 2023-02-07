@@ -304,6 +304,9 @@ def LoadXML(a_node):
             if a_node.parm(name) == None:
                 SpareParm = None
 
+                if owner == "File" and label == "File" and parmtype not in ["out", "in"]:
+                    label = name.replace("_", " ").title()
+
                 if parmtype == "int":
                     SpareParm = hou.IntParmTemplate(name, label, 1, default_value=(int(default),), min=int(LineEntry['Min']), max=int(LineEntry['Max']), min_is_strict=True, max_is_strict=True, script_callback='kwargs["node"].hm().ParmCallback(kwargs["node"])', script_callback_language=hou.scriptLanguage.Python)
                     ParmGroup.appendToFolder(ParmGroup.find("generated_grp_{0}".format(owner)), SpareParm)
