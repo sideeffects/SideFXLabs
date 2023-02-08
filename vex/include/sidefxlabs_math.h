@@ -341,7 +341,7 @@ float labs_pointtriedgedist(const vector pos_a, pos_b, pos_c, coplanar_pos)
     vector vec_bp = coplanar_pos - pos_b;
     float dot_an = dot(cross(vec_ab, vec_ap), normal);
 
-    if (dot_an < 0)  // Outside of line AB:
+    if (dot_an <= 0)  // Outside of or on line AB:
     {
         if (dot(vec_ap, vec_ab) <= 0)  // Behind AB:
         {
@@ -380,7 +380,7 @@ float labs_pointtriedgedist(const vector pos_a, pos_b, pos_c, coplanar_pos)
         float dot_bn = dot(cross(vec_bc, vec_bp), normal);
         vector vec_cp = coplanar_pos - pos_c;
 
-        if (dot_bn < 0)  // Outside of line BC:
+        if (dot_bn <= 0)  // Outside of or on line BC:
         {
             if (dot(vec_bp, vec_bc) <= 0)  // Behind BC:
             {
@@ -411,7 +411,7 @@ float labs_pointtriedgedist(const vector pos_a, pos_b, pos_c, coplanar_pos)
             vector vec_ca = pos_a - pos_c;
             float dot_cn = dot(cross(vec_ca, vec_cp), normal);
 
-            if (dot_cn < 0)  // Outside of line CA:
+            if (dot_cn <= 0)  // Outside of or on line CA:
             {
                 if (dot(vec_cp, vec_ca) <= 0)  // Behind CA:
                 {
@@ -426,10 +426,6 @@ float labs_pointtriedgedist(const vector pos_a, pos_b, pos_c, coplanar_pos)
                     vector vec_ca_norm = normalize(vec_ca);
                     return distance(coplanar_pos, pos_c + dot(vec_cp, vec_ca_norm) * vec_ca_norm);
                 }
-            }
-            else if (dot_an * dot_bn * dot_cn == 0)
-            {
-                return 0.0;
             }
             else  // Inside the triangle:
             {
@@ -686,6 +682,80 @@ float labs_pointtriproj(const int geometry, primnum; const vector pos; export ve
                              primpoint(geometry, primnum, 0),
                              primpoint(geometry, primnum, 1),
                              primpoint(geometry, primnum, 2), pos, nearest_pos);
+}
+
+
+// Triangle Circumcenter
+
+vector labs_circumcenter_tri(const vector pos_a, pos_b, pos_c; export float radius)
+{
+    vector vec_ab = pos_b - pos_a;
+    vector vec_ac = pos_c - pos_a;
+    vector cross_abac = cross(vec_ab, vec_ac);
+
+    vector a_to_center = (dot(vec_ac, vec_ac) * cross(cross_abac, vec_ab) + dot(vec_ab, vec_ab) * cross(vec_ac, cross_abac)) /
+                         (2.0 * dot(cross_abac, cross_abac));
+
+    radius = length(a_to_center);
+    return pos_a + a_to_center;
+}
+
+
+vector labs_circumcenter_tri(const int geometry, ptnum_a, ptnum_b, ptnum_c; export float radius)
+{
+    return labs_circumcenter_tri(vector(point(geometry, "P", ptnum_a)),
+                                 vector(point(geometry, "P", ptnum_b)),
+                                 vector(point(geometry, "P", ptnum_c)), radius);
+}
+
+vector labs_circumcenter_tri(const int geometry, primnum; export float radius)
+{
+    return labs_circumcenter_tri(geometry,
+                                 primpoint(geometry, primnum, 0),
+                                 primpoint(geometry, primnum, 1),
+                                 primpoint(geometry, primnum, 2), radius);
+}
+
+
+// Triangle Bounding Sphere
+
+vector labs_boundsphere_tri(const vector pos_a, pos_b, pos_c; export float radius)
+{
+    float dist_ab = distance(pos_a, pos_b);
+    float dist_bc = distance(pos_b, pos_c);
+    float dist_ca = distance(pos_c, pos_a);
+
+    if (dist_ab >= dist_bc && dist_ab >= dist_ca)
+    {
+        radius = 0.5 * dist_ab;
+        return 0.5 * (pos_a + pos_b);
+    }
+    else if (dist_bc >= dist_ab && dist_bc >= dist_ca)
+    {
+        radius = 0.5 * dist_bc;
+        return 0.5 * (pos_b + pos_c);
+    }
+    else
+    {
+        radius = 0.5 * dist_ca;
+        return 0.5 * (pos_c + pos_a);
+    }
+}
+
+
+vector labs_boundsphere_tri(const int geometry, ptnum_a, ptnum_b, ptnum_c; export float radius)
+{
+    return labs_boundsphere_tri(vector(point(geometry, "P", ptnum_a)),
+                                vector(point(geometry, "P", ptnum_b)),
+                                vector(point(geometry, "P", ptnum_c)), radius);
+}
+
+vector labs_boundsphere_tri(const int geometry, primnum; export float radius)
+{
+    return labs_boundsphere_tri(geometry,
+                                primpoint(geometry, primnum, 0),
+                                primpoint(geometry, primnum, 1),
+                                primpoint(geometry, primnum, 2), radius);
 }
 
 
