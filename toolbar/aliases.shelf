@@ -5,26 +5,177 @@
  Note, that two definitions of the same element are not allowed in
  a single file. -->
 
-  <tool name="labs::voxelmesh::3.0" label="Labs Voxel Mesh" icon="$SIDEFXLABS/help/icons/voxel_mesh_alt.svg">
+  <tool name="labs::voxelmesh" label="Labs Voxel Mesh" icon="$SIDEFXLABS/help/icons/voxel_mesh_alt.svg">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Convert</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 soptoolutils.genericTool(kwargs, 'remeshgrid', exact_node_type=False)
 ]]></script>
   </tool>
 
-  <tool name="labs::color_adjustment::1.0" label="Labs Color Adjustment" icon="SOP_attribadjustcolor">
+  <tool name="flowmap_brush" label="Labs Flowmap Brush" icon="flowmap_brush.svg">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Simulation &amp; FX/Fluid</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import sys
+import toolutils
+
+outputitem = None
+inputindex = -1
+inputitem = None
+outputindex = -1
+
+num_args = 1
+h_extra_args = ''
+pane = toolutils.activePane(kwargs)
+if not isinstance(pane, hou.NetworkEditor):
+    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+    if pane is None:
+       hou.ui.displayMessage(
+               'Cannot create node: cannot find any network pane')
+       sys.exit(0)
+else: # We're creating this tool from the TAB menu inside a network editor
+    pane_node = pane.pwd()
+    if "outputnodename" in kwargs and "inputindex" in kwargs:
+        outputitem = pane_node.item(kwargs["outputnodename"])
+        inputindex = kwargs["inputindex"]
+        h_extra_args += 'set arg4 = "' + kwargs["outputnodename"] + '"\n'
+        h_extra_args += 'set arg5 = "' + str(inputindex) + '"\n'
+        num_args = 6
+    if "inputnodename" in kwargs and "outputindex" in kwargs:
+        inputitem = pane_node.item(kwargs["inputnodename"])
+        outputindex = kwargs["outputindex"]
+        h_extra_args += 'set arg6 = "' + kwargs["inputnodename"] + '"\n'
+        h_extra_args += 'set arg9 = "' + str(outputindex) + '"\n'
+        num_args = 9 
+    if "autoplace" in kwargs:
+        autoplace = kwargs["autoplace"]
+    else:
+        autoplace = False
+    # If shift-clicked we want to auto append to the current
+    # node
+    if "shiftclick" in kwargs and kwargs["shiftclick"]:
+        if inputitem is None:
+            inputitem = pane.currentNode()
+            outputindex = 0
+    if "nodepositionx" in kwargs and             "nodepositiony" in kwargs:
+        try:
+            pos = [ float( kwargs["nodepositionx"] ),
+                    float( kwargs["nodepositiony"] )]
+        except:
+            pos = None
+    else:
+        pos = None
+
+    if not autoplace and not pane.listMode():
+        if pos is not None:
+            pass
+        elif outputitem is None:
+            pos = pane.selectPosition(inputitem, outputindex, None, -1)
+        else:
+            pos = pane.selectPosition(inputitem, outputindex,
+                                      outputitem, inputindex)
+
+    if pos is not None:
+        if "node_bbox" in kwargs:
+            size = kwargs["node_bbox"]
+            pos[0] -= size[0] / 2
+            pos[1] -= size[1] / 2
+        else:
+            pos[0] -= 0.573625
+            pos[1] -= 0.220625
+        h_extra_args += 'set arg2 = "' + str(pos[0]) + '"\n'
+        h_extra_args += 'set arg3 = "' + str(pos[1]) + '"\n'
+h_extra_args += 'set argc = "' + str(num_args) + '"\n'
+            
+pane_node = pane.pwd()
+child_type = pane_node.childTypeCategory().nodeTypes()
+
+if 'comb' not in child_type:
+   hou.ui.displayMessage(
+           'Cannot create node: incompatible pane network type')
+   sys.exit(0)
+
+# First clear the node selection
+pane_node.setSelected(False, True)
+
+h_path = pane_node.path()
+h_preamble = 'set arg1 = "' + h_path + '"\n'
+h_cmd = r''' 
+if ($argc < 2 || "$arg2" == "") then
+   set arg2 = 0
+endif
+if ($argc < 3 || "$arg3" == "") then
+   set arg3 = 0
+endif
+# Automatically generated script
+# $arg1 - the path to add this node
+# $arg2 - x position of the tile
+# $arg3 - y position of the tile
+# $arg4 - input node to wire to
+# $arg5 - which input to wire to
+# $arg6 - output node to wire to
+# $arg7 - the type of this node
+# $arg8 - the node is an indirect input
+# $arg9 - index of output from $arg6
+
+\set noalias = 1
+set saved_path = `execute("oppwf")`
+opcf $arg1
+
+# Node $_obj_geo1_comb1 (Sop/comb)
+set _obj_geo1_comb1 = `run("opadd -e -n -v comb comb1")`
+oplocate -x `$arg2 + 0` -y `$arg3 + 0` $_obj_geo1_comb1
+opparm -V 18.5.393 $_obj_geo1_comb1 switcher ( 1 1 1 1 ) ovrnml ( on ) nmlname ( v ) opacity ( 0.5 )
+opset -d off -r off -h off -f off -y off -t off -l off -s off -u off -F on -c on -e on -b off $_obj_geo1_comb1
+opexprlanguage -s hscript $_obj_geo1_comb1
+opset -p on $_obj_geo1_comb1
+
+opcf $arg1
+
+set oidx = 0
+if ($argc >= 9 && "$arg9" != "") then
+    set oidx = $arg9
+endif
+
+if ($argc >= 5 && "$arg4" != "") then
+    set output = $_obj_geo1_comb1
+    opwire -n $output -$arg5 $arg4
+endif
+if ($argc >= 6 && "$arg6" != "") then
+    set input = $_obj_geo1_comb1
+    if ($arg8) then
+        opwire -n -i $arg6 -0 $input
+    else
+        opwire -n -o $oidx $arg6 -0 $input
+    endif
+endif
+opcf $saved_path
+'''
+hou.hscript(h_preamble + h_extra_args + h_cmd)
+
+]]></script>
+  </tool>
+
+  <tool name="labs::color_adjustment" label="Labs Color Adjustment" icon="SOP_attribadjustcolor">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Attribute</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'attribadjustcolor', exact_node_type=False)
@@ -32,13 +183,14 @@ node.setParms({"adjustvalue": 0, "enable_cc": 1, "enable_postprocess": 1, "dobri
 ]]></script>
   </tool>
 
-  <tool name="labs::color_gradient::1.0" label="Labs Color Gradient" icon="SOP_attribadjustcolor">
+  <tool name="labs::color_gradient" label="Labs Color Gradient" icon="SOP_attribadjustcolor">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Attribute</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'attribadjustcolor', exact_node_type=False)
@@ -47,13 +199,14 @@ node.parm("colorramp").set(hou.Ramp((hou.rampBasis.Linear, hou.rampBasis.Linear)
 ]]></script>
   </tool>
 
-  <tool name="labs::rokoko_mocap::1.0" label="Labs Rokoko Mocap" icon="SOP_kinefx-mocapstream">
+  <tool name="labs::rokoko_mocap" label="Labs Rokoko Mocap" icon="SOP_kinefx-mocapstream">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Character &amp; Animation/Performance Capture</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'kinefx::mocapstream', exact_node_type=False)
@@ -61,13 +214,14 @@ node.setParms({"device": "rokoko"})
 ]]></script>
   </tool>
 
-  <tool name="labs::neuron_mocap::1.0" label="Labs Neuron Mocap" icon="SOP_kinefx-mocapstream">
+  <tool name="labs::neuron_mocap" label="Labs Neuron Mocap" icon="SOP_kinefx-mocapstream">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Character &amp; Animation/Performance Capture</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'kinefx::mocapstream', exact_node_type=False)
@@ -75,13 +229,14 @@ node.setParms({"device": "neuron"})
 ]]></script>
   </tool>
 
-  <tool name="labs::multi_file::1.0" label="Labs Multi File" icon="SOP_file">
+  <tool name="labs::multi_file" label="Labs Multi File" icon="SOP_file">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Pipeline/Import</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'filemerge::2.0', exact_node_type=False)
@@ -89,13 +244,14 @@ node.setParms({"enablerange": 0})
 ]]></script>
   </tool>
 
-  <tool name="labs::curve_sweep::1.0" label="Labs Curve Sweep" icon="SOP_sweep-2.0">
+  <tool name="labs::curve_sweep" label="Labs Curve Sweep" icon="SOP_sweep-2.0">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Curve</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'sweep', exact_node_type=False)
@@ -103,13 +259,14 @@ node.setParms({"surfaceshape": "tube", "cols":32, "computeuvs":1, "applyscale":1
 ]]></script>
   </tool>
 
-  <tool name="labs::calculate_occlusion::3.0" label="Labs Calculate Occlusion" icon="SOP_maskbyfeature">
+  <tool name="labs::calculate_occlusion" label="Labs Calculate Occlusion" icon="SOP_maskbyfeature">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Analysis</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'maskbyfeature', exact_node_type=False)
@@ -117,39 +274,42 @@ node.setParms({"enabledirection": 0, "castshadows":0, "enableao":1, "aobluritera
 ]]></script>
   </tool>
 
-  <tool name="labs::motion_vectors::1.0" label="Labs Motion Vectors" icon="$SIDEFXLABS/help/icons/texture_sheet.svg">
+  <tool name="labs::motion_vectors" label="Labs Motion Vectors" icon="$SIDEFXLABS/help/icons/texture_sheet.svg">
     <toolMenuContext name="viewer">
       <contextNetType>ROP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>ROP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Pipeline/Real-Time Engine</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import drivertoolutils
 node = drivertoolutils.genericTool(kwargs, 'labs::flipbook_textures', exact_node_type=False)
 ]]></script>
   </tool>
 
-  <tool name="labs::delete_file::1.0" label="Delete File" icon="TOP_fileremove">
+  <tool name="labs::delete_file" label="Delete File" icon="TOP_fileremove">
     <toolMenuContext name="viewer">
       <contextNetType>TOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>TOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Pipeline/Cache</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import drivertoolutils
 node = drivertoolutils.genericTool(kwargs, 'fileremove', exact_node_type=False)
 ]]></script>
   </tool>
 
-  <tool name="labs::remove_unconnected_points::1.0" label="Remove Unconnected Points" icon="SOP_add">
+  <tool name="labs::remove_unconnected_points" label="Remove Unconnected Points" icon="SOP_add">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Remove</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'add', exact_node_type=False)
@@ -158,13 +318,14 @@ node.setName('remove_unconnected_points1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::remove_inline_points::1.0" label="Remove Inline Points" icon="SOP_facet">
+  <tool name="labs::remove_inline_points" label="Remove Inline Points" icon="SOP_facet">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Remove</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'facet', exact_node_type=False)
@@ -173,13 +334,14 @@ node.setName('remove_inline_points1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::remove_degenerate::1.0" label="Remove Degenerate" icon="SOP_facet">
+  <tool name="labs::remove_degenerate" label="Remove Degenerate" icon="SOP_facet">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Remove</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'facet', exact_node_type=False)
@@ -188,13 +350,14 @@ node.setName('remove_degenerate1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::remove_shared_edges::1.0" label="Remove Shared Edges" icon="SOP_divide">
+  <tool name="labs::remove_shared_edges" label="Remove Shared Edges" icon="SOP_divide">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Remove</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'divide', exact_node_type=False)
@@ -210,6 +373,7 @@ node.setName('remove_shared_edges1', True)
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Convert</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'divide', exact_node_type=False)
@@ -217,13 +381,14 @@ node.setName('triangulate1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::tangent::1.0" label="Tangent" icon="SOP_polyframe">
+  <tool name="labs::tangent" label="Tangent" icon="SOP_polyframe">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Attribute</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'polyframe', exact_node_type=False)
@@ -232,13 +397,14 @@ node.setName('tangent1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::compute_dual_polygon::1.0" label="Compute Dual Polygon" icon="SOP_divide">
+  <tool name="labs::compute_dual_polygon" label="Compute Dual Polygon" icon="SOP_divide">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Convert</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'divide', exact_node_type=False)
@@ -247,28 +413,30 @@ node.setName('compute_dual_polygon1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::remove_all_faces::1.0" label="Remove All Faces" icon="SOP_convertline">
+  <tool name="labs::remove_all_faces" label="Remove All Faces" icon="SOP_convertline">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh/Remove</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
-node = soptoolutils.genericTool(kwargs, 'labs::edge_group_to_polylines::1.0', exact_node_type=False)
+node = soptoolutils.genericTool(kwargs, 'labs::edge_group_to_polylines', exact_node_type=False)
 node.setParms({'edgegroup': '*'})
 node.setName('remove_all_faces1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::transform_from_centroid::1.0" label="Transform from Centroid" icon="SOP_xform">
+  <tool name="labs::transform_from_centroid" label="Transform from Centroid" icon="SOP_xform">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Transform</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'xform', exact_node_type=False)
@@ -277,31 +445,33 @@ node.setName('transform_from_centroid1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::tree_pivot_painter::1.0" label="Tree PivotPainter" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
+  <tool name="labs::tree_pivot_painter" label="Tree PivotPainter" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/World Building/Vegetation</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
-node = soptoolutils.genericTool(kwargs, 'labs::tree_hierarchy::1.0', exact_node_type=False)
+node = soptoolutils.genericTool(kwargs, 'labs::tree_hierarchy', exact_node_type=False)
 ]]></script>
   </tool>
   
-    <tool icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg" label="Compilable Segments" name="labs::compilable_connectivity_and_segmentation::1.0">
+  <tool name="labs::compilable_connectivity_and_segmentation" label="Compilable Segments" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
     <toolMenuContext name="network">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Partition</toolSubmenu>
     <script scriptType="python"><![CDATA[
 import soptoolutils
 
 # The main node to place when dropping down this alias
-node = soptoolutils.genericTool(kwargs, 'labs::connectivity_and_segmentation::1.0', exact_node_type=False)
+node = soptoolutils.genericTool(kwargs, 'labs::connectivity_and_segmentation', exact_node_type=False)
 
 # Gets the parent of the placed node to places sequential nodes in the series
 parent_node = node.parent()
@@ -341,4 +511,19 @@ compile_end.setPosition(for_each_end.position() + hou.Vector2(0, -1))
 ]]>
     </script>
   </tool>
+
+  <tool name="labs::axis_align" label="Labs Axis Align" icon="SOP_matchsize">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Transform</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'matchsize', exact_node_type=False)
+]]></script>
+  </tool>
+
 </shelfDocument>
