@@ -4,14 +4,14 @@
 
 // Float to String
 
-string labs_ftoa(const float f)
-{
-    return labs_ftoa(f, 3);
-}
-
 string labs_ftoa(const float f; const int decimal_places)
 {
     return sprintf("%.*g", decimal_places + 1, f);
+}
+
+string labs_ftoa(const float f)
+{
+    return labs_ftoa(f, 3);
 }
 
 
