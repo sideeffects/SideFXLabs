@@ -17,7 +17,7 @@ string labs_ftoa(const float f)
 
 // Binary Search
 
-float labs_binary_search(const int array[], target_value; export int success)
+float labs_binarysearch(const int array[], target_value; export int success)
 {
     success = 0;
     int n = len(array);
@@ -50,21 +50,25 @@ float labs_binary_search(const int array[], target_value; export int success)
     // index and the target value is between the two values
     if (l > r) m = r;
 
+    // If the target value is greater than a few duplicated values
+    // but less than the next value, the middle index will always
+    // move to the last of the duplicates
+
     float index = m;
 
-    if (target_value < array[0] || target_value > array[n - 1])
-        index = -1.0;
-    else if (m + 1 < n)
-        // In VEX, division by zero is allowed. It just returns zero.
-        // If the target value is greater than a few duplicated values
-        // but less than the next value, the middle index will always
-        // move to the last of the duplicates.
-        index += float(target_value - array[m]) / (array[m + 1] - array[m]);
+    if (!success)
+    {
+        if (target_value < array[0] || target_value > array[n - 1])
+            index = -1.0;
+        else if (m + 1 < n)
+            // In VEX, division by zero is allowed. It just returns zero.
+            index += float(target_value - array[m]) / (array[m + 1] - array[m]);
+    }
 
     return index;
 }
 
-float labs_binary_search(const float array[], target_value; export int success)
+float labs_binarysearch(const float array[], target_value; export int success)
 {
     success = 0;
     int n = len(array);
@@ -97,21 +101,25 @@ float labs_binary_search(const float array[], target_value; export int success)
     // index and the target value is between the two values
     if (l > r) m = r;
 
+    // If the target value is greater than a few duplicated values
+    // but less than the next value, the middle index will always
+    // move to the last of the duplicates
+
     float index = m;
 
-    if (target_value < array[0] || target_value > array[n - 1])
-        index = -1.0;
-    else if (m + 1 < n)
-        // In VEX, division by zero is allowed. It just returns zero.
-        // If the target value is greater than a few duplicated values
-        // but less than the next value, the middle index will always
-        // move to the last of the duplicates.
-        index += (target_value - array[m]) / (array[m + 1] - array[m]);
+    if (!success)
+    {
+        if (target_value < array[0] || target_value > array[n - 1])
+            index = -1.0;
+        else if (m + 1 < n)
+            // In VEX, division by zero is allowed. It just returns zero.
+            index += float(target_value - array[m]) / (array[m + 1] - array[m]);
+    }
 
     return index;
 }
 
-int labs_binary_search(const string array[], target_value; export int success)
+int labs_binarysearch(const string array[], target_value; export int success)
 {
     success = 0;
     int n = len(array);
@@ -144,10 +152,17 @@ int labs_binary_search(const string array[], target_value; export int success)
     // index and the target value is between the two values
     if (l > r) m = r;
 
+    // If the target value is greater than a few duplicated values
+    // but less than the next value, the middle index will always
+    // move to the last of the duplicates
+
     int index = m;
 
-    if (target_value < array[0] || target_value > array[n - 1])
-        index = -1;
+    if (!success)
+    {
+        if (target_value < array[0] || target_value > array[n - 1])
+            index = -1;
+    }
 
     return index;
 }
@@ -195,6 +210,79 @@ void labs_append_unique(export string str; const string value)
 {
     if (find(str, value) < 0)
         append(str, value);
+}
+
+
+// Make Array Unique
+
+int[] labs_array_unique(const int array[])
+{
+    int array_unique[] = {};
+
+    foreach (int value; array)
+        labs_append_unique(array_unique, value);
+
+    return array_unique;
+}
+
+float[] labs_array_unique(const float array[])
+{
+    float array_unique[] = {};
+
+    foreach (float value; array)
+        labs_append_unique(array_unique, value);
+
+    return array_unique;
+}
+
+vector2[] labs_array_unique(const vector2 array[])
+{
+    vector2 array_unique[] = {};
+
+    foreach (vector2 value; array)
+        labs_append_unique(array_unique, value);
+
+    return array_unique;
+}
+
+vector[] labs_array_unique(const vector array[])
+{
+    vector array_unique[] = {};
+
+    foreach (vector value; array)
+        labs_append_unique(array_unique, value);
+
+    return array_unique;
+}
+
+vector4[] labs_array_unique(const vector4 array[])
+{
+    vector4 array_unique[] = {};
+
+    foreach (vector4 value; array)
+        labs_append_unique(array_unique, value);
+
+    return array_unique;
+}
+
+string[] labs_array_unique(const string array[])
+{
+    string array_unique[] = {};
+
+    foreach (string value; array)
+        labs_append_unique(array_unique, value);
+
+    return array_unique;
+}
+
+string labs_array_unique(const string str)
+{
+    string str_unique = "";
+
+    foreach (string value; str)
+        labs_append_unique(str_unique, value);
+
+    return str_unique;
 }
 
 
