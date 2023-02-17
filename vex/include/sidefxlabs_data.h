@@ -6,7 +6,7 @@
 
 string labs_ftoa(const float f; const int decimal_places)
 {
-    return sprintf("%.*g", decimal_places + 1, f);
+    return sprintf("%.*g", decimal_places + (int)log10(abs(f)) + (abs(f) >= 1.0), f);
 }
 
 string labs_ftoa(const float f)
