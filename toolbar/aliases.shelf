@@ -445,7 +445,6 @@ node.setName('transform_from_centroid1', True)
 ]]></script>
   </tool>
 
-  
   <tool name="labs::compilable_connectivity_and_segmentation" label="Compilable Segments" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
@@ -529,8 +528,7 @@ node.setName('correct_polygon_winding1', True)
 ]]></script>
   </tool>
 
-
-   <tool name="labs::tree_pivot_painter" label="Labs Tree PivotPainter" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
+  <tool name="labs::tree_pivot_painter" label="Labs Tree PivotPainter" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
     <toolMenuContext name="viewer">
       <contextNetType>SOP</contextNetType>
     </toolMenuContext>
@@ -560,9 +558,39 @@ parent_node.layoutChildren(node_list)
 input = tree_hierarchy.inputs()
 if input:
     tree_hierarchy.setInput(1, input[0], 1)
-
-
 ]]></script>
   </tool>
   
+  <tool name="labs::remove_overlap" label="Remove Overlap" icon="SOP_polydoctor">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh: Remove</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'polydoctor', exact_node_type=False)
+node.setParms({'maxpasses': 1, 'manyedges': 0, 'usemodifiedpts': 0, 'userepairedpoly': 0, 'usevalidpts': 0, 'usevalidpoly': 0})
+node.setName('remove_overlap', True)
+]]></script>
+  </tool>
+
+  <tool name="labs::remove_overlap_pair" label="Remove Overlap Pair" icon="SOP_polydoctor">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Geometry/Mesh: Remove</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'polydoctor', exact_node_type=False)
+node.setParms({'maxpasses': 1, 'manyedges': 0, 'usemodifiedpts': 0, 'userepairedpoly': 0, 'usevalidpts': 0, 'usevalidpoly': 0, 'pairoverlaps': 1})
+node.setName('remove_overlap_pair1', True)
+]]></script>
+  </tool>
+
 </shelfDocument>
