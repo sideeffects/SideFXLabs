@@ -445,19 +445,6 @@ node.setName('transform_from_centroid1', True)
 ]]></script>
   </tool>
 
-  <tool name="labs::tree_pivot_painter" label="Tree PivotPainter" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
-    <toolMenuContext name="viewer">
-      <contextNetType>SOP</contextNetType>
-    </toolMenuContext>
-    <toolMenuContext name="network">
-      <contextNetType>SOP</contextNetType>
-    </toolMenuContext>
-    <toolSubmenu>Labs/World Building/Vegetation</toolSubmenu>
-    <script scriptType="python"><![CDATA[
-import soptoolutils
-node = soptoolutils.genericTool(kwargs, 'labs::tree_hierarchy', exact_node_type=False)
-]]></script>
-  </tool>
   
   <tool name="labs::compilable_connectivity_and_segmentation" label="Compilable Segments" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
     <toolMenuContext name="viewer">
@@ -542,4 +529,40 @@ node.setName('correct_polygon_winding1', True)
 ]]></script>
   </tool>
 
+
+   <tool name="labs::tree_pivot_painter" label="Labs Tree PivotPainter" icon="$SIDEFXLABS/help/icons/sidefx_labs_default.svg">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/World Building/Vegetation</toolSubmenu>
+    <script scriptType="python"><![CDATA[import soptoolutils
+
+# The main node to place when dropping down this alias
+tree_hierarchy = soptoolutils.genericTool(kwargs, 'labs::tree_hierarchy', exact_node_type=False)
+
+# Gets the parent of the placed node to places sequential nodes in the series
+parent_node = tree_hierarchy.parent()
+
+# Sequential nodes initialization
+ue_pivotpainter = parent_node.createNode('labs::unreal_pivotpainter')
+node_list = [tree_hierarchy, ue_pivotpainter]
+
+ue_pivotpainter.setInput(0, tree_hierarchy, 0)
+ue_pivotpainter.setInput(1, tree_hierarchy, 1)
+
+# Layouts nodes properly
+parent_node.layoutChildren(node_list)
+
+# Set Tree Hierarchy's second input to input's second output
+input = tree_hierarchy.inputs()
+if input:
+    tree_hierarchy.setInput(1, input[0], 1)
+
+
+]]></script>
+  </tool>
+  
 </shelfDocument>
