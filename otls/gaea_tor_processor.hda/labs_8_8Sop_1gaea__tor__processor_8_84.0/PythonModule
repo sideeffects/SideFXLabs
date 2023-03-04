@@ -206,15 +206,38 @@ def RunGaea(a_node, cmd, gaea_dir):
 
 # Resets entire interface with Gaea Parms
 def ResetInterface(a_node):
-    ParmGroup = a_node.parmTemplateGroup()
+    ParamGroup = a_node.parmTemplateGroup()
+    GeneratedGroupName = 'generated_gaeaparms'
+    
+    # store existing values
+    CurrentValues = dict()
+    if a_node.parm(GeneratedGroupName) is not None:
+        # these will be folders
+        for folderparm in ParamGroup.find(GeneratedGroupName).parmTemplates():
+            FolderValues = dict()
+            for spareparm in folderparm.parmTemplates():
+                FolderValues[spareparm.name()] = a_node.parm(spareparm.name()).eval()
+            CurrentValues[folderparm.name()] = FolderValues    
 
-    if a_node.parm("generated_gaeaparms") is not None:
-        for spareparm in ParmGroup.find("generated_gaeaparms").parmTemplates():
-            ParmGroup.remove(spareparm.name())
-        ParmGroup.remove("generated_gaeaparms")
-        a_node.setParmTemplateGroup(ParmGroup)
+    if a_node.parm(GeneratedGroupName) is not None:    
+        for spareparm in ParamGroup.find(GeneratedGroupName).parmTemplates():
+            ParamGroup.remove(spareparm.name())
+        ParamGroup.remove("generated_gaeaparms")
+        a_node.setParmTemplateGroup(ParamGroup)
     
     LoadXML(a_node)
+    ParamGroup = a_node.parmTemplateGroup()
+
+    # restore matching values
+    if a_node.parm(GeneratedGroupName) is not None:
+        # these will be folders
+        for folderparm in ParamGroup.find(GeneratedGroupName).parmTemplates():
+            if folderparm.name() in CurrentValues:
+                FolderValues = CurrentValues[folderparm.name()]
+                for spareparm in folderparm.parmTemplates():
+                    if spareparm.name() in FolderValues:
+                        CurrentValue = FolderValues[spareparm.name()]
+                        a_node.parm(spareparm.name()).set(CurrentValue)
 
 
 
