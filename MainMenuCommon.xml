@@ -2,184 +2,130 @@
 <!--
 -->
 <mainMenu>
-  <!-- menuDocument can only contain 1 menu element, whose id is 
+    <!-- menuDocument can only contain 1 menu element, whose id is 
          implicitly "root_menu"
       -->
-  <menu>
-    <!-- Set external editor -->
-    <addScriptItem id="set_external_editor">
-      <label>Set External Text Editor</label>
-      <parent>preferences_submenu</parent>
-      <insertAtIndex>26</insertAtIndex>
-      <scriptCode>
-        <![CDATA[
+    <menu>
+        <!-- Set external editor -->
+        <addScriptItem id="set_external_editor">
+            <label>Set External Text Editor</label>
+            <parent>preferences_submenu</parent>
+            <insertAtIndex>26</insertAtIndex>
+            <scriptCode>
+                <![CDATA[
 from HoudiniExprEditor import ParmWatcher
-
-try:
-    reload(ParmWatcher)
-except NameError:
-    from importlib import reload
-    reload(ParmWatcher)
-
-ParmWatcher.set_external_editor()]]>
-      </scriptCode>
-    </addScriptItem>
-    <!-- Open session module source watcher -->
-    <addScriptItem id="external_python_source_editor">
-      <label>External Python Source Editor</label>
-      <parent>windows_menu</parent>
-      <insertAtIndex>8</insertAtIndex>
-      <context>
-        <expression>
-          <![CDATA[
+ParmWatcher.set_external_editor()
+                ]]>
+            </scriptCode>
+        </addScriptItem>
+        <!-- Open session module source watcher -->
+        <addScriptItem id="external_python_source_editor">
+            <label>External Python Source Editor</label>
+            <parent>windows_menu</parent>
+            <insertAtIndex>8</insertAtIndex>
+            <context>
+                <expression>
+                    <![CDATA[
 try:
     from HoudiniExprEditor import ParmWatcher
     return True
 except Exception as e:
-    return False]]>
-        </expression>
-      </context>
-      <scriptCode>
-        <![CDATA[
+    return False
+                    ]]>
+                </expression>
+            </context>
+            <scriptCode>
+                <![CDATA[
 from HoudiniExprEditor import ParmWatcher
-
-try:
-    reload(ParmWatcher)
-except NameError:
-    from importlib import reload
-    reload(ParmWatcher)
-
-ParmWatcher.add_watcher("__temp__python_source_editor", type_="__temp__python_source_editor")]]>
-      </scriptCode>
-    </addScriptItem>
-  </menu>
-
-  <menuBar>
-    
-    <!-- File -->
-    <subMenu id="file_menu">
-
-      <subMenu id="crash_recovery">
-        <label>Crash Recovery</label>
-
-        <insertAtIndex>3</insertAtIndex>
-
-        <scriptItem id="open_crashfile">
-          <label>Open Crashfile</label>
-          <scriptCode>
-            <![CDATA[
+ParmWatcher.add_watcher("__temp__python_source_editor", type_="__temp__python_source_editor")
+                ]]>
+            </scriptCode>
+        </addScriptItem>
+    </menu>
+    <menuBar>
+        <!-- File -->
+        <subMenu id="file_menu">
+            <subMenu id="crash_recovery">
+                <label>Crash Recovery</label>
+                <insertAtIndex>3</insertAtIndex>
+                <scriptItem id="open_crashfile">
+                    <label>Open Crashfile</label>
+                    <scriptCode>
+                        <![CDATA[
 from labsopui import restore_backup
-
-try:
-    reload(restore_backup)
-except NameError:
-    from importlib import reload
-    reload(restore_backup)
-
 restore_backup.recoverFile()
-]]>
-          </scriptCode>
-        </scriptItem>
-
-        <scriptItem id="open_crashdirectory">
-          <label>Open Crash Directory</label>
-          <scriptCode>
-            <![CDATA[
+                        ]]>
+                    </scriptCode>
+                </scriptItem>
+                <scriptItem id="open_crashdirectory">
+                    <label>Open Crash Directory</label>
+                    <scriptCode>
+                        <![CDATA[
 file = hou.ui.selectFile(start_directory="$TEMP/", title="Select a file to open", collapse_sequences=False, file_type=hou.fileType.Hip, pattern=None, default_value=None, multiple_select=False, image_chooser=False, chooser_mode=hou.fileChooserMode.Read, width=0, height=0)
 if file != "":
-    hou.hipFile.load(file, suppress_save_prompt=False, ignore_load_warnings=False)]]>
-          </scriptCode>
-        </scriptItem>
-
-      </subMenu>
-
-      <scriptItem id="show_hip_in_file_browser">
-        <label>Show in File Browser</label>
-        <insertAtIndex>4</insertAtIndex>
-        <scriptCode>
-          <![CDATA[
+    hou.hipFile.load(file, suppress_save_prompt=False, ignore_load_warnings=False)
+                        ]]>
+                    </scriptCode>
+                </scriptItem>
+            </subMenu>
+            <scriptItem id="show_hip_in_file_browser">
+                <label>Show in File Browser</label>
+                <insertAtIndex>4</insertAtIndex>
+                <scriptCode>
+                    <![CDATA[
 import os
 path = hou.hipFile.path()
 if os.path.isfile(path):
     hou.ui.showInFileBrowser(path)
 else:
     hou.ui.displayMessage("You need to save your hip file first before being able to open it in the file browser.", buttons=('OK',), severity=hou.severityType.Message)
-]]>
-        </scriptCode>
-      </scriptItem>
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+        </subMenu>
 
-    </subMenu>
-
-    <!-- Help -->
-    <subMenu id="help_menu">
-
-      <scriptItem id="quick_tip">
-        <label>Quick Tip</label>
-        <insertAtIndex>9</insertAtIndex>
-        <scriptCode>
-          <![CDATA[
-from labsopui import quicktip
-
-try:
-    reload(quicktip)
-except NameError:
-    from importlib import reload
-    reload(quicktip)
-
-quicktip.ShowQuickTip()]]>
-        </scriptCode>
-      </scriptItem>
-
-    </subMenu>
-
-    <!-- Labs -->
-    <subMenu id="labs_menu">
-      <label>Labs</label>
-
-      <scriptItem id="h.sidefxlabs">
-        <label>Update Labs</label>
-        <scriptCode>
-          <![CDATA[
+        <!-- Labs -->
+        <subMenu id="labs_menu">
+            <modifyItem>
+                <insertBefore>help_menu</insertBefore>
+            </modifyItem>
+            <label>Labs</label>
+            <scriptItem id="h.sidefxlabs">
+                <label>Update Labs</label>
+                <scriptCode>
+                    <![CDATA[
 import sidefxlabs
 sidefxlabs.SideFXLabsUpdater(updater_dialog=True)
-print ("Installing Labs via Houdini Launcher to the SideFX Packages directory is now preferred over installing it via the Update Toolset window to Home directory.\n\nLabs Daily Builds are recommended over Production Builds.\n")
-]]>
-        </scriptCode>
-      </scriptItem>
-
-      <scriptItem id="labs_pref">
-        <label>Labs Preferences</label>
-        <scriptCode>
-          <![CDATA[
+print ("Labs Daily Builds are recommended over Production Builds.\n")
+if hou.applicationVersion()[0] + 0.5 * hou.applicationVersion()[1] < 19.5:
+    print ("Installing Labs via Houdini Launcher is now preferred over installing it via the old Update Toolset window.\n")
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+            <scriptItem id="labs_pref">
+                <label>Labs Preferences</label>
+                <scriptCode>
+                    <![CDATA[
 import labprefs
 window = labprefs.LabsPreferences(hou.qt.mainWindow())
 window.show()
-]]>
-        </scriptCode>
-      </scriptItem>
-
-      <separatorItem id="labs_menu_sep1"/>
-
-      <scriptItem id="reset_viewport">
-        <label>Reset Viewport</label>
-        <scriptCode>
-          <![CDATA[
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+            <separatorItem id="labs_menu_sep1"/>
+            <scriptItem id="reset_viewport">
+                <label>Reset Viewport</label>
+                <scriptCode>
+                    <![CDATA[
 from labsopui import reset_viewport
-
-try:
-    reload(reset_viewport)
-except NameError:
-    from importlib import reload
-    reload(reset_viewport)
-
-reset_viewport.resetSceneViewers()]]>
-        </scriptCode>
-      </scriptItem>
-      
-      <scriptItem id="ruler">
-        <label>Ruler</label>
-        <scriptCode>
-          <![CDATA[
+reset_viewport.resetSceneViewers()
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+            <scriptItem id="ruler">
+                <label>Ruler</label>
+                <scriptCode>
+                    <![CDATA[
 import stateutils
 # We want to launch a SOP state, so we need to make sure the
 # viewer is at the SOP level first
@@ -192,17 +138,15 @@ if network.displayNode() == None:
     raise hou.Error("You must have the display flag set on a node.")
 # Set the viewer's current state to my state
 viewer.setCurrentState("labs::ruler")
-]]>
-        </scriptCode>
-      </scriptItem>
-
-      <scriptItem id="enable_go_z">
-        <label>Start GoZ</label>
-        <scriptCode>
-          <![CDATA[
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+            <scriptItem id="enable_go_z">
+                <label>Start GoZ</label>
+                <scriptCode>
+                    <![CDATA[
 import hrpyc
 already_running = True
-
 try:
     connection = hrpyc.rpyc.classic.connect("127.0.0.1", 18811)
 except:
@@ -213,38 +157,35 @@ if already_running:
 else:
     hrpyc.start_server()
     hou.ui.displayMessage("Go Z Port Opened")
-
 temp_goz_node = hou.node("/obj").createNode("geo", "tmp_zbrush")
 temp_goz_node.createNode("labs::goz_export", exact_type_name=False)
 temp_goz_node.destroy()
-]]>
-        </scriptCode>
-      </scriptItem>
-
-      <separatorItem id="labs_menu_sep2"/>
-
-      <scriptItem id="export_diagnostics">
-        <label>Export Diagnostics</label>
-        <scriptCode>
-          <![CDATA[
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+            <separatorItem id="labs_menu_sep2"/>
+            <scriptItem id="export_diagnostics">
+                <label>Export Diagnostics</label>
+                <scriptCode>
+                    <![CDATA[
 from labsopui import export_diagnostics
 import hou
-
-try:
-    reload(export_diagnostics)
-except NameError:
-    from importlib import reload
-    reload(export_diagnostics)
-
 directory = hou.ui.selectFile(start_directory=None, title="Save Diagnostics Information", collapse_sequences=False, file_type=hou.fileType.Directory, pattern=None, default_value=None, multiple_select=False, image_chooser=None, chooser_mode=hou.fileChooserMode.ReadAndWrite, width=0, height=0)
-
 file = export_diagnostics.ExportDiagnostics(directory)
 hou.ui.showInFileBrowser(file)
-]]>
-        </scriptCode>
-      </scriptItem>
-
-    </subMenu>
-
-  </menuBar>
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+			<scriptItem id="quick_tip">
+                <label>Quick Tips</label>
+                <insertAtIndex>9</insertAtIndex>
+                <scriptCode>
+                    <![CDATA[
+from labsopui import quicktip
+quicktip.ShowQuickTip()
+                    ]]>
+                </scriptCode>
+            </scriptItem>
+        </subMenu>
+    </menuBar>
 </mainMenu>

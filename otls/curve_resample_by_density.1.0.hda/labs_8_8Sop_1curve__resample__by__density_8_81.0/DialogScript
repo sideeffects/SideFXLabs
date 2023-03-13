@@ -1,0 +1,89 @@
+# Dialog script for labs::curve_resample_by_density::1.0 automatically generated
+
+{
+    name	labs::curve_resample_by_density::1.0
+    script	labs::curve_resample_by_density::1.0
+    label	"Labs Curve Resample by Density"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Source Curve"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "maxsegments"
+        label   "Maximum Segments"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "segments"
+        label   "Segments"
+        type    integer
+        default { "50" }
+        disablewhen "{ maxsegments == 0 }"
+        range   { 1! 100 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_resample"
+        label   "Resample"
+
+        parm {
+            name    "resampleby"
+            label   "Resample by"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Ramp"
+                "1" "Attribute"
+                "2" "Curvature"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "weightAttribute"
+            label   "Attribute"
+            type    string
+            default { "weight" }
+            hidewhen "{ resampleby != 1 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "densityramp"
+            label   "Density along Curve"
+            type    ramp_flt
+            default { "2" }
+            hidewhen "{ resampleby != 0 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampbasisdefault" "monotonecubic" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0.5 ) 1interp ( monotonecubic ) 2pos ( 1 ) 2value ( 0.5 ) 2interp ( monotonecubic )" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ resampleby != 0 }"
+        }
+        parm {
+            name    "rampsamples"
+            label   "Density Ramp Samples"
+            type    integer
+            default { "500" }
+            hidewhen "{ resampleby != 0 }"
+            range   { 250 500 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

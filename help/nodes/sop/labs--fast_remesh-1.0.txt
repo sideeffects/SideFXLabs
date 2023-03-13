@@ -1,0 +1,119 @@
+#type:     node
+#context:  sop
+#internal: labs::fast_remesh::1.0
+#icon:     fast_remesh
+
+= Labs Fast Remesh =
+
+"""This node performs Houdini's native remeshing operation on partitioned geometry, processing each piece in parallel which greatly reduces the calculation time of traditional remeshing."""
+
+
+@parameters
+
+    == Parallel Processing ==
+
+    Partition By:
+        #id: partitionby
+	Connectivity and Bucket Size will have options to partition by connectivity, UV islands, and clusters of primitives. Custom Attribute partitions geometry by a custom primitive integer attribute.
+        
+    === Connectivity ===
+
+    3D Connectivity:
+        #id: connectivity
+	Partitions geometry based on individual connectivity.
+        
+    3D and UV Connectivity:
+        #id: uvislands
+	Partitions and geometry based on separate UV islands. Remeshing by connectivity is included in this option.
+        
+    Bucket Size:
+        #id: bucketsize
+	Partitions geometry by clustering primitives.
+        
+    Target Bucket Size:
+        #id: targetbucket
+	The target number of polygons in each cluster. A lower value will generate more clusters.
+        
+    Bucket Seed:
+        #id: clusterseed
+	Randomize geometry clusters.
+        
+    Attribute Name:
+        #id: customattname
+	The name of the custom primitive integer attribute used to partition geometry.
+        
+    Visualize Partitions:
+        #id: visualizepieces
+	Assigns a random color to each partition.
+        
+    == Remesh ==
+
+    Remesh Target Type:
+        #id: remeshtarget
+	__Target Edge Length__ sets the target edge length directly.
+	
+	__Target Polycount__ sets the polycount goal of the output geometry.   	
+	
+	__Ratio of Average Input Edge Length__ sets the target edge length to be a ratio of the average input edge length.
+	
+	__Ratio of Input Polycount__ sets the polycount goal of the output geometry to be a ratio of the input geometry.
+	
+	__Adaptive Remeshing__ remeshes based on the curvature of input geometry.
+		
+    Target Edge Length:
+        #id: targetedgetemp
+	Target length (in Houdini units) of resulting triangle edge lengths.
+        
+    Edge Length Ratio:
+        #id: edgemult
+	Ratio of the target edge length to the average input edge length. A ratio of 2 will make edge lengths twice as long.
+        
+    Target Polycount:
+        #id: targetpolycount
+	Target polycount goal for resulting mesh. Higher remesh iterations will more closely reach this goal.
+        
+    Polycount Ratio:
+        #id: polymult
+	Ratio of the target polycount to the input polycount. A ratio of 2 will double the amount of polygons.
+		
+        
+    === Adaptive ===
+
+    Target Edge Length Min:
+        #id: targetlengthmin
+	Minimum target edge length.
+        
+    Target Edge Length Max:
+        #id: targetlengthmax
+	Maximum target edge length.
+        
+    Gradation:
+        #id: gradation
+	The rate at which edge lengths are allowed to change from one triangle to the next. Higher values generate fewer triangles but the overall quality is lower.
+        
+    Remesh Iterations:
+        #id: remeshiterations
+	Increasing this increases the quality of the generated mesh but takes more time. More iterations will produce triangles that are more equilateral. Increasing this parameter while performing Adaptive remeshing may cause holes in geometry.
+        
+    Smoothing:
+        #id: smoothing
+	The amount of additional smoothing to apply after remeshing.
+        
+    == Post-processing ==
+
+    Remesh Seams:
+        #id: remeshseams
+	Resulting seams can be visible in the resulting mesh, especially in adaptive remeshing. Remesh Seams only remeshes these affected areas, blending them into the whole mesh.
+        
+    Fuse Remaining Seams:
+        #id: fusepieces
+	Fuses remaining partitions into a complete mesh.
+        
+    Recompute Normals:
+        #id: recomputenormals
+	Recalculates the normals of output geometry.
+        
+    
+    
+
+

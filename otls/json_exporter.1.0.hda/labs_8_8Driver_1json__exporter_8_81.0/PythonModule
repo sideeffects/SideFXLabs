@@ -1,10 +1,11 @@
+import os
 import json 
 import hou
 
-data = []
 components = ["X", "Y", "Z", "W"]
 
 def export(node):
+    data = []
 
     geo = hou.node(node.parm("export_node").evalAsString()).geometry() 
     generate_name = node.parm("generatename").evalAsInt()
@@ -53,6 +54,13 @@ def export(node):
      
      
     path = node.parm("json_path").evalAsString()
+
+    dir = os.path.dirname(path)
+    if not os.path.exists(dir):
+        try:
+            os.makedirs(os.path.dirname(path))
+        except Exception as e:
+            raise hou.NodeError("Unable to create path at %s" % (path))
 
     with open(path, 'w') as f:    
         json.dump(data,  f, indent=4)  

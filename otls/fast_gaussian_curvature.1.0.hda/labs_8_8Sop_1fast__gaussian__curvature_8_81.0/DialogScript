@@ -1,0 +1,155 @@
+# Dialog script for labs::fast_gaussian_curvature::1.0 automatically generated
+
+{
+    name	labs::fast_gaussian_curvature::1.0
+    script	labs::fast_gaussian_curvature::1.0
+    label	"Labs Fast Gaussian Curvature"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "opmenu -l -a angle_deficit group" ]
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = kwargs['node'].parmTuple('grouptype')\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "grouptype"
+        label   "Group Type"
+        type    ordinal
+        default { "guess" }
+        menu {
+            "guess"     "Guess from Group"
+            "vertices"  "Vertices"
+            "edges"     "Edges"
+            "points"    "Points"
+            "prims"     "Primitives"
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    parm {
+        name    "ignoreunshared"
+        label   "Assign Default Value to Boundary Points"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "outputval"
+        label   "Output Value"
+        type    ordinal
+        default { "1" }
+        menu {
+            "0" "Signed (Capture Peaks and Saddles)"
+            "1" "Absolute (Capture Non-flatness)"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "outputattrib"
+        label   "Output Attribute"
+        type    ordinal
+        default { "1" }
+        menu {
+            "0" "Angle Deficit"
+            "1" "Normalized Gaussian Curvature"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "angleunit"
+        label   "Angle Unit"
+        type    ordinal
+        default { "1" }
+        hidewhen "{ outputattrib == 1 }"
+        menu {
+            "0" "Radians"
+            "1" "Degrees"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "nmlmode"
+        label   "Normalize From"
+        type    ordinal
+        default { "1" }
+        hidewhen "{ outputattrib == 0 }"
+        menu {
+            "0" "Current Angle Deficit Range"
+            "1" "Specified Angle Deficit Range"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "specifiedrange"
+        label   "Angle Deficit Range"
+        type    float
+        size    2
+        default { "-90" "90" }
+        hidewhen "{ nmlmode == 0 }"
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "attribname_angle"
+        label   "Attribute Name"
+        type    string
+        default { "angle_deficit" }
+        hidewhen "{ outputattrib == 1 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "attribname_curv"
+        label   "Attribute Name"
+        type    string
+        default { "curvature" }
+        hidewhen "{ outputattrib == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "vis"
+        label   "Visualize Output"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "visramp"
+        label   "Visualization Ramp"
+        type    ramp_rgb
+        default { "5" }
+        hidewhen "{ vis == 0 }"
+        range   { 1! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "parmvop" "1" }
+        parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+        parmtag { "rampbasisdefault" "linear" }
+        parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0.20000000298023224 0 1 ) 1interp ( linear ) 2pos ( 0.25 ) 2c ( 0 0.85000002384185791 1 ) 2interp ( linear ) 3pos ( 0.5 ) 3c ( 0 1 0.10000000149011612 ) 3interp ( linear ) 4pos ( 0.75 ) 4c ( 0.94999998807907104 1 0 ) 4interp ( linear ) 5pos ( 1 ) 5c ( 1 0 0 ) 5interp ( linear )" }
+        parmtag { "rampcolortype" "rgb" }
+        parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+        parmtag { "rampshowcontrolsdefault" "0" }
+        parmtag { "rampvalues_var" "vecramp_the_key_values" }
+    }
+}

@@ -1,0 +1,666 @@
+# Dialog script for labs::polywire_uv::1.0 automatically generated
+
+{
+    name	labs::polywire_uv::1.0
+    script	richT::goodPolyWireUVs::013
+    label	"Labs PolyWire UV"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Polylines
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Mesh
+    outputlabel	2	"Control Curve"
+
+    groupsimple {
+        name    "fd_edgenetwork"
+        label   "Edge Network"
+
+        parm {
+            name    "rootgroup"
+            label   "Root Point Group"
+            type    string
+            default { "" }
+            menutoggle {
+                [ "def build_menu_from_group(groups, menu):" ]
+                [ "    if len(groups):" ]
+                [ "        menu.extend((\"-\", \"\"))" ]
+                [ "        " ]
+                [ "    for group in groups:" ]
+                [ "        name = group.name()" ]
+                [ "        menu.extend((name, name))" ]
+                [ "    " ]
+                [ "    return menu" ]
+                [ "    " ]
+                [ "sopnode = hou.pwd()" ]
+                [ "# List of tokens/labels to return." ]
+                [ "menu = []" ]
+                [ "# Make sure there is an input node before asking for its geometry." ]
+                [ "if sopnode.inputs():" ]
+                [ "    # Optionally add in '*' for all groups." ]
+                [ "    menu.extend((\"*\", \"*\"))" ]
+                [ "    geo = sopnode.inputs()[0].geometry()" ]
+                [ "    " ]
+                [ "    menu = build_menu_from_group(geo.edgeGroups(), menu)" ]
+                [ "        " ]
+                [ "return menu" ]
+                language python
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Points)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+        parm {
+            name    "sepparm15"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "fixcyclic"
+            label   "Fix Cyclic Edge Networks (For KineFX)"
+            type    toggle
+            default { "0" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm7"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "upmode"
+            label   "Up Mode"
+            type    integer
+            default { "2" }
+            menu {
+                "1" "Attr"
+                "2" "Contant"
+                "3" "Auto"
+            }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "upattrib"
+            label   "Up Point Attr"
+            type    string
+            default { "up" }
+            hidewhen "{ upmode != 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "constant_up_vector"
+            label   "Up Vector"
+            type    vector
+            size    3
+            default { "0" "1" "0" }
+            hidewhen "{ upmode != 1 }"
+            range   { -1 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "relaxrolliters"
+            label   "Relax Roll Iterations"
+            type    integer
+            default { "100" }
+            range   { 0! 500 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "constraingroup"
+            label   "Constrain Point Group"
+            type    string
+            default { "" }
+            disablewhen "{ relaxrolliters == 0 }"
+            menutoggle {
+                [ "def build_menu_from_group(groups, menu):" ]
+                [ "    if len(groups):" ]
+                [ "        menu.extend((\"-\", \"\"))" ]
+                [ "        " ]
+                [ "    for group in groups:" ]
+                [ "        name = group.name()" ]
+                [ "        menu.extend((name, name))" ]
+                [ "    " ]
+                [ "    return menu" ]
+                [ "    " ]
+                [ "sopnode = hou.pwd()" ]
+                [ "# List of tokens/labels to return." ]
+                [ "menu = []" ]
+                [ "# Make sure there is an input node before asking for its geometry." ]
+                [ "if sopnode.inputs():" ]
+                [ "    # Optionally add in '*' for all groups." ]
+                [ "    menu.extend((\"*\", \"*\"))" ]
+                [ "    geo = sopnode.inputs()[0].geometry()" ]
+                [ "    " ]
+                [ "    menu = build_menu_from_group(geo.edgeGroups(), menu)" ]
+                [ "        " ]
+                [ "return menu" ]
+                language python
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = (hou.geometryType.Points)\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_help" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_mesh"
+        label   "Mesh"
+
+        parm {
+            name    "width"
+            label   "Width"
+            type    float
+            default { "0.2" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "enablewidthattribute"
+            label   "      "
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "widthattrib"
+            label   "Width Attribute"
+            type    string
+            default { "" }
+            disablewhen "{ enablewidthattribute == 0 }"
+            menureplace {
+                [ "r = []" ]
+                [ "node = hou.pwd()" ]
+                [ "inputs = node.inputs()" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "    attrs = geo.pointAttribs()" ]
+                [ "    for a in attrs:" ]
+                [ "        if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                [ "            r.extend([a.name(), a.name()])" ]
+                [ "return r" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "maxscale"
+            label   "Max Buckling Scale"
+            type    float
+            default { "2" }
+            range   { 1! 3 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm9"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "maxvalence"
+            label   "Max Valence"
+            type    integer
+            default { "25" }
+            range   { 0! 100 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "divmode"
+            label   "Division Mode"
+            type    integer
+            default { "0" }
+            menu {
+                "Constant"  "Constant"
+                "Attribute" "Attribute"
+            }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "div"
+            label   "Divisions"
+            type    integer
+            default { "5" }
+            hidewhen "{ divmode == 1 }"
+            range   { 3! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "divpointattrib"
+            label   "Division Point Attribute"
+            type    string
+            default { "" }
+            hidewhen "{ divmode == 0 }"
+            menureplace {
+                [ "r = []" ]
+                [ "node = hou.pwd()" ]
+                [ "inputs = node.inputs()" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "    attrs = geo.pointAttribs()" ]
+                [ "    for a in attrs:" ]
+                [ "        if a.dataType() == hou.attribData.Int and not a.isArrayType() and a.size() == 1:" ]
+                [ "            r.extend([a.name(), a.name()])" ]
+                [ "return r" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm8"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "cuspangle"
+            label   "Normal Cusp Angle"
+            type    float
+            default { "180" }
+            range   { 0! 180! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "outputcapgroup"
+            label   "outputcapgroup"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "capgroupname"
+            label   "Cap Group (prim)"
+            type    string
+            default { "cap" }
+            disablewhen "{ outputcapgroup == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "outputbordergroup"
+            label   "  "
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "bordergroupname"
+            label   "Border Group (point)"
+            type    string
+            default { "junction" }
+            disablewhen "{ outputbordergroup == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm11"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "exportcaptureattr"
+            label   "Bind And Capture Mesh To Curve"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "captureweightbias"
+            label   "Weight Bias"
+            type    float
+            default { "0.5" }
+            hidewhen "{ exportcaptureattr == 0 }"
+            range   { 0! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm12"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "outputcurvelookupattrib"
+            label   "Output Curve Lookup Attributes"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_curvelookup"
+            label   "Curve Lookup"
+            disablewhen "{ outputcurvelookupattrib == 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "idprim"
+                label   "Primitive ID (prim)"
+                type    string
+                default { "sourceprim" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "primu"
+                label   "Primitive U (vert)"
+                type    string
+                default { "sourceprimu" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "fd_uvs"
+        label   "UVs"
+
+        parm {
+            name    "snapmaxiterations"
+            label   "Max Snap U Iterations"
+            type    integer
+            default { "5" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "maxsnapdist"
+            label   "Max Snap Dist"
+            type    float
+            default { "0.5" }
+            disablewhen "{ snapmaxiterations == 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "smoothu_strength"
+            label   "Smooth U Strength"
+            type    log
+            default { "0" }
+            range   { 0! 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "smoothu_quality"
+            label   "Quality"
+            type    integer
+            default { "0" }
+            disablewhen "{ smoothu_strength == 0 }"
+            range   { 1! 5! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm5"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "uvmode"
+            label   "UV Mode"
+            type    ordinal
+            default { "1" }
+            menu {
+                "Normalized"    "Normalized"
+                "WidthRelative" "Width Relative"
+                "TexelArea"     "Texel Area"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "roundv"
+            label   "Round V Coord"
+            type    toggle
+            default { "0" }
+            hidewhen "{ uvmode != WidthRelative }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rowspacing"
+            label   "V Spacing"
+            type    ordinal
+            default { "1" }
+            hidewhen "{ uvmode != Normalized }"
+            menu {
+                "suniform"  "Uniform             "
+                "sarclen"   "Proptional"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "minrelwidth"
+            label   "Min Relative Width"
+            type    log
+            default { [ "ch(\"width\")*0.001" hscript-expr ] }
+            hidewhen "{ uvmode != WidthRelative }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "texelscale"
+            label   "Texel Scale"
+            type    log
+            default { "1" }
+            hidewhen "{ uvmode != TexelArea }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "offsetsegments"
+            label   "Offset Segments in U"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "offsetnetworks"
+            label   "Offset Edge Networks In W"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uvCaps"
+            label   "UV Caps"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "weld"
+            label   "Weld Cap Amount"
+            type    float
+            default { "0.75" }
+            disablewhen "{ uvCaps == 0 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm6"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "maxusolveiteratons"
+            label   "Max U Solve Iterations"
+            type    integer
+            default { "1000" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_controlcurve"
+        label   "Control Curve"
+
+        parm {
+            name    "resamplecurve"
+            label   "Resample Control Curve"
+            type    toggle
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "length"
+            label   "Length"
+            type    float
+            default { "0.1" }
+            hidewhen "{ resamplecurve == 0 }"
+            range   { 0! 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m1" }
+        }
+        parm {
+            name    "dividemode"
+            label   "Mode"
+            type    ordinal
+            default { "subd" }
+            hidewhen "{ resamplecurve == 0 }"
+            menu {
+                "straight"  "Straight Edges"
+                "subd"      "Subdivision Curves"
+                "interp"    "Interpolating Curves"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm10"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "addparent"
+            label   "Add Parent Point"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "parentplacement"
+            label   "Placement"
+            type    float
+            default { "0.1" }
+            hidewhen "{ addparent == 0 }"
+            range   { 0 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm14"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "outputrootgroup"
+            label   "outputcapgroup"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rootgroupname"
+            label   "Root Group (point)"
+            type    string
+            default { "root_pt" }
+            disablewhen "{ outputrootgroup == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm13"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "outputcurveattribs"
+            label   "Output Info Attributes"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_curveattrib"
+            label   "Curve Attributes"
+            disablewhen "{ outputcurveattribs == 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "curvelength"
+                label   "Curve Length (vert)"
+                type    string
+                default { "curve_length" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "curvetan"
+                label   "Curve Tangent (point)"
+                type    string
+                default { "curve_tangent" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "curveup"
+                label   "Curve Up (point)"
+                type    string
+                default { "curve_up" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

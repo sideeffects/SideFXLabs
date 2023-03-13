@@ -159,7 +159,7 @@ class Model(QtCore.QAbstractTableModel):
                 res = res | QtCore.Qt.ItemIsEnabled
 
             # allow changes of values
-            if column is 2:
+            if column == 2:
                 res = res | QtCore.Qt.ItemIsEditable
 
         return res

@@ -41,7 +41,7 @@ def add_actions():
     hou.hotkeys.saveOverrides()
 
     print ("Network Walk hotkeys assigned.\n\nPageUp = Move Up\nPageDown = Move Down\nInsert = Move Left\nHome = Move Right\n")
-    print ("Restart Houdini for the change to take effect.\n")
+    print ("Restart Houdini for the changes to take effect.\n")
 
     return
     

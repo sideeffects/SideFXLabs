@@ -1,0 +1,110 @@
+# Dialog script for labs::uv_unwrap_cylinder::1.0 automatically generated
+
+{
+    name	labs::uv_unwrap_cylinder::1.0
+    script	christos::dev::uv_unwrap_tool::1.0
+    label	"Labs UV Unwrap Cylinder"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry Input"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "uvattrib"
+        label   "UV Attribute"
+        type    string
+        default { "uv" }
+        menutoggle {
+            [ "hou.pwd().generateInputGroupMenu(0)" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_autounwrap"
+        label   "Automatic Unwrap"
+
+        parm {
+            name    "autocutoffset"
+            label   "Auto Cut Offset"
+            type    float
+            default { "0" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sectioncutangle"
+            label   "Section Cut Angle"
+            type    angle
+            default { "60" }
+            range   { 30 90 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_manualunwrap"
+        label   "Manual Unwrap"
+
+        parm {
+            name    "manualunwrap"
+            label   "Enable Manual Unwrap"
+            type    toggle
+            default { "0" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uvseams"
+            label   "UV Seams"
+            type    string
+            default { "" }
+            disablewhen "{ manualunwrap == 0 }"
+            menutoggle {
+                [ "hou.pwd().generateInputGroupMenu(0, group_types=hou.geometryType.Edges)" ]
+                language python
+            }
+            parmtag { "Select geometry from an available viewport.\nShift-click to turn on Select Groups.script_action" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Edges\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "endcaps"
+            label   "End Caps"
+            type    string
+            default { "" }
+            disablewhen "{ manualunwrap == 0 }"
+            menutoggle {
+                [ "hou.pwd().generateInputGroupMenu(0, group_types=hou.geometryType.Primitives)" ]
+                language python
+            }
+            parmtag { "Select geometry from an available viewport.\nShift-click to turn on Select Groups.script_action" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+            parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+            parmtag { "script_action_icon" "BUTTONS_reselect" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_visualization"
+        label   "Visualization"
+
+        parm {
+            name    "visuvislands"
+            label   "Visualize UV Islands"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

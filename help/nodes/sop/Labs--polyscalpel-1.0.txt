@@ -1,0 +1,253 @@
+#type:     node
+#context:  sop
+#internal: Labs::polyscalpel::1.0
+#icon:     SOP/Labs::polyscalpel::1.0
+#since:    19.5
+
+= Labs PolyScalpel =
+
+"""Slices new polygonal edges or points into the primary input geometry from the secondary input in various configurations."""
+
+This node cuts very specific edges and points into polylines & surfaces, based on secondary input points, curves or cutting surfaces.
+
+[Image:/images/polyscalpel_splash.png]
+
+- This node can inject points or cut a poly line or surface, with a second point, line or surface.
+- It supports multiple cutting methods for faster performance or more utility.
+- It can cut surfaces at any angle, it has no problems with non-cardinal angles.
+- It can deal with coincident faces by cutting with polygon edges instead of surfaces, so no zero-space errors like with the boolean node.
+- It automatically tries to clean up overlapping cuts.
+- It generates groups to mark points and edges that are newly cut.
+- It works at various levels of precision and can snap the cutting input to the target geometry's edges if required.
+- It keeps Attributes and Groups intact and propagates them through.
+- It can cusp the edges or points on cuts when enabled.
+
+
+@parameters
+
+    == Geometry Input ==
+
+        *These settings configure the inputs of the tool, such as its type and if groups or mesh connectivity should be used to include/exclude geometry from the operation.*
+
+
+    Source Geo Type:
+        #id: inputGeoType
+        Set the type of geometry the tool will Slice. 
+        - Polygon Surfaces - Cuts points or edges into Surfaces. 
+        - Polylines - Cuts points into Splines.
+       
+    Cutting Geo Type:
+        #id: cuttingGeoType
+        Set the type of geometry the tool will Slice the geometry from input 1 with. 
+        - Points - Injects points on polygon edges in range.
+        - Polylines - Uses the spline to slice nearby geometry. 
+        - Polygon Surfaces - Uses the surface to slice intersecting geometry.
+
+    Source Geo Group:
+        #id: sourceGroup
+        Specify a group selection of the __Source Primitives__ that can be Cut using the Cutting Geo input.
+      
+    Cutting Geo Group:
+        #id: cuttingGroup
+        Specify a group selection of the __Cutting Primitives__ that are allowed to make cuts. Takes a primitive group when cutting with surfaces or polylines. Takes points groups when cutting with points, except if "Cut with Intersection Points" is enabled, in this case it requires a primitive group.
+        
+    Use Source Mesh Connectivity:
+        #id: useConnectivity
+        When enabled, cuts are assigned to a connected set of primitives by assigning it a Connectivity ID. However in some cases you may want to treat all disconnected meshes as a single mesh, in which case the Connectitivy ID is set to -1. This option when disabled, can provide a performance boost when dealing with many disconnected Source and Cutting Primitives. (Alternatively, you may use "Bind Cuts to Nearest Source Primitive" for this as well). However, disabling connectivity checks can cause issues when meshes overlap, and previously disconnected source geometry may be fused together at their cuts. Enabled by default.
+        
+    Bind Cuts to Nearest Source Primitive:
+        #id: bindToNearestSourcePrim
+        When enabled, cutting primitives check from their center which connected source primitives are closest and assigns only to those primitives. Other disconnected primitives are ignored for that cutting primitive. Disabled by default, which allows one cutting primitive to affect multiple disconnected meshes at once without allowing them to fuse. In case many disconnected Source and Cutting primitives are provided, this option can provide a performance boost.
+        
+    Cross Cut For Planar Surfaces:
+        #id: crossCutSurface
+        When enabled, this option interpolates the intersection as an edge hull instead, based on the cutting surface normal direction. Useful when 2 coincident non-planar surfaces / primitives are used as source and cutting inputs. The Cross Cut Depth affects the depth of the edge hull.
+
+    Cross-Cut Depth:    
+        #id: crossCutDepth
+        When using "Cross Cut for Planar Surfaces", determines the distance of the Cross Cut perpendicular from the cutting surface edges.
+
+    Cut with Intersection Points from Cutting Geo:
+        #id: extractIntersectionPoints
+        When enabled, you can provide Polyline Source Geometry to both inputs. This will detect intersections between the polylines and inject points on the Source Geometry with these points. High snap distance may over-detect and confuse intersections with geometry points nearby.
+        
+    == Geometry Output ==
+
+        *These settings configure Output of the tool and how cuts are made.*
+
+
+    Surface Output:
+        #id: surfaceOutput
+        Determines if the output will slice new edges or only inject points on existing edges. Is only enabled when cutting Surfaces with Poly Surfaces or Poly Curves.
+
+    Slicing Method:
+        #id: slicingMethod
+        Determine how Surfaces are cut with Surfaces.
+        - Boolean based Slicing in general is more efficient, but it cannot use snapping features. If you need to cut a dense mesh with a surface, boolean mode is prefered.
+        - Polysplit mode features snapping support and can auto complete cuts that don't slice an entire surface. PolySplit mode can be limited by its slow processing speed on large pieces of geometry, and works best with Auto Precision mode enabled to enforce reasonable snapping values.. 
+        
+    Prevent Incomplete Slices:
+        #id: preventIncompleteSlices
+        Cuts performed using the "Poly Split" Surface Cutting Method need to be continuous, so it at least needs to touch the edges of the primitive it tries to cut on both ends of the cut. With this enabled, slices that do not conform to these criteria are ignored.
+
+    Include Shared Edges From Cutting Geometry:
+        #id: includeSharedEdges
+        When using the "Boolean" Surface Cutting Method with overlapping surfaces, shared edges of the Cutting geometry planar with the Source Geometry may be stamped into the Source Geometry. When this setting is enabled these edges are included in the Cut Edge Group and Cusp Cut Edges operations. Be aware that when using the Boolean Shatter Method, overlapping Cutting Geometry can only correctly detect cuts like these when they are in exact overlap with a Source Surface and both surfaces are planar and oriented in a cardinal angle !
+        
+    Slice Edges Neighbouring the Source Group:
+        #id: sliceEdgesNBGrpSelection
+        When enabled, if a "Source Geo Group" is selected, still cut the edges of any non-selected geometry that intersect with a cut. This keeps the geometry clean and intact by injecting points on adjecent primitives. Also propagates edge and point groups to non-selected geometry.
+
+    Cusp Cut Edges:
+        #id: cuspCutEdges
+        When enabled, Cusps the cut edges on surfaces, spliting the geometry at the cut. When a "Source Geo Group" is used and "Slice Edges Neighbouring Source Geo Groups" is enabled, it also cusps the edge between grouped and non-grouped geometry to ensure proper cusping. Only enabled when cutting Surfaces.
+
+    Cusp Cut Points:
+        #id: cuspCutPoints
+        When enabled, Cusps the cut points on a polyline, seperating the geometry at the cut. Only enabled when cutting Polylines.
+
+
+    == Tool Precision == 
+
+        *These settings configure the cutting and snapping precision when detecting point and edge cuts between input 1 and 2.*
+        *The tool has both automatic and manual precision modes. When "Auto Precision Correction" is enabled, actual snapping values are displayed on the parameter interface.*
+        
+        *The snapping features can cause cuts to collapse with themselves if set too high and is best kept at reasonable levels.*
+        *Auto Precision Correction mode address this issue by limiting the snapping strength and tolerances for you.*
+        
+        - Manually configured snapping - This is useful when you are working on injecting specific cuts and points onto the input geometry with potentially agressive snapping values - use with care.
+        - Auto Precision Correction - Attempts to impose sensible limits on the snapping distance and intersection tolerance to prevent over-agressive snapping or cutting.
+        - Auto Correct Non-Planar Tolerance - Automatically boosts Non-Planar detection for surface to surface cutting for dense geometries, such as complex meshes. But can be too aggressive for most simple meshes !
+        
+
+    Auto Precision Correction:
+        #id: autoPrecisionCorrection
+        When enabled, automatically clamps internal values based on the median sizes of the input geometry. This helps to regulate the snapping stength relative to the input geometry scale and density. Be aware that manually set Snapping Values that are set too high or low compared to the Source Input's scale, may cause bad cuts or model collapse along cuts. ( To be improved in v2.0 ). The exact formula for this is: The minimum value between *Input 1* Median Edge Length & *Input 2* Median Edge Length, multiplied by 0.1. Disable this function to manually set snapping values.
+
+    Auto Correct Non-Planar Tolerance:
+        #id: autoNonPlanarCorrection
+        When enabled, automatically boosts Non-Planar Tolerance values based on the median sizes of the input geometry. Attempts to correct settings for non-planar geometry when cutting complex surfaces with surfaces of different sizes. Less suitable for simple planar geometry, in which case it is best practice to keep this option disabled and set the Non-Planar Tolerance manually. The exact formula for this is: The "Non-Planar Tolerance", multiplied by Square root of the *Input 1* Median Edge Length, multiplied by 1000. Disable this function to manually set Multiplication values for Non-Planar Tolerance.
+        
+    Auto Precision Correction Limits:    
+        #id: autoPrecisionCorrectionLimit
+        In most cases, "Auto Precision Correction’s" upper and lower limits are designed to support models at a wide range of scales by automatically detecting the median sizes of a models primitives. However, if a model has a large discrepancy between its primitives surface areas, Auto correction may overcorrect. This setting can disable some of the limits such as the lower limit, to not clamp Snapping values unnecessarily.
+        
+    Snap Distance:
+        #id: snapDist
+        Set the distance for cutting geometry to snap to the source geometry. When cutting with points or polylines it helps register cuts, when the distance falls within this value. Even if the cutting geometry is not exactly on the source geometry. When cutting with surfaces this helps avoid sliver cuts in corners by snapping the cuts to the geometry. When precise cuts must be made, smaller values produce higher levels of precision. In v1.0 high snap values can cause the model to collapse along cuts, best kept at reasonable levels. This is to be addressed in v2.0. By default, also sets the Intersect Tolerance unless manually overwritten. Automatically adjusted when Auto Precision Correction is enabled.
+        
+    Intersect Tolerance:
+        #id: proxtol
+        When enabled, allows for a seperate Intersection Tolerance from the "Snap distance". Determines the distance for points to detect an intersection between Input 1 and 2. Smaller values produce higher levels of precision. Works most reliably when matching the "snap Distance", only change when required.
+
+    Point Snap Factor:   
+        #id: pointSnapPrecisionFactor
+        Modifies the snapping strength to source geometry points by this value to a power of 10. When making very fine Cuts on the edges of a primitive, cuts in corners may be allowed to be so tiny they fall outside the tolerance values, which could result in tiny uncut primitive corners. By forcing a second point snap at a higher snapping strength, these uncut corners are collapsed to their nearby corner points. Beware, over-use may collapse cuts.
+        
+    Non-Planar Tolerance:   
+        #id: nonPlanarTol
+        When cutting Non-Planar Surfaces, boosts the detection of primitives and edges overlapping the cuts. Allows mid-primitive points and cuts to detect their surfaces by this multiplication of the Intersection Tolerance. Is also used when transferring edge groups back to the source mesh after cutting, to ensure a proper transfer on Non-Planer surfaces & Non-Linear edges. High values may over-cut when paired with high Snap Dist values. Acts like a multiplier when Auto Correct Non-Planar Tolerance is enabled.
+
+    Edge Length Threshold: 
+        #id: lengththreshold
+        When in Boolean Shatter Mode, Allows tiny edges to be collapsed if under this length. Best kept at low values to avoid holes in the mesh. Also drives the precision of point injection to unselected geometry adjacent to a cut.
+        
+        
+    *The following settings can be used to further adjust the behavior of the cutting system, in case results are not correct.*
+
+
+    Disable Tolerance for Polyline Intersection Checks:
+        #id: LimitProxTol
+        This value disables the Intersection Tolerance for all polyline intersection checks. Normally, these intersection checks are limited by a tolerance value. However, in some cases, especially with very large geometries, it may fail to detect intersections. Turning this off changes the checking behavior, but REQUIRES that both input geometries overlap perfectly, are planar and aligned to a cardinal angle. Intersection Tolerance is enabled by default.
+                
+        
+
+    == Group Output ==
+
+        *These settings configure the groups created by the tool.*
+
+
+    Cut Edge Group:
+        #id: prim_Group_Name
+        When enabled, output an edge group by this name for any cuts the tool makes on surfaces.
+      
+    Avoid Grouping Incomplete Auto-Slices:
+        #id: avoidGroupingIncompleteAutoSlices
+        When incomplete slices are allowed, the connecting slice will be added to the edge group. When this option is enabled, it tries to auto-exclude this edge from that group. Also affects Edge Cusping.
+
+    Cut Point Group:
+        #id: pointGroup_Group
+        When enabled, output a point group by this name on any point that was cut into the source geometry.
+
+    Snap Point Group:
+        #id: snapped_Group
+        When enabled, output a point group by this name on any point that was snapped to the source geometry.
+      
+    Center Point Group:
+        #id: center_Group
+        When enabled, output a point group by this name on any new point that was cut as an intersection between 2 slices in the middle of a primitive surface.
+        
+    Preserve Edge Groups:
+        #id: filterEdgeGroups
+        Filter which edge groups are preserved between the source input and output. If this field is empty or set to *, all edge groups are preserved, but the copying process could be costly if a large amount of edge groups exist on the source geometry.    
+
+        
+    == Cleanup ==     
+
+    *These options can be used to clean the output geometry after all cutting operations are completed.*
+
+    Sort Primitives by Connectivity ID:
+        #id: sortByConnectivityID
+        When enabled, upon output sorts the primitive order along the connectivity ID order.
+        
+
+    Sort Points By Vertex Order:
+        #id: sortByVertexOrder
+        When enabled, upon output sorts the point order along the vertex order.
+
+    Post-Compute Normals:
+        #id: recomputeNormals
+        When enabled, re-computes the normals on the entire mesh, otherwise, tries to approximate the original normals from the source input.
+        
+        
+    == Visual Feedback & Performance ==
+
+        *Other minor settings that can be used to configure the Utilities visual feedback and its performance.*
+
+    Input Connection ID:
+        #id: inputConnectionID_Attrib
+        When enabled, writes the Mesh Connectivity ID from the Source Input under the specified primitive attribute name.
+        
+    Display Output Connectivity as Primitive Color:
+        #id: outputConnectivity 
+        Use this to debug or display the connectivity of the meshes for the Poly Scalpel Output. Can be used to debug bad cuts or to display disconnected segments. Is distinct from the Input Connectivity ID. Overwrites all Color attributes on the mesh with a primitive color attribute.
+        
+    Color Seed:
+        #id: seed
+        Seed value for the Output Connectivity Color.
+
+    Always Display Cutting Guide:
+        #id: displayCuttingGuide
+        When the node is rendered, always display a guide geometry wireframe to show where the cutting geometry is. Only displays cross cut guides when disabled.    
+        
+    Enable Compiling Inside Assets:
+        #id: doCompile
+        When Enabled, compiles most of this asset internally, speeds up the Utility.
+
+NOTE:
+    Internally, the asset uses groups and attributes prefixed with "temp_", if attributes or groups with this prefix are provided to the tool they will be removed.
+    
+@info
+
+This node is originally developed as part of the Procedural Asset Production Masterclass at E-Houdini Academy.
+It was submitted as a contest entry for the Side FX Labs 2021 Tech Art Challenge where it won Third place in the category for best Utility Asset.
+Version 1.3.6 was added to Labs on 21-July-2022 as the Labs Poly Scalpel 1.0.
+A version 2.0 is under development, with the goal to improve the snapping features.
+
+Original Author: Erwin Heyms.
+    
+Created in Houdini Version H19.5.284.
+    
+Last updated on 14-July-2022 as V1.0.3
+
+[ Erwin Heyms - EhoudiniAcademy | https://ehoudiniacademy.com ]

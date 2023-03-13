@@ -1,0 +1,261 @@
+# Dialog script for labs::fast_remesh::1.0 automatically generated
+
+{
+    name	labs::fast_remesh::1.0
+    script	labs::fast_remesh::1.0
+    label	"Labs Fast Remesh"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Geo to Divide"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Remeshed Output Geo"
+
+    groupsimple {
+        name    "fd_parallelprocess"
+        label   "Parallel Processing"
+
+        parm {
+            name    "partitionby"
+            label   "Partition By"
+            type    integer
+            default { "0" }
+            menu {
+                "0" "Connectivity and Bucket Size"
+                "1" "Custom Attribute"
+            }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_connectivity"
+            label   "Connectivity"
+            hidewhen "{ partitionby != 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "connectivity"
+                label   "3D Connectivity"
+                type    toggle
+                default { "1" }
+                disablewhen "{ uvislands == 1 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "uvislands"
+                label   "3D and UV Connectivity"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "bucketsize"
+                label   "Bucket Size"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "targetbucket"
+                label   "Target Bucket Size"
+                type    integer
+                default { "2048" }
+                hidewhen "{ bucketsize == 0 }"
+                range   { 1 100 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "clusterseed"
+                label   "Bucket Seed"
+                type    float
+                default { "0" }
+                hidewhen "{ bucketsize == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "customattname"
+            label   "Attribute Name"
+            type    string
+            default { "" }
+            hidewhen "{ partitionby != 1 }"
+            parmtag { "autoscope" "1000000000000000" }
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "visualizepieces"
+            label   "Visualize Partitions"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_remesh"
+        label   "Remesh"
+
+        parm {
+            name    "remeshtarget"
+            label   "Remesh Target Type"
+            type    integer
+            default { "0" }
+            menu {
+                "0" "Target Edge Length"
+                "1" "Target Output Polycount"
+                "2" "Ratio of Average Input Edge Length"
+                "3" "Ratio of Input Polycount"
+                "5" "Adaptive Remeshing"
+            }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "targetedgetemp"
+            label   "Target Edge Length"
+            type    float
+            default { "0.3" }
+            hidewhen "{ remeshtarget != 0 }"
+            range   { 5e-05! 0.5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "edgemult"
+            label   "Edge Length Ratio"
+            type    float
+            default { "1" }
+            hidewhen "{ remeshtarget != 2 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "targetpolycount"
+            label   "Target Polycount"
+            type    integer
+            default { "50000" }
+            hidewhen "{ remeshtarget != 1 }"
+            range   { 0! 2e+06 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "polymult"
+            label   "Polycount Ratio"
+            type    float
+            default { "1" }
+            hidewhen "{ remeshtarget != 3 }"
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_adaptive"
+            label   "Adaptive"
+            hidewhen "{ remeshtarget != 4 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "targetlengthmin"
+                label   "Target Edge Length Min"
+                type    float
+                default { "0.1" }
+                range   { 0.001! 0.5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "targetlengthmax"
+                label   "Target Edge Length Max"
+                type    float
+                default { "1" }
+                range   { 0.001! 0.5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "gradation"
+                label   "Gradation"
+                type    float
+                default { "1" }
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "remeshiterations"
+            label   "Remesh Iterations"
+            type    integer
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "smoothing"
+            label   "Smoothing"
+            type    float
+            default { "0" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_post"
+        label   "Post-processing"
+
+        parm {
+            name    "remeshseams"
+            label   "Remesh Seams"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "fusepieces"
+            label   "Fuse Remaining Seams"
+            type    toggle
+            default { "1" }
+            disablewhen "{ remeshseams == 1 remeshtargettemp == 2 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "recomputenormals"
+            label   "Recompute Normals"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

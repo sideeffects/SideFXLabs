@@ -1,0 +1,523 @@
+# Dialog script for labs::spectral_feature_extract::1.0 automatically generated
+
+{
+    name	labs::spectral_feature_extract::1.0
+    script	labs::spectral_feature_extract::1.0
+    label	"Labs Spectral Feature Extract"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Polygons with Point Attributes"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Geometry with Extracted Spectrum"
+    outputlabel	2	"Higher-Frequency Geometry"
+    outputlabel	3	"Lower-Frequency Geometry"
+    outputlabel	4	"Baseline Frequency Geometry"
+
+    parm {
+        name    "inattrib"
+        label   "Input Attribute"
+        type    string
+        joinnext
+        default { "P" }
+        menureplace {
+            [ "r = []" ]
+            [ "node = kwargs['node']" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "" ]
+            [ "    if geo:" ]
+            [ "    " ]
+            [ "        if node.parm(\"intype\").evalAsInt() == 0:" ]
+            [ "    " ]
+            [ "            for a in geo.pointAttribs():" ]
+            [ "                if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+            [ "                    r.extend([a.name(), a.name()])" ]
+            [ "    " ]
+            [ "        else:" ]
+            [ "    " ]
+            [ "            for a in geo.pointAttribs():" ]
+            [ "                if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+            [ "                    r.extend([a.name(), a.name()])" ]
+            [ "                " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "intype"
+        label   "Input Type"
+        type    ordinal
+        nolabel
+        default { "1" }
+        menu {
+            "0" "Float"
+            "1" "Vector"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_vec"
+        label   "Vector Input"
+        hidewhen "{ intype == 0 }"
+        grouptag { "sidefx::look" "blank" }
+
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "vecmode"
+            label   "Extract"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "1D Frequencies in Projection Directions"
+                "1" "3D Frequencies"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "projattrib"
+            label   "Projection Direction"
+            type    string
+            default { "smooth_normal" }
+            hidewhen "{ vecmode == 1 }"
+            menureplace {
+                [ "r = []" ]
+                [ "node = kwargs['node']" ]
+                [ "inputs = node.inputs()" ]
+                [ "" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "    " ]
+                [ "    if geo:" ]
+                [ "    " ]
+                [ "        for a in geo.pointAttribs():" ]
+                [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+                [ "                r.extend([a.name(), a.name()])" ]
+                [ "    " ]
+                [ "return r" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+    }
+
+    parm {
+        name    "outattrib_f"
+        label   "Output Float Attribute"
+        type    string
+        default { "extracted_float" }
+        hidewhen "{ intype > 0 vecmode == 1 }"
+        menureplace {
+            [ "r = []" ]
+            [ "node = kwargs['node']" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    " ]
+            [ "    if geo:" ]
+            [ "    " ]
+            [ "        for a in geo.pointAttribs():" ]
+            [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "    " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "outattrib_v"
+        label   "Output Vector Attribute"
+        type    string
+        default { "extracted_vec" }
+        hidewhen "{ intype == 0 } { vecmode == 0 }"
+        menureplace {
+            [ "r = []" ]
+            [ "node = kwargs['node']" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    " ]
+            [ "    if geo:" ]
+            [ "    " ]
+            [ "        for a in geo.pointAttribs():" ]
+            [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "    " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm4"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    groupsimple {
+        name    "fd_extract"
+        label   "Frequency Spectrum Extraction"
+
+        parm {
+            name    "sepparm"
+            label   "Spacer"
+            type    separator
+            invisible
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Diffusion (PDE)"
+                "1" "Smooth"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_diffusion"
+            label   "Diffusion PDE"
+            hidewhen "{ method == 1 }"
+            grouptag { "sidefx::look" "blank" }
+
+            group {
+                name    "fd_time"
+                label   "Diffusion Times"
+
+                parm {
+                    name    "time_high"
+                    label   "Higher-End Time"
+                    type    float
+                    default { "0" }
+                    range   { 0! 200 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "time_low"
+                    label   "Lower-End Time"
+                    type    float
+                    default { "200" }
+                    range   { 0! 200 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            group {
+                name    "fd_time_1"
+                label   "Diffusion Speed Attributes"
+                tabbreak
+
+                parm {
+                    name    "speedattrib_high"
+                    label   "Higher-End Attribute"
+                    type    string
+                    default { "" }
+                    menureplace {
+                        [ "r = []" ]
+                        [ "node = kwargs['node']" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "" ]
+                        [ "if inputs and inputs[0]:" ]
+                        [ "" ]
+                        [ "    geo = inputs[0].geometry()" ]
+                        [ "    " ]
+                        [ "    if geo:" ]
+                        [ "    " ]
+                        [ "        for a in geo.pointAttribs():" ]
+                        [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "    " ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "speedattrib_low"
+                    label   "Lower-End Attribute"
+                    type    string
+                    default { "" }
+                    menureplace {
+                        [ "r = []" ]
+                        [ "node = kwargs['node']" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "" ]
+                        [ "if inputs and inputs[0]:" ]
+                        [ "" ]
+                        [ "    geo = inputs[0].geometry()" ]
+                        [ "    " ]
+                        [ "    if geo:" ]
+                        [ "    " ]
+                        [ "        for a in geo.pointAttribs():" ]
+                        [ "            if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "    " ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fd_smooth"
+            label   "Smooth"
+            hidewhen "{ method == 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            group {
+                name    "fd_strength"
+                label   "Smooth Strengths"
+
+                parm {
+                    name    "strength_high"
+                    label   "Higher-End Strength"
+                    type    float
+                    default { "0" }
+                    range   { 0! 200 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "strength_low"
+                    label   "Lower-End Strength"
+                    type    float
+                    default { "200" }
+                    range   { 0! 200 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            group {
+                name    "fd_strength_1"
+                label   "Smooth Filter Qualities"
+
+                parm {
+                    name    "filter_high"
+                    label   "Higher-End Filter"
+                    type    integer
+                    default { "2" }
+                    range   { 1! 5! }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "filter_low"
+                    label   "Lower-End Filter"
+                    type    integer
+                    default { "1" }
+                    range   { 1! 5! }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            group {
+                name    "fd_strength_2"
+                label   "Smooth Models"
+                tabbreak
+
+                parm {
+                    name    "model_high"
+                    label   "Higher-End Model"
+                    type    ordinal
+                    default { "0" }
+                    menu {
+                        "0" "Uniform"
+                        "1" "Scale-Dominant"
+                        "2" "Curvature-Dominant"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "model_low"
+                    label   "Lower-End Model"
+                    type    ordinal
+                    default { "0" }
+                    menu {
+                        "0" "Uniform"
+                        "1" "Scale-Dominant"
+                        "2" "Curvature-Dominant"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupcollapsible {
+            name    "fd_advanced"
+            label   "Advanced"
+
+            parm {
+                name    "time_scale"
+                label   "Time Scale"
+                type    float
+                default { "0.0001" }
+                hidewhen "{ method == 1 }"
+                range   { 0! 0.0005 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "strength_scale"
+                label   "Strength Scale"
+                type    float
+                default { "1" }
+                hidewhen "{ method == 0 }"
+                range   { 0! 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "invert"
+                label   "Invert Extraction Direction"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "fd_boundary"
+            label   "Constrained Points"
+
+            parm {
+                name    "constrboundary"
+                label   "Constrain Boundary Points"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "boundary_high"
+                label   "Higher-End Points"
+                type    string
+                default { "" }
+                menutoggle {
+                    [ "kwargs['node'].generateInputGroupMenu(0)" ]
+                    language python
+                }
+                parmtag { "script_action" "import soputils\n\nkwargs['geometrytype'] = hou.geometryType.Points\n    \nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "boundary_low"
+                label   "Lower-End Points"
+                type    string
+                default { "" }
+                menutoggle {
+                    [ "kwargs['node'].generateInputGroupMenu(0)" ]
+                    language python
+                }
+                parmtag { "script_action" "import soputils\n\nkwargs['geometrytype'] = hou.geometryType.Points\n    \nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+                parmtag { "script_action_icon" "BUTTONS_reselect" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "fd_vis"
+            label   "Visualization"
+
+            parm {
+                name    "recomputenorm"
+                label   "Recompute Output Normals"
+                type    toggle
+                default { "1" }
+                disablewhen "{ intype == 0 } { inattrib != P }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vis"
+                label   "Visualize Extracted Spectrum"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "fd_viscontrol"
+                label   "Visualization Controls"
+                hidewhen "{ vis == 0 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "sepparm5"
+                    label   "Separator"
+                    type    separator
+                    default { "" }
+                }
+                parm {
+                    name    "visramp_float"
+                    label   "Float Color Gradient"
+                    type    ramp_rgb
+                    default { "5" }
+                    hidewhen "{ intype == 1 vecmode == 1 }"
+                    range   { 1! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "parmvop" "1" }
+                    parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+                    parmtag { "rampbasisdefault" "linear" }
+                    parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0.20000000298023224 0 1 ) 1interp ( linear ) 2pos ( 0.25 ) 2c ( 0 0.85000002384185791 1 ) 2interp ( linear ) 3pos ( 0.5 ) 3c ( 0 1 0.10000000149011612 ) 3interp ( linear ) 4pos ( 0.75 ) 4c ( 0.94999998807907104 1 0 ) 4interp ( linear ) 5pos ( 1 ) 5c ( 1 0 0 ) 5interp ( linear )" }
+                    parmtag { "rampcolortype" "rgb" }
+                    parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+                    parmtag { "rampshowcontrolsdefault" "0" }
+                    parmtag { "rampvalues_var" "vecramp_the_key_values" }
+                }
+                parm {
+                    name    "vecvismode"
+                    label   "Vector Color Gradient"
+                    type    ordinal
+                    default { "0" }
+                    hidewhen "{ intype == 0 } { vecmode == 0 }"
+                    menu {
+                        "0" "Scaled Original Vector Components"
+                        "1" "Remapped Vector Components"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "veccdscale"
+                    label   "Visualized Vector Scale"
+                    type    float
+                    default { "100" }
+                    hidewhen "{ intype == 0 } { vecmode == 0 } { vecvismode == 1 }"
+                    range   { 0! 500 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+    }
+
+}

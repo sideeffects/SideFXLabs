@@ -1,0 +1,116 @@
+# Dialog script for labs::cluster_refine::1.0 automatically generated
+
+{
+    name	labs::cluster_refine::1.0
+    script	labs::cluster_refine::1.0
+    label	"Labs Cluster Refine"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Points or Primitives with Integer Cluster Attribute"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "kwargs['node'].generateInputGroupMenu(0)" ]
+            language python
+        }
+        range   { 0 1 }
+        parmtag { "script_action" "import soputils\n\nif kwargs['node'].parm(\"clustertype\").evalAsInt() == 0:\n    kwargs['geometrytype'] = hou.geometryType.Primitives\nelse:\n    kwargs['geometrytype'] = hou.geometryType.Points\n    \nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "clustertype"
+        label   "Cluster Type"
+        type    ordinal
+        invisible
+        default { "0" }
+        menu {
+            "0" "Connected Polygons"
+            "1" "Connected Points"
+            "2" "Unconnected Points"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "clusterattrib"
+        label   "Cluster Attribute"
+        type    string
+        default { "cluster" }
+        menutoggle {
+            [ "r = []" ]
+            [ "node = kwargs['node']" ]
+            [ "inputs = node.inputs()" ]
+            [ "" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    " ]
+            [ "    if geo:" ]
+            [ "    " ]
+            [ "        if node.evalParm('clustertype') == 0:" ]
+            [ "            attrs = geo.primAttribs()" ]
+            [ "        else:" ]
+            [ "            attrs = geo.pointAttribs()" ]
+            [ "            " ]
+            [ "        for a in attrs:" ]
+            [ "            if a.dataType() == hou.attribData.Int and not a.isArrayType() and a.size() == 1:" ]
+            [ "                r.extend([a.name(), a.name()])" ]
+            [ "                " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "depth"
+        label   "Search Depth"
+        type    ordinal
+        default { "1" }
+        menu {
+            "0" "Immediate Neighbours"
+            "1" "Extended Neighbours"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "extweight"
+        label   "Extended Influence"
+        type    float
+        default { "10" }
+        hidewhen "{ depth == 0 }"
+        range   { 0! 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "fd_advanced"
+        label   "Advanced"
+
+        parm {
+            name    "iterations"
+            label   "Iterations"
+            type    integer
+            default { "3" }
+            range   { 0! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "edgelen"
+            label   "Scale Influence by Edge Length"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

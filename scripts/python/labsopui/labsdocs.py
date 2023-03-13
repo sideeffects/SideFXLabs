@@ -17,6 +17,7 @@ dirsubs = { "chop":"CHOP",
             "vex": "VEX",
             "vop": "VOP",
             "top": "TOP" }
+
 catsubs = { "chop":"Chop", 
             "cop2":"Cop2", 
             "dop": "Dop",
@@ -74,7 +75,6 @@ def writeTemplates(templates, indent):
                 for i in range(len(temp.menuLabels())):
                     sys.stdout.write(prefix + prefix + temp.menuLabels()[i] 
                                      + ":\n"+prefix + prefix+ prefix+"\n")
-
                 
 def create_node_help(nodetypename, context, directory):
 
@@ -102,3 +102,24 @@ def create_node_help(nodetypename, context, directory):
     writeFooter()
 
     sys.stdout.close()
+
+
+def create_node_help_auto(node):
+
+    if node:
+
+        node_type_name = node.type().name()
+
+        category_name = node.type().category().name()
+        node_context = 'sop'  # Default value
+
+        for context, name in catsubs.items():
+            if name == category_name:
+                node_context = context
+                break
+    
+        node_directory = '$SIDEFXLABS/help/nodes/{0}/'.format(node_context)
+
+        create_node_help(node_type_name, node_context, node_directory)
+
+    return
