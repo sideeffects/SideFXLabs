@@ -1,0 +1,19 @@
+import labutils
+import os
+
+def save_html_locally():
+    ascii_file_map = {
+        "mapbox_map.html":os.environ["HOUDINI_USER_PREF_DIR"] + "/SideFXLabs/misc/mapbox/mapbox_map.html"
+    }
+
+    definition = kwargs['node'].type().definition()
+    sections = definition.sections() 
+
+    for ascii_file in ascii_file_map.keys():
+        file_path = ascii_file_map[ascii_file]
+        dirname = os.path.dirname(file_path)
+        if not os.path.exists(dirname):
+            os.makedirs(dirname)
+        labutils.extract_section_file(sections[ascii_file], file_path, "w")
+            
+save_html_locally()
