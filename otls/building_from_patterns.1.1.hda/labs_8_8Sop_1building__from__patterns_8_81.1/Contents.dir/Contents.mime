@@ -32,7 +32,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.19682 0.821883
+position -3.14059 0.0761614
 connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
@@ -4887,7 +4887,7 @@ int tilingqeueindex[] = i[]@repeatmodules_index;
 
 // Fail-safe
 int count = 0;
-int count_limit = 100000;
+int count_limit = 1000;
 
 
 while (surfaceleft > 0 && count < count_limit) {
@@ -4951,7 +4951,8 @@ while (surfaceleft > 0 && count < count_limit) {
 
 if (count == count_limit)
 {
-    error(\"Pattern expansion reached iteration limit of %i.\", count_limit);
+    error(\"Pattern expansion reached the iteration limit of %i. \\
+          Check for pattern syntax errors or invalid names.\", count_limit);
     return;
 }
 
@@ -7771,17 +7772,153 @@ snippet	[ 0	locks=0 ]	(	"string GetRandomModule(string input; float seed)
     return _variations[sample_discrete(_variationsweights, rand(seed))];
 }
 
-// Converts non-standard non-repeatable module syntax
-// from, e.g, [A]2[B][B][C], to [A-A-B-B-C]
-string standardize_non_repeatable(const string pattern)
+
+// Removes characters that should be ignored, including:
+// anything after > and before the next < or [,
+// anything non-digits after ] and before the next < or [
+string remove_ignored(const string pattern)
 {
     string out_pattern = \"\";
+    string pattern_copy = pattern;
+    int pattern_length = len(pattern_copy);
+
+    if (pattern_length < 1) return \"\";
+
+    int brackets_are_open = 0;
+    string last_tracked_bracket = \"\\\"\\\"\";
+
+    // Removes characters after > or ] that should be ignored
+    for (int i = 0; i < pattern_length; i ++)
+    {
+        string char = pattern_copy[i];
+
+        if (char == \"<\")
+        {
+            if (brackets_are_open == 0)
+            {
+                brackets_are_open = 1;
+                out_pattern += \"<\";
+                last_tracked_bracket = \"<\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and < (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (char == \"[\")
+        {
+            if (brackets_are_open == 0)
+            {
+                brackets_are_open = 1;
+                out_pattern += \"[\";
+                last_tracked_bracket = \"[\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and [ (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (char == \">\")
+        {
+            if (brackets_are_open == 1 && last_tracked_bracket == \"<\")
+            {
+                brackets_are_open = 0;
+                out_pattern += \">\";
+                last_tracked_bracket = \">\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and > (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (char == \"]\")
+        {
+            if (brackets_are_open == 1 && last_tracked_bracket == \"[\")
+            {
+                brackets_are_open = 0;
+                out_pattern += \"]\";
+                last_tracked_bracket = \"]\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and ] (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (brackets_are_open == 1)
+        {
+            out_pattern += char;
+        }
+        else if (brackets_are_open == 0)
+        {
+            if (isdigit(char))
+                if (last_tracked_bracket == \"]\")
+                    out_pattern += char;
+        }
+    }
+
+    // Checks for unclosed brackets at the end
+    if (last_tracked_bracket == \"<\")
+    {
+        error(\"\\nMissing a closing bracket for < at the end of the pattern %s.\", pattern);
+        return \"\";
+    }
+    else if (last_tracked_bracket == \"[\")
+    {
+        error(\"\\nMissing a closing bracket for [ at the end of the pattern %s.\", pattern);
+        return \"\";
+    }
+
+    // Removes empty spaces
+    out_pattern = replace(out_pattern, \" \", \"\");
+
+    // Removes correctly paired but empty brackets
+    for (int i = 0; i < 3; i ++)
+    {
+        out_pattern = replace(out_pattern, \"<>\", \"\");
+        out_pattern = replace(out_pattern, \"[]\", \"\");
+    }
+
+    return out_pattern;
+}
+
+
+// Converts and warns about non-standard fill sections,
+// e.g., from <A><B><C> to <A-B-C>.
+string standardize_fill(const string pattern)
+{
+    string out_pattern = pattern;
+
+    if (find(out_pattern, \"><\") >= 0)
+    {
+        out_pattern = replace(out_pattern, \"><\", \"-\");
+        warning(\"\\nAvoid the <S1><S2> syntax in the pattern %s. \\
+                 The Fill modules enclosed in < > are auto-repeatable sections that will fill \\
+                 up the available space. When two such sections are next to each other, \\
+                 the pattern expansion becomes ambiguous. If not manually corrected, \\
+                 <S1><S2> will be implicitly converted to <S1-S2>.\", pattern);
+    }
+
+    return out_pattern;
+}
+
+
+// Converts non-standard rigid sections,
+// e.g, from [A]2[B][B][C] to [A-A-B-B-C]
+string standardize_rigid(const string pattern)
+{
+    string out_pattern = \"\";
+    int recording = 0;
     string recorded_section = \"\";
-    int recording;
 
     string repeat_num_str = \"\";
     int repeat_num;
     int pattern_length = len(pattern);
+
+    string last_tracked_bracket = \"\";
 
     for (int i = 0; i < pattern_length; i ++)
     {
@@ -7790,18 +7927,20 @@ string standardize_non_repeatable(const string pattern)
         if (char == \"[\")
         {
             recording = 1;
-            recorded_section = char;  // \"[\" triggers a reset
-            out_pattern += char;
+            recorded_section = \"[\";  // \"[\" triggers a reset
+            out_pattern += \"[\";
+            last_tracked_bracket = \"[\";
         }
         else if (char == \"]\")
         {
-            recorded_section += char;
             recording = 0;
-            out_pattern += char;
+            recorded_section += \"]\";
+            out_pattern += \"]\";
+            last_tracked_bracket = \"]\";
         }
-        else if (isdigit(char))
+        else if (isdigit(char) && last_tracked_bracket == \"]\")
         {
-            // If a digit is detected after a non-digit,
+            // If a digit is detected after ],
             // the index will keep advancing and all
             // consecutive digits will be processed at once
             // to get the non-repeatable section multiplier.
@@ -7826,15 +7965,17 @@ string standardize_non_repeatable(const string pattern)
             repeat_num = atoi(repeat_num_str);
             i --;  // The outer for-loop will increment the index
 
-            // The currently recorded non-repeatable section
-            // will then be repeated by that number of times.
+            // The currently recorded rigid section will
+            // then be repeated by that number of times.
             for (int n = 1; n < repeat_num; n ++)
                 out_pattern += recorded_section;
         }
         else
         {
+            // Not [, ], or digit that follows ]:
             recorded_section += recording ? char : \"\";
             out_pattern += char;
+            if (char == \"<\" || char == \">\") last_tracked_bracket = char;
         }
     }
 
@@ -7869,15 +8010,14 @@ if (chi(\"orientation\") == 0)
 
 // Standardizes the pattern
 
-pattern = standardize_non_repeatable(pattern);
+string pattern_orig = pattern;
+pattern = remove_ignored(pattern);
+pattern = standardize_fill(pattern);
 
-if (find(pattern, \"><\") >= 0)
-{
-    pattern = replace(pattern, \"><\", \"-\");
-    warning(\"Avoid <A><B>. When two repeatable sections are pushed up against each other, \\
-             the pattern expansion becomes ambiguous. As a fallback, <A><B> will be \\
-             auto-corrected internally to <A-B>.\");
-}
+if (len(replace(pattern_orig, \" \", \"\")) != len(pattern) && len(pattern) > 0)
+    warning(\"\\nAuto-corrected the pattern %s to %s.\", pattern_orig, pattern);
+
+pattern = standardize_rigid(pattern);
 
 
 // Processes pattern
@@ -7918,9 +8058,9 @@ for (int i = 0; i < len(pattern); i ++)
     prevmodule = _token;
 }
 
-if (angle_bracket_count < 2)
+if (angle_bracket_count < 2 && len(pattern) > 0)
 {
-    error(\"The pattern must contain repeatable modules enclosed in <>.\");
+    error(\"\\nThe pattern must contain Fill modules enclosed in < >.\");
     return;
 }
 
@@ -8831,7 +8971,7 @@ int tilingqeueindex[] = i[]@repeatmodules_index;
 
 // Fail-safe
 int count = 0;
-int count_limit = 100000;
+int count_limit = 1000;
 
 while (surfaceleft > 0 && count < count_limit) {
 
@@ -8894,7 +9034,8 @@ while (surfaceleft > 0 && count < count_limit) {
 
 if (count == count_limit)
 {
-    error(\"Pattern expansion reached iteration limit of %i.\", count_limit);
+    error(\"Pattern expansion reached the iteration limit of %i. \\
+          Check for pattern syntax errors or invalid names.\", count_limit);
     return;
 }
 
@@ -11212,17 +11353,153 @@ snippet	[ 0	locks=0 ]	(	"string GetRandomModule(string input; float seed)
     return _variations[sample_discrete(_variationsweights, rand(seed))];
 }
 
-// Converts non-standard non-repeatable module syntax
-// from, e.g, [A]2[B][B][C], to [A-A-B-B-C]
-string standardize_non_repeatable(const string pattern)
+
+// Removes characters that should be ignored, including:
+// anything after > and before the next < or [,
+// anything non-digits after ] and before the next < or [
+string remove_ignored(const string pattern)
 {
     string out_pattern = \"\";
+    string pattern_copy = pattern;
+    int pattern_length = len(pattern_copy);
+
+    if (pattern_length < 1) return \"\";
+
+    int brackets_are_open = 0;
+    string last_tracked_bracket = \"\\\"\\\"\";
+
+    // Removes characters after > or ] that should be ignored
+    for (int i = 0; i < pattern_length; i ++)
+    {
+        string char = pattern_copy[i];
+
+        if (char == \"<\")
+        {
+            if (brackets_are_open == 0)
+            {
+                brackets_are_open = 1;
+                out_pattern += \"<\";
+                last_tracked_bracket = \"<\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and < (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (char == \"[\")
+        {
+            if (brackets_are_open == 0)
+            {
+                brackets_are_open = 1;
+                out_pattern += \"[\";
+                last_tracked_bracket = \"[\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and [ (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (char == \">\")
+        {
+            if (brackets_are_open == 1 && last_tracked_bracket == \"<\")
+            {
+                brackets_are_open = 0;
+                out_pattern += \">\";
+                last_tracked_bracket = \">\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and > (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (char == \"]\")
+        {
+            if (brackets_are_open == 1 && last_tracked_bracket == \"[\")
+            {
+                brackets_are_open = 0;
+                out_pattern += \"]\";
+                last_tracked_bracket = \"]\";
+            }
+            else
+            {
+                error(\"\\nBracket mismatch between %s and ] (index %i) in the pattern %s.\", last_tracked_bracket, i, pattern);
+                return \"\";
+            }
+        }
+        else if (brackets_are_open == 1)
+        {
+            out_pattern += char;
+        }
+        else if (brackets_are_open == 0)
+        {
+            if (isdigit(char))
+                if (last_tracked_bracket == \"]\")
+                    out_pattern += char;
+        }
+    }
+
+    // Checks for unclosed brackets at the end
+    if (last_tracked_bracket == \"<\")
+    {
+        error(\"\\nMissing a closing bracket for < at the end of the pattern %s.\", pattern);
+        return \"\";
+    }
+    else if (last_tracked_bracket == \"[\")
+    {
+        error(\"\\nMissing a closing bracket for [ at the end of the pattern %s.\", pattern);
+        return \"\";
+    }
+
+    // Removes empty spaces
+    out_pattern = replace(out_pattern, \" \", \"\");
+
+    // Removes correctly paired but empty brackets
+    for (int i = 0; i < 3; i ++)
+    {
+        out_pattern = replace(out_pattern, \"<>\", \"\");
+        out_pattern = replace(out_pattern, \"[]\", \"\");
+    }
+
+    return out_pattern;
+}
+
+
+// Converts and warns about non-standard fill sections,
+// e.g., from <A><B><C> to <A-B-C>.
+string standardize_fill(const string pattern)
+{
+    string out_pattern = pattern;
+
+    if (find(out_pattern, \"><\") >= 0)
+    {
+        out_pattern = replace(out_pattern, \"><\", \"-\");
+        warning(\"\\nAvoid the <S1><S2> syntax in the pattern %s. \\
+                 The Fill modules enclosed in < > are auto-repeatable sections that will fill \\
+                 up the available space. When two such sections are next to each other, \\
+                 the pattern expansion becomes ambiguous. If not manually corrected, \\
+                 <S1><S2> will be implicitly converted to <S1-S2>.\", pattern);
+    }
+
+    return out_pattern;
+}
+
+
+// Converts non-standard rigid sections,
+// e.g, from [A]2[B][B][C] to [A-A-B-B-C]
+string standardize_rigid(const string pattern)
+{
+    string out_pattern = \"\";
+    int recording = 0;
     string recorded_section = \"\";
-    int recording;
 
     string repeat_num_str = \"\";
     int repeat_num;
     int pattern_length = len(pattern);
+
+    string last_tracked_bracket = \"\";
 
     for (int i = 0; i < pattern_length; i ++)
     {
@@ -11231,18 +11508,20 @@ string standardize_non_repeatable(const string pattern)
         if (char == \"[\")
         {
             recording = 1;
-            recorded_section = char;  // \"[\" triggers a reset
-            out_pattern += char;
+            recorded_section = \"[\";  // \"[\" triggers a reset
+            out_pattern += \"[\";
+            last_tracked_bracket = \"[\";
         }
         else if (char == \"]\")
         {
-            recorded_section += char;
             recording = 0;
-            out_pattern += char;
+            recorded_section += \"]\";
+            out_pattern += \"]\";
+            last_tracked_bracket = \"]\";
         }
-        else if (isdigit(char))
+        else if (isdigit(char) && last_tracked_bracket == \"]\")
         {
-            // If a digit is detected after a non-digit,
+            // If a digit is detected after ],
             // the index will keep advancing and all
             // consecutive digits will be processed at once
             // to get the non-repeatable section multiplier.
@@ -11267,15 +11546,17 @@ string standardize_non_repeatable(const string pattern)
             repeat_num = atoi(repeat_num_str);
             i --;  // The outer for-loop will increment the index
 
-            // The currently recorded non-repeatable section
-            // will then be repeated by that number of times.
+            // The currently recorded rigid section will
+            // then be repeated by that number of times.
             for (int n = 1; n < repeat_num; n ++)
                 out_pattern += recorded_section;
         }
         else
         {
+            // Not [, ], or digit that follows ]:
             recorded_section += recording ? char : \"\";
             out_pattern += char;
+            if (char == \"<\" || char == \">\") last_tracked_bracket = char;
         }
     }
 
@@ -11310,15 +11591,14 @@ if (chi(\"orientation\") == 0)
 
 // Standardizes the pattern
 
-pattern = standardize_non_repeatable(pattern);
+string pattern_orig = pattern;
+pattern = remove_ignored(pattern);
+pattern = standardize_fill(pattern);
 
-if (find(pattern, \"><\") >= 0)
-{
-    pattern = replace(pattern, \"><\", \"-\");
-    warning(\"Avoid <A><B>. When two repeatable sections are pushed up against each other, \\
-             the pattern expansion becomes ambiguous. As a fallback, <A><B> will be \\
-             auto-corrected internally to <A-B>.\");
-}
+if (len(replace(pattern_orig, \" \", \"\")) != len(pattern) && len(pattern) > 0)
+    warning(\"\\nAuto-corrected the pattern %s to %s.\", pattern_orig, pattern);
+
+pattern = standardize_rigid(pattern);
 
 
 // Processes pattern
@@ -11359,9 +11639,9 @@ for (int i = 0; i < len(pattern); i ++)
     prevmodule = _token;
 }
 
-if (angle_bracket_count < 2)
+if (angle_bracket_count < 2 && len(pattern) > 0)
 {
-    error(\"The pattern must contain repeatable modules enclosed in <>.\");
+    error(\"\\nThe pattern must contain Fill modules enclosed in < >.\");
     return;
 }
 
@@ -19337,7 +19617,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	0 ] 	)
 spare_input0	[ 0	locks=0 ]	(	../Check_input_data	)
 }
 
