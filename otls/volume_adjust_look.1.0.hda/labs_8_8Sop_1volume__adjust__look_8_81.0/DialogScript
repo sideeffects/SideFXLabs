@@ -24,7 +24,7 @@
             "1" "Visualize Normals"
             "2" "Visualize Motion Vectors"
         }
-        parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+        parmtag { "script_callback" "" }
         parmtag { "script_callback_language" "python" }
     }
     groupsimple {
@@ -91,7 +91,7 @@
             default { "1" }
             disablewhen "{ mode != 0 }"
             range   { 0 5 }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -121,6 +121,7 @@
             default { "1" "1" "1" }
             disablewhen "{ mode == 1 }"
             range   { 0 5 }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -130,7 +131,7 @@
             default { "1" }
             disablewhen "{ mode == 1 }"
             range   { 0 5 }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -139,36 +140,50 @@
             type    toggle
             default { "0" }
             disablewhen "{ mode == 1 }"
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
-        parm {
-            name    "emitfield"
-            label   "Intensity Volume"
-            type    string
-            default { "flame" }
+        groupsimple {
+            name    "fd_emitvol"
+            label   "fd_emitvol"
             disablewhen "{ mode == 1 }"
             hidewhen "{ adjustemitvol == 0 }"
-            parmtag { "script_callback_language" "python" }
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "emitfield"
+                label   "Intensity Volume"
+                type    string
+                default { [ "details(0, \"volvis_emitfield\")" hscript-expr ] }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "lb_emitvolhelp"
+                label   "lb_emitvolhelp"
+                type    label
+                default { "Intensity Volume is currently set to: \"`chs(\"emitfield\")`\". \nAdjust Source Range based on the min/max values of Intensity Volume." }
+                parmtag { "sidefx::look" "block" }
+            }
+            parm {
+                name    "emitrange"
+                label   "Source Range"
+                type    float
+                size    2
+                default { "detail(0, \"volvis_emitrange\", 0)" "detail(0, \"volvis_emitrange\", 1)" }
+                range   { 0 10 }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
         }
-        parm {
-            name    "emitrange"
-            label   "Source Range"
-            type    float
-            size    2
-            default { "detail(0, \"volvis_emitrange\", 0)" "detail(0, \"volvis_emitrange\", 1)" }
-            disablewhen "{ mode == 1 }"
-            hidewhen "{ adjustemitvol == 0 }"
-            range   { 0 10 }
-            parmtag { "script_callback_language" "python" }
-        }
+
         parm {
             name    "adjustao"
             label   "Adjust Viewport Volume Quality"
             type    toggle
             default { "0" }
             disablewhen "{ mode != 0 }"
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -179,7 +194,7 @@
             disablewhen "{ mode != 0 }"
             hidewhen "{ adjustao == 0 }"
             range   { 0.1! 1! }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -190,7 +205,7 @@
             disablewhen "{ mode != 0 }"
             hidewhen "{ adjustao == 0 }"
             range   { 1! 10! }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -205,14 +220,14 @@
 
     groupcollapsible {
         name    "fd_vols"
-        label   "Volume Names"
+        label   "Volume Bindings"
 
         parm {
             name    "vol_density"
             label   "Density Volume"
             type    string
             default { "density" }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -220,7 +235,7 @@
             label   "Diffuse Color Volume"
             type    string
             default { "Cd" }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -228,7 +243,7 @@
             label   "Scatter Volume"
             type    string
             default { "scatter" }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -236,7 +251,7 @@
             label   "Emission Color Volume"
             type    string
             default { "Ce" }
-            parmtag { "script_callback" "hou.phm().forceViewportUpdate(kwargs['node'])" }
+            parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
         }
     }
