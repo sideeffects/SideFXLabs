@@ -217,8 +217,37 @@ def ResetInterface(a_node):
     LoadXML(a_node)
 
 
+def copyPresetsToUserPrefDir(node):
+
+    if node.parm("sPresetDir").unexpandedString() == '$SIDEFXLABS/misc/gaea/':
+        
+        node.parm("sPresetDir").set('$HOUDINI_USER_PREF_DIR/SideFXLabs/misc/gaea/')
+
+        src_dir = hou.text.expandString('$SIDEFXLABS/misc/gaea/')
+        dst_dir = hou.text.expandString('$HOUDINI_USER_PREF_DIR/SideFXLabs/misc/gaea/')
+    
+        if not os.path.exists(dst_dir):
+            os.makedirs(dst_dir)
+
+        tor_files = []
+
+        for file in os.listdir(src_dir):
+            if file.endswith('.tor'):
+                tor_files.append(file)
+
+        import shutil
+        
+        for file_name in tor_files:
+            if not os.path.isfile(dst_dir + file_name):
+
+                shutil.copyfile(src_dir + file_name, dst_dir + file_name)
+
+                if os.path.isfile(dst_dir + file_name):
+                    print ("Preset {0} has been copied to {1}\n".format(file_name, dst_dir))
+
 
 def SetFromPreset(a_node):
+    copyPresetsToUserPrefDir(a_node)
     PresetFile = a_node.parm("sPresetFile").evalAsString()
     a_node.parm("automation_file").set(PresetFile.replace("\\", "/"))
     ResetInterface(a_node)

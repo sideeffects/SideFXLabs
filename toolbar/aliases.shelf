@@ -559,7 +559,7 @@ tree_hierarchy.setName('tree_pivotpainter', True)
 
 # Set Tree Hierarchy's second input to input's second output, if it exists
 input = tree_hierarchy.input(0)
-if len(input.outputConnectors()) > 1:
+if input and len(input.outputConnectors()) > 1:
     tree_hierarchy.setInput(1, input, 1)
 ]]></script>
   </tool>
@@ -593,6 +593,90 @@ import soptoolutils
 node = soptoolutils.genericTool(kwargs, 'polydoctor', exact_node_type=False)
 node.setParms({'maxpasses': 1, 'manyedges': 0, 'usemodifiedpts': 0, 'userepairedpoly': 0, 'usevalidpts': 0, 'usevalidpoly': 0, 'pairoverlaps': 1})
 node.setName('remove_overlap_pair1', True)
+]]></script>
+  </tool>
+
+  <tool name="labs::volume_normal" label="Labs Volume Normal" icon="SOP_volumeadjustfog">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Simulation &amp; FX/Pyro</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'labs::volume_adjust_look', exact_node_type=False)
+node.setParms({'mode': 1})
+node.setName('volume_normal1', True)
+]]></script>
+  </tool>
+
+  <tool name="labs::volume_motion_vector" label="Labs Volume Motion Vector" icon="SOP_volumeadjustfog">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Simulation &amp; FX/Pyro</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'labs::volume_adjust_look', exact_node_type=False)
+node.setParms({'mode': 2})
+node.setName('volume_motion_vector1', True)
+]]></script>
+  </tool>
+
+  <tool name="labs::volume_greyscale" label="Labs Volume Greyscale" icon="SOP_volumeadjustfog">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Simulation &amp; FX/Pyro</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'labs::volume_adjust_look', exact_node_type=False)
+node.setParms({'greyscalemode': 1})
+node.setName('volume_greyscale1', True)
+]]></script>
+  </tool>
+
+  <tool name="labs::volume_temperature" label="Labs Volume Temperature" icon="SOP_volumeadjustfog">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Simulation &amp; FX/Pyro</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'labs::volume_adjust_look', exact_node_type=False)
+node.setParms({'greyscalemode': 1, 'adjustemitvol': 1})
+node.parm('emitfield').setExpression('temperature')
+node.parm('emitfield').deleteAllKeyframes()
+node.parm('emitfield').set('temperature')
+node.parm('emitfield').lock(True)
+node.setName('volume_temperature1', True)
+]]></script>
+  </tool>
+
+  <tool name="labs::volume_no_emission" label="Labs Volume No Emission" icon="SOP_volumeadjustfog">
+    <toolMenuContext name="viewer">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolMenuContext name="network">
+      <contextNetType>SOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Simulation &amp; FX/Pyro</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import soptoolutils
+node = soptoolutils.genericTool(kwargs, 'labs::volume_adjust_look', exact_node_type=False)
+node.setParms({'emitscalemul': 0})
+node.setName('volume_no_emission1', True)
 ]]></script>
   </tool>
 

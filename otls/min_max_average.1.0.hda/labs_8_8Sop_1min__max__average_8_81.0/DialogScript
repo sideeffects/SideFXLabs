@@ -1,0 +1,97 @@
+# Dialog script for labs::min_max_average::1.0 automatically generated
+
+{
+    name	labs::min_max_average::1.0
+    script	gamedev::sop_min_max_average
+    label	"Labs Min Max Average"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry with Attributes"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "attribute"
+        label   "Attribute"
+        type    string
+        default { "" }
+    }
+    parm {
+        name    "attribute_type"
+        label   "Attribute Class"
+        type    ordinal
+        default { "0" }
+        menu {
+            "1" "Primitive"
+            "2" "Point"
+            "3" "Vertex"
+        }
+    }
+    parm {
+        name    "attribute_rename"
+        label   "Attribute Rename"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Add Prefix"
+            "1" "Add Suffix"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
+    multiparm {
+        name    "folder0"
+        label    "Number of Analysis"
+        default 1
+
+        parm {
+            name    "method#"
+            label   "Analysis Mode"
+            type    ordinal
+            default { "mean" }
+            menu {
+                "max"       "Maximum"
+                "min"       "Minimum"
+                "mean"      "Average"
+                "mode"      "Mode"
+                "median"    "Median"
+                "sum"       "Sum"
+                "sumsquare" "Sum of Squares"
+                "rms"       "Root Mean Square"
+                "first"     "First Match"
+                "last"      "Last Match"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "prefix#"
+            label   "Prefix"
+            type    string
+            default { "average_" }
+            hidewhen "{ attribute_rename == 1 }"
+        }
+        parm {
+            name    "suffix#"
+            label   "Suffix"
+            type    string
+            default { "_average" }
+            hidewhen "{ attribute_rename == 0 }"
+        }
+        parm {
+            name    "detail_attribute#"
+            label   "Promote to Detail Attribute"
+            type    toggle
+            default { "1" }
+        }
+    }
+
+}
