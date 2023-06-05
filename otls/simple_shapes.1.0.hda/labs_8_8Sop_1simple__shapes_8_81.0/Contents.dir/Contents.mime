@@ -32,12 +32,11 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -6.5 -38.15
-connectornextid 1
+position -0.325694 2.20811
+connectornextid 0
 flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
-0 "output1"
 }
 inputsNamed3
 {
@@ -101,7 +100,7 @@ Content-Type: text/plain
 	autofit := 0;
 	color := "UT_Color RGB 0.306 0.306 0.306 ";
 	comment := "SHAPE GENERATOR";
-	height := 7.7000000000000002;
+	height := 8.6999999999999993;
 	minimized := 0;
 	width := 6;
 	x_position := 2;
@@ -175,7 +174,7 @@ sopflags sopflags =
 comment "HDA Code: ssh"
 position 3.5 -44.15
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on displaycomment on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on displaycomment on
 outputsNamed3
 {
 }
@@ -1170,21 +1169,21 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "roundcorners"
+        name    "round_corners"
         label   "Round Corners"
         type    toggle
         default { "0" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "roundcornersconcave"
+        name    "round_corners_concave"
         label   "Round Concave Corners"
         type    toggle
         default { "0" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "roundcornersconvex"
+        name    "round_corners_convex"
         label   "Round Convex Corners"
         type    toggle
         default { "0" }
@@ -1196,19 +1195,19 @@ Content-Disposition: attachment; filename="hdaroot/separate_corners_groups.chn"
 Content-Type: text/plain
 
 {
-    channel roundcorners {
+    channel round_corners {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../roundcorners\") }
     }
-    channel roundcornersconcave {
+    channel round_corners_concave {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../roundcornersconcave\") }
     }
-    channel roundcornersconvex {
+    channel round_corners_convex {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -1235,21 +1234,18 @@ class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"int shape = chi(\"shape\");
-int roundcorners = chi(\"roundcorners\");
-int roundcornersconcave = chi(\"roundcornersconcave\");
-int roundcornersconvex = chi(\"roundcornersconvex\");
+int round_corners = chi(\"round_corners\");
+int round_corners_concave = chi(\"round_corners_concave\");
+int round_corners_convex = chi(\"round_corners_convex\");
 
-if (roundcorners == 0) {
-    setpointgroup(0, \"_ssh_point_corners\", @ptnum, 0); 
-}
-
-if (roundcornersconcave == 0 && shape == 3) {
-    setpointgroup(0, \"_ssh_point_corners_concave\", @ptnum, 0); 
-}
-
-if (roundcornersconvex == 0 && shape == 3)  {
-    setpointgroup(0, \"_ssh_point_corners_convex\", @ptnum, 0); 
-}"	)
+if (round_corners == 0)
+    @group__ssh_point_corners = 0;
+    
+if (round_corners_concave == 0 && shape == 3)
+    @group__ssh_point_corners_concave = 0;
+    
+if (round_corners_convex == 0 && shape == 3)
+    @group__ssh_point_corners_convex = 0;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -1265,9 +1261,9 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 shape	[ 8	locks=0 ]	(	[ shape	0 ] 	)
-roundcorners	[ 0	locks=0 ]	(	[ roundcorners	0 ] 	)
-roundcornersconcave	[ 0	locks=0 ]	(	[ roundcornersconcave	0 ] 	)
-roundcornersconvex	[ 0	locks=0 ]	(	[ roundcornersconvex	0 ] 	)
+round_corners	[ 0	locks=0 ]	(	[ round_corners	0 ] 	)
+round_corners_concave	[ 0	locks=0 ]	(	[ round_corners_concave	0 ] 	)
+round_corners_convex	[ 0	locks=0 ]	(	[ round_corners_convex	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1302,7 +1298,7 @@ sopflags sopflags =
 comment ""
 position -0.5 -19.15
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload on savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload on savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 1 "output1"
@@ -1337,7 +1333,7 @@ Content-Type: text/plain
       righttype = extend
       default = 0.245
       flags = 0
-      segment { length = 0 value = 0.245 0.245 expr = ch(\"../rounddistance\") }
+      segment { length = 0 value = 0.245 0.245 expr = "fit(ch(\"../rounddistance\"), 0, 1, 0, detail(0, \"_ssh_maxdist1\", 0))" }
     }
     channel divisions {
       lefttype = extend
@@ -1364,7 +1360,7 @@ ignoreflatpoints	[ 0	locks=0 ]	(	"off"	)
 ignoreinlinepoints	[ 0	locks=0 ]	(	"off"	)
 flatangle	[ 0	locks=0 ]	(	2	)
 offsettingsection	[ 0	locks=0 ]	(	0	)
-offset	[ 8	locks=0 ]	(	[ offset	0 ] 	)
+offset	[ 0	locks=0 ]	(	[ offset	0 ] 	)
 useoffsetscale	[ 0	locks=0 ]	(	"unscaled"	)
 pointscaleattr	[ 0	locks=0 ]	(	pscale	)
 sliding	[ 0	locks=0 ]	(	"auto"	)
@@ -1479,7 +1475,7 @@ Content-Type: text/plain
       righttype = extend
       default = 0.245
       flags = 0
-      segment { length = 0 value = 0.245 0.245 expr = ch(\"../rounddistanceconcave\") }
+      segment { length = 0 value = 0.245 0.245 expr = "fit(ch(\"../rounddistanceconcave\"), 0, 1, 0, detail(0, \"_ssh_maxdist2\", 0))" }
     }
     channel divisions {
       lefttype = extend
@@ -1621,7 +1617,7 @@ Content-Type: text/plain
       righttype = extend
       default = 0.245
       flags = 0
-      segment { length = 0 value = 0.245 0.245 expr = ch(\"../rounddistanceconvex\") }
+      segment { length = 0 value = 0.245 0.245 expr = "fit(ch(\"../rounddistanceconvex\"), 0, 1, 0, detail(0, \"_ssh_maxdist2\", 0))" }
     }
     channel divisions {
       lefttype = extend
@@ -1932,7 +1928,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "startype"
+        name    "star_type"
         label   "Star Type"
         type    ordinal
         default { "0" }
@@ -1951,7 +1947,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "useradius"
+        name    "use_radius"
         label   "Set by Radius"
         type    toggle
         default { "0" }
@@ -1990,7 +1986,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "radiusmiddle"
+        name    "radius_middle"
         label   "Middle Radius"
         type    float
         default { "0.75" }
@@ -1998,7 +1994,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "radiusinner"
+        name    "radius_inner"
         label   "Inner Radius"
         type    float
         default { "0.5" }
@@ -2016,7 +2012,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "reversepointorder"
+        name    "reverse_point_order"
         label   "Reverse Point Order"
         type    toggle
         default { "0" }
@@ -2048,7 +2044,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../shape\") }
     }
-    channel startype {
+    channel star_type {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -2060,7 +2056,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../equilateral\") }
     }
-    channel useradius {
+    channel use_radius {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -2073,14 +2069,14 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 value = 1 1 expr = ch(\"../radius\") }
     }
-    channel radiusmiddle {
+    channel radius_middle {
       lefttype = extend
       righttype = extend
       default = 0.75
       flags = 0
       segment { length = 0 value = 0.75 0.75 expr = ch(\"../radiusmiddle\") }
     }
-    channel radiusinner {
+    channel radius_inner {
       lefttype = extend
       righttype = extend
       default = 0.5
@@ -2126,7 +2122,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../translatez\") }
     }
-    channel reversepointorder {
+    channel reverse_point_order {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -2160,19 +2156,19 @@ vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"// Declaration of Variables
 int shape = chi(\"shape\");
-int star_type = chi(\"startype\");
+int star_type = chi(\"star_type\");
 int sides = chi(\"sides\");
 int segments = @numpt / sides;
 int equilateral = chi(\"equilateral\");
-int use_radius = chi(\"useradius\");
+int use_radius = chi(\"use_radius\");
 float radius_main = chf(\"radius\");
-float radius_middle = chf(\"radiusmiddle\");
-float radius_inner = chf(\"radiusinner\");
+float radius_middle = chf(\"radius_middle\");
+float radius_inner = chf(\"radius_inner\");
 float top = chf(\"top\");
 float base = chf(\"base\");
 float height = chf(\"height\");
 float shear = chf(\"shear\");
-int reverse_point_order = chi(\"reversepointorder\");
+int reverse_point_order = chi(\"reverse_point_order\");
 vector translate = chv(\"translate\");
 float angle;
 float pi = 3.14159265359;
@@ -2287,7 +2283,17 @@ else {
 // Construction of Shape
 pos = set(-xpos, 0, -zpos);
 @P = pos;
-@N = normalize(@P + pos);"	)
+@N = normalize(@P + pos);
+
+// Max Bevel Distance Detail Attributes
+float phi = radians(360 / @numpt);
+float threshold = 0.001;
+
+float max_distance1 = sqrt(pow(radius_main, 2) + pow(radius_inner, 2) - 2 * radius_main * radius_inner * cos(phi)) - threshold;
+setdetailattrib(0, \"_ssh_maxdist1\", max_distance1, \"set\");
+
+float max_distance2 = sqrt(pow(radius_middle, 2) + pow(radius_inner, 2) - 2 * radius_middle * radius_inner * cos(phi)) - threshold;
+setdetailattrib(0, \"_ssh_maxdist2\", max_distance2, \"set\");"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -2303,17 +2309,17 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 shape	[ 8	locks=0 ]	(	[ shape	0 ] 	)
-startype	[ 8	locks=0 ]	(	[ startype	0 ] 	)
+star_type	[ 0	locks=0 ]	(	[ star_type	0 ] 	)
 equilateral	[ 8	locks=0 ]	(	[ equilateral	0 ] 	)
-useradius	[ 8	locks=0 ]	(	[ useradius	0 ] 	)
+use_radius	[ 0	locks=0 ]	(	[ use_radius	0 ] 	)
 sides	[ 0	locks=0 ]	(	[ sides	6 ] 	)
 base	[ 0	locks=0 ]	(	[ base	1 ] 	)
 height	[ 0	locks=0 ]	(	[ height	1 ] 	)
 radius	[ 0	locks=0 ]	(	[ radius	1 ] 	)
-radiusmiddle	[ 0	locks=0 ]	(	[ radiusmiddle	0.75 ] 	)
-radiusinner	[ 0	locks=0 ]	(	[ radiusinner	0.5 ] 	)
+radius_middle	[ 0	locks=0 ]	(	[ radius_middle	0.75 ] 	)
+radius_inner	[ 0	locks=0 ]	(	[ radius_inner	0.5 ] 	)
 translate	[ 0	locks=0 ]	(	[ translatex	0 ] 	[ translatey	0 ] 	[ translatez	0 ] 	)
-reversepointorder	[ 8	locks=0 ]	(	[ reversepointorder	0 ] 	)
+reverse_point_order	[ 0	locks=0 ]	(	[ reverse_point_order	0 ] 	)
 top	[ 0	locks=0 ]	(	[ top	0 ] 	)
 shear	[ 0	locks=0 ]	(	[ shear	0 ] 	)
 }
@@ -2357,11 +2363,11 @@ outputsNamed3
 }
 inputsNamed3
 {
-0 	points_generation_shape 0 1 "input1"
+0 	points_generation 0 1 "input1"
 }
 inputs
 {
-0 	points_generation_shape 0 1
+0 	points_generation 0 1
 }
 stat
 {
@@ -2554,7 +2560,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "startype"
+        name    "star_type"
         label   "Star Type"
         type    ordinal
         default { "0" }
@@ -2585,7 +2591,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../shape\") }
     }
-    channel startype {
+    channel star_type {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -2613,7 +2619,7 @@ class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"int shape = chi(\"shape\");
-int startype = chi(\"startype\"); 
+int star_type = chi(\"star_type\"); 
 int sides = chi(\"sides\");
 int segments = @numpt / sides;
 
@@ -2629,12 +2635,12 @@ if (shape < 3) {
 }
 
 else {
-    if (startype == 0) {
+    if (star_type == 0) {
         setpointgroup(0, \"_ssh_point_corners\", (int)(@ptnum * segments), 1);
         setpointgroup(0, \"_ssh_point_corners_concave\", (int)(@ptnum * segments) + 1, 1);
         setpointgroup(0, \"_ssh_point_corners_convex\", @ptnum, 0);
     }
-    else if (startype == 1) {
+    else if (star_type == 1) {
         setpointgroup(0, \"_ssh_point_corners\", (int)(@ptnum * segments), 1);
         setpointgroup(0, \"_ssh_point_corners_concave\", (int)(@ptnum * segments * 0.5) + 1, 1);
         setpointgroup(0, \"_ssh_point_corners_convex\", (int)(@ptnum * segments) + 2, 1);
@@ -2662,7 +2668,7 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 shape	[ 8	locks=0 ]	(	[ shape	0 ] 	)
-startype	[ 8	locks=0 ]	(	[ startype	0 ] 	)
+star_type	[ 0	locks=0 ]	(	[ star_type	0 ] 	)
 sides	[ 0	locks=0 ]	(	[ sides	6 ] 	)
 }
 
@@ -2696,7 +2702,7 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position 3.497 -4.1899
+position 3.497 -3.151
 connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload on savedata off compress on colordefault off exposed on
 outputsNamed3
@@ -2900,7 +2906,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "startype"
+        name    "star_type"
         label   "Star Type"
         type    ordinal
         default { "0" }
@@ -2930,7 +2936,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../shape\") }
     }
-    channel startype {
+    channel star_type {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -2957,34 +2963,32 @@ class	[ 0	locks=0 ]	(	"detail"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"int shape = chi(\"shape\");
-int startype = chi(\"startype\");
+int star_type = chi(\"star_type\");
 int sides = chi(\"sides\");
-int totalpoints;
+int total_points;
 
 if (shape == 0) {
-    totalpoints = 3;
+    total_points = 3;
 }
 
 else if (shape == 1) {
-    totalpoints = 4;
+    total_points = 4;
 }
 
 else if (shape == 2) {
-    totalpoints = sides;
+    total_points = sides;
 }
 
 else {
-    if (startype == 1) {
-        totalpoints = sides * 4;
+    if (star_type == 1) {
+        total_points = sides * 4;
     }
     else {
-        totalpoints = sides * 2;
+        total_points = sides * 2;
     }
 }
 
-for (int i = 0; i < totalpoints; i++) {
-    addpoint(0, 0);
-}"	)
+setdetailattrib(0, \"totalpoints\", total_points, \"set\");"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
@@ -3000,7 +3004,7 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 shape	[ 8	locks=0 ]	(	[ shape	0 ] 	)
-startype	[ 8	locks=0 ]	(	[ startype	0 ] 	)
+star_type	[ 0	locks=0 ]	(	[ star_type	0 ] 	)
 sides	[ 0	locks=0 ]	(	[ sides	0 ] 	)
 }
 
@@ -3409,7 +3413,7 @@ Content-Type: text/plain
     }
 
     parm {
-        name    "startype"
+        name    "star_type"
         label   "Star Type"
         type    ordinal
         default { "0" }
@@ -3426,7 +3430,7 @@ Content-Disposition: attachment; filename="hdaroot/move_square_star_bevels.chn"
 Content-Type: text/plain
 
 {
-    channel startype {
+    channel star_type {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -3446,7 +3450,7 @@ grouptype	[ 0	locks=0 ]	(	"points"	)
 class	[ 0	locks=0 ]	(	"point"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"int startype = chi(\"startype\"); 
+snippet	[ 0	locks=0 ]	(	"int star_type = chi(\"star_type\"); 
 
 @P += @N * f@_ssh_height;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
@@ -3463,7 +3467,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-startype	[ 8	locks=0 ]	(	[ startype	0 ] 	)
+star_type	[ 0	locks=0 ]	(	[ star_type	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -3783,7 +3787,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "startype"
+        name    "star_type"
         label   "Star Type"
         type    ordinal
         default { "0" }
@@ -3802,7 +3806,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "useradius"
+        name    "use_radius"
         label   "Set by Radius"
         type    toggle
         default { "0" }
@@ -3817,7 +3821,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "holesides"
+        name    "hole_sides"
         label   "Hole Sides"
         type    integer
         default { "6" }
@@ -3833,7 +3837,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "radiusmiddle"
+        name    "radius_middle"
         label   "Middle Radius"
         type    float
         default { "0.75" }
@@ -3841,7 +3845,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "radiusinner"
+        name    "radius_inner"
         label   "Inner Radius"
         type    float
         default { "0.5" }
@@ -3859,7 +3863,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "holerelativescale"
+        name    "hole_relative_scale"
         label   "Relative Scale"
         type    float
         default { "0.5" }
@@ -3875,7 +3879,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "holerotate"
+        name    "hole_rotate"
         label   "Rotate"
         type    float
         default { "0" }
@@ -3883,18 +3887,11 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "reversepointorder"
+        name    "reverse_point_order"
         label   "Reverse Point Order"
         type    toggle
         default { "0" }
         parmtag { "script_callback_language" "python" }
-    }
-    parm {
-        name    "use_radius"
-        label   "Use Radius"
-        type    toggle
-        default { "0" }
-        range   { 0 10 }
     }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -3908,7 +3905,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../shape\") }
     }
-    channel startype {
+    channel star_type {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -3919,12 +3916,6 @@ Content-Type: text/plain
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../equilateral\") }
-    }
-    channel useradius {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../useradius\") }
     }
     channel translatex {
       lefttype = extend
@@ -3944,7 +3935,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../translatez\") }
     }
-    channel holerelativescale {
+    channel hole_relative_scale {
       lefttype = extend
       righttype = extend
       default = 0.5
@@ -3958,14 +3949,14 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 value = 1 1 expr = ch(\"../radius\") }
     }
-    channel radiusmiddle {
+    channel radius_middle {
       lefttype = extend
       righttype = extend
       default = 0.75
       flags = 0
       segment { length = 0 value = 0.75 0.75 expr = ch(\"../radiusmiddle\") }
     }
-    channel radiusinner {
+    channel radius_inner {
       lefttype = extend
       righttype = extend
       default = 0.5
@@ -3986,25 +3977,19 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 value = 6 6 expr = ch(\"../sides\") }
     }
-    channel holerotate {
+    channel hole_rotate {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../holerotate\") }
     }
-    channel reversepointorder {
+    channel reverse_point_order {
       lefttype = extend
       righttype = extend
       flags = 0
       segment { length = 0 expr = ch(\"../reversepointorder\") }
     }
-    channel use_radius {
-      lefttype = extend
-      righttype = extend
-      flags = 0
-      segment { length = 0 expr = ch(\"../useradius\") }
-    }
-    channel holesides {
+    channel hole_sides {
       lefttype = extend
       righttype = extend
       default = 6
@@ -4027,18 +4012,18 @@ vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"// Declaration of Variables
 int shape = chi(\"shape\");
-int startype = chi(\"startype\");
+int star_type = chi(\"star_type\");
 int sides = chi(\"sides\");
-int hole_sides = chi(\"holesides\");
+int hole_sides = chi(\"hole_sides\");
 int equilateral = chi(\"equilateral\");
 int use_radius = chi(\"use_radius\");
 float base = chf(\"base\");
-float hole_relative_scale = chf(\"holerelativescale\");
+float hole_relative_scale = chf(\"hole_relative_scale\");
 vector translate = chv(\"translate\");
 float radius_main = chf(\"radius\");
-float radius_middle = chf(\"radiusmiddle\");
-float radius_inner = chf(\"radiusinner\");
-int reverse_point_order = chi(\"reversepointorder\");
+float radius_middle = chf(\"radius_middle\");
+float radius_inner = chf(\"radius_inner\");
+int reverse_point_order = chi(\"reverse_point_order\");
 float angle, angle_offset;
 
 float pi = 3.14159265359;
@@ -4071,7 +4056,7 @@ if (shape == 0) {
 } else if (shape == 2) {
     maxscale = radius_main * cos(pi / sides);
 } else {
-    if (startype == 1) {
+    if (star_type == 1) {
         maxscale = min(radius_main, radius_middle, radius_inner);
     } else {
         maxscale = min(radius_main, radius_inner);
@@ -4105,20 +4090,19 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 shape	[ 8	locks=0 ]	(	[ shape	0 ] 	)
-startype	[ 8	locks=0 ]	(	[ startype	0 ] 	)
+star_type	[ 0	locks=0 ]	(	[ star_type	0 ] 	)
 equilateral	[ 8	locks=0 ]	(	[ equilateral	0 ] 	)
-useradius	[ 8	locks=0 ]	(	[ useradius	0 ] 	)
+use_radius	[ 0	locks=0 ]	(	"off"	)
 sides	[ 0	locks=0 ]	(	[ sides	6 ] 	)
-holesides	[ 0	locks=0 ]	(	[ holesides	6 ] 	)
+hole_sides	[ 0	locks=0 ]	(	[ hole_sides	6 ] 	)
 radius	[ 0	locks=0 ]	(	[ radius	1 ] 	)
-radiusmiddle	[ 0	locks=0 ]	(	[ radiusmiddle	0.75 ] 	)
-radiusinner	[ 0	locks=0 ]	(	[ radiusinner	0.5 ] 	)
+radius_middle	[ 0	locks=0 ]	(	[ radius_middle	0.75 ] 	)
+radius_inner	[ 0	locks=0 ]	(	[ radius_inner	0.5 ] 	)
 translate	[ 0	locks=0 ]	(	[ translatex	0 ] 	[ translatey	0 ] 	[ translatez	0 ] 	)
-holerelativescale	[ 0	locks=0 ]	(	[ holerelativescale	0.5 ] 	)
+hole_relative_scale	[ 0	locks=0 ]	(	[ hole_relative_scale	0.5 ] 	)
 base	[ 0	locks=0 ]	(	[ base	1 ] 	)
-holerotate	[ 0	locks=0 ]	(	[ holerotate	0 ] 	)
-reversepointorder	[ 8	locks=0 ]	(	[ reversepointorder	0 ] 	)
-use_radius	[ 8	locks=0 ]	(	[ use_radius	0 ] 	)
+hole_rotate	[ 0	locks=0 ]	(	[ hole_rotate	0 ] 	)
+reverse_point_order	[ 0	locks=0 ]	(	[ reverse_point_order	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -4669,8 +4653,8 @@ dovtxdel	[ 0	locks=0 ]	(	"off"	)
 vtxdel	[ 0	locks=0 ]	(	""	)
 doprimdel	[ 0	locks=0 ]	(	"off"	)
 primdel	[ 0	locks=0 ]	(	""	)
-dodtldel	[ 0	locks=0 ]	(	"off"	)
-dtldel	[ 0	locks=0 ]	(	""	)
+dodtldel	[ 0	locks=0 ]	(	"on"	)
+dtldel	[ 0	locks=0 ]	(	_ssh_*	)
 updatevar	[ 0	locks=0 ]	(	"on"	)
 }
 
@@ -5028,7 +5012,7 @@ Content-Type: text/plain
     }
 
     parm {
-        name    "reversepointorder"
+        name    "reverse_point_order"
         label   "Reverse Point Order"
         type    toggle
         default { "0" }
@@ -5040,7 +5024,7 @@ Content-Disposition: attachment; filename="hdaroot/add_uvs.chn"
 Content-Type: text/plain
 
 {
-    channel reversepointorder {
+    channel reverse_point_order {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -5060,7 +5044,7 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"vertex"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"int reverse_point_order = chi(\"reversepointorder\");
+snippet	[ 0	locks=0 ]	(	"int reverse_point_order = chi(\"reverse_point_order\");
 
 @uv.x = @P.x;
 @uv.y = -@P.z;
@@ -5082,7 +5066,7 @@ vex_inplace	[ 0	locks=0 ]	(	"off"	)
 vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
-reversepointorder	[ 8	locks=0 ]	(	[ reversepointorder	0 ] 	)
+reverse_point_order	[ 0	locks=0 ]	(	[ reverse_point_order	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -5526,7 +5510,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "reversepointorder"
+        name    "reverse_point_order"
         label   "Reverse Point Order"
         type    toggle
         default { "0" }
@@ -5562,7 +5546,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../rotate\") }
     }
-    channel reversepointorder {
+    channel reverse_point_order {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -5593,7 +5577,7 @@ snippet	[ 0	locks=0 ]	(	"// Declaration of Variables
 int orientation = chi(\"orientation\");
 vector translate = chv(\"translate\");
 float rotate = chf(\"rotate\");
-int reverse_point_order = chi(\"reversepointorder\");
+int reverse_point_order = chi(\"reverse_point_order\");
 matrix3 m = ident();
 vector axis;
 
@@ -5636,7 +5620,7 @@ folder1	[ 0	locks=0 ]	(	0	0	)
 orientation	[ 0	locks=0 ]	(	[ orientation	0 ] 	)
 translate	[ 0	locks=0 ]	(	[ translatex	0 ] 	[ translatey	0 ] 	[ translatez	0 ] 	)
 rotate	[ 0	locks=0 ]	(	[ rotate	0 ] 	)
-reversepointorder	[ 8	locks=0 ]	(	[ reversepointorder	0 ] 	)
+reverse_point_order	[ 0	locks=0 ]	(	[ reverse_point_order	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -5864,7 +5848,7 @@ Content-Type: text/plain
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "reversepointorder"
+        name    "reverse_point_order"
         label   "Reverse Point Order"
         type    toggle
         default { "0" }
@@ -5882,7 +5866,7 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 expr = ch(\"../holerotate\") }
     }
-    channel reversepointorder {
+    channel reverse_point_order {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -5904,7 +5888,7 @@ vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
 snippet	[ 0	locks=0 ]	(	"// Declaration of Variables
 float rotate = chf(\"rotate\");
-int reverse_point_order = chi(\"reversepointorder\");
+int reverse_point_order = chi(\"reverse_point_order\");
 matrix3 m = ident();
 vector axis = set(0, 1, 0);
 
@@ -5929,7 +5913,7 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 rotate	[ 0	locks=0 ]	(	[ rotate	0 ] 	)
-reversepointorder	[ 0	locks=0 ]	(	[ reversepointorder	0 ] 	)
+reverse_point_order	[ 0	locks=0 ]	(	[ reverse_point_order	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -6523,6 +6507,219 @@ Content-Type: text/plain
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/points_generation.init"
+Content-Type: text/plain
+
+type = pointgenerate
+matchesdef = 1
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/points_generation.def"
+Content-Type: text/plain
+
+sopflags sopflags = 
+comment ""
+position 3.5 -4.15
+connectornextid 1
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload on savedata off compress on colordefault off exposed on
+outputsNamed3
+{
+0 "output1"
+}
+inputsNamed3
+{
+}
+inputs
+{
+}
+stat
+{
+  create -1
+  modify -1
+  author sirius@athena.local
+  access 0777
+}
+color UT_Color RGB 0.475 0.812 0.204 
+delscript ""
+exprlanguage hscript
+end
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/points_generation.spareparmdef"
+Content-Type: text/plain
+
+    parm {
+        name    "group"
+        baseparm
+        label   "Group"
+        export  none
+    }
+    parm {
+        name    "keep"
+        baseparm
+        label   "Keep Original Geometry"
+        export  none
+    }
+    parm {
+        name    "ptsperpt"
+        baseparm
+        label   "Compute Number of Points"
+        export  none
+    }
+    parm {
+        name    "npts"
+        baseparm
+        label   "Number Of Points"
+        export  none
+    }
+    parm {
+        name    "nptsperpt"
+        baseparm
+        label   "Points per Point"
+        export  none
+    }
+    parm {
+        name    "doattrib"
+        baseparm
+        label   "doattrib"
+        nolabel
+        joinnext
+        export  none
+    }
+    parm {
+        name    "attrib"
+        baseparm
+        label   "Generate From Attribute"
+        export  none
+    }
+    parm {
+        name    "seed"
+        baseparm
+        label   "Random Seed"
+        export  none
+    }
+    parm {
+        name    "dogroup"
+        baseparm
+        label   "dogroup"
+        nolabel
+        joinnext
+        export  none
+    }
+    parm {
+        name    "ggroup"
+        baseparm
+        label   "Generated Points Group"
+        export  none
+    }
+    parm {
+        name    "dopointnum"
+        baseparm
+        label   "dopointnum"
+        nolabel
+        joinnext
+        export  none
+    }
+    parm {
+        name    "spointnum"
+        baseparm
+        label   "Point Number Attribute"
+        export  none
+    }
+    parm {
+        name    "dopointidx"
+        baseparm
+        label   "dopointidx"
+        nolabel
+        joinnext
+        export  none
+    }
+    parm {
+        name    "spointidx"
+        baseparm
+        label   "Point Index Attribute"
+        export  none
+    }
+    parm {
+        name    "docopyattribs"
+        baseparm
+        label   "Copy Source Attributes"
+        export  none
+    }
+    parm {
+        name    "attribstocopy"
+        baseparm
+        label   "Source Attributes"
+        export  none
+    }
+    parm {
+        name    "spare_input0"
+        label   "Spare Input 0"
+        type    oppath
+        default { "" }
+        help    "Refer to this in expressions as -1, such as: npoints(-1)"
+        parmtag { "cook_dependent" "1" }
+        parmtag { "opfilter" "!!SOP!!" }
+        parmtag { "oprelative" "." }
+    }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/points_generation.chn"
+Content-Type: text/plain
+
+{
+    channel npts {
+      lefttype = extend
+      righttype = extend
+      default = 5000
+      flags = 0
+      segment { length = 0 value = 5000 5000 expr = "detail(-1, \"totalpoints\", 0)" }
+    }
+  }
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/points_generation.parm"
+Content-Type: text/plain
+
+{
+version 0.8
+group	[ 0	locks=0 ]	(	""	)
+keep	[ 0	locks=0 ]	(	"off"	)
+ptsperpt	[ 0	locks=0 ]	(	"off"	)
+npts	[ 0	locks=0 ]	(	[ npts	5000 ] 	)
+nptsperpt	[ 0	locks=0 ]	(	10	)
+doattrib	[ 0	locks=0 ]	(	"off"	)
+attrib	[ 0	locks=0 ]	(	""	)
+seed	[ 0	locks=0 ]	(	0	)
+dogroup	[ 0	locks=0 ]	(	"off"	)
+ggroup	[ 0	locks=0 ]	(	generated	)
+dopointnum	[ 0	locks=0 ]	(	"off"	)
+spointnum	[ 0	locks=0 ]	(	pointnum	)
+dopointidx	[ 0	locks=0 ]	(	"off"	)
+spointidx	[ 0	locks=0 ]	(	pointidx	)
+docopyattribs	[ 0	locks=0 ]	(	"off"	)
+attribstocopy	[ 0	locks=0 ]	(	*	)
+spare_input0	[ 0	locks=0 ]	(	../points_generation_shape	)
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/points_generation.netbox"
+Content-Type: text/plain
+
+__netbox2
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
+Content-Disposition: attachment; filename="hdaroot/points_generation.userdata"
+Content-Type: text/plain
+
+{
+	"___Version___":{
+		"type":"string",
+		"value":"___EXTERNAL___"
+	}
+}
+
+--HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot/__dot1.networkdotinit"
 Content-Type: text/plain
 
@@ -6552,7 +6749,7 @@ Content-Type: text/plain
 Content-Disposition: attachment; filename="hdaroot.order"
 Content-Type: text/plain
 
-43
+44
 output0
 switch_shape_type
 switch_cut_hole
@@ -6596,6 +6793,7 @@ transfer_groups
 grouppromote1
 group_hole_points
 remove_fill
+points_generation
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
 Content-Disposition: attachment; filename="hdaroot.net"
