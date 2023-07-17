@@ -1,0 +1,188 @@
+# Dialog script for labs::measure_curvature::3.1 automatically generated
+
+{
+    name	labs::measure_curvature::3.1
+    script	gamedev::sop_measure_curvarture::2.0
+    label	"Labs Measure Curvature"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Geometry to Measure"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "fd_curvature"
+        label   "Curvature Measurement"
+        grouptag { "group_type" "simple" }
+        grouptag { "sidefx::look" "blank" }
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "2" }
+            menu {
+                "0" "Volume Analysis"
+                "1" "Polynomial Fitting"
+                "2" "Tensor - Integral"
+                "3" "Tensor - Euler"
+                "4" "Shape Operator"
+                "5" "Approximated Shape Operator"
+                "6" "Measure SOP"
+            }
+        }
+        parm {
+            name    "sampleresolution"
+            label   "Sample Resolution"
+            type    integer
+            default { "10" }
+            hidewhen "{ method != 0 }"
+            range   { 1! 100 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "perpiece"
+            label   "Per Piece"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "pieceattr"
+            label   "Piece Attribute"
+            type    string
+            default { "name" }
+            disablewhen "{ perpiece == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "convexityattr"
+            label   "Convexity Attribute"
+            type    string
+            default { "convexity" }
+            parmtag { "script_action" "import soputils\nsoputils.actionToggleVisualizer(kwargs,\n{ 'type': hou.viewportVisualizers.type('vis_color'),\n'parms': {\n    'colortype': 'attribramped',\n    'rangespec': 'auto',\n    'minscalar': 0,\n    'maxscalar': 1,\n    'treatasscalar': True,\n    'using': 'compabs',\n    'component': 0,\n    'colorramp': hou.Ramp((hou.rampBasis.Linear,\n                           hou.rampBasis.Linear),\n                           (0, 1),\n                           ((1, 1, 1), (1, 0, 0)))\n} })" }
+            parmtag { "script_action_help" "Toggle visualization Ctrl-LMB: Open the visualization editor" }
+            parmtag { "script_action_icon" "VIEW_visualization" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "concavityattr"
+            label   "Concavity Attribute"
+            type    string
+            default { "concavity" }
+            parmtag { "script_action" "import soputils\nsoputils.actionToggleVisualizer(kwargs,\n{ 'type': hou.viewportVisualizers.type('vis_color'),\n'parms': {\n    'colortype': 'attribramped',\n    'rangespec': 'auto',\n    'minscalar': 0,\n    'maxscalar': 1,\n    'treatasscalar': True,\n    'using': 'compabs',\n    'component': 0,\n    'colorramp': hou.Ramp((hou.rampBasis.Linear,\n                           hou.rampBasis.Linear),\n                           (0, 1),\n                           ((1, 1, 1), (1, 0, 0)))\n} })" }
+            parmtag { "script_action_help" "Toggle visualization Ctrl-LMB: Open the visualization editor" }
+            parmtag { "script_action_icon" "VIEW_visualization" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_convexadjustment"
+        label   "Convexity Adjustment"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "convexitymult"
+            label   "Multiplier"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "convexityblur"
+            label   "Blur Amount"
+            type    float
+            default { "1" }
+            range   { 0 100 }
+        }
+        parm {
+            name    "convexityramp"
+            label   "Remap Range"
+            type    ramp_flt
+            default { "2" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_concaveadjustment"
+        label   "Concavity Adjustment"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "concavitymult"
+            label   "Multiplier"
+            type    float
+            default { "2" }
+            range   { 0 10 }
+        }
+        parm {
+            name    "concavityblur"
+            label   "Blur Amount"
+            type    float
+            default { "1" }
+            range   { 0 100 }
+        }
+        parm {
+            name    "concavityramp"
+            label   "Remap Range"
+            type    ramp_flt
+            default { "2" }
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_adjustments"
+        label   "Adjustments"
+
+    }
+
+    groupsimple {
+        name    "fd_visualization"
+        label   "Visualization"
+
+        parm {
+            name    "viscolor"
+            label   "Visualize Output"
+            type    toggle
+            default { "1" }
+        }
+        parm {
+            name    "usegrayscale"
+            label   "Use Grayscale"
+            type    toggle
+            default { "0" }
+            disablewhen "{ viscolor == 0 }"
+        }
+    }
+
+}
