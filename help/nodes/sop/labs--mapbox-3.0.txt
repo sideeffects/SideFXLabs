@@ -50,18 +50,18 @@ You can join the output tiles of multiple _Labs Mapbox SOPs_ together to form a 
 <p>4. Download all the selected maps on all the nodes.</p>
 <p>5. Turn on __Seamless Tiling__ > __Enable Seamless Tiling with Neighbour Tiles__ on all the nodes.</p>
 <p>6. Set the correct __Top Neighbour__, __Right Neighbour__, and __Top-Right Neighbour__ on all the nodes. Leave it blank if a tile does not have a certain neighbour.</p>
-<p>7. (Optional) If you want to use the tileable color map for the materials, press __Seamless Tiling__ > __Tileable Material__ > __Render Tileable Color__ on all the nodes.</p>
+<p>7. (Optional) If you want to use the tileable color map for the materials, press __Seamless Tiling__ > __Tileable Material__ > __Render Tileable Color Map__ on all the nodes.</p>
 <p>8. (Optional) If the location has changed, please re-download all the selected maps, re-render all the tileable color maps (if they are used), and re-enable any material/color parameters on the __Output__ tab that have been automatically turned off during the downloads to avoid texture sync issues.</p>
 
 === Seamless Normals ===
 
-For both heightfield tiling and mesh tiling, it is impossible to make normals seamless with _Labs Mapbox SOPs_ alone, because normals are inherently inconsistent between two sides of unfused borders. However, you can make normals seamless with a downstream _Labs Mapbox Post-process SOP_ that works on all the tiles at once.
+For both heightfield tiling and mesh tiling, it is impossible to make normals seamless with this node alone, because normals are inherently inconsistent between two sides of unfused borders. However, you can make normals seamless with a downstream _Labs Mapbox Post-process SOP_ that works on all the tiles at once.
 
 == Troubleshooting ==
 
 === "Your file was not found / ERR_FILE_NOT_FOUND" ===
 
-When launching the interactive map, if you see this error message, simply create a new _Labs Mapbox SOP_ in your network. That should immediately fix the problem and you can delete the new node you created. (Whenever a _Labs Mapbox SOP_ is created, it automatically copies several HTML files to `$HOUDINI_USER_PREF_DIR/SideFXLabs/misc/mapbox/`. This error message means the node cannot find the necessary HTML files.)
+When launching the interactive map, if you see this error message, simply create a new _Labs Mapbox SOP_ in your network. That should immediately fix the problem and you can delete the new node you created. (Whenever this node is created, it automatically copies several HTML files to `$HOUDINI_USER_PREF_DIR/SideFXLabs/misc/mapbox/`. This error message means the node cannot find the necessary HTML files.)
 
 === Black screen ===
 
@@ -238,11 +238,11 @@ If a material does not display any texture, even if the texture file exists on d
         
     Preserve Output Elevation to Real-World Width Ratio:
         #id: autoadjustelev
-        Keeps elevation values proportional to the tile width. This allows you to uniformly scale the terrain. The elevation values in the elevation map are real-world values. The real-world tile width is the width measured at the tile center. This is applied before __Custom Elevation Scale__.
+        Keeps elevation values proportional to the tile width. This allows you to uniformly scale the terrain. The elevation values in the elevation map are real-world values. The real-world tile width is the width measured at the tile center.
         
     Custom Elevation Scale:
         #id: customelevscale
-        A custom multiplier to the input elevation. This is applied before the height parameters on the __Output__ tab.
+        A custom multiplier to the input elevation. This is applied after __Clamp Input Elevation Range__ but before the height parameters on the __Output__ tab.
         
     === Tile Geographical Details ===
 
@@ -266,14 +266,14 @@ If a material does not display any texture, even if the texture file exists on d
         
     Real-World Tile Width:
         #id: calc_outwidth
-        The computed result, autofilled when you press __Compute Real-World Tile Width from Latitude and Zoom__. If you want to set a tile width to the real-world width measured at a specific latitude, you can set __Tile Width__ to __Custom Width__ and use this result as __Custom Tile Width__.
+        The computed result, autofilled when you press __Compute Real-World Tile Width from Latitude and Zoom__. If you want to use the real-world width measured at a specific latitude as your tile width, set __Tile Width__ to __Custom Width__ and use this result as __Custom Tile Width__.
         
     == Seamless Tiling ==
 
     Enable Seamless Tiling with Neighbour Tiles:
         #id: enabletiling
         Configures the tile to fetch maps from neighbour tiles in order to make elevations, colors, and materials seamless along the tile borders.
-        <p>Seamless tiling only requires one-way awareness, meaning if every single tile syncs its border attribute values with its top, right, and top-right neighbours, there is no need for any tile to sync with the rest of the neighbours.</p>
+        <p>Seamless tiling only requires one-way awareness, meaning if every single tile syncs its border values with its top, right, and top-right neighbours, there is no need for any tile to sync with its left, bottom, or other corner neighbours.</p>
         <p>On this node alone, it is impossible to make normals seamless, because normals are inherently inconsistent between two sides of unfused borders. However, you can make normals seamless with a downstream _Labs Mapbox Post-process SOP_ that works on all the tiles at once.</p>
         <p>Please see the __Creating Seamless Terrain Tiles__ section of the Help page for more information.</p>
         
@@ -316,19 +316,19 @@ If a material does not display any texture, even if the texture file exists on d
     Material Diffuse Texture:
         #id: usetileablecmap
         Specifies which diffuse texture to use for materials. For both terrain heightfields and terrain meshes, the border UVs are aligned to the centers of the border pixels. Since the terrain tile textures are not self-repeating, the texture tiling mode (in whatever application that uses this texture) should be set to "clamp" or its equivalents, not "wrap" or its equivalents.
-        <p>__Color Map on Disk__: The original color map. Not entirely seamless (when tiled at mipmap level 0). Since the border pixels have no knowledge of the neighbour color maps, most texture filtering modes (except for point filtering) will result in seams.</p>
-        <p>__Tileable Color Map on Disk__: A new tileable color map that needs to be rendered to disk first. Completely seamless (when tiled at mipmap level 0). This new map shares border pixel values with the top, right, and top-right neighbours. Consequently, texture filtering will not result in seams. You can render it when all the neighbours' color maps are available.</p>
+        <p>__Color Map on Disk__: The original color map, not entirely seamless (when tiled at mipmap level 0). Since the border pixels have no knowledge of the neighbour color maps, most texture filtering modes (except for point filtering) will result in seams.</p>
+        <p>__Tileable Color Map on Disk__: A new tileable color map that needs to be rendered to disk first, completely seamless (when tiled at mipmap level 0). This new map shares border pixel values with the top, right, and top-right neighbours. Consequently, texture filtering will not result in seams. You can render it when all the neighbours' color maps are available.</p>
             
     Render Tileable Color Map:
         #id: rendertileablecmap
-        Saves to disk a new tileable color map. This map contains border pixel values copied from the neighbour nodes' color maps, so it can only be rendered correctly when all the neighbour nodes' color maps are available.
-        <p>Since this map is not automatically updated when you press __Download__, please remember to render this map again if the location has changed.</p>
+        Renders to disk a new tileable color map. This map contains border pixel values copied from the neighbour nodes' color maps, so you should only render it when all the neighbour nodes' color maps are available.
+        <p>Due to the dependencies on neighbour nodes, this map is not automatically updated when you press __Download__, so please remember to render this map again if the location has changed.</p>
         
     === Render ===
 
     Resample Filter:
         #id: tileabletexfilter
-        In order to generate the tileable color map, the original color map is extended by 1 column of pixels to the right and 1 row of pixels to the top. The extended pixels copy the values from the neighbour nodes' color maps. That makes the texture tiling seamless, but the texture resolution becomes 2049×2049. To fix that, when you press __Render Tileable Color Map__, the new map is downsample back to 2048×2048 using this filter.
+        In order to generate the tileable color map, the original color map is extended by 1 column of pixels to the right and 1 row of pixels to the top. The extended pixels copy the values from the neighbour nodes' color maps. That makes the texture tiling seamless, but the texture resolution becomes 2049×2049. To fix that, when you press __Render Tileable Color Map__, the new map is downsampled back to 2048×2048 using this filter.
         <p>__Point (Original Sharpness)__: Preserves the original sharpness but creates two subtle seams running horizontally and vertically through the center. Due to material texture filtering, these center seams are rather hard to notice compared to the border seams between the original color maps. In other words, using the tileable color map is probably still worth it.</p>
         <p>__Catmull-Rom (Smoother)__: Avoids any center seams but loses some of the sharpness.</p>
             
@@ -421,15 +421,15 @@ If a material does not display any texture, even if the texture file exists on d
             
     Retry If Download Fails:
         #id: allowdownloadretry
-        Attempts to download a next-zoom-level map again if the first try fails. This node downloads 9 or 4 next-zoom-level maps to composite a final map. The retries will happen per next-zoom-level map, so do not set __Retry Limit__ too high.
+        Attempts to re-download a next-zoom-level map if the first attempt fails. This node downloads 9 or 4 next-zoom-level maps to composite a final map. The retries will happen per next-zoom-level map, so do not set __Retry Limit__ too high.
         
     Retry Delay:
         #id: retrydelay
-        In seconds, the delay before attempting to download the same next-zoom-level map again.
+        In seconds, the delay before attempting to re-download the same next-zoom-level map.
         
     Retry Limit:
         #id: retrylimit
-        The maximum number of retries for each next-zoom-level map.
+        The maximum number of retries allowed for each next-zoom-level map.
         
     Auto Clean Up Temp Directory:
         #id: autodeltemp
