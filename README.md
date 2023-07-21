@@ -1,7 +1,7 @@
 ![SideFXLabs logo](https://github.com/sideeffects/SideFXLabs/blob/Development/help/icons/sidefxlabs_full.png)
 # SideFX Labs - Houdini 19.5
 
-SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Mai Ao, Danicka Oglesby, Alan Gordie, and Christos Stavridis. It also receives a lot of contributions from the always active Houdini community. The toolset originated from the GameDevelopmentToolset, which was rebranded in the Houdini 18.0 release. To get automatic bi-weekly updates, subscribe to the our [update log](https://www.sidefx.com/forum/topic/70854/).
+SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Mai Ao, Danicka Oglesby, and Christos Stavridis. It also receives a lot of contributions from the always active Houdini community. The toolset originated from the GameDevelopmentToolset, which was rebranded in the Houdini 18.0 release. To get automatic bi-weekly updates, subscribe to the our [update log](https://www.sidefx.com/forum/topic/70854/).
 
 # Roadmap
 Please visit our [Public Roadmap](https://portal.productboard.com/sidefx/1-sidefx-labs-public-roadmap/) to see what we are working on. You can also vote on features or submit feature ideas.
