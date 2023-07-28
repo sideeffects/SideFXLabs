@@ -1,0 +1,126 @@
+# Dialog script for labs::validate_geometry_type::1.0 automatically generated
+
+{
+    name	labs::validate_geometry_type::1.0
+    script	geo_validator
+    label	"Labs Validate Geometry Type"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    multiparm {
+        name    "fd_geo"
+        label    "Number of Objects"
+
+        parm {
+            name    "geotype#"
+            label   "Geometry Type"
+            type    string
+            default { "Point" }
+            menu {
+                "Point"         "Point"
+                "Poly"          "Polygon"
+                "Volume"        "Volume"
+                "VDB"           "VDB"
+                "NURBCurve"     "NURBS Curve "
+                "BezierCurve"   "Bezier Curve"
+                "MetaBall"      "Metaball"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "comparison#"
+            label   "Comparison"
+            type    string
+            joinnext
+            default { "equal" }
+            menu {
+                "equal"         "Equal To"
+                "not equal"     "Not Equal To"
+                "_separator_"   "------------"
+                "greater"       "Greater Than"
+                "greateroequal" "Greater Than or Equal To"
+                "less"          "Less Than"
+                "lessoequal"    "Less Than or Equal To"
+                "_separator_"   "------------"
+                "range"         "Inside Range"
+                "outrange"      "Outside Range"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "lbracket#"
+            label   "Left Bracket"
+            type    string
+            nolabel
+            joinnext
+            default { "ex" }
+            hidewhen "{ comparison# != range comparison# != outrange }"
+            menu {
+                "ex"    "("
+                "in"    "["
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rbracket#"
+            label   "Right Bracket"
+            type    string
+            nolabel
+            default { "ex" }
+            hidewhen "{ comparison# != range comparison# != outrange }"
+            menu {
+                "ex"    ")"
+                "in"    "]"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "range#"
+            label   "Element Range"
+            type    int_minmax
+            size    2
+            default { "0" "10" }
+            hidewhen "{ comparison# != range comparison# != outrange }"
+            range   { 0 10 }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "expectednum#"
+            label   "Element Count"
+            type    integer
+            default { "0" }
+            hidewhen "{ comparison# == range } { comparison# == outrange }"
+            range   { 0 10 }
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "severity#"
+            label   "Warning Severity"
+            type    ordinal
+            default { [ "error" hscript-expr ] }
+            menu {
+                "message"   "Message"
+                "warn"      "Warning"
+                "error"     "Error"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm#"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+    }
+
+}
