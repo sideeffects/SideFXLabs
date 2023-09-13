@@ -1,0 +1,35 @@
+#######################################################################
+#Cook node
+#######################################################################  
+def cookNode(node):
+    node.cook(force=True)
+    
+#######################################################################
+#Generate colors from images
+#######################################################################  
+def generateColors(node):
+    HDAnode = hou.node(".")
+    COPInput = HDAnode.parm('copinput').eval()
+    IMGInput = HDAnode.parm('imginput').eval()
+    if COPInput != "" or IMGInput != "":
+        colorNum = node.geometry().attribValue('number_of_colors') + 1
+        HDAnode.parm('fd_extractcol').set(colorNum)
+        geo = node.geometry()
+        
+        #constructing parameter name from HDA
+        colorParm = 'extcolor'
+        #iteration = str(node.input(1).geometry().attribValue('iteration') + 1)
+        for i in range(colorNum):
+            iteration = str(i + 1)
+     
+            colR = colorParm + iteration + "r"
+            colG = colorParm + iteration + "g"
+            colB = colorParm + iteration + "b"
+        
+            #extract colors from input
+            color = geo.attribValue('unique_color' + iteration)
+        
+            #set color parameter to extracted color values
+            HDAnode.parm(colR).set(color[0])
+            HDAnode.parm(colG).set(color[1])
+            HDAnode.parm(colB).set(color[2])

@@ -1,0 +1,248 @@
+# Dialog script for labs::regions_from_image::1.0 automatically generated
+
+{
+    name	labs::regions_from_image::1.0
+    script	labs::image_to_curves::1.0
+    label	"Labs Regions from Image"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "fd_input"
+        label   "Input"
+
+        parm {
+            name    "inputtype"
+            label   "Input Type"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Image"
+                "1" "COP Network"
+            }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "imginput"
+            label   "Image Path"
+            type    image
+            default { "" }
+            hidewhen "{ inputtype != 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "filechooser_mode" "read" }
+            parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "copinput"
+            label   "COP Network"
+            type    oppath
+            default { "" }
+            hidewhen "{ inputtype != 1 }"
+            parmtag { "oprelative" "." }
+            parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2___3"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_colors"
+        label   "Region Generation"
+
+        parm {
+            name    "numcolors"
+            label   "Number of Colors"
+            type    integer
+            default { "10" }
+            range   { 1! 100 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "strength"
+            label   "Region Smoothing"
+            type    float
+            default { "25" }
+            range   { 0! 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "orientation"
+            label   "Orientation"
+            type    string
+            default { "zx" }
+            menu usetokenvalue {
+                "xy"    "XY Plane"
+                "yz"    "YZ Plane"
+                "zx"    "ZX Plane"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scale"
+            label   "Uniform Scale"
+            type    float
+            default { "1" }
+            range   { 0 1000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "fd_neighbors"
+            label   "Neighbor Consolidation"
+
+            parm {
+                name    "extweight"
+                label   "Extended Influence"
+                type    float
+                default { "5" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "iterations"
+                label   "Iterations"
+                type    integer
+                default { "2" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm2"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "generatecolors"
+            label   "Generate Regions"
+            type    button
+            default { "0" }
+            hidewhen "{ addatt==0 == \"\" }"
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "addindex"
+            label   "Add Index Attribute"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "attname2"
+            label   "Attribute Name"
+            type    string
+            default { "index" }
+            hidewhen "{ addindex == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2___2"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ addatt == 0 addindex == 0 }"
+        }
+        parm {
+            name    "addatt"
+            label   "Add Custom Attribute"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "attname"
+            label   "Attribute Name"
+            type    string
+            joinnext
+            default { "" }
+            hidewhen "{ addatt == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "atttype"
+            label   "Type"
+            type    ordinal
+            nolabel
+            default { "0" }
+            hidewhen "{ addatt == 0 }"
+            menu {
+                "string"    "String"
+                "float"     "Float"
+                "int"       "Integer"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2___4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        multiparm {
+            name    "fd_extractcol"
+            label    "Extracted Regions"
+
+            parm {
+                name    "extcolor#"
+                label   "Visualization Color"
+                type    color
+                size    3
+                default { "1" "1" "1" }
+                range   { 0 1 }
+                parmtag { "colortype" "val" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "attvalue#"
+                label   "Attribute Value"
+                type    string
+                default { "" }
+                hidewhen "{ addatt == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm2_#"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+        }
+
+    }
+
+}
