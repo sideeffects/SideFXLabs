@@ -3,7 +3,7 @@
 {
     name	labs::pathfinding_global::1.0
     script	labs::roads_pathfinding::1.0
-    label	"Labs Pathfinding Global"
+    label	"Labs Pathfinding Global (Beta)"
 
     help {
 	""
@@ -114,18 +114,19 @@
         }
 
         groupsimple {
-            name    "fd_costattributes"
-            label   "Cost Attributes"
+            name    "fd_costcalculation"
+            label   "Path Cost Calculation"
 
             multiparm {
                 name    "costattributes"
                 label    "Cost Attributes"
+                default 1
 
                 parm {
                     name    "attributename#"
                     label   "Attribute Name"
                     type    string
-                    default { "slope" }
+                    default { "" }
                     menutoggle {
                         [ "r = []" ]
                         [ "node = hou.pwd()" ]
@@ -153,58 +154,58 @@
                 }
             }
 
-        }
-
-        groupsimple {
-            name    "fd_avoidance"
-            label   "Avoidance"
-
-            parm {
-                name    "enableavoidance"
-                label   "Enable Avoidance"
-                type    toggle
-                nolabel
-                joinnext
-                default { "0" }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "avoidanceattribute"
+            groupsimple {
+                name    "fd_avoidance"
                 label   "Avoidance"
-                type    string
-                default { "avoid" }
-                disablewhen "{ enableavoidance == 0 }"
-                parmtag { "script_callback_language" "python" }
-            }
-        }
 
-        groupsimple {
-            name    "fd_output"
-            label   "Output Attributes"
+                parm {
+                    name    "enableavoidance"
+                    label   "Enable Avoidance"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "avoidanceattribute"
+                    label   "Avoidance"
+                    type    string
+                    default { "avoid" }
+                    disablewhen "{ enableavoidance == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
 
-            parm {
-                name    "outputdistance"
-                label   "Output Distance"
-                type    toggle
-                nolabel
-                joinnext
-                default { "0" }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "distancename"
-                label   "Distance"
-                type    string
-                default { "distance" }
-                disablewhen "{ outputdistance == 0 }"
-                parmtag { "script_callback_language" "python" }
-            }
         }
 
     }
 
     group {
         name    "fd_settings_1"
+        label   "Output Attributes"
+
+        parm {
+            name    "outputdistance"
+            label   "Output Distance"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "distancename"
+            label   "Distance"
+            type    string
+            default { "distance" }
+            disablewhen "{ outputdistance == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "fd_settings_2"
         label   "Visualization"
 
         parm {
