@@ -1,0 +1,71 @@
+#type:     node
+#context:  sop
+#internal: labs::settlement_connections::1.0
+#icon:     sidefx_labs_beta
+
+= Labs Settlement Connections (Beta) =
+
+"""This node generates connections between points of interest based on angle and distance calculations."""
+
+This node takes points as input and generates connections between them based on the angles that are formed and the distances between them.
+
+
+@parameters
+
+    == Connection Filters ==
+
+    Avoid Small Angles between Connections:
+        #id: enableangle
+        The connections are filtered based on angle and distance comparisons between the points of interest.
+        
+    == Filter by Angles ==
+
+    Angle Limit Mode:
+        #id: anglemode
+        The algorithm checks the angle and distance between every point of interest and a target point, and the point of interest to the neighboring check points.
+        
+        Uniform Angle Limit:
+        When the point of interest to target point distance is bigger than the point of interest to check point distance, and the angle between them is smaller than the Angle Limit, then the connection between the point of interest and the target point is marked for deletion.
+            
+        Varied Angle Limit Based on Distance:
+        When the point of interest to target point distance is bigger than the point of interest to check point distance, and the angle between them is smaller than the one that is derived from the aforementioned ramp, then the connection between the point of interest and the target point is marked for deletion.
+
+        The ramp has the minimum Reference Distance as the lower position limit with a value of the minimum Angle Limit and the maximum Reference Distance as the higher position limit with a value of the maximum Angle Limit. The angle limit is derived from the point that has the target point distance as the position index inside the range of the ramp.
+            
+    Angle Limit:
+        #id: uniformangle
+        The limit of the angle between the points of interest. When the angle that is formed is less than this value, the connection is marked for deletion.
+
+    === Shorter-Distance Connections ===
+
+    Reference Distance:
+        #id: mindistance
+        The lower position limit which has the value of the minimum Angle Limit on the Varied Angle Limit ramp.
+        
+    Angle Limit:
+        #id: minangle
+        The value of the shorter Reference Distance on the Varied Angle Limit ramp.
+        
+    === Longer-Distance Connections ===
+
+    Reference Distance:
+        #id: maxdistance
+        The higher position limit which has the value of the maximum Angle Limit on the Varied Angle Limit ramp.
+        
+    Angle Limit:
+        #id: maxangle
+        The value of the longer Reference Distance on the Varied Angle Limit ramp.
+
+    == Output Attributes ==
+
+    Output Distance:
+        #id: outputdistance
+        Output the distance attribute.
+        
+    Distance:
+        #id: distancename
+        The name of the distance attribute.
+        
+@examples
+
+    - [Example File|https://github.com/sideeffects/SideFXLabs/blob/Development/hip/examples/road_networks/road_networks.hip]

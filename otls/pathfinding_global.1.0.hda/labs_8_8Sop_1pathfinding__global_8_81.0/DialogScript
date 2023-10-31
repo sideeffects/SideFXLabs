@@ -1,0 +1,288 @@
+# Dialog script for labs::pathfinding_global::1.0 automatically generated
+
+{
+    name	labs::pathfinding_global::1.0
+    script	labs::roads_pathfinding::1.0
+    label	"Labs Pathfinding Global"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Connection Network"
+    inputlabel	2	"Terrain Mesh"
+    inputlabel	3	Settlements
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	Paths
+    outputlabel	2	"Path Curves"
+
+    group {
+        name    "fd_settings"
+        label   "Pathfinding"
+
+        groupsimple {
+            name    "fd_pointcloud"
+            label   "Point Cloud"
+
+            parm {
+                name    "source"
+                label   "Source"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Existing Grid Points"
+                    "1" "Scattered Points"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm2"
+                label   "Separator"
+                type    separator
+                default { "" }
+                hidewhen "{ source == 0 }"
+            }
+            groupsimple {
+                name    "fd_scatteredpoints"
+                label   "Scattered Points"
+                hidewhen "{ source == 0 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "generatepoints"
+                    label   "Generate"
+                    type    ordinal
+                    default { "0" }
+                    menu {
+                        "0" "Total Count"
+                        "1" "By Density"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "numberofpoints"
+                    label   "Number of Points"
+                    type    integer
+                    default { "50000" }
+                    hidewhen "{ generatepoints == 1 }"
+                    range   { 0! 100000 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "density"
+                    label   "Density"
+                    type    float
+                    default { "0.1" }
+                    hidewhen "{ generatepoints == 0 }"
+                    range   { 0! 2 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sepparm3"
+                    label   "Separator"
+                    type    separator
+                    default { "" }
+                    hidewhen "{ source == 1 }"
+                }
+                parm {
+                    name    "relaxiterations"
+                    label   "Relax Iterations"
+                    type    integer
+                    default { "10" }
+                    range   { 0! 100 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_noise"
+                label   "Noise"
+                hidewhen "{ source == 1 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "noiseamplitude"
+                    label   "Noise Amplitude"
+                    type    float
+                    default { "0" }
+                    hidewhen "{ source == 1 }"
+                    range   { 0! 1! }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fd_costattributes"
+            label   "Cost Attributes"
+
+            multiparm {
+                name    "costattributes"
+                label    "Cost Attributes"
+
+                parm {
+                    name    "attributename#"
+                    label   "Attribute Name"
+                    type    string
+                    default { "slope" }
+                    menutoggle {
+                        [ "r = []" ]
+                        [ "node = hou.pwd()" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "if inputs and inputs[0]:" ]
+                        [ "    geo = inputs[1].geometry()" ]
+                        [ "    if geo:" ]
+                        [ "        attrs = geo.pointAttribs()" ]
+                        [ "        for a in attrs:            " ]
+                        [ "            # if a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() in [1, 3]:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "r.sort()" ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "attributeweight#"
+                    label   "Attribute Weight"
+                    type    float
+                    default { "1" }
+                    range   { 0 100 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fd_avoidance"
+            label   "Avoidance"
+
+            parm {
+                name    "enableavoidance"
+                label   "Enable Avoidance"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "avoidanceattribute"
+                label   "Avoidance"
+                type    string
+                default { "avoid" }
+                disablewhen "{ enableavoidance == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_output"
+            label   "Output Attributes"
+
+            parm {
+                name    "outputdistance"
+                label   "Output Distance"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "distancename"
+                label   "Distance"
+                type    string
+                default { "distance" }
+                disablewhen "{ outputdistance == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "fd_settings_1"
+        label   "Visualization"
+
+        parm {
+            name    "visualizesettlements"
+            label   "Visualize Settlements"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "settlementsize"
+            label   "Settlement Size"
+            type    float
+            default { "5" }
+            hidewhen "{ visualizesettlements == 0 }"
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "settlementcolor"
+            label   "Settlement Color"
+            type    color
+            size    3
+            default { "1" "1" "0" }
+            hidewhen "{ visualizesettlements == 0 }"
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm4"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "visualizepointcloud"
+            label   "Visualize Point Cloud"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pointcloudcolor"
+            label   "Point Cloud Color"
+            type    color
+            size    3
+            default { "1" "0.5" "0" }
+            hidewhen "{ visualizepointcloud == 0 }"
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm5"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "visualizeterrain"
+            label   "Visualize Terrain"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "terraincolor"
+            label   "Terrain Color"
+            type    color
+            size    3
+            default { "0.1" "0.1" "0.1" }
+            hidewhen "{ visualizeterrain == 0 }"
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

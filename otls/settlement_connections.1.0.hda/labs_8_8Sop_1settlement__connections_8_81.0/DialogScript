@@ -1,0 +1,173 @@
+# Dialog script for labs::settlement_connections::1.0 automatically generated
+
+{
+    name	labs::settlement_connections::1.0
+    script	labs::road_connections::1.0
+    label	"Labs Settlement Connections"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Settlement Points"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Connection Network"
+
+    groupsimple {
+        name    "fd_connectionfilters"
+        label   "Connection Filters"
+
+        parm {
+            name    "enableangle"
+            label   "Avoid Small Angles between Connections"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "limitnum"
+            label   "Limit Number of Connections per Point"
+            type    toggle
+            invisible
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_filterbyangles"
+        label   "Filter by Angles"
+        hidewhen "{ enableangle == 0 }"
+
+        parm {
+            name    "anglemode"
+            label   "Angle Limit Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Uniform Angle Limit"
+                "1" "Varied Angle Limit Based on Distance"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uniformangle"
+            label   "Angle Limit"
+            type    float
+            default { "28" }
+            hidewhen "{ anglemode == 1 }"
+            range   { 0! 90 }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_variedlimit"
+            label   "fd_variedlimit"
+            hidewhen "{ anglemode == 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            groupsimple {
+                name    "fd_shorterdistanceconnections"
+                label   "Shorter-Distance Connections"
+                hidewhen "{ anglemode == 0 }"
+
+                parm {
+                    name    "mindistance"
+                    label   "Reference Distance"
+                    type    float
+                    default { "1" }
+                    range   { 0 100 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "minangle"
+                    label   "Angle Limit"
+                    type    float
+                    default { "28" }
+                    range   { 0! 90 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_longerdistanceconnections"
+                label   "Longer-Distance Connections"
+
+                parm {
+                    name    "maxdistance"
+                    label   "Reference Distance"
+                    type    float
+                    default { "10" }
+                    range   { 0 100 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "maxangle"
+                    label   "Angle Limit"
+                    type    float
+                    default { "30" }
+                    range   { 0! 90 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        parm {
+            name    "sepparm2"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_count"
+        label   "Filter by Connections per Point"
+        hidewhen "{ limitnum == 0 }"
+
+        parm {
+            name    "connectionlimit"
+            label   "Max Connections"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_output"
+        label   "Output Attributes"
+
+        parm {
+            name    "outputdistance"
+            label   "Output Distance"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "distancename"
+            label   "Distance"
+            type    string
+            default { "distance" }
+            disablewhen "{ outputdistance == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
