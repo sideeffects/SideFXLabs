@@ -1,0 +1,123 @@
+# Dialog script for labs::biome_adjust_settings::1.0 automatically generated
+
+{
+    name	labs::biome_adjust_settings::1.0
+    script	labs::adjust_biome_settings::1.0
+    label	"Labs Biome Adjust Settings (Beta)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "sepparm7"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    groupsimple {
+        name    "fd_profile"
+        label   "Biome Profile"
+
+        parm {
+            name    "biomeprofile"
+            label   "Biome Profile"
+            type    file
+            default { "" }
+            hidewhen "{ environmentvar == 1 }"
+            parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "biomeprofileenv"
+            label   "Biome Profile"
+            type    string
+            default { "" }
+            hidewhen "{ environmentvar != 1 }"
+            menureplace {
+                [ "import os" ]
+                [ "" ]
+                [ "biome_path = hou.getenv('BIOME')" ]
+                [ "dir_list = os.listdir(biome_path)" ]
+                [ "return_list = []" ]
+                [ "" ]
+                [ "for d in dir_list:" ]
+                [ "    if d != \"biome_settings_location.json\":" ]
+                [ "        return_list.append(d)" ]
+                [ "        return_list.append(d)" ]
+                [ "" ]
+                [ "return return_list" ]
+                language python
+            }
+            parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "environmentvar"
+            label   "Environment Variable Set"
+            type    toggle
+            default { "isvariable(\"BIOME\")" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm2"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "loadsettings"
+            label   "Load Profile"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "savesettings"
+            label   "Save and Apply Profile"
+            type    button
+            default { "0" }
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback" "hou.phm().saveProfile(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    multiscroll {
+        name    "fd_settings"
+        label    "Settings"
+
+        parm {
+            name    "biomename#"
+            label   "Biome"
+            type    string
+            default { "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "aridityindex#"
+            label   "Aridity Index"
+            type    float
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm#_4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+    }
+
+}

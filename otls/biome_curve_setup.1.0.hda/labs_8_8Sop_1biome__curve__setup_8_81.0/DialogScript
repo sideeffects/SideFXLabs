@@ -1,0 +1,99 @@
+# Dialog script for labs::biome_curve_setup::1.0 automatically generated
+
+{
+    name	labs::biome_curve_setup::1.0
+    script	Labs::dev::dryad_curve_setup::1.0
+    label	"Labs Biome Curve Setup (Beta)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Curve Input"
+    inputlabel	2	"Previous Output"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Merged Curve Output"
+
+    parm {
+        name    "sepparm7"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "biomeprofile"
+        label   "Biome Profile"
+        type    file
+        default { "" }
+        hidewhen "{ environmentvar == 1 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "environmentvar"
+        label   "Environment Variable Set"
+        type    toggle
+        default { "isvariable(\"BIOME\")" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    groupsimple {
+        name    "fd_curvesetup2"
+        label   "Curve Setup"
+
+        parm {
+            name    "biomename_curve"
+            label   "Biome Name"
+            type    string
+            default { "" }
+            menu {
+                [ "import biomeutils" ]
+                [ "" ]
+                [ "env_set = kwargs['node'].parm('environmentvar').eval()" ]
+                [ "file_path = ''" ]
+                [ "" ]
+                [ "if env_set:" ]
+                [ "    stored_file = hou.getenv('BIOME') + '/biome_settings_location.json'" ]
+                [ "    file_path = biomeutils.readJson(stored_file)" ]
+                [ "    " ]
+                [ "elif kwargs['node'].parm('biomeprofile').eval():" ]
+                [ "    file_path = kwargs['node'].parm('biomeprofile').eval()" ]
+                [ "" ]
+                [ "if file_path:" ]
+                [ "    list = biomeutils.biomeNames(file_path)" ]
+                [ "" ]
+                [ "else:" ]
+                [ "    list = ''" ]
+                [ "return list" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "biomehierarchy"
+            label   "Biome Hierarchy"
+            type    integer
+            default { "0" }
+            range   { 1! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "createnext"
+            label   "Create Next "
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "hou.pwd().hdaModule().createNext(hou.pwd())" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
