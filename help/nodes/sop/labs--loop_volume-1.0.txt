@@ -1,0 +1,136 @@
+#type:     node
+#context:  sop
+#internal: labs::loop_volume::1.0
+#icon:     SOP/labs::loop_volume::1.0
+#since:    20.0
+
+= Labs Loop Volume =
+
+"""Takes one or two input volume sequences and creates a seamlessly looping volume animation."""
+
+This node generates a seamlessly looping volume animation from one or two input volume sequneces. It works on both Houdini native volumes and VDBs.
+
+The seamless looping is achieved by blending a base sequence with an overlay sequence. The base sequence starts and ends at the start and end of the frame range. The overlay sequence is offset by half the frame range, so it starts at the midpoint, loops back around, and ends at the midpoint again.
+
+The two sequences cross-fade into each other in a way that masks out any abrupt visual transition. The base sequence approaches 0 blend weight at the start and end of the frame range, while the overlay sequence approaches 0 blend weight at the midpoint.
+
+TIP:
+    When __Overlay Sequence__ is __Self__, in other words, when the overlay sequence is the same as the base sequence, there will be two visually repeating cycles in the loop.
+
+    For less visual repetition, it is better to set __Overlay Sequence__ to __Second Input__ and connect a different part of the input animation to this node's second input.
+
+== Visibility Estimation for Vector Fields ==
+
+Vector field values are not blended because blending vectors can often produce meaningless "grey" values. So instead, they are selectively copied from either the base or the overlay sequence. For diffuse color, each voxel copies the value from the sequence with the higher density at that location. For velocity and emission color, each voxel copies the value from the sequence with the higher visibility at that location. 
+
+Visibility is estimated on a per-voxel basis as a weighted sum of density, temperature, flame, and scatter values.
+
+
+@parameters
+
+    Frame Range:
+        #id: f
+        The output frame range, relatively to the global timeline.
+        
+    Overlay Sequence:
+        #id: overlaysource
+        The source of the overlay sequence. For less visual repetition, it is better to set this to __Second Input__ and connect a different part of the input animation to this node's second input.
+
+        __Self__: Uses this node's first input as both the base sequence and the overlay sequence.
+            
+        __Second Input__: Uses this node's second input as the overlay sequence and the first input as the base sequence.
+            
+    Blend Mode:
+        #id: blendmode
+        Controls how scalar fields from the base and overlay sequences are blended together. The cross-fade blend weights are applied to each sequence prior to this step.
+
+        __Add__: Outputs the sum of the weighted voxel values from the two sequences.
+            
+        __Maximum__: Outputs the maximum of the weighted voxel values from the two sequences.
+            
+        __Average__: Outputs the average of the weighted voxel values from the two sequences.
+            
+    Density Affects Cross-Fade Curves:
+        #id: nonuniformfade
+        Allows the density fields to the influence cross-fade speed by using two sets of cross-fade ramps. Each voxel's final blend weights, at any given time, are interpolated between the lower-density and higher-density cross-fade ramps, based on where the input density values lie within __Density Range__. When this is on, the default ramp settings make the denser areas in the volume fade in and out faster.
+        
+    Density Range:
+        #id: densityrange
+        Theoretically, this should be the density range of the input volume sequences. But since this is used to determine the final blend weights when __Density Affects Cross-Fade Curves__ is on, you can artifically change this range to bias the results towards the lower-density or higher-density cross-fade ramps. (When the input density values are outside this range, they are considered clamped.)
+        
+    == Sequence Cross-Fade ==
+
+    Base Sequence Cross-Fade:
+        #id: blendrampa
+        The blend weights of the base sequence across the frame range. When __Density Affects Cross-Fade Curves__ is on, this defines the cross-fade curve for the lower end of the density range. Steeper slopes mean faster fades.
+        
+    Overlay Sequence Cross-Fade:
+        #id: blendrampb
+        The blend weights of the overlay sequence across the frame range. When __Density Affects Cross-Fade Curves__ is on, this defines the cross-fade curve for the lower end of the density range. Steeper slopes mean faster fades.
+        
+    Base Sequence Cross-Fade:
+        #id: blendrampa_high
+        The blend weights of the base sequence across the frame range. This defines the cross-fade curve for the higher end of the density range. Steeper slopes mean faster fades.
+        
+    Overlay Sequence Cross-Fade:
+        #id: blendrampb_high
+        The blend weights of the overlay sequence across the frame range. This defines the cross-fade curve for the higher end of the density range. Steeper slopes mean faster fades.
+        
+    == Advanced ==
+
+    === Visibility Estimation ===
+
+    Density Weight:
+        #id: visw_density
+        Determines how much the density field contributes to visibility estimation. Please see the __Visibility Estimation for Vector Fields__ section of the Help Page for more information.
+        
+    Temperature Weight:
+        #id: visw_temp
+        Determines how much the temperature field contributes to visibility estimation.
+        
+    Flame Weight:
+        #id: visw_flame
+        Determines how much the flame field contributes to visibility estimation.
+        
+    Scatter Weight:
+        #id: visw_scatter
+        Determines how much the scatter field contributes to visibility estimation.
+        
+    Preview Motion Vectors:
+        #id: previewmv
+        Previews motion vector visualization. This can help you adjust the visibility estimation weights.
+        
+    === Volume Bindings ===
+
+    Density Volume:
+        #id: vol_density
+        The name of the density volume.
+        
+    Diffuse Color Volume:
+        #id: vol_cd
+        The name of the diffuse color volume.
+        
+    Temperature Volume:
+        #id: vol_temp
+        The name of the temperature volume.
+
+    Flame Volume:
+        #id: vol_flame
+        The name of the flame volume.
+        
+    Scatter Volume:
+        #id: vol_scatter
+        The name of the scatter volume.
+        
+    Emission Color Volume:
+        #id: vol_ce
+        The name of the emission color volume.
+        
+    Velocity Volume:
+        #id: vol_vel
+        The name of the velocity volume.
+        
+@examples
+
+    - [Example File|https://github.com/sideeffects/SideFXLabs/blob/Development/hip/examples/loop_volume/loop_volume.1.0.hip]
+
