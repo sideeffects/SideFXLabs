@@ -1,0 +1,257 @@
+# Dialog script for labs::loop_volume::1.0 automatically generated
+
+{
+    name	labs::loop_volume::1.0
+    script	labs::loop_volume::1.0
+    label	"Labs Loop Volume"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Base Volume"
+    inputlabel	2	"Volume to Blend With"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "f"
+        label   "Frame Range"
+        type    float
+        size    2
+        default { "$FSTART" "$FEND" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "overlaysource"
+        label   "Overlay Sequence"
+        type    ordinal
+        default { "1" }
+        menu {
+            "0" "Self"
+            "1" "Second Input"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "blendmode"
+        label   "Blend Mode"
+        type    ordinal
+        default { "2" }
+        menu {
+            "0" "Add"
+            "1" "Maximum"
+            "2" "Average"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "nonuniformfade"
+        label   "Density Affects Cross-Fade Curves"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "densityrange"
+        label   "Density Range"
+        type    float
+        size    2
+        default { "0" "1" }
+        hidewhen "{ nonuniformfade == 0 }"
+        range   { 0 1 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    group {
+        name    "fd_general"
+        label   "Sequence Cross-Fade"
+
+        parm {
+            name    "lb_lowdensity"
+            label   "lb_lowdensity"
+            type    label
+            default { "Lower Density Areas" }
+            hidewhen "{ nonuniformfade == 0 }"
+            parmtag { "sidefx::look" "heading" }
+        }
+        parm {
+            name    "blendrampa"
+            label   "Base Sequence Cross-Fade"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "rampbasisdefault" "monotonecubic" }
+            parmtag { "rampfloatdefault" "1pos ( 0.004999999888241291 ) 1value ( 0 ) 1interp ( monotonecubic ) 2pos ( 0.49500000476837158 ) 2value ( 1 ) 2interp ( monotonecubic ) 3pos ( 0.50499999523162842 ) 3value ( 1 ) 3interp ( monotonecubic ) 4pos ( 0.99500000476837158 ) 4value ( 0 ) 4interp ( monotonecubic )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "blendrampb"
+            label   "Overlay Sequence Cross-Fade"
+            type    ramp_flt
+            default { "4" }
+            range   { 1! 10 }
+            parmtag { "rampbasisdefault" "monotonecubic" }
+            parmtag { "rampfloatdefault" "1pos ( 0.004999999888241291 ) 1value ( 1 ) 1interp ( monotonecubic ) 2pos ( 0.49500000476837158 ) 2value ( 0 ) 2interp ( monotonecubic ) 3pos ( 0.50499999523162842 ) 3value ( 0 ) 3interp ( monotonecubic ) 4pos ( 0.99500000476837158 ) 4value ( 1 ) 4interp ( monotonecubic )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm3"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            hidewhen "{ nonuniformfade == 0 }"
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "lb_highdensity"
+            label   "lb_highdensity"
+            type    label
+            default { "Higher Density Areas" }
+            hidewhen "{ nonuniformfade == 0 }"
+            parmtag { "sidefx::look" "heading" }
+        }
+        parm {
+            name    "blendrampa_high"
+            label   "Base Sequence Cross-Fade"
+            type    ramp_flt
+            default { "4" }
+            hidewhen "{ nonuniformfade == 0 }"
+            range   { 1! 10 }
+            parmtag { "rampbasisdefault" "monotonecubic" }
+            parmtag { "rampfloatdefault" "1pos ( 0.05000000074505806 ) 1value ( 0 ) 1interp ( monotonecubic ) 2pos ( 0.44999998807907104 ) 2value ( 1 ) 2interp ( monotonecubic ) 3pos ( 0.55000001192092896 ) 3value ( 1 ) 3interp ( monotonecubic ) 4pos ( 0.94999998807907104 ) 4value ( 0 ) 4interp ( monotonecubic )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "blendrampb_high"
+            label   "Overlay Sequence Cross-Fade"
+            type    ramp_flt
+            default { "4" }
+            hidewhen "{ nonuniformfade == 0 }"
+            range   { 1! 10 }
+            parmtag { "rampbasisdefault" "monotonecubic" }
+            parmtag { "rampfloatdefault" "1pos ( 0.05000000074505806 ) 1value ( 1 ) 1interp ( monotonecubic ) 2pos ( 0.44999998807907104 ) 2value ( 0 ) 2interp ( monotonecubic ) 3pos ( 0.55000001192092896 ) 3value ( 0 ) 3interp ( monotonecubic ) 4pos ( 0.94999998807907104 ) 4value ( 1 ) 4interp ( monotonecubic )" }
+            parmtag { "rampshowcontrolsdefault" "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "fd_general_1"
+        label   "Advanced"
+
+        groupsimple {
+            name    "fd_visibility"
+            label   "Visibility Estimation"
+
+            parm {
+                name    "visw_density"
+                label   "Density Weight"
+                type    float
+                default { "1" }
+                range   { 0! 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "visw_temp"
+                label   "Temperature Weight"
+                type    float
+                default { "1" }
+                range   { 0! 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "visw_flame"
+                label   "Flame Weight"
+                type    float
+                default { "1" }
+                range   { 0! 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "visw_scatter"
+                label   "Scatter Weight"
+                type    float
+                default { "1" }
+                range   { 0! 5 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "previewmv"
+                label   "Preview Motion Vectors"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "fd_vols"
+            label   "Volume Bindings"
+
+            parm {
+                name    "vol_density"
+                label   "Density Volume"
+                type    string
+                default { "density" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vol_cd"
+                label   "Diffuse Color Volume"
+                type    string
+                default { "Cd" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vol_temp"
+                label   "Temperature Volume"
+                type    string
+                default { "temperature" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vol_flame"
+                label   "Flame Volume"
+                type    string
+                default { "flame" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vol_scatter"
+                label   "Scatter Volume"
+                type    string
+                default { "scatter" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vol_ce"
+                label   "Emission Color Volume"
+                type    string
+                default { "Ce" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vol_vel"
+                label   "Velocity Volume"
+                type    string
+                default { "vel" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}
