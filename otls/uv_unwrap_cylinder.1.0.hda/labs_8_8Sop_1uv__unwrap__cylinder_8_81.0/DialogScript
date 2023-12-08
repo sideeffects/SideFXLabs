@@ -15,6 +15,20 @@
     inputlabel	4	"Sub-Network Input #4"
 
     parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "*" }
+        menutoggle {
+            [ "hou.pwd().generateInputGroupMenu(0, group_types=hou.geometryType.Primitives)" ]
+            language python
+        }
+        parmtag { "Select geometry from an available viewport.\nShift-click to turn on Select Groups.script_action" "Select geometry from an available viewport.\nShift-click to turn on Select Groups." }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
         name    "uvattrib"
         label   "UV Attribute"
         type    string
@@ -28,6 +42,7 @@
     groupsimple {
         name    "fd_autounwrap"
         label   "Automatic Unwrap"
+        disablewhen "{ manualunwrap == 1 }"
 
         parm {
             name    "autocutoffset"
