@@ -1,0 +1,33 @@
+import biomeutils
+
+
+def loadProfile(node):
+    profile_name = node.parm('biomeprofile').eval()
+    biomeutils.readSettingsFile(profile_name, node) 
+    
+    
+def saveProfile(node):
+    profile_name = node.parm('biomeprofile').eval()
+    biomeutils.saveSettingsFile(profile_name, node)
+   
+        
+def applyProfileToNodes(node):
+    parent = node.parent()
+    children = parent.allSubChildren()
+    count = 0;
+    
+    profile_name = node.parm('biomeprofile').eval()
+    child_node_count = 0;
+    
+    for child in children:                                  #Only apply to children in current geo node 
+        type_name = child.type().nameComponents()[2]        #Compare type name instead of node name in case nodes are renamed
+        if type_name[:6] == 'biome_':
+            child.parm('biomeprofile').set(profile_name)
+            child_node_count += 1
+            
+    if child_node_count == 1:                               #If no other biome nodes exist. Will return one for the current Biome Profile node
+        print("No other biome nodes found to sync.")
+
+
+
+    

@@ -1,9 +1,9 @@
-# Dialog script for labs::biome_adjust_settings::1.0 automatically generated
+# Dialog script for labs::biome_profile::1.0 automatically generated
 
 {
-    name	labs::biome_adjust_settings::1.0
+    name	labs::biome_profile::1.0
     script	labs::adjust_biome_settings::1.0
-    label	"Labs Biome Adjust Settings (Beta)"
+    label	"Labs Biome Profile (Beta)"
 
     help {
 	""
@@ -30,40 +30,28 @@
             name    "biomeprofile"
             label   "Biome Profile"
             type    file
+            joinnext
             default { "$SIDEFXLABS/data/biome/biomeprofile.json" }
             hidewhen "{ environmentvar == 1 }"
             parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "biomeprofileenv"
-            label   "Biome Profile"
-            type    string
-            default { "" }
-            hidewhen "{ environmentvar != 1 }"
-            menureplace {
-                [ "import os" ]
-                [ "" ]
-                [ "biome_path = hou.getenv('BIOME')" ]
-                [ "dir_list = os.listdir(biome_path)" ]
-                [ "return_list = []" ]
-                [ "" ]
-                [ "for d in dir_list:" ]
-                [ "    if d != \"biome_settings_location.json\":" ]
-                [ "        return_list.append(d)" ]
-                [ "        return_list.append(d)" ]
-                [ "" ]
-                [ "return return_list" ]
-                language python
-            }
-            parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
+            name    "applysettingsnodes"
+            label   "Sync Profile Paths"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "hou.phm().applyProfileToNodes(kwargs['node'])" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "environmentvar"
-            label   "Environment Variable Set"
-            type    toggle
-            default { "isvariable(\"BIOME\")" }
+            name    "applysettings"
+            label   "Apply Profile"
+            type    button
+            default { "0" }
+            hidewhen "{ environmentvar != 1 }"
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback" "hou.phm().applyProfile(kwargs['node'])" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -76,15 +64,16 @@
         }
         parm {
             name    "loadsettings"
-            label   "Load Profile"
+            label   "Reload Profile"
             type    button
+            joinnext
             default { "0" }
             parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "savesettings"
-            label   "Save and Apply Profile"
+            label   "Save Profile"
             type    button
             default { "0" }
             parmtag { "export_disable" "1" }
