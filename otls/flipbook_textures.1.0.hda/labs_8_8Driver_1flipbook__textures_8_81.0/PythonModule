@@ -13,18 +13,35 @@ def setUpOCIO():
         return
 
     manage_ocio(destination="$HOUDINI_USER_PREF_DIR/packages/Labs_OpenColorIO.json", install=1)
-
-    message = \
+    msg = \
         "The $OCIO environment variable has been set to a minimal version of OCIO ACES 1.2 shipped with SideFX Labs. \n" \
         "This changes the viewport default color space to ACES sRGB. " \
         "Unhide Color Correction Bar at the bottom of a viewport to verify or switch color spaces. \n" \
         "Learn more about ACES at https://www.sidefx.com/docs/houdini/pyro/shading.html. \n \n" \
         "Please restart Houdini for the changes to take effect."
+    print (msg)
 
-    print (message)
+    # Sets Labs OCIO ACES 1.2 to 'True' in the Labs Preferences config file
+    try:
+
+        import labprefs, os, json
+        file = labprefs.getLabsConfigFilePath()
+
+        if os.path.isfile(file):
+            with open(file, "r") as savefile:
+                configs = json.load(savefile)
+        else:
+            configs = dict(zip(labprefs.getConfigKeys(), labprefs.getConfigDefaults()))
+
+        configs['ocio'] = True
+        with open(file, "w") as savefile:
+                json.dump(configs, savefile, indent=4)
+
+    except Exception as exc:
+
+        print (type(exc).__name__, exc)
 
     return
-
 
 
 def checkInputs(node):
@@ -38,9 +55,11 @@ def checkInputs(node):
     cam = node.node(node.evalParm('camerapath'))
 
     if type(cam) is not hou.ObjNode:
+
         return None
 
     elif cam.type().name() != 'cam':
+
         return None
 
     else:
@@ -65,7 +84,6 @@ def checkInputs(node):
     return None
 
 
-
 def pinSelectionFollowingTabs(node):
 
     tabs = [pane_tab for pane_tab in hou.ui.paneTabs() if isinstance(pane_tab, hou.PathBasedPaneTab)]
@@ -73,16 +91,13 @@ def pinSelectionFollowingTabs(node):
     selection_following_tab_nodes = []
 
     for tab in tabs:
-
         if tab.type() != hou.paneTabType.SceneViewer:
-
             if tab.linkGroup() == hou.paneLinkType.FollowSelection:
                 tab.setPin(True)
                 selection_following_tabs.append(tab)
                 selection_following_tab_nodes.append(tab.currentNode())
 
     return {'free_tabs': selection_following_tabs, 'free_tab_nodes': selection_following_tab_nodes}
-
 
 
 # Points all existing Scene Viewers to an embedded empty OBJ network and then resets them to clear the GPU memory.
@@ -105,7 +120,6 @@ def clearExistingSceneViewers(node):
     return {'scene_viewer_nodes': scene_viewer_nodes, 'link_groups': link_groups, 'free_tabs': tab_data['free_tabs'], 'free_tab_nodes': tab_data['free_tab_nodes']}
 
 
-
 def restoreExistingSceneViewers(node, scene_viewer_data):
 
     scene_viewers = [pane_tab for pane_tab in hou.ui.paneTabs() if pane_tab.type() == hou.paneTabType.SceneViewer]
@@ -113,7 +127,6 @@ def restoreExistingSceneViewers(node, scene_viewer_data):
     for i in range(len(scene_viewer_data['scene_viewer_nodes'])):
 
         link_group = scene_viewer_data['link_groups'][i]
-
         if link_group is not None:
             scene_viewers[i].setLinkGroup(link_group)
 
@@ -122,14 +135,10 @@ def restoreExistingSceneViewers(node, scene_viewer_data):
         try:
 
             if isinstance(scene_viewer_node, hou.Node):
-    
                 path = scene_viewer_node.path()
-    
                 if path != '/obj' and path != '':
                     scene_viewers[i].setCurrentNode(scene_viewer_node)
-    
             else:
-    
                 scene_viewers[i].setCurrentNode(node.node(node.evalParm('camerapath')))
 
         except (hou.OperationFailed, hou.OperationInterrupted):
@@ -152,33 +161,25 @@ def restoreExistingSceneViewers(node, scene_viewer_data):
     return
 
 
-
 def closeSceneViewer(scene_viewer, scene_viewer_node = None):
 
     try:
-
         if type(scene_viewer) is hou.SceneViewer:
             scene_viewer.close()
-
     except:
-
         # Sometimes irrelevant exceptions are raised even though the operation has succeeded.
         # It's not worth raising those exceptions to confuse the users.
         pass
 
     try:
-
         if isinstance(scene_viewer_node, hou.Node):
             scene_viewer_node.destroy()
-
     except:
-
         # Sometimes irrelevant exceptions are raised even though the operation has succeeded.
         # It's not worth raising those exceptions to confuse the users.
         pass
 
     return
-
 
 
 def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
@@ -188,14 +189,10 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
 
     # Attempts to disable any Template flags on any sibling nodes.
     try:
-
         for sibling in main_geometry.parent().children():
-
             sibling.setGenericFlag(hou.nodeFlag.Template, False)
             sibling.setGenericFlag(hou.nodeFlag.Footprint, False)
-
     except Exception as exc:
-        
         # Prints the exception but the rest of the code should execute regardless
         print (type(exc).__name__, exc)
 
@@ -212,9 +209,7 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
         pyro_bake_volume = node.node(geo_path)
 
         if type(pyro_bake_volume) is hou.SopNode:
-
             if pyro_bake_volume.type().name() == 'pyrobakevolume':
-
                 geo_path = pyro_bake_volume.path()  # This returns the full path
                 geo_path += '/VISUALIZER'
                 merged_geos.parm('objpath' + idx).set(geo_path)
@@ -228,27 +223,21 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
     # Merges non-volumes
 
     merged_geos.parm('enable6').set(0)
-
     emissive_property = node.evalParm('nonvolemissive')
-
     geo_path = ''
 
     if not non_emissive_pass:
         # Non-volumetric Final Color:
-
         geo_path = node.evalParm('nonvolpath')
 
     elif node.evalParm('nonvolpath') != '':
         # Non-volumetric Non-emissive Color:
-
         if emissive_property == 0:
             # Not Emissive:
             geo_path = node.evalParm('nonvolpath')
-
         elif emissive_property == 1:
             # Partially Emissive:
             geo_path = node.evalParm('nonvolncpath')
-
         elif emissive_property == 2:
             # Fully Emissive:
             geo_path = ''
@@ -259,20 +248,17 @@ def mergeRenderGeometries(node, main_geometry, non_emissive_pass = False):
     # non-volumes simply won't be merged in.
 
     if type(non_vol) is hou.SopNode:
-
         geo_path = non_vol.path()  # This returns the full path
         merged_geos.parm('objpath6').set(geo_path)
         merged_geos.parm('enable6').set(1)
         count += 1
 
     if count == 0:
-
         merged_geos.destroy()
         merged_geos = None
         print ('There is nothing valid to render.')
 
     return merged_geos
-
 
 
 def setCommonSceneViewerSettings(node, scene_viewer_node, padding = 0):
@@ -296,57 +282,41 @@ def setCommonSceneViewerSettings(node, scene_viewer_node, padding = 0):
     return scene_viewer
 
 
-
 def setCommonViewportSettings(node, scene_viewer, render_type):
 
     viewport = scene_viewer.curViewport()
     viewport.setCamera(node.node(node.evalParm('camerapath')).path())
-    
     viewport_settings = viewport.settings()
 
     # Rendering
 
     if render_type == 'lit':
-
         viewport_settings.particlePointSize(node.evalParm('pointsize_lit'))
         viewport_settings.wireWidth(node.evalParm('wirewidth_lit'))
         viewport_settings.setShadowMapSize(node.evalParm('shadowmapres'))
         viewport_settings.setShadowMapSizeFromLight(False)
         viewport_settings.showSpecular(node.evalParm('enablespecincols'))
         viewport_settings.showEmission(True)
-
         if node.evalParm('lighting') == 0:
-
             viewport_settings.setLighting(hou.viewportLighting.Off)
             viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
-
         elif node.evalParm('lighting') == 1:
-
             viewport_settings.setLighting(hou.viewportLighting.Headlight)
             viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
-    
         elif node.evalParm('lighting') == 2:
-
             viewport_settings.setLighting(hou.viewportLighting.Normal)
             viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
-    
         elif node.evalParm('lighting') == 3:
-
             viewport_settings.setLighting(hou.viewportLighting.HighQuality)
             viewport_settings.setShadowQuality(hou.viewportShadowQuality.Point)
-    
         elif node.evalParm('lighting') == 4:
-
             viewport_settings.setLighting(hou.viewportLighting.HighQualityWithShadows)
             viewport_settings.setShadowQuality(hou.viewportShadowQuality.PointAA)
-     
         elif node.evalParm('lighting') == 5:
-
             viewport_settings.setLighting(hou.viewportLighting.HighQualityWithShadows)
             viewport_settings.setShadowQuality(hou.viewportShadowQuality.AreaAA)
 
     elif render_type == 'unlit':
-
         viewport_settings.particlePointSize(node.evalParm('pointsize_unlit'))
         viewport_settings.wireWidth(node.evalParm('wirewidth_unlit'))
         viewport_settings.setShadowMapSize(16)
@@ -370,7 +340,6 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
 
     if max_res_3d_level > 0:
         max_res_3d = (max_res_3d_level, max_res_3d_level, max_res_3d_level)
-
     else:
         max_res_3d = (node.evalParm('texlimit3dx'), node.evalParm('texlimit3dy'), node.evalParm('texlimit3dz'))
 
@@ -401,7 +370,6 @@ def setCommonViewportSettings(node, scene_viewer, render_type):
     return {'viewport': viewport, 'settings': viewport_settings}
 
 
-
 def setCommonFlipbookSettings(node, scene_viewer):
 
     fb_settings = scene_viewer.flipbookSettings()
@@ -411,13 +379,13 @@ def setCommonFlipbookSettings(node, scene_viewer):
     fb_settings.sheetSize((node.evalParm('gridsizex'), node.evalParm('gridsizey')))
     fb_settings.outputToMPlay(node.evalParm('outputtomplay'))
     fb_settings.appendFramesToCurrent(node.evalParm('appendrenders'))
-
-    fb_settings.useSheetSize(True)
-    fb_settings.overrideLUT(False)
-    fb_settings.overrideGamma(False)
-    fb_settings.renderAllViewports(False)
+    
     fb_settings.visibleTypes(hou.flipbookObjectType.GeoOnly)
     fb_settings.antialias(hou.flipbookAntialias.UseViewportSetting)
+    fb_settings.renderAllViewports(False)
+    fb_settings.overrideLUT(False)
+    fb_settings.overrideGamma(False)
+    fb_settings.useSheetSize(True)
 
     return fb_settings
 
@@ -425,105 +393,141 @@ def setCommonFlipbookSettings(node, scene_viewer):
 def updateTimeStamp(node, parm_name):
 
     parm = node.parm(parm_name)
-    
     if node.evalParm('enabletimestamps') and parm is not None:
-
         try:
-
             now = datetime.now()
             time_stamp = now.strftime('%d %b %Y %I:%M %p')
             parm.set(time_stamp)
-
         except:
-
             pass
 
     return
 
 
+def setUsingLinearColor(viewer, viewport_settings=None):
 
-def setOCIODisplayViewSafe(display, view, viewer, viewport_settings=None):
-
-    try:
-
-        viewer.setOCIODisplayView(display, view)
-
-    except hou.OperationFailed as exc:
-
-        viewer.setUsingOCIO(False)
-
-        if type(viewport_settings) is hou.GeometryViewportSettings:
+    if type(viewer) is hou.SceneViewer:
+        if viewer.usingOCIO():
+            viewer.setOCIODisplayView(viewer.getOCIODisplay(), "Raw")
+        elif type(viewport_settings) is hou.GeometryViewportSettings:
             viewport_settings.setSceneGamma(1.0)
 
-        elif type(viewer) is hou.CompositorViewer:
+    elif type(viewer) is hou.CompositorViewer:
+        if viewer.usingOCIO():
+            viewer.setOCIODisplayView(viewer.getOCIODisplay(), "Raw")
+            hou.hscript('colorsettings -g 1.0 -c')
+        else:  
             hou.hscript('colorsettings -g 1.0 -c')
 
+    return
+
+
+def setOCIODisplayViewSafe(node, display, view, using_labs_ocio, viewer, viewport_settings):
+
+    try:
+        if hou.applicationVersionString()[:4] == '19.5' and not using_labs_ocio:
+            # If using Houdini 19.5 built-in OCIO ACES:
+            # When the second argument is '', it defaults to the first view option.
+            # In H19.5, the first view option is the ACES one.
+            viewer.setOCIODisplayView(display, '')
+        else:
+            viewer.setOCIODisplayView(display, view)
+        # Prints OCIO display and view
+        if node.parm("printcolorspace").evalAsInt() == 1:
+            print ("Color Space: OCIO ACES\nOCIO Display: {0}\nOCIO View: {1}".format(display, view))
+
+    except hou.OperationFailed as exc:
+        setUsingLinearColor(viewer, viewport_settings)
         print (exc)
         print ("Falling back to using linear color space.")
 
     except Exception as exc2:
-
         print (exc2)
         raise exc2
 
     return
 
 
-
 def setColorSpace(node, color_space, scene_viewer, viewport_settings, fb_settings):
 
-    render_in_linear = color_space < 2
+    using_linear = color_space < 2
     ocio_env = hou.getenv('OCIO')
+    houdini_version_str = hou.applicationVersionString()[:4]
 
-    if render_in_linear or ocio_env is None:
+    if using_linear:
 
-        scene_viewer.setUsingOCIO(False)
+        setUsingLinearColor(scene_viewer, viewport_settings)
 
-        if render_in_linear:
-            viewport_settings.setSceneGamma(1.0)
+        if node.parm("printcolorspace").evalAsInt() == 1:
+            if color_space == 0:
+                print ("Color Space: Linear")
+            else:
+                print ("Color Space: Linear (gamma 2.2 will be applied during compositing)")
 
-        else:
-            print ("OCIO ACES has not been set up.")
-            raise hou.OperationFailed
+    elif ocio_env is None and houdini_version_str != '19.5':
+        
+        print ("OCIO ACES has not been set up.")
+        raise hou.OperationFailed
 
     else:
 
+        # H19.5 is an exception where OCIO can be enabled even if `ocio_env` is None
         scene_viewer.setUsingOCIO(True)
 
-        if '/misc/labs_ocio/aces_config.ocio' in ocio_env:
+        if ocio_env is None:
+            using_labs_ocio = False
+        else:
+            using_labs_ocio = '/misc/labs_ocio/aces_config.ocio' in ocio_env
+
+        if using_labs_ocio:
             # Labs Minimal OCIO ACES:
-
+            view = 'ACES'
             if color_space == 2:
-                setOCIODisplayViewSafe('sRGB', 'ACES', scene_viewer, viewport_settings)
-
+                display = 'sRGB'
             elif color_space == 3:
-                setOCIODisplayViewSafe('Rec.709', 'ACES', scene_viewer, viewport_settings)
-
+                display = 'Rec.709'
             elif color_space == 4:
-                setOCIODisplayViewSafe('Rec.2020', 'ACES', scene_viewer, viewport_settings)
-
+                display = 'Rec.2020'
             elif color_space == 5:
-                setOCIODisplayViewSafe('DCI-P3 D65', 'ACES', scene_viewer, viewport_settings)
+                display = 'DCI-P3 D65'
+
+        elif houdini_version_str == '19.5':
+            # Houdini 19.5 built-in OCIO ACES:
+            if color_space == 2:
+                display = 'Display - sRGB'
+                view = 'Output - SDR Video - ACES 1.0'
+            elif color_space == 3:
+                display = 'Display - Rec.1886 / Rec.709 Video'
+                view = 'Output - SDR Video - ACES 1.0'
+            elif color_space == 4:
+                # In theory, Rec.2020 is replaced/extended by Rec.2100, but the results are not identical
+                display = 'Display - Rec.2100-PQ'
+                view = 'Output - HDR Video (1000 nits & Rec.2020 lim) - ACES 1.1'
+            elif color_space == 5:
+                display = 'Display - P3-D65'
+                view = 'Output - SDR Cinema - ACES 1.0'
 
         else:
-            # Official OCIO ACES:
-
+            # Houdini 20.0 built-in OCIO ACES:
             if color_space == 2:
-                setOCIODisplayViewSafe('ACES', 'sRGB', scene_viewer, viewport_settings)
-
+                display = 'sRGB - Display'
+                view = 'ACES 1.0 - SDR Video'
             elif color_space == 3:
-                setOCIODisplayViewSafe('ACES', 'Rec.709', scene_viewer, viewport_settings)
-
+                display = 'Rec.1886 Rec.709 - Display'
+                view = 'ACES 1.0 - SDR Video'
             elif color_space == 4:
-                setOCIODisplayViewSafe('ACES', 'Rec.2020', scene_viewer, viewport_settings)
-
+                # In theory, Rec.2020 is replaced/extended by Rec.2100, but the results are not identical
+                display = 'Rec.2100-PQ - Display'
+                view = 'ACES 1.1 - HDR Video (1000 nits & Rec.2020 lim)'
             elif color_space == 5:
-                setOCIODisplayViewSafe('ACES', 'P3-DCI D65 simulation', scene_viewer, viewport_settings)
+                display = 'P3-D65 - Display'
+                view = 'ACES 1.0 - SDR Cinema'
 
-    fb_settings.beautyPassOnly(render_in_linear)
+        setOCIODisplayViewSafe(node, display, view, using_labs_ocio, scene_viewer, viewport_settings)
+
+    fb_settings.beautyPassOnly(using_linear)
 
     return
-
 
 
 # Render Intermediate Images
@@ -540,9 +544,8 @@ def renderFinalColor(node, single_pass = True, main_geometry = None):
     scene_viewer = None
 
     if single_pass:
-        
-        main_geometry = checkInputs(node)
 
+        main_geometry = checkInputs(node)
         if main_geometry is None:
             return False
 
@@ -596,7 +599,6 @@ def renderFinalColor(node, single_pass = True, main_geometry = None):
     return success
 
 
-
 def renderSeparateAlphas(node, single_pass = True):
 
     success = False
@@ -607,7 +609,6 @@ def renderSeparateAlphas(node, single_pass = True):
     if single_pass:
         
         main_geometry = checkInputs(node)
-
         if main_geometry is None:
             return False       
             
@@ -643,7 +644,6 @@ def renderSeparateAlphas(node, single_pass = True):
     return success
 
 
-
 def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
 
     success = False
@@ -657,7 +657,6 @@ def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
     if single_pass:
         
         main_geometry = checkInputs(node)
-
         if main_geometry is None:
             return False        
             
@@ -740,7 +739,6 @@ def renderNonEmissiveColor(node, single_pass = True, main_geometry = None):
     return success
 
 
-
 def renderMDC(node, single_pass = True):
 
     success = False
@@ -754,7 +752,6 @@ def renderMDC(node, single_pass = True):
     if single_pass:
         
         main_geometry = checkInputs(node)
-
         if main_geometry is None:
             return False        
             
@@ -914,7 +911,6 @@ def renderMDC(node, single_pass = True):
             pyro_bake_volumes[i].parm('enablescatter').set(scatter_toggles[i])
             pyro_bake_volumes[i].parm('enablefire').set(fire_toggles[i])
             pyro_bake_volumes[i].parm('enablesecfire').set(secfire_toggles[i])
-    
             pyro_bake_volumes[i].parm('smokecolormode').set(color_modes[i])
             pyro_bake_volumes[i].parm('smokecolorr').set(smoke_rs[i])
             pyro_bake_volumes[i].parm('smokecolorg').set(smoke_gs[i])
@@ -926,7 +922,6 @@ def renderMDC(node, single_pass = True):
             restoreExistingSceneViewers(node, existing_scene_viewer_data)
     
     return success
-
 
 
 def renderSurfaceNormal(node, single_pass = True):
@@ -942,7 +937,6 @@ def renderSurfaceNormal(node, single_pass = True):
     if single_pass:
         
         main_geometry = checkInputs(node)
-
         if main_geometry is None:
             return False
             
@@ -990,7 +984,6 @@ def renderSurfaceNormal(node, single_pass = True):
     return success
 
 
-
 def renderMotionVector(node, single_pass = True):
 
     success = False
@@ -1004,7 +997,6 @@ def renderMotionVector(node, single_pass = True):
     if single_pass:
         
         main_geometry = checkInputs(node)
-
         if main_geometry is None:
             return False        
             
@@ -1052,7 +1044,6 @@ def renderMotionVector(node, single_pass = True):
     return success
 
 
-
 def renderDepth(node, single_pass = True):
 
     success = False
@@ -1063,7 +1054,6 @@ def renderDepth(node, single_pass = True):
     if single_pass:
         
         main_geometry = checkInputs(node)
-
         if main_geometry is None:
             return False        
             
@@ -1096,40 +1086,33 @@ def renderDepth(node, single_pass = True):
     return success
 
 
-
 def renderAll(node):
 
     success = False
 
     main_geometry = checkInputs(node)
-    
     if main_geometry is None:
         return False
 
     existing_scene_viewer_data = clearExistingSceneViewers(node)
 
     try:
-
         if renderFinalColor(node, False, main_geometry):
             if renderNonEmissiveColor(node, False, main_geometry):
                 if renderMDC(node, False):
                     if renderSurfaceNormal(node, False):
                         if renderMotionVector(node, False):
                             renderDepth(node, False)
-
         success = True
 
     except Exception as exc:
-
         if type(exc) is not hou.OperationInterrupted:
             raise exc
 
     finally:
-
         restoreExistingSceneViewers(node, existing_scene_viewer_data)
 
     return success
-
 
 
 # Composite
@@ -1143,29 +1126,24 @@ def reloadImageFile(node, relative_path):
     return
 
 
-
 def reloadFinalColor(node):
 
     reloadImageFile(node, '/comp_final_color/msg_final_color')
 
     if node.node(node.path() + '/comp_final_color/switch_combined_alphas').parm('index').eval() == 1:
-
         reloadImageFile(node, '/comp_final_color/msg_vol_alpha')
         reloadImageFile(node, '/comp_final_color/msg_nonvol_alpha')
 
     return
 
 
-
 def setPreviewImage(node):
 
     preview_image = node.evalParm('previewimage')
-
     if preview_image == 0:
         return
 
     pinSelectionFollowingTabs(node)
-
     desktop = hou.ui.curDesktop()
 
     # Attempts to find a valid Compositor Viewer
@@ -1176,24 +1154,20 @@ def setPreviewImage(node):
 
         should_create_floating = 1
 
+        # Creates docked Compositor Viewer
         scene_viewer = desktop.paneTabOfType(hou.paneTabType.SceneViewer)
-
         if scene_viewer is not None:
-
             pane = scene_viewer.pane()
-
             if pane is not None:
-
+                comp_viewer = pane.createTab(hou.paneTabType.CompositorViewer)
                 should_create_floating = 0
-                comp_viewer = pane.createTab(hou.paneTabType.CompositorViewer)  
 
+        # Creates floating Compositor Viewer
         if should_create_floating == 1:
-
-            panel = desktop.createFloatingPanel(hou.paneTabType.CompositorViewer, immediate = True)
+            panel = desktop.createFloatingPanel(hou.paneTabType.CompositorViewer, immediate=True)
             comp_viewer = panel.paneTabOfType(hou.paneTabType.CompositorViewer)
 
     if comp_viewer is None:
-
         print ("Failed to find or create a Composite View Tab.")
         return
 
@@ -1203,64 +1177,38 @@ def setPreviewImage(node):
     comp_viewer.setCurrentNode(preview_node)
 
     # Color space settings
-
-    ocio_env = hou.getenv('OCIO')
-
-    if node.evalParm('colspace') < 2 or ocio_env is None:
-
-        comp_viewer.setUsingOCIO(False)
-        hou.hscript('colorsettings -g 1.0 -c')
-
-    else:
-
-        comp_viewer.setUsingOCIO(True)
-
-        if '/misc/labs_ocio/aces_config.ocio' in ocio_env:
-            # Labs Minimal OCIO ACES:
-            setOCIODisplayViewSafe('sRGB', 'Raw', comp_viewer)
-
-        else:
-            # Official OCIO ACES:
-            setOCIODisplayViewSafe('ACES', 'Raw', comp_viewer)
+    setUsingLinearColor(comp_viewer)
 
     # Reloads dependent image files
     if preview_image == 1:
-
         reloadFinalColor(node)
 
     elif preview_image <= 3:
-
         reloadFinalColor(node)
         reloadImageFile(node, '/comp_non_emissive/msg_non_emissive_color')
 
     elif preview_image <= 9:
-
         reloadImageFile(node, '/comp_mdc/msg_mdc_a')
         reloadImageFile(node, '/comp_mdc/msg_mdc_b')
         reloadImageFile(node, '/comp_mdc/msg_mdc_c')
 
     elif preview_image == 10:
-
         reloadImageFile(node, '/comp_normal/msg_surface_normal')
 
     elif preview_image == 11:
-
         reloadImageFile(node, '/comp_mdc/msg_mdc_a')
         reloadImageFile(node, '/comp_mdc/msg_mdc_b')
         reloadImageFile(node, '/comp_mdc/msg_mdc_c')
         reloadImageFile(node, '/comp_normal/msg_surface_normal')
 
     elif preview_image <= 13:
-
         reloadFinalColor(node)
         reloadImageFile(node, '/comp_motion_vector/msg_motion_vector')
 
     elif preview_image == 14:
-
         reloadImageFile(node, '/comp_depth/msg_depth')
 
     elif preview_image <= 19:
-
         reloadFinalColor(node)
         reloadImageFile(node, '/comp_non_emissive/msg_non_emissive_color')
         reloadImageFile(node, '/comp_normal/msg_surface_normal')
@@ -1271,7 +1219,6 @@ def setPreviewImage(node):
         reloadImageFile(node, '/comp_depth/msg_depth')
 
     return
-
 
 
 def stopPreviewImage(node):
@@ -1282,35 +1229,26 @@ def stopPreviewImage(node):
     return
 
 
-
 def exportTexture(node, texture_index):
 
     success = False
-
     try:
-
         stopPreviewImage(node)
-    
         if node.evalParm('enabletex' + str(texture_index)):
-    
             output_node = node.node(node.path() + '/channel_pack/ROP_TEX' + str(texture_index))
             output_node.render()
-
         success = True
 
     except Exception as exc:
-
         print ("Error in exporting Texture " + str(texture_index) + ".")
         raise exc
 
     return success
 
 
-
 def exportAll(node):
 
     try:
-
         if exportTexture(node, 1):
             if exportTexture(node, 2):
                 if exportTexture(node, 3):
@@ -1318,12 +1256,10 @@ def exportAll(node):
                         exportTexture(node, 5)
 
     except Exception as exc:
-
         if type(exc) is not hou.OperationInterrupted:
             raise exc
 
     return
-
 
 
 def renderAndExport(node):
