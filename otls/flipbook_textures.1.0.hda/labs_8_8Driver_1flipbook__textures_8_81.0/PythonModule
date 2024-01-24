@@ -425,10 +425,11 @@ def setUsingLinearColor(viewer, viewport_settings=None):
 def setOCIODisplayViewSafe(node, display, view, using_labs_ocio, viewer, viewport_settings):
 
     try:
-        if hou.applicationVersionString()[:4] == '19.5' and not using_labs_ocio:
-            # If using Houdini 19.5 built-in OCIO ACES:
-            # When the second argument is '', it defaults to the first view option.
-            # In H19.5, the first view option is the ACES one.
+        if hou.applicationVersionString() < '19.5.869' and not using_labs_ocio:
+            # If using Houdini 19.5 built-in OCIO ACES (prior to H19.5.869):
+            # Before H19.5.869, when the second argument is '', it defaults to the first view option (ACES).
+            # This was a workaround for a bug that existed before H19.5.869 where certain display-view 
+            # combinations couldn't be directly set.
             viewer.setOCIODisplayView(display, '')
         else:
             viewer.setOCIODisplayView(display, view)
