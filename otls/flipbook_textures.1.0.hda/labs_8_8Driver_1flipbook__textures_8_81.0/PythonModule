@@ -269,7 +269,10 @@ def setCommonSceneViewerSettings(node, scene_viewer_node, padding = 0):
     scene_viewer.showOperationBar(True)
     scene_viewer.showDisplayOptionsBar(True)
     res = scene_viewer.curViewport().resolutionInPixels()
-    res = (target_res[0] * 2 - res[0], target_res[1] * 2 - res[1] + padding * 2)
+    if node.parm('paddir').evalAsInt() == 0:
+        res = (target_res[0] * 2 - res[0], target_res[1] * 2 - res[1] + padding * 2)
+    else:
+        res = (target_res[0] * 2 - res[0] + padding * 2, target_res[1] * 2 - res[1])
     scene_viewer.close()
     
     scene_viewer = hou.ui.curDesktop().createFloatingPaneTab(hou.paneTabType.SceneViewer, pos, res, None, True)
