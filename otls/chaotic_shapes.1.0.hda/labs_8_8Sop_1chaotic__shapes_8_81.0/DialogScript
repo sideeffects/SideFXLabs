@@ -1,0 +1,272 @@
+# Dialog script for labs::chaotic_shapes::1.0 automatically generated
+
+{
+    name	labs::chaotic_shapes::1.0
+    script	labs::chaotic_shapes::1.0
+    label	"Labs Chaotic Shapes"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Chaotic Shape"
+
+    groupcollapsible {
+        name    "fd_maptypes"
+        label   "Type"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "type"
+            label   "Chaotic Map"
+            type    ordinal
+            default { "0" }
+            menu usetokenvalue {
+                "0" "Clifford"
+                "1" "De Jong"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "hou.phm().chooseMap(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_numpoints"
+        label   "Number of Points"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "totalcount"
+            label   "Total Count"
+            type    integer
+            default { "250000" }
+            range   { 10000 500000 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_constants"
+        label   "Constants"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "constantspresets"
+            label   "Constants Presets"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Clifford #1"
+                "1" "Clifford #2"
+                "2" "Clifford #3"
+                "3" "Clifford #4"
+                "4" "Clifford #5"
+                "5" "Clifford #6"
+                "6" "Clifford #7"
+                "7" "Clifford #8"
+                "8" "De Jong"
+            }
+            parmtag { "script_callback" "hou.phm().setPreset(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "overrideconstants"
+            label   "Manually Override Constants (Unpredictable Behavior)"
+            type    toggle
+            default { "off" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "a"
+            label   "A"
+            type    float
+            default { "-1.8" }
+            disablewhen "{ overrideconstants == 0 }"
+            range   { -5 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "b"
+            label   "B"
+            type    float
+            default { "-2" }
+            disablewhen "{ overrideconstants == 0 }"
+            range   { -5 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "c"
+            label   "C"
+            type    float
+            default { "-0.5" }
+            disablewhen "{ overrideconstants == 0 } { type == 2 }"
+            range   { -5 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "d"
+            label   "D"
+            type    float
+            default { "-0.9" }
+            disablewhen "{ overrideconstants == 0 } { type == 2 }"
+            range   { -5 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_attributes"
+        label   "Attributes"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "computedensity"
+            label   "Compute Point Cloud Density"
+            type    toggle
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupcollapsible {
+            name    "fd_density"
+            label   "Point Density"
+            hidewhen "{ computedensity == 0 }"
+            parmtag { "group_default" "1" }
+
+            parm {
+                name    "densityattribute"
+                label   "Density Attribute"
+                type    string
+                default { "density" }
+                hidewhen "{ computedensity == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "searchdistance"
+                label   "Search Distance"
+                type    float
+                default { "0.008" }
+                hidewhen "{ computedensity == 0 }"
+                range   { 0.001! 0.01 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "maxpts"
+                label   "Maximum Search Points"
+                type    integer
+                default { "12" }
+                hidewhen "{ computedensity == 0 }"
+                range   { 2! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ computedensity == 0 }"
+        }
+        groupcollapsible {
+            name    "fd_color"
+            label   "Point Color"
+            hidewhen "{ computedensity == 0 }"
+
+            parm {
+                name    "addcolorbydensity"
+                label   "Add Color by Density"
+                type    toggle
+                default { "1" }
+                hidewhen "{ computedensity == 0 }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "rampcolor"
+                label   "Ramp Color"
+                type    ramp_rgb
+                default { "3" }
+                hidewhen "{ addcolorbydensity == 0 } { computedensity == 0 }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0 0 0.8999999761581421 ) 1interp ( linear ) 2pos ( 0.5 ) 2c ( 0 0.8999999761581421 0.8999999761581421 ) 2interp ( linear ) 3pos ( 1 ) 3c ( 1 1 1 ) 3interp ( linear )" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm2"
+            label   "Separator"
+            type    separator
+            default { "" }
+            hidewhen "{ computedensity == 0 }"
+        }
+        groupcollapsible {
+            name    "fd_pscale"
+            label   "Point Radius"
+            hidewhen "{ computedensity == 0 }"
+
+            parm {
+                name    "addpscalebydensity"
+                label   "Add Pscale by Density"
+                type    toggle
+                default { "1" }
+                hidewhen "{ computedensity == 0 }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "minimumpscale"
+                label   "Minimum Pscale"
+                type    float
+                default { "0.01" }
+                hidewhen "{ addpscalebydensity == 0 } { computedensity == 0 }"
+                range   { 0! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "maximumpscale"
+                label   "Maximum Pscale"
+                type    float
+                default { "0.05" }
+                hidewhen "{ addpscalebydensity == 0 } { computedensity == 0 }"
+                range   { 0.001! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "displayasspheres"
+                label   "Display as Spheres"
+                type    toggle
+                default { "0" }
+                hidewhen "{ addpscalebydensity == 0 } { computedensity == 0 }"
+                range   { 0! 1! }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}
