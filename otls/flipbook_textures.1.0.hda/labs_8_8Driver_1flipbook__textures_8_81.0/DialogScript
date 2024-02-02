@@ -583,10 +583,10 @@
             menu {
                 "0" "Linear (Best for Greyscale)"
                 "1" "Gamma 2.2 (Houdini Default)"
-                "2" "ACES sRGB (Recommended)"
-                "3" "ACES Rec. 709 (HDTV)"
-                "4" "ACES Rec. 2020 (UHDTV)"
-                "5" "ACES DCI-P3 D65 (Projection)"
+                "2" "ACES sRGB (Best for Pyro)"
+                "3" "ACES Rec.709 (HDTV)"
+                "4" "ACES Rec.2020/2100 (UHDTV)"
+                "5" "ACES P3-D65 (Projection)"
             }
             parmtag { "script_callback" "" }
             parmtag { "script_callback_language" "python" }
@@ -601,6 +601,14 @@
             parmtag { "script_callback_language" "python" }
         }
         parm {
+            name    "lb_gammamsg"
+            label   "lb_gammamsg"
+            type    label
+            default { "For Gamma 2.2, the rendering will be in linear space, the gamma \nwill be applied later during the compositing step." }
+            hidewhen "{ colspace != 1 }"
+            parmtag { "sidefx::look" "block" }
+        }
+        parm {
             name    "ocioisset"
             label   "OCIO Is Set"
             type    integer
@@ -610,12 +618,30 @@
             parmtag { "script_callback_language" "python" }
         }
         parm {
-            name    "lb_gammamsg"
-            label   "lb_gammamsg"
-            type    label
-            default { "For Gamma 2.2, the rendering will be in linear space, the gamma \nwill be applied later during the compositing step." }
-            hidewhen "{ colspace != 1 }"
-            parmtag { "sidefx::look" "block" }
+            name    "ocioisfromlabs"
+            label   "OCIO Is from Labs"
+            type    integer
+            invisible
+            default { [ "hou.getenv('OCIO') is not None and '/misc/labs_ocio/aces_config.ocio' in hou.getenv('OCIO')" python ] }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "houversion"
+            label   "Houdini Version"
+            type    string
+            invisible
+            default { [ "hou.applicationVersionString()[:4]" python ] }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "overridegamma"
+            label   "Override Gamma"
+            type    integer
+            invisible
+            default { "ch(\"colspace\")==1 || (ch(\"colspace\")>=2 && chs(\"houversion\")>=\"20.0\" && !ch(\"ocioisfromlabs\"))" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "sepparm12"
@@ -2589,7 +2615,7 @@
             name    "lb_shaderinfo"
             label   "lb_shaderinfo"
             type    label
-            default { "Minimum Compatible Shaders:\nLabs 19.0.470 Release  -  UE4.26-5.0EA2\n\nLatest Compatible Shaders:\nLabs 19.0.470 Release  -  UE4.26-5.0EA2" }
+            default { "Minimum Compatible Shaders:\nLabs 19.0.470 Release  -  UE4.26-5.0EA2\n\nLatest Compatible Shaders:\nLabs 20.0.598 Release  -  UE4.26-5.3" }
             parmtag { "sidefx::look" "block" }
         }
     }
@@ -2627,6 +2653,13 @@
             type    integer
             default { "50" }
             range   { 0! 200 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "printcolorspace"
+            label   "Print Render Color Space"
+            type    toggle
+            default { "0" }
             parmtag { "script_callback_language" "python" }
         }
         parm {

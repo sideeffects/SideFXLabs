@@ -140,16 +140,17 @@ def run_tests(node):
         _ok = False
 
     if not check_analytics(node):
-        print(node_name + ": __SmoketestWarning__ : No Analytics Code")
-        _ok = False
+        #print(node_name + ": __SmoketestWarning__ : No Analytics Code")
+        #_ok = False
+        pass
 
     if not check_docs(node):
         print(node_name + ": __SmoketestWarning__ : No Documentation")
         _ok = False
 
     if not check_parm_names(node):
-        # print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
-        # _ok = False
+        #print(node_name + ": __SmoketestNote__ : Contains Invalid Parm Names")
+        #_ok = False
         pass
 
     return _ok

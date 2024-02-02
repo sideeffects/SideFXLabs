@@ -1,0 +1,59 @@
+I. FBX Import Settings
+
+For simplicity, first turn every toggle off, and then set the following...
+
+Vertex Color Import Option:     Replace
+Transform Vertex to Absolute:   On
+Import Mesh LODs:               Depends on if Export LODs is turned on in Houdini on the VAT node
+Normal Import Method:           Import Normals and Tangents
+Import Uniform Scale:           1.0
+Convert Scene:                  On
+Override Full Name:             On
+Material Import Method:         Do Not Create Material
+Reorder Material to Fbx Order:  On
+
+
+
+
+II. Texture Settings
+
+1. In the Content Browser, select multiple textures.
+
+2. Rght-click on any selected textures and go to Scripted Asset Actions.
+
+3. Select either Houdini Config Textures for VAT (HDR) or Houdini Config Textures for VAT (SDR) to match 
+Settings > All Modes > Texture Format on the VAT node in Houdini.
+
+4. Hit Ctrl+S on selected textures to confirm the changes.
+
+5. In Unreal, sometimes there are issues with power-of-two textures that have data in their alpha channels, 
+in which case, consider using Houdini Config Textures for VAT (HDR) even if you exported those textures in 
+SDR (non-HDR) formats in Houdini.
+
+
+
+
+III. Static Mesh Settings
+
+If there are tiny holes, tearing and flickering in your animation, particularly with the Dynamic Remeshing mode, 
+consider open the mesh with the Mesh Editor, and then turn on LOD0 > Build Settings > UE4 Compatible UVs.
+
+
+
+
+IV. Real-Time Data (JSON) File
+
+VAT 3.0 normally does not require the Real-Time Data file, but you may still export it in certain situations:
+
+A. You definitely have to use the legacy workflow in order to apply VAT materials to 
+instanced meshes (ISM/HISM) or mesh particles.
+
+B. You probably should use the legacy workflow if your animation spans a huge area.
+
+Steps:
+
+1. On the VAT node, go to Advanced, turn on Support Real-Time Instancing.
+2. Render your assets.
+3. In the UE Material Instance, turn on Support Legacy Parameters and Instancing.
+4. Enable all six parameters now appearing below Support Legacy Parameters and Instancing.
+5. Follow their tooltip to batch-set their values (all six bound parameters share the same tooltip).
