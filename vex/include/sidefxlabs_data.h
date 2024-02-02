@@ -78,15 +78,18 @@ float labs_binarysearch(const float array[], target_value; export int success)
     int r = n - 1;
     int m = -1;
 
+    // Forces the target value to have the same floating-point precision as the array elements
+    float target_value_safe = set(target_value, 0)[0];
+
     while (l <= r)
     {
         m = (l + r) / 2;
 
-        if (array[m] < target_value)
+        if (array[m] < target_value_safe)
         {
             l = m + 1;
         }
-        else if (array[m] > target_value)
+        else if (array[m] > target_value_safe)
         {
             r = m - 1;
         }
@@ -109,11 +112,11 @@ float labs_binarysearch(const float array[], target_value; export int success)
 
     if (!success)
     {
-        if (target_value < array[0] || target_value > array[n - 1])
+        if (target_value_safe < array[0] || target_value_safe > array[n - 1])
             index = -1.0;
         else if (m + 1 < n)
             // In VEX, division by zero is allowed. It just returns zero.
-            index += float(target_value - array[m]) / (array[m + 1] - array[m]);
+            index += float(target_value_safe - array[m]) / (array[m + 1] - array[m]);
     }
 
     return index;
