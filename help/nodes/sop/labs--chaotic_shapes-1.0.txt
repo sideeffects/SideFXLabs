@@ -6,83 +6,76 @@
 
 = Labs Chaotic Shapes =
 
-"""This node generates different chaotic maps."""
+"""Generates different chaotic maps."""
 
-This node assigns point locations based on different chaotic maps and computes the point cloud density. It can also generate a color and pscale attribute based on the point density.
+This node generates a point cloud based on [chaotic map|https://en.wikipedia.org/wiki/List_of_chaotic_maps] formulas (also sometimes known as attractors). It can also create color and pscale attributes based on normalized point density.
+
+The currently supported chaotic maps include [Clifford Attractors|https://paulbourke.net/fractals/clifford/] and [Peter de Jong Attractors|https://paulbourke.net/fractals/peterdejong/]. (Credits: Paul Bourke.)
+
+NOTE:
+    The original formulas only define the X and Y positions. For the Z position, we use our own formula.
 
 
 @parameters
 
-    == Type ==
-
-    Chaotic Map:
-        #id: type
-	Selects between different maps.
-        
-                        
-    == Number of Points ==
-
-    Total Count:
-        #id: totalcount
-	Sets the total number of points being generated.
-        
-    == Constants ==
-
     Constants Presets:
-        #id: constantspresets
-	Sets preset initial conditions to generate different results.
+        #id: presets
+        A list of chaotic map formulas and their variations. The name denotes the formula type and the number denotes different constant combinations.
+
+        __Auto__: Changing the preset automatically applies it.
+
+        __Override Current Preset__: Exposes the constants so that you can override them.
+            
+    Reset:
+        #id: applypreset
+        Resets the constants back to the current preset values.
         
-                       
-    Manually Override Constants (Unpredictable Behavior):
-        #id: overrideconstants
-	Playing with the constants will yield erratic behaviour. When manually overriding constants, set a low number of generated points and turn off "Compute Point Cloud Density" to iterate faster.
+    Point Count:
+        #id: pointcount
+        The total number of points being generated.
         
-        
-    == Attributes ==
+    Compute Normalized Density:
+        #id: computedensity
+        The density is equal to the number of points found in __Search Distance__ divided by __Maximum Search Points__. The output range is 0-1.
 
     === Point Density ===
 
-    Compute Point Cloud Density:
-        #id: computedensity
-	The density is equal to the number of points found in the defined radius divided by the maximum number of search points.
-        
     Density Attribute:
         #id: densityattribute
-	The name of the density attribute. Defaults to "density".
+        The name of the density attribute.
         
     Search Distance:
         #id: searchdistance
-	The radius used by each point to find the closest relative points. Increasing the search distance will impact performance.        
-
+        Each point looks for neighbour points within this radius.
+        
     Maximum Search Points:
         #id: maxpts
-	The maximum number of points to look for. Increasing this parameter will impact performance.
+        The maximum number of neighbour points for each point to search for.
         
     === Point Color ===
 
     Add Color by Density:
         #id: addcolorbydensity
-	Generates a Cd attribute based on the computed density attribute.
+        Creates a color attribute based on the computed density.
         
-    Ramp Color:
+    Color Ramp:
         #id: rampcolor
-	Ramp drives the Cd attribute.
+        The color spectrum is mapped to the 0-1 range of the density attribute.
         
     === Point Radius ===
 
     Add Pscale by Density:
         #id: addpscalebydensity
-	Generates a pscale attribute based on the computed density attribute.
+        Creates a pscale attribute based on the computed density.
         
-    Minimum Pscale:
+    Pscale at Min Density:
         #id: minimumpscale
-	The minimum value to map pscale to.
+        The pscale when density equals 0.
         
-    Maximum Pscale:
+    Pscale at Max Density:
         #id: maximumpscale
-	The maximum value to map pscale to.
+        The pscale when density equals 1.
         
     Display as Spheres:
         #id: displayasspheres
-	Displays points as gl_spheres in the viewport.
-        
+        Display points as spheres in the viewport. This sets the detail attribute `gl_spherepoints` to 1.
