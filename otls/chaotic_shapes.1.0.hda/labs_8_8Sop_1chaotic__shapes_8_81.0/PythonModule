@@ -8,8 +8,14 @@ def applyPreset(kwargs):
     node = kwargs['node']
     child_node = node.node('constants')
     child_node.cook(force=True)
-    preset_idx = node.parm("presets").evalAsInt()
-    parm_values = child_node.geometry().dictListAttribValue('_csh_consts')[preset_idx]
+    preset_idx = node.parm("presetversion").evalAsInt()
+    
+    if node.parm("presets").evalAsInt() == 0:
+        preset_dict = '_csh_consts_c'
+    else:
+        preset_dict = '_csh_consts_d'
+        
+    parm_values = child_node.geometry().dictListAttribValue(preset_dict)[preset_idx]
     node.setParms(parm_values)
     
     return

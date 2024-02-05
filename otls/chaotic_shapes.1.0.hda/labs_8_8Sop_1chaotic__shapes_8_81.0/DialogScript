@@ -16,42 +16,35 @@
     outputlabel	1	"Chaotic Shape"
 
     parm {
-        name    "overrideconstants"
-        label   "Override Constants (Unpredictable Behavior)"
-        type    toggle
-        invisible
-        default { "off" }
-        range   { 0 10 }
-        parmtag { "autoscope" "0000000000000000" }
+        name    "presets"
+        label   "Presets"
+        type    ordinal
+        joinnext
+        default { "0" }
+        menu {
+            "0" "Clifford"
+            "1" "De Jong"
+        }
         parmtag { "script_callback_language" "python" }
     }
     parm {
-        name    "presets"
-        label   "Constants Presets"
+        name    "presetversion"
+        label   "Preset Version"
         type    ordinal
+        nolabel
         joinnext
-        default { "15" }
+        default { "0" }
         menu {
-            "0"     "Clifford 1"
-            "1"     "Clifford 2"
-            "2"     "Clifford 3"
-            "3"     "Clifford 4"
-            "4"     "Clifford 5"
-            "5"     "Clifford 6"
-            "6"     "Clifford 7"
-            "7"     "Clifford 8"
-            "8"     "De Jong 1"
-            "9"     "De Jong 2"
-            "10"    "De Jong 3"
-            "11"    "De Jong 4"
-            "12"    "De Jong 5"
-            "13"    "De Jong 6"
-            "14"    "De Jong 7"
-            "15"    "De Jong 8"
-            "16"    "De Jong 9"
-            "17"    "De Jong 10"
+            "0" "1"
+            "1" "2"
+            "2" "3"
+            "3" "4"
+            "4" "5"
+            "5" "6"
+            "6" "7"
+            "7" "8"
+            "8" "9"
         }
-        parmtag { "script_callback" "" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
@@ -63,13 +56,13 @@
         default { "0" }
         menu {
             "0" "Auto"
-            "1" "Override Current Preset"
+            "1" "Manual"
         }
         parmtag { "script_callback_language" "python" }
     }
     parm {
         name    "applypreset"
-        label   "Reset"
+        label   "Reset Constants"
         type    button
         default { "0" }
         hidewhen "{ presetmode == 0 }"
@@ -77,18 +70,18 @@
         parmtag { "script_callback_language" "python" }
     }
     parm {
+        name    "lb_consts"
+        label   "lb_consts"
+        type    label
+        default { "Preset Constants:  A = `ftrim(detail(\"parms\", \"_csh_parms.a\", 0))`  B = `ftrim(detail(\"parms\", \"_csh_parms.b\", 0))`  C = `ftrim(detail(\"parms\", \"_csh_parms.c\", 0))`  D = `ftrim(detail(\"parms\", \"_csh_parms.d\", 0))`" }
+        parmtag { "sidefx::look" "block" }
+    }
+    parm {
         name    "lb_densityhelp"
         label   "lb_densityhelp"
         type    label
         default { "You can turn off Compute Normalized Density to speed up iterations." }
         hidewhen "{ presetmode == 0 }"
-        parmtag { "sidefx::look" "block" }
-    }
-    parm {
-        name    "lb_consts"
-        label   "lb_consts"
-        type    label
-        default { "Constants:   A = `ftrim(detail(\"parms\", \"_csh_parms.a\", 0))`   B = `ftrim(detail(\"parms\", \"_csh_parms.b\", 0))`   C = `ftrim(detail(\"parms\", \"_csh_parms.c\", 0))`   D = `ftrim(detail(\"parms\", \"_csh_parms.d\", 0))`" }
         parmtag { "sidefx::look" "block" }
     }
     groupsimple {
@@ -101,36 +94,32 @@
             name    "a"
             label   "A"
             type    float
-            default { "-2" }
+            default { "-1" }
             range   { -5 5 }
-            parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "b"
             label   "B"
             type    float
-            default { "-2" }
+            default { "1.79" }
             range   { -5 5 }
-            parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "c"
             label   "C"
             type    float
-            default { "-1.2" }
+            default { "-2.35" }
             range   { -5 5 }
-            parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
         }
         parm {
             name    "d"
             label   "D"
             type    float
-            default { "2" }
+            default { "0.26" }
             range   { -5 5 }
-            parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
         }
     }
@@ -141,7 +130,6 @@
         type    integer
         default { "250000" }
         range   { 10000 500000 }
-        parmtag { "autoscope" "0000000000000000" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
@@ -154,9 +142,8 @@
         name    "computedensity"
         label   "Compute Normalized Density"
         type    toggle
-        default { "1" }
+        default { "0" }
         range   { 0! 1! }
-        parmtag { "autoscope" "0000000000000000" }
         parmtag { "script_callback_language" "python" }
     }
     groupsimple {
@@ -183,7 +170,6 @@
                 type    string
                 default { "density" }
                 hidewhen "{ computedensity == 0 }"
-                parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -192,8 +178,7 @@
                 type    float
                 default { "0.008" }
                 hidewhen "{ computedensity == 0 }"
-                range   { 0.001! 0.01 }
-                parmtag { "autoscope" "0000000000000000" }
+                range   { 0.001! 0.1 }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -202,8 +187,7 @@
                 type    integer
                 default { "12" }
                 hidewhen "{ computedensity == 0 }"
-                range   { 2! 10 }
-                parmtag { "autoscope" "0000000000000000" }
+                range   { 2! 100 }
                 parmtag { "script_callback_language" "python" }
             }
         }
@@ -220,7 +204,6 @@
                 default { "1" }
                 hidewhen "{ computedensity == 0 }"
                 range   { 0! 1! }
-                parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -230,7 +213,6 @@
                 default { "3" }
                 hidewhen "{ addcolorbydensity == 0 }"
                 range   { 1! 10 }
-                parmtag { "autoscope" "0000000000000000" }
                 parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0 0 0.8999999761581421 ) 1interp ( linear ) 2pos ( 0.5 ) 2c ( 0 0.8999999761581421 0.8999999761581421 ) 2interp ( linear ) 3pos ( 1 ) 3c ( 1 1 1 ) 3interp ( linear )" }
                 parmtag { "rampshowcontrolsdefault" "0" }
                 parmtag { "script_callback_language" "python" }
@@ -248,7 +230,6 @@
                 default { "0" }
                 hidewhen "{ computedensity == 0 }"
                 range   { 0! 1! }
-                parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -258,7 +239,6 @@
                 default { "0.005" }
                 hidewhen "{ addpscalebydensity == 0 } { computedensity == 0 }"
                 range   { 0! 0.1 }
-                parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -268,7 +248,6 @@
                 default { "0.01" }
                 hidewhen "{ addpscalebydensity == 0 } { computedensity == 0 }"
                 range   { 0.001! 0.1 }
-                parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -278,7 +257,6 @@
                 default { "0" }
                 hidewhen "{ addpscalebydensity == 0 } { computedensity == 0 }"
                 range   { 0! 1! }
-                parmtag { "autoscope" "0000000000000000" }
                 parmtag { "script_callback_language" "python" }
             }
         }

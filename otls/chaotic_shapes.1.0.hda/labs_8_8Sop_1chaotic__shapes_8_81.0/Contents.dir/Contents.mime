@@ -33,10 +33,11 @@ Content-Type: text/plain
 sopflags sopflags = 
 comment ""
 position -0.5 -0.15
-connectornextid 0
+connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
+0 "output1"
 }
 inputsNamed3
 {
@@ -214,6 +215,14 @@ Content-Type: text/plain
             grouptag { "sidefx::look" "blank" }
 
             parm {
+                name    "preset_type"
+                label   "Preset Type"
+                type    integer
+                default { "0" }
+                range   { 0 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
                 name    "preset_idx"
                 label   "Preset Index"
                 type    integer
@@ -226,12 +235,6 @@ Content-Type: text/plain
                 type    integer
                 default { "0" }
                 range   { 0 10 }
-            }
-            parm {
-                name    "override_constants"
-                label   "Override Constants"
-                type    toggle
-                default { "0" }
             }
         }
 
@@ -372,13 +375,13 @@ Content-Type: text/plain
       flags = 0
       segment { length = 0 value = 1000000 1000000 expr = ch(\"../pointcount\") }
     }
-    channel override_constants {
+    channel preset_idx {
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = ch(\"../presetmode\") }
+      segment { length = 0 expr = ch(\"../presetversion\") }
     }
-    channel preset_idx {
+    channel preset_type {
       lefttype = extend
       righttype = extend
       flags = 0
@@ -398,8 +401,11 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"detail"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"int preset_idx = chi(\"preset_idx\");
-d@_csh_parms = d[]@_csh_consts[preset_idx];
+snippet	[ 0	locks=0 ]	(	"if (chi(\"preset_type\") == 0)
+    d@_csh_parms = d[]@_csh_consts_c[chi(\"preset_idx\")];
+else
+    d@_csh_parms = d[]@_csh_consts_d[chi(\"preset_idx\")];
+    
 d@_csh_parms['npoints'] = chi('npoints');"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
@@ -416,9 +422,9 @@ vex_selectiongroup	[ 0	locks=0 ]	(	""	)
 vex_precision	[ 0	locks=0 ]	(	auto	)
 folder1	[ 0	locks=0 ]	(	0	0	)
 folder_generatedparms_snippet	[ 0	locks=0 ]	(	0	)
+preset_type	[ 0	locks=0 ]	(	[ preset_type	0 ] 	)
 preset_idx	[ 0	locks=0 ]	(	[ preset_idx	0 ] 	)
 npoints	[ 0	locks=0 ]	(	[ npoints	0 ] 	)
-override_constants	[ 0	locks=0 ]	(	[ override_constants	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -447,7 +453,7 @@ sopflags sopflags =
 comment ""
 position -2.503 -4.151
 connectornextid 2
-flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload on savedata off compress on colordefault off exposed on
+flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload on savedata off compress on colordefault off exposed on
 outputsNamed3
 {
 1 "output1"
@@ -488,9 +494,7 @@ snippet	[ 0	locks=0 ]	(	"float A  = d@_csh_parms['a'];
 float B = d@_csh_parms['b'];
 float C  = d@_csh_parms['c'];
 float D  = d@_csh_parms['d'];
-
 int npoints = d@_csh_parms['npoints'];
-int override = d@_csh_parms['override'];
 
 vector pos = set(0.0f, 0.0f, 0.0f);
 float x = pos.x;
@@ -502,6 +506,7 @@ for(int i = 0; i < npoints; ++i)
     // Original formula (limited to 2D)
     float newx = sin(A * y) + C * cos(A * x);
     float newy = sin(B * x) + D * cos(B * y);
+    
     // Our own formula
     float newz = sin(C * x) + A * cos(C * y);
     
@@ -1800,7 +1805,7 @@ Content-Type: text/plain
       lefttype = extend
       righttype = extend
       flags = 0
-      segment { length = 0 expr = ch(\"../presets\")>7 }
+      segment { length = 0 expr = ch(\"../presets\") }
     }
   }
 
@@ -1810,7 +1815,7 @@ Content-Type: text/plain
 
 {
 version 0.8
-input	[ 8	locks=0 ]	(	[ input	0 ] 	)
+input	[ 0	locks=0 ]	(	[ input	0 ] 	)
 }
 
 --HOUDINIMIMEBOUNDARY0xD3ADD339-0x00000F49-0x56B122C9-0x00000001HOUDINIMIMEBOUNDARY
@@ -1880,9 +1885,7 @@ snippet	[ 0	locks=0 ]	(	"float A  = d@_csh_parms['a'];
 float B = d@_csh_parms['b'];
 float C  = d@_csh_parms['c'];
 float D  = d@_csh_parms['d'];
-
 int npoints = d@_csh_parms['npoints'];
-int override = d@_csh_parms['override'];
 
 vector pos = set(0.0f, 0.0f, 0.0f);
 float x = pos.x;
@@ -1894,6 +1897,7 @@ for(int i = 0; i < npoints; ++i)
     // Original formula (limited to 2D)
     float newx = sin(A * y) - cos(B * x);
     float newy = sin(C * x) - cos(D * y);
+    
     // Our own formula
     float newz = cos(A * x) - cos(B * y);
     
@@ -2119,7 +2123,7 @@ sopflags sopflags =
 comment "Referenced by Python Module"
 position -0.503 1.849
 connectornextid 1
-flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault off exposed on displaycomment on
+flags =  lock off model off template off footprint off xray off bypass off display on render on highlight off unload on savedata off compress on colordefault off exposed on displaycomment on
 outputsNamed3
 {
 0 "output1"
@@ -2154,46 +2158,47 @@ grouptype	[ 0	locks=0 ]	(	"guess"	)
 class	[ 0	locks=0 ]	(	"detail"	)
 vex_numcount	[ 0	locks=0 ]	(	10	)
 vex_threadjobsize	[ 0	locks=0 ]	(	1024	)
-snippet	[ 0	locks=0 ]	(	"// Clifford 1-8
-dict c1 = set(\"a\", -1.4, \"b\", 1.6, \"c\", 1.0, \"d\", 0.7);
-dict c2 = set(\"a\", 1.6, \"b\", -0.6, \"c\", -1.2, \"d\", 1.6);
+snippet	[ 0	locks=0 ]	(	"// Clifford
+dict c1 = set(\"a\", -1, \"b\", 1.79, \"c\", -2.35, \"d\", 0.26);
+dict c2 = set(\"a\", -1.4, \"b\", 1.6, \"c\", 1.0, \"d\", 0.7);
 dict c3 = set(\"a\", 1.7, \"b\", 1.7, \"c\", 0.6, \"d\", 1.2);
 dict c4 = set(\"a\", 1.5, \"b\", -1.8, \"c\", 1.6, \"d\", 0.9);
 dict c5 = set(\"a\", -1.7, \"b\", 1.3, \"c\", -0.1, \"d\", -1.2);
 dict c6 = set(\"a\", -1.7, \"b\", 1.8, \"c\", -1.9, \"d\", -0.4);
 dict c7 = set(\"a\", -1.8, \"b\", -2.0, \"c\", -0.5, \"d\", -0.9);
 dict c8 = set(\"a\", -1.43, \"b\", -2.0, \"c\", -0.5, \"d\", -0.9);
-// De Jong 1-8
-dict d1  = set(\"a\", 1.641, \"b\", 1.902, \"c\", 0.316, \"d\", 1.525);
-dict d2  = set(\"a\", 0.970, \"b\", -1.899, \"c\", 1.381, \"d\", -1.506);
-dict d3  = set(\"a\", 1.4, \"b\", -2.3, \"c\", 2.4, \"d\", -2.1);
-dict d4  = set(\"a\", 2.01, \"b\", -2.53, \"c\", 1.61, \"d\", -0.33);
-dict d5  = set(\"a\", -2.7, \"b\", -0.09, \"c\", -0.86, \"d\", -2.2);
+dict c9 = set(\"a\", 1.79, \"b\", -1.26, \"c\", 1.61, \"d\", -0.33);
+
+// De Jong
+dict d1  = set(\"a\", -2, \"b\", -2, \"c\", -1.2, \"d\", 2);
+dict d2  = set(\"a\", 1.641, \"b\", 1.902, \"c\", 0.316, \"d\", 1.525);
+dict d3  = set(\"a\", 0.970, \"b\", -1.899, \"c\", 1.381, \"d\", -1.506);
+dict d4  = set(\"a\", 1.4, \"b\", -2.3, \"c\", 2.4, \"d\", -2.1);
+dict d5  = set(\"a\", 2.01, \"b\", -2.53, \"c\", 1.61, \"d\", -0.33);
 dict d6  = set(\"a\", -0.827, \"b\", -1.637, \"c\", 1.659, \"d\", -0.943);
 dict d7  = set(\"a\", -2.24, \"b\", 0.43, \"c\", -0.65, \"d\", -2.43);
-dict d8  = set(\"a\", -2, \"b\", -2, \"c\", -1.2, \"d\", 2);
-dict d9  = set(\"a\", -0.709, \"b\", 1.638, \"c\", 0.452, \"d\", 1.74);
-dict d10  = set(\"a\", -3.25, \"b\", -2.1, \"c\", -1.21, \"d\", 2.0);
+dict d8  = set(\"a\", -0.709, \"b\", 1.638, \"c\", 0.452, \"d\", 1.74);
+dict d9  = set(\"a\", -3.25, \"b\", -2.1, \"c\", -1.21, \"d\", 2.0);
 
-d[]@_csh_consts[0] = c1;
-d[]@_csh_consts[1] = c2;
-d[]@_csh_consts[2] = c3;
-d[]@_csh_consts[3] = c4;
-d[]@_csh_consts[4] = c5;
-d[]@_csh_consts[5] = c6;
-d[]@_csh_consts[6] = c7;
-d[]@_csh_consts[7] = c8;
+d[]@_csh_consts_c[0] = c1;
+d[]@_csh_consts_c[1] = c2;
+d[]@_csh_consts_c[2] = c3;
+d[]@_csh_consts_c[3] = c4;
+d[]@_csh_consts_c[4] = c5;
+d[]@_csh_consts_c[5] = c6;
+d[]@_csh_consts_c[6] = c7;
+d[]@_csh_consts_c[7] = c8;
+d[]@_csh_consts_c[8] = c9;
 
-d[]@_csh_consts[8] = d1;
-d[]@_csh_consts[9] = d2;
-d[]@_csh_consts[10] = d3;
-d[]@_csh_consts[11] = d4;
-d[]@_csh_consts[12] = d5;
-d[]@_csh_consts[13] = d6;
-d[]@_csh_consts[14] = d7;
-d[]@_csh_consts[15] = d8;
-d[]@_csh_consts[16] = d9;
-d[]@_csh_consts[17] = d10;"	)
+d[]@_csh_consts_d[0] = d1;
+d[]@_csh_consts_d[1] = d2;
+d[]@_csh_consts_d[2] = d3;
+d[]@_csh_consts_d[3] = d4;
+d[]@_csh_consts_d[4] = d5;
+d[]@_csh_consts_d[5] = d6;
+d[]@_csh_consts_d[6] = d7;
+d[]@_csh_consts_d[7] = d8;
+d[]@_csh_consts_d[8] = d9;"	)
 exportlist	[ 0	locks=0 ]	(	*	)
 vex_strict	[ 0	locks=0 ]	(	"off"	)
 autobind	[ 0	locks=0 ]	(	"on"	)
