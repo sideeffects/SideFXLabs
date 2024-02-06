@@ -114,12 +114,14 @@ SideFX Labs has a few other environment variables that can be set to modify the 
 - Attila Torok
 - Simon Verstraete
 - Steven Burrichter
+- Omar Zarifi
 - Alan Gordie
 
 ### SideFX Interns
 - Roahith Raj
 - Ryan Gold
 - Ciara Cipponeri
+- Tom Goffelli
 
 ### Community
 - Magnus Larsson
