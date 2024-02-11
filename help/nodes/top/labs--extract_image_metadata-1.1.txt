@@ -1,0 +1,69 @@
+#type:     node
+#context:  top
+#internal: labs::extract_image_metadata::1.1
+#icon:     TOP/labs::extract_image_metadata::1.1
+#since:    19.0
+
+= Labs Extract Image Metadata =
+
+"""Extracts image metadata, such as the resolution, bit depth, color model, etc."""
+
+This node extracts image metadata from input images that have file/image tags attached to them. It then stores those metadata as workitem attributes.
+
+TIP:
+    You can use a [File Pattern|Node:/top/filepattern] node upstream from this node to generate image workitems.
+
+NOTE:
+    This node calls the utility tool called _iinfo_ which ships with Houdini. It does so with the Python _subprocess_ module.
+
+
+@parameters
+
+    == Script ==
+
+    Evaluate Script During:
+        #id: inprocess
+        Determines when the script code stored on this node is evaluated.
+
+        __Cook (Out-of-Process)__: A scheduler runs the script out-of-process during the cook stage.
+
+        __Cook (In-Process)__: Runs the script during the cook stage in the same process as the Houdini session.
+
+        __Generate__: Runs the script when the work item is generating.
+
+    Copy Inputs to Outputs:
+        #id: copyoutputs
+        Determines whether or not work items in this node should copy input files to their output file list.
+
+        __Never__: Never copy inputs files the output file list.
+
+        __Always__: Always copy inputs files the output file list.
+
+        __If Script Doesn't Add Outputs__: By default, input files are only copied if the Python Script does not add any new output files on its own.
+            
+    == Metadata ==
+
+    Store Resolution as Integer Attributes:
+        #id: resolutionasint
+        Splits the original string containing the resolution into two separate integer attributes. ("10 x 5" -> 10, 5)
+        
+    Width Attribute:
+        #id: widthattrib
+        Name of the integer attribute that stores the width of the image.
+        
+    Height Attribute:
+        #id: heightattrib
+        Name of the integer attribute that stores the height of the image.
+
+    Store Channel Depth as Integer Attributes:
+        #id: channelsasint
+        Splits the original string containing the channel depth into two separate integer attributes. ("8 x 4 (32 bpp)" -> 8, 4)
+        
+    Bit Depth Attribute:
+        #id: depthattrib
+        Name of the integer attribute that stores the per-channel bit depth of the image.
+        
+    Channel Attribute:
+        #id: channelattrib
+        Name of the integer attribute that stores the number of channels of the image.
+
