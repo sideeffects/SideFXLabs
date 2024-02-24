@@ -1,6 +1,6 @@
 # SideFX Labs Changelog
 
-### Production Build [20.0.625](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.625) - Feb 22, 2024
+### Production Release [20.0.625](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.625) - Feb 22, 2024
 
 **NEW TOOLS**
 - [20.0.608](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.608) ***Labs Chaotic Shapes SOP*** - Added a new node that generates chaotic point clouds based on attractor formulas.
