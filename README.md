@@ -3,8 +3,8 @@
 
 SideFX Labs is a completely free, open-source toolset geared towards assisting Houdini users with a variety of tasks commonly used for digital content creation. It is an all-inclusive toolset that spans the shelf, digital assets, custom desktops and scripts and more. The toolset is currently maintained by Mai Ao, Danicka Oglesby, Christos Stavridis, Mohamad Salame, and Bailey Hogan. It also receives a lot of contributions from the always active Houdini community. The toolset originated from the GameDevelopmentToolset, which was rebranded in the Houdini 18.0 release.
 
-# Roadmap
-Please visit our [Public Roadmap](https://portal.productboard.com/sidefx/1-sidefx-labs-public-roadmap/) to see what we are working on. You can also vote on features or submit feature ideas.
+# Roadmap & Changelog
+Please visit our [Public Roadmap](https://portal.productboard.com/sidefx/1-sidefx-labs-public-roadmap/) to see what we are working on, vote on features, and submit new ideas. For more detailed updates in chronological order, please visit our [Changelog](https://github.com/sideeffects/SideFXLabs/blob/Development/CHANGELOG.md). Unlike the raw commit history, this log is curated and updated once every production release.
 
 # Installation
 
