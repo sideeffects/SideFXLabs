@@ -1,0 +1,230 @@
+# Dialog script for labs::physical_ambient_occlusion::1.1 automatically generated
+
+{
+    name	labs::physical_ambient_occlusion::1.1
+    script	stable_ambient_occlusion
+    label	"Labs Physical Ambient Occlusion"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Geometry
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "mode"
+        label   "Mode"
+        type    ordinal
+        default { "0" }
+        menu {
+            "0" "Physical Ambient Occlusion"
+            "1" "Valleys"
+            "2" "Peaks"
+            "3" "Dirt Buildup"
+        }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "samplefreq"
+        label   "Sample Frequency"
+        type    integer
+        default { "5" }
+        hidewhen "{ mode == 3 }"
+        range   { 1! 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "lb_samplecount"
+        label   "lb_samplecount"
+        type    label
+        default { "Sample Count  =  `npoints(\"switch_seeded\")`" }
+        hidewhen "{ mode == 3 }"
+        parmtag { "sidefx::look" "block" }
+    }
+    parm {
+        name    "samplecount"
+        label   "Sample Count"
+        type    integer
+        default { "5" }
+        hidewhen "{ mode != 3 }"
+        range   { 1! 100 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "raylength"
+        label   "Neighbourhood Radius"
+        type    float
+        default { "2" }
+        range   { 0! 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "exp"
+        label   "Visibility Exponent"
+        type    float
+        default { "0.5" }
+        hidewhen "{ mode != 0 }"
+        range   { 0! 5 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "randseed"
+        label   "Random Seed"
+        type    float
+        default { "1" }
+        hidewhen "{ mode != 3 }"
+        range   { 1! 1000 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_blur"
+        label   "Blur"
+        hidewhen "{ mode == 0 }"
+        grouptag { "sidefx::look" "blank" }
+
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "bluriters"
+            label   "Blurring Iterations"
+            type    integer
+            default { "5" }
+            range   { 0! 100 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "stepsize"
+            label   "Blurring Step Size"
+            type    float
+            default { "0.2" }
+            hidewhen "{ bluriters == 0 }"
+            range   { 0! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+    }
+
+    parm {
+        name    "outputattrib"
+        label   "Output Attribute"
+        type    string
+        default { "ao_mask" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "normalize"
+        label   "Normalize Output"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "invert"
+        label   "Invert Output"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "remap"
+        label   "Remap Output"
+        type    toggle
+        default { "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "remapramp"
+        label   "Remap Ramp"
+        type    ramp_flt
+        default { "2" }
+        hidewhen "{ remap == 0 }"
+        range   { 1! 10 }
+        parmtag { "rampshowcontrolsdefault" "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "vis"
+        label   "Visualize Output"
+        type    toggle
+        default { "1" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "visramp"
+        label   "Visualization Ramp"
+        type    ramp_rgb
+        default { "2" }
+        hidewhen "{ vis == 0 }"
+        range   { 1! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "parmvop" "1" }
+        parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+        parmtag { "rampbasisdefault" "linear" }
+        parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0 0 0 ) 1interp ( linear ) 2pos ( 1 ) 2c ( 1 1 1 ) 2interp ( linear )" }
+        parmtag { "rampcolortype" "rgb" }
+        parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+        parmtag { "rampshowcontrolsdefault" "0" }
+        parmtag { "rampvalues_var" "vecramp_the_key_values" }
+    }
+    groupcollapsible {
+        name    "fd_advanced"
+        label   "Advanced"
+
+        parm {
+            name    "coneaxis"
+            label   "Cone Axis"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Recomputed Point Normal"
+                "1" "Input Point Normal"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "halfconeangle"
+            label   "Half-Cone Angle"
+            type    float
+            default { "90" }
+            range   { 0! 90! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "rayoffset"
+            label   "Ray Offset"
+            type    float
+            default { "0.001" }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "vissamples"
+            label   "Visualize Samples (Slow)"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "samplescale"
+            label   "Sample Display Scale"
+            type    float
+            default { "0.005" }
+            hidewhen "{ vissamples == 0 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

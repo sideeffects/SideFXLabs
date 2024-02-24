@@ -1,0 +1,114 @@
+#type:     node
+#context:  sop
+#internal: labs::physical_ambient_occlusion::1.1
+#icon:     SOP/labs::physical_ambient_occlusion::1.1
+#since:    19.5
+
+= Labs Physical Ambient Occlusion =
+
+"""Computes ambient occlusion, generates dirt masks, as well as identifies peaks and valleys on meshes."""
+
+This node can perform 4 types of mesh analysis akin to the concept of ambient occlusion. The __Physical Ambient Occlusion__ mode is more physically-grounded. The __Valleys__, __Peaks__, and __Dirt Buildup__ modes have more artistic interpretations.
+
+When computing ambient occlusion, this node uses [high-frequency icosahedral|https://en.wikipedia.org/wiki/Geodesic_polyhedron] sampling. This new method is more efficient and stable compared to the classical random-direction sampling. Icosahedral samples have much more uniform distributions. It also eliminates the need for a random seed parameter, making the controls more intuitive, as it is perhaps more natural to think of ambient occlusion as being intrinsic to the mesh rather than dependent upon a random factor.
+
+For this same reason, the icosahedral sampling method is also used to identify peaks and valleys.
+
+Dirt mask generation still uses random-direction sampling because the visual noise in this case is desired.
+
+@parameters
+
+    Mode:
+        #id: mode
+        The type of mesh analysis to perform.
+        
+        __Physical Ambient Occlusion__: Computes ambient occlusion using a physically-plausible weighting scheme.
+            
+        __Valleys__: Identifies areas with high concavity. The valley areas have lower output values.
+            
+        __Peaks__: Identifies areas with high convexity. The peak areas have higher output values.
+            
+        __Dirt Buildup__: Creates a dirt mask somewhat similar to ambient occlusion but algorithmically more noisy and random.
+            
+    Sample Frequency:
+        #id: samplefreq
+        The frequency of the [class I icosahedral geodesic polyhedra|https://en.wikipedia.org/wiki/Geodesic_polyhedron#Class_I] used to generate the ambient occlusion samples.
+        
+    Sample Count:
+        #id: samplecount
+        The number of random-direction samples.
+        
+    Neighbourhood Radius:
+        #id: raylength
+        The radius of the neighbourhood to take into account when generating the results. In other words, it is the maximum trace distance of each sample.
+        
+    Visibility Exponent:
+        #id: exp
+        Visually affects the contrast of the output values. The contribution of each sample hit is weighted by the distance of the hit relatively to the maximum trace distance. The further away the hit is, the less it contributes to the weighted sum. This parameter controls how drastic that contribution fall-off is. The default value of 0.5 has a physically-plausible explanation.
+        
+    Random Seed:
+        #id: randseed
+        The seed used to generate the random sample directions.
+
+    Blurring Iterations:
+        #id: bluriters
+        The number of times the output values are blurred.
+        
+    Blurring Step Size:
+        #id: stepsize
+        The blurring amount in each iteration. Lower step sizes combined with higher blurring iterations can better retain large-scale variations while smoothing out small-scale variations.
+        
+    Output Attribute:
+        #id: outputattrib
+        The name of the output attribute. This attribute's meaning depends on which __Mode__ is selected.
+        
+    Normalize Output:
+        #id: normalize
+        Normalizes the output values to 0-1 range.
+
+    Invert Output:
+        #id: invert
+        Outputs one minus the original output values.
+        
+    Remap Output:
+        #id: remap
+        Remaps the output values.
+        
+    Remap Ramp:
+        #id: remapramp
+        Controls how the output values are remapped.
+
+    Visualize Output:
+        #id: vis
+        Adds a color attribute to visualize the output values.
+        
+    Visualization Ramp:
+        #id: visramp
+        Controls how the output values are visualized.
+        
+    == Advanced ==
+        
+    Cone Axis:
+        #id: coneaxis
+        Selects what to use as the central axis of the sampling cone.
+            
+    Half-Cone Angle:
+        #id: halfconeangle
+        In degrees, the limiting angle between any sample direction and the cone axis.
+        
+    Ray Offset:
+        #id: rayoffset
+        Offsets the trace origin of each sample from the mesh surface in the direction of the cone axis by this amount. This is typically used to prevent false hits.
+        
+    Visualize Samples (Slow):
+        #id: vissamples
+        Creates polylines on each point to visualize all the samples. This is very slow and mostly for debug purposes.
+        
+    Sample Display Scale:
+        #id: samplescale
+        Scales down the visualized trace distance to avoid visual chaos. When this is set to 1, the length of the visualized samples matches the value of __Neighbourhood Radius__.
+        
+@examples
+
+    - [Example File|https://github.com/sideeffects/SideFXLabs/blob/Development/hip/examples/physical_ambient_occlusion/physical_ambient_occlusion.1.1.hip]
+
