@@ -679,5 +679,37 @@ node.setParms({'emitscalemul': 0})
 node.setName('volume_no_emission1', True)
 ]]></script>
   </tool>
+ 
+  <tool name="labs_sketchfab_usdz_apply_animation" label="Labs Sketchfab USDZ Apply Animation" icon="LOP_pythonscript">
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <script scriptType="python"><![CDATA[import toolutils
+
+pyscriptnode = toolutils.genericTool(kwargs,"pythonscript")
+pyscriptnode.setName("labs_sketchfab_usdz_apply_animation",unique_name=True)
+
+snippet = '''from pxr import UsdSkel
+node = hou.pwd()
+stage = node.editableStage()
+skeleton_prim = None
+anim_prim = None
+for prim in stage.Traverse() :
+    if prim.GetTypeName() == "Skeleton":
+        skeleton_prim = prim
+    elif prim.GetTypeName() == "SkelAnimation":
+        anim_prim = prim
+anim_binding = UsdSkel.BindingAPI.Apply(skeleton_prim.GetPrim())
+anim_rel = anim_binding.CreateAnimationSourceRel()
+anim_rel.AddTarget(anim_prim.GetPrim().GetPath())
+vis = skeleton_prim.GetAttribute("visibility")
+vis.Set("invisible")'''
+
+pyscriptnode.parm("python").set(snippet)
+pyscriptnode.parm("python").lock(True)
+]]></script>
+  </tool>
+
+
 
 </shelfDocument>
