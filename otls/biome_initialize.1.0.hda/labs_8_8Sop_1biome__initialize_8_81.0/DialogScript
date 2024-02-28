@@ -1,0 +1,1000 @@
+# Dialog script for labs::biome_initialize::1.0 automatically generated
+
+{
+    name	labs::biome_initialize::1.0
+    script	labs::dryad_initialize::1.0
+    label	"Labs Biome Initialize (Beta)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Terrain Input"
+    inputlabel	2	"Biome Input"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Terrain Output"
+    outputlabel	2	"Biome Regions Output"
+
+    parm {
+        name    "sepparm7"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "biomeprofile"
+        label   "Biome Profile"
+        type    file
+        default { "$HIP/data/biome/biomeprofile.json" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    group {
+        name    "fd_terrain3"
+        label   "Terrain Input"
+
+        parm {
+            name    "terraintype"
+            label   "Terrain Input Type"
+            type    integer
+            default { "0" }
+            menu {
+                "0" "Houdini HeightField"
+                "1" "Terrain Mesh"
+                "2" "Heightfield Image"
+            }
+            range   { 0 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_hf2"
+            label   "Houdini HeightField"
+            hidewhen "{ terraintype != 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+        }
+
+        groupsimple {
+            name    "fd_hf_3"
+            label   "Terrain Mesh"
+            hidewhen "{ terraintype != 1 }"
+            grouptag { "sidefx::look" "blank" }
+
+            groupsimple {
+                name    "fd_meshsettings2"
+                label   "Terrain Settings"
+
+                parm {
+                    name    "gridspacing_mesh"
+                    label   "Grid Spacing"
+                    type    float
+                    default { "1" }
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "1000000000000000" }
+                }
+                groupsimple {
+                    name    "fd_customsize2"
+                    label   "Custom Size"
+                    hidewhen "{ autosize == 1 }"
+                    grouptag { "sidefx::look" "blank" }
+
+                    parm {
+                        name    "size2"
+                        label   "Terrain Size"
+                        type    vector2
+                        size    2
+                        default { "1000" "1000" }
+                        range   { -1 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "t2"
+                        label   "Center"
+                        type    vector
+                        size    3
+                        default { "0" "0" "0" }
+                        range   { -1 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+                parm {
+                    name    "uniformscale2"
+                    label   "Uniform Scale"
+                    type    float
+                    default { "1" }
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "autosize"
+                    label   "Auto Size Height Field"
+                    type    toggle
+                    default { "1" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fd_hf_4"
+            label   "Heightfield Image"
+            hidewhen "{ terraintype != 2 }"
+            grouptag { "sidefx::look" "blank" }
+
+            groupsimple {
+                name    "fd_imgsettings2"
+                label   "Image Settings"
+
+                parm {
+                    name    "filename"
+                    label   "File"
+                    type    image
+                    default { "" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "filechooser_mode" "read" }
+                }
+                parm {
+                    name    "monoop"
+                    label   "Channel"
+                    type    ordinal
+                    default { "lum" }
+                    menu {
+                        "lum"           "Luminance"
+                        "ntsclum"       "NTSC Luminance"
+                        "average"       "Average"
+                        "max"           "Maximum Component"
+                        "min"           "Minimum Component"
+                        "magnitude"     "Magnitude"
+                        "hue"           "Hue"
+                        "saturation"    "Saturation"
+                        "red"           "Red"
+                        "green"         "Green"
+                        "blue"          "Blue"
+                    }
+                    parmtag { "autoscope" "1000000000000000" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_imagehf_terrain_settings2"
+                label   "Terrain Settings"
+
+                parm {
+                    name    "gridspacing"
+                    label   "Grid Spacing"
+                    type    float
+                    default { "1" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "heightscale"
+                    label   "Height Scale"
+                    type    float
+                    default { "2000" }
+                    range   { 0 100 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "clampmintoggle"
+                    label   "Clamp Min"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "clampmin"
+                    label   "Clamp Minimum"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ clampmintoggle == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "clampmaxtoggle"
+                    label   "Clamp Max"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "clampmax"
+                    label   "Clamp Maximum"
+                    type    float
+                    default { "1" }
+                    disablewhen "{ clampmaxtoggle == 0 }"
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                groupcollapsible {
+                    name    "fd_imagehf_transform2"
+                    label   "Transform"
+
+                    parm {
+                        name    "orient"
+                        label   "Orientation"
+                        type    ordinal
+                        default { "zx" }
+                        menu {
+                            "xy"    "XY"
+                            "yz"    "YZ"
+                            "zx"    "ZX"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sampling"
+                        label   "Sampling"
+                        type    ordinal
+                        default { "center" }
+                        menu {
+                            "center"    "Center"
+                            "corner"    "Corner"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                    }
+                    parm {
+                        name    "t"
+                        label   "Center"
+                        type    vector2
+                        size    2
+                        default { "0" "0" }
+                        range   { -1 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "uniformscale"
+                        label   "Uniform Scale"
+                        type    float
+                        default { "1" }
+                        range   { 0 10 }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+    group {
+        name    "fd_terrain3_1"
+        label   "Biome Input"
+
+        group {
+            name    "fd_inputtype"
+            label   "Input Type"
+
+            parm {
+                name    "biomeinput"
+                label   "Biome Input Type"
+                type    integer
+                default { "0" }
+                menu {
+                    "0" "Image File"
+                    "1" "Photoshop File"
+                    "2" "Houdini Curves"
+                    "3" "Houdini HeightField Layers"
+                    "4" "Mesh with Attributes"
+                }
+                range   { 0 10 }
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "sepparm6"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            groupsimple {
+                name    "fd_imagefile2"
+                label   "Image File"
+                hidewhen "{ biomeinput != 0 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "imagetype"
+                    label   "Image Type"
+                    type    ordinal
+                    default { "0" }
+                    menu {
+                        "0" "File Path"
+                        "1" "COP Network"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "imginput"
+                    label   "Image Input"
+                    type    image
+                    default { "" }
+                    hidewhen "{ imagetype != 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "filechooser_mode" "read" }
+                }
+                parm {
+                    name    "copinput"
+                    label   "COP Input"
+                    type    oppath
+                    default { "" }
+                    hidewhen "{ imagetype != 1 }"
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "imgmatchsize"
+                    label   "Match Size to Terrain"
+                    type    toggle
+                    default { "1" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sepparm8"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                groupsimple {
+                    name    "fd_gen"
+                    label   "Biome Generation"
+
+                    parm {
+                        name    "numcolors"
+                        label   "Number of Colors"
+                        type    integer
+                        default { "10" }
+                        range   { 1! 100 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "strength"
+                        label   "Region Smoothing"
+                        type    float
+                        default { "25" }
+                        range   { 0! 50 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    groupcollapsible {
+                        name    "fd_neighbors"
+                        label   "Neighbor Consolidation"
+
+                        parm {
+                            name    "extweight"
+                            label   "Extended Influence"
+                            type    float
+                            default { "5" }
+                            range   { 0! 10 }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "iterations"
+                            label   "Iterations"
+                            type    integer
+                            default { "2" }
+                            range   { 0! 10 }
+                            parmtag { "autoscope" "0000000000000000" }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                    }
+
+                    parm {
+                        name    "generatecolors"
+                        label   "Extract Regions"
+                        type    button
+                        default { "0" }
+                        parmtag { "export_disable" "1" }
+                        parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+                parm {
+                    name    "sepparm5"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                groupsimple {
+                    name    "fd_biomeassignmentimg2"
+                    label   "Biome Assignment"
+
+                    multiparm {
+                        name    "fd_extractcol"
+                        label    "Extracted Colors"
+
+                        parm {
+                            name    "extcolor#"
+                            label   "Visualization Color"
+                            type    color
+                            size    3
+                            default { "1" "1" "1" }
+                            range   { 0 1 }
+                            parmtag { "colortype" "val" }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "biomename#"
+                            label   "Biome Name"
+                            type    string
+                            default { "" }
+                            menu {
+                                [ "list = hou.phm().setBiomeName(kwargs['node'])" ]
+                                [ "" ]
+                                [ "#Next four lines gets the current value of the menu" ]
+                                [ "    #And if it's empty, sets it as \"default\" to the first value of list" ]
+                                [ "id = kwargs['script_multiparm_index']" ]
+                                [ "value = hou.pwd().parm(\"biomename\" + str(id)).eval()" ]
+                                [ "if value == '' and list != '':" ]
+                                [ "    hou.pwd().parm(\"biomename\" + str(id)).set(list[0])" ]
+                                [ "    " ]
+                                [ "return list" ]
+                                language python
+                            }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "biomehierarchy_img#"
+                            label   "Biome Hierarchy"
+                            type    integer
+                            default { "1" }
+                            range   { 1! 20 }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "sepparm03_#"
+                            label   "Separator"
+                            type    separator
+                            default { "" }
+                        }
+                        parm {
+                            name    "sepparm02_#"
+                            label   "Spacer"
+                            type    separator
+                            default { "" }
+                            parmtag { "sidefx::layout_height" "small" }
+                            parmtag { "sidefx::look" "blank" }
+                        }
+                    }
+
+                }
+
+            }
+
+            groupsimple {
+                name    "fd_photoshop2"
+                label   "Photoshop File"
+                hidewhen "{ biomeinput != 1 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "file"
+                    label   "File"
+                    type    image
+                    default { "" }
+                    parmtag { "filechooser_pattern" "*.psd" }
+                }
+                parm {
+                    name    "reload"
+                    label   "Reload PSD"
+                    type    button
+                    default { "0" }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback" "kwargs['node'].node(psd_input).parm('reload').pressButton()" }
+                }
+                parm {
+                    name    "psdmatchsize"
+                    label   "Match Size to Terrain"
+                    type    toggle
+                    default { "1" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sepparm"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                groupsimple {
+                    name    "fd_biomeassignpsd2"
+                    label   "Biome Assignment"
+
+                    multiparm {
+                        name    "folder1"
+                        label    "Layers To Extract"
+                        default 0
+                        parmtag { "autoscope" "0000000000000000" }
+
+                        parm {
+                            name    "layer_name#"
+                            label   "Layer Name"
+                            type    string
+                            default { "" }
+                            menureplace {
+                                [ "import hou" ]
+                                [ "" ]
+                                [ "try:" ]
+                                [ "    AllModuleNames = set(kwargs['node'].node('psd_input/cop2net/remove_default_planes').planes())" ]
+                                [ "    ModulePairs = [[x, x] for x in AllModuleNames]" ]
+                                [ "    return sum(ModulePairs, [])" ]
+                                [ "except:" ]
+                                [ "    return ['', '']" ]
+                                language python
+                            }
+                        }
+                        parm {
+                            name    "biomename_psd#"
+                            label   "Biome Name"
+                            type    string
+                            default { "" }
+                            menu {
+                                [ "id = kwargs['script_multiparm_index']" ]
+                                [ "list = hou.phm().setBiomeName(kwargs['node'])" ]
+                                [ "" ]
+                                [ "#Next four lines gets the current value of the menu" ]
+                                [ "#And if it's empty, sets it as \"default\" to the first value of list" ]
+                                [ "" ]
+                                [ "value = hou.pwd().parm(\"biomename_psd\" + str(id)).eval()" ]
+                                [ "if value == '' and list != '':" ]
+                                [ "    hou.pwd().parm(\"biomename_psd\" + str(id)).set(list[0])  " ]
+                                [ "    " ]
+                                [ "return list" ]
+                                language python
+                            }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "biomehierarchy_psd#"
+                            label   "Biome Hierarchy"
+                            type    integer
+                            default { "1" }
+                            range   { 1! 20 }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "thresh#"
+                            label   "Brightness Threshold"
+                            type    float
+                            default { "0.01" }
+                            range   { 0 1 }
+                            parmtag { "autoscope" "0000000000000000" }
+                        }
+                        parm {
+                            name    "viscol_psd#"
+                            label   "Visualization Color"
+                            type    color
+                            size    3
+                            default { "1" "1" "1" }
+                            range   { 0 1 }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        groupcollapsible {
+                            name    "fd_advanced_#_3"
+                            label   "Advanced"
+                            grouptag { "group_type" "collapsible" }
+
+                            parm {
+                                name    "step#"
+                                label   "Resample Step"
+                                type    float
+                                default { "10" }
+                                range   { 0.001! 10 }
+                                parmtag { "autoscope" "0000000000000000" }
+                            }
+                            parm {
+                                name    "inlinepointremoval#"
+                                label   "Inline Point Threshold"
+                                type    float
+                                default { "1" }
+                                range   { 0 2 }
+                            }
+                            parm {
+                                name    "shrink_uvs#"
+                                label   "Shrink UVs"
+                                type    float
+                                default { "0.005" }
+                                range   { -1 1 }
+                                parmtag { "autoscope" "0000000000000000" }
+                            }
+                            parm {
+                                name    "shapeexpand#"
+                                label   "Label"
+                                type    toggle
+                                nolabel
+                                joinnext
+                                default { "0" }
+                            }
+                            parm {
+                                name    "op#"
+                                label   "Shape"
+                                type    ordinal
+                                default { "expand" }
+                                disablewhen "{ shapeexpand# == 0 }"
+                                menu {
+                                    "expand"    "Expand"
+                                    "shrink"    "Shrink"
+                                }
+                                parmtag { "autoscope" "0000000000000000" }
+                            }
+                            parm {
+                                name    "size_psd#"
+                                label   "Size"
+                                type    float
+                                default { "0" }
+                                hidewhen "{ shapeexpand# == 0 }"
+                                range   { 0! 10 }
+                                parmtag { "autoscope" "0000000000000000" }
+                            }
+                        }
+
+                        parm {
+                            name    "sepparm2_#_3"
+                            label   "Separator"
+                            type    separator
+                            default { "" }
+                        }
+                        parm {
+                            name    "_sepparm3_#"
+                            label   "Spacer"
+                            type    separator
+                            default { "" }
+                            parmtag { "sidefx::layout_height" "small" }
+                            parmtag { "sidefx::look" "blank" }
+                        }
+                    }
+
+                }
+
+            }
+
+            groupsimple {
+                name    "fd_houdinicurves2"
+                label   "Houdini Curves"
+                hidewhen "{ biomeinput != 2 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "sepparm4"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                parm {
+                    name    "createcurvehda"
+                    label   "Create Curve Setup HDA"
+                    type    button
+                    default { "0" }
+                    parmtag { "script_callback" "hou.phm().createCurveNode(hou.pwd())" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_houdinihflayers2"
+                label   "Houdini HeightField Layers"
+                hidewhen "{ biomeinput != 3 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "layerhierarchy"
+                    label   "Layer Hierarchy Type"
+                    type    ordinal
+                    default { "0" }
+                    menu {
+                        "0" "Dominant Layer Value"
+                        "1" "Manual Hierarchy Value"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupsimple {
+                    name    "fd_biomeclass2"
+                    label   "Biome Classification"
+                    grouptag { "sidefx::look" "blank" }
+
+                    groupsimple {
+                        name    "fd_biomeassignmenthf2"
+                        label   "Biome Assignment"
+
+                        multiparm {
+                            name    "fd_layers"
+                            label    "Layers"
+
+                            parm {
+                                name    "layername#"
+                                label   "Layer"
+                                type    string
+                                default { "" }
+                                menureplace {
+                                    [ "import terraintoolutils" ]
+                                    [ "" ]
+                                    [ "return terraintoolutils.buildNameMenu(kwargs['node'].node(\"IN_BIOME\"))" ]
+                                    language python
+                                }
+                                parmtag { "script_callback_language" "python" }
+                            }
+                            parm {
+                                name    "biomename_hf_#"
+                                label   "Biome Name"
+                                type    string
+                                default { "" }
+                                menu {
+                                    [ "list = hou.phm().setBiomeName(kwargs['node'])" ]
+                                    [ "" ]
+                                    [ "" ]
+                                    [ "#Next four lines gets the current value of the menu" ]
+                                    [ "#And if it's empty, sets it as \"default\" to the first value of list" ]
+                                    [ "id = kwargs['script_multiparm_index']" ]
+                                    [ "value = hou.pwd().parm(\"biomename_hf_\" + str(id)).eval()" ]
+                                    [ "if value == '' and list != '':" ]
+                                    [ "    hou.pwd().parm(\"biomename_hf_\" + str(id)).set(list[0]) " ]
+                                    [ "    " ]
+                                    [ "return list" ]
+                                    language python
+                                }
+                                parmtag { "script_callback_language" "python" }
+                            }
+                            parm {
+                                name    "biomehierarchy_hf#"
+                                label   "Biome Hierarchy"
+                                type    integer
+                                default { "1" }
+                                hidewhen "{ layerhierarchy != 1 }"
+                                range   { 1! 20 }
+                                parmtag { "script_callback_language" "python" }
+                            }
+                            parm {
+                                name    "vizcol_hf#"
+                                label   "Visualization Color"
+                                type    color
+                                size    3
+                                default { "1" "1" "1" }
+                                range   { 0 1 }
+                                parmtag { "script_callback_language" "python" }
+                            }
+                            parm {
+                                name    "sepparm2_#_4"
+                                label   "Separator"
+                                type    separator
+                                default { "" }
+                            }
+                            parm {
+                                name    "_sepparm3_#_2"
+                                label   "Spacer"
+                                type    separator
+                                default { "" }
+                                parmtag { "sidefx::layout_height" "small" }
+                                parmtag { "sidefx::look" "blank" }
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+
+            groupsimple {
+                name    "fd_meshwithattrib2"
+                label   "Mesh with Attributes"
+                hidewhen "{ biomeinput != 4 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "attrname"
+                    label   "Attribute Name"
+                    type    string
+                    default { "" }
+                    menureplace {
+                        [ "r = []" ]
+                        [ "node = kwargs['node']" ]
+                        [ "inputs = node.inputs()" ]
+                        [ "" ]
+                        [ "if inputs and inputs[1]:" ]
+                        [ "" ]
+                        [ "    geo = inputs[1].geometry()" ]
+                        [ "    " ]
+                        [ "    if geo:" ]
+                        [ "    " ]
+                        [ "        attrs = geo.primAttribs()" ]
+                        [ "       " ]
+                        [ "        for a in attrs:" ]
+                        [ "            if not a.isArrayType() and a.size() == 1:" ]
+                        [ "                r.extend([a.name(), a.name()])" ]
+                        [ "                " ]
+                        [ "return r" ]
+                        language python
+                    }
+                    parmtag { "script_callback" "hou.phm().refreshValues(kwargs['node'])" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "sepparm3"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                groupsimple {
+                    name    "fd_biomeassignmentmesh2"
+                    label   "Biome Assignment"
+
+                    multiparm {
+                        name    "fd_attribute"
+                        label    "Attribute Settings"
+
+                        parm {
+                            name    "attrvalue#"
+                            label   "Attribute Value"
+                            type    string
+                            default { "" }
+                            menureplace {
+                                [ "#This script gets stored Attribute Name values and populates menu dropdown with choices" ]
+                                [ "" ]
+                                [ "node = kwargs['node']" ]
+                                [ "inputs = node.inputs()" ]
+                                [ "uniqueVals = []" ]
+                                [ "uniqueValsFormatted = []" ]
+                                [ "" ]
+                                [ "if inputs and inputs[1]:" ]
+                                [ "    uniqueVals = node.parm(\"attribvalcontainer\").eval()" ]
+                                [ "    " ]
+                                [ "    #Formatting list from the stored string value into correct data type, so we eliminate unecessary characters" ]
+                                [ "    uniqueVals = list(uniqueVals.split(\",\"))" ]
+                                [ "    #Menu items only show every other entry, so we populate the array twice " ]
+                                [ "    for u in uniqueVals:" ]
+                                [ "        uniqueValsFormatted.extend([u, u])" ]
+                                [ "" ]
+                                [ "        " ]
+                                [ "return uniqueValsFormatted" ]
+                                [ "                " ]
+                                language python
+                            }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "biomename_meshattr#"
+                            label   "Biome Name"
+                            type    string
+                            default { "" }
+                            menu {
+                                [ "list = hou.phm().setBiomeName(kwargs['node'])" ]
+                                [ "" ]
+                                [ "#Next four lines gets the current value of the menu" ]
+                                [ "#And if it's empty, sets it as \"default\" to the first value of list" ]
+                                [ "id = kwargs['script_multiparm_index']" ]
+                                [ "value = hou.pwd().parm(\"biomename_meshattr\" + str(id)).eval()" ]
+                                [ "if value == '' and list != '':" ]
+                                [ "    hou.pwd().parm(\"biomename_meshattr\" + str(id)).set(list[0])" ]
+                                [ "    " ]
+                                [ "    " ]
+                                [ "return list" ]
+                                language python
+                            }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "biomehierarchy_mesh#"
+                            label   "Biome Hierarchy"
+                            type    integer
+                            default { "1" }
+                            range   { 1! 20 }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "vizcol_mesh#"
+                            label   "Visualization Color"
+                            type    color
+                            size    3
+                            default { "1" "1" "1" }
+                            range   { 0 1 }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "sepparm2_#_5"
+                            label   "Separator"
+                            type    separator
+                            default { "" }
+                        }
+                        parm {
+                            name    "sepparm#_7"
+                            label   "Spacer"
+                            type    separator
+                            default { "" }
+                            parmtag { "sidefx::layout_height" "small" }
+                            parmtag { "sidefx::look" "blank" }
+                        }
+                    }
+
+                    parm {
+                        name    "loadvalues"
+                        label   "Load Values"
+                        type    button
+                        default { "0" }
+                        parmtag { "script_callback" "hou.phm().loadValues(kwargs['node'])" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "refreshvalues"
+                        label   "Refresh Values"
+                        type    button
+                        default { "0" }
+                        parmtag { "script_callback" "hou.phm().refreshValues(kwargs['node'])" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+                parm {
+                    name    "attribvalcontainer"
+                    label   "Attribute Value Container"
+                    type    string
+                    invisible
+                    default { "" }
+                    parmtag { "editor" "0" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        group {
+            name    "fd_inputtype_1"
+            label   "Biome Overlap"
+
+            parm {
+                name    "cutout"
+                label   "Enable Cutout"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    parm {
+        name    "readtest"
+        label   "Read JSON Test"
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "hou.phm().readAttributes(kwargs['node'])" }
+        parmtag { "script_callback_language" "python" }
+    }
+}
