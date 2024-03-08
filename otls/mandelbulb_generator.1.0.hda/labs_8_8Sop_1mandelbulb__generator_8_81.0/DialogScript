@@ -1,0 +1,148 @@
+# Dialog script for labs::mandelbulb_generator::1.0 automatically generated
+
+{
+    name	labs::mandelbulb_generator::1.0
+    script	labs::mandelbulb_generator::1.0
+    label	"Labs Mandelbulb Generator"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupcollapsible {
+        name    "fd_volume2"
+        label   "Volume Settings"
+        parmtag { "group_default" "1" }
+        grouptag { "sidefx::switcher" "fd_volume" }
+
+        parm {
+            name    "voxelsize"
+            label   "Voxel Size"
+            type    float
+            default { "0.01" }
+            range   { 0.001! 0.2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_formula"
+        label   "Formula Settings"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "useocl"
+            label   "Use OpenCL"
+            type    toggle
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "nvalue"
+            label   "Value of N"
+            type    float
+            default { "8" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "iteration"
+            label   "Number of Iterations"
+            type    float
+            default { "10" }
+            range   { 1 5 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "maxiter"
+            label   "Maximum Iterations"
+            type    integer
+            default { "35" }
+            range   { 10 50 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "phase"
+            label   "Phase"
+            type    float
+            default { "0" }
+            range   { -10 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "power"
+            label   "Power"
+            type    float
+            default { "1" }
+            range   { -2 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_output"
+        label   "Output"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "convertto"
+            label   "Convert To"
+            type    ordinal
+            default { "0" }
+            menu usetokenvalue {
+                "0" "Fog Volume"
+                "1" "SDF"
+                "2" "Polygons"
+                "3" "Points"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "npts"
+            label   "Total Number of Points"
+            type    integer
+            default { "100000" }
+            hidewhen "{ convertto < 3 }"
+            range   { 100000 1e+06 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "addcolor"
+            label   "Add Color"
+            type    toggle
+            default { "0" }
+            hidewhen "{ convertto < 2 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "ramp_color"
+            label   "Ramp Color"
+            type    ramp_rgb
+            default { "5" }
+            hidewhen "{ addcolor < 1 } { convertto < 2 }"
+            range   { 1! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0.0003073129919357598 0.00018243934027850628 0.24085405468940735 ) 1interp ( catmull-rom ) 2pos ( 0.25 ) 2c ( 0.20405010879039764 9.681845403974876e-5 0.39119139313697815 ) 2interp ( catmull-rom ) 3pos ( 0.5 ) 3c ( 0.5946293473243713 0.0618097223341465 0.1899968683719635 ) 3interp ( catmull-rom ) 4pos ( 0.75 ) 4c ( 0.9371210932731628 0.2961269021034241 0.052872538566589355 ) 4interp ( catmull-rom ) 5pos ( 1 ) 5c ( 0.8689308762550354 0.9444158673286438 0.0012066683266311884 ) 5interp ( catmull-rom )" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
