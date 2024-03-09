@@ -680,4 +680,35 @@ node.setName('volume_no_emission1', True)
 ]]></script>
   </tool>
 
+  <tool name="labs::sketchfab_usdz_apply_animation" label="Labs Sketchfab USDZ Apply Animation" icon="LOP_pythonscript">
+    <toolMenuContext name="network">
+      <contextNetType>LOP</contextNetType>
+    </toolMenuContext>
+    <toolSubmenu>Labs/Integration</toolSubmenu>
+    <script scriptType="python"><![CDATA[
+import toolutils
+pyscriptnode = toolutils.genericTool(kwargs, 'pythonscript', exact_node_type=False)
+snippet = '''from pxr import UsdSkel
+node = hou.pwd()
+stage = node.editableStage()
+skeleton_prim = None
+anim_prim = None
+# USDZ from Sketchfab comes with one Skeleton and one SkelAnimation so we assume there's only one of each
+for prim in stage.Traverse():
+    if prim.GetTypeName() == "Skeleton":
+        skeleton_prim = prim
+    elif prim.GetTypeName() == "SkelAnimation":
+        anim_prim = prim
+if skeleton_prim and anim_prim:
+    anim_binding = UsdSkel.BindingAPI.Apply(skeleton_prim.GetPrim())
+    anim_rel = anim_binding.CreateAnimationSourceRel()
+    anim_rel.AddTarget(anim_prim.GetPrim().GetPath())
+    vis = skeleton_prim.GetAttribute("visibility")
+    vis.Set("invisible")'''
+pyscriptnode.parm("python").set(snippet)
+pyscriptnode.parm("python").lock(True)
+pyscriptnode.setName("sketchfab_usdz_apply_animation1", unique_name=True)
+]]></script>
+  </tool>
+
 </shelfDocument>
