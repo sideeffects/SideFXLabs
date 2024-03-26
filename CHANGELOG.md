@@ -1,5 +1,30 @@
 # SideFX Labs Changelog
 
+
+### Production Release [20.0.653](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.653) - Mar 21, 2024
+
+**NEW TOOLS**
+- [20.0.641](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.641) **Labs Mandelbulb Generator SOP** - Added a new node that generates a Mandelbulb 3D fractal geometry.
+- [20.0.641](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.641) **Labs Sketchfab USDZ Apply Animation LOP Alias** - Added a new alias to *Python Script LOP* which comes with a script that applies the SkelAnimation to the Skeleton for USDZ assets from Sketchfab.
+
+**MAJOR UPDATES**
+- [20.0.632](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.632) **Labs Biome Profile SOP & Labs Biome Initialize SOP** - Incorporated JSON-based parameters into the workflow.
+- [20.0.627](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.627) **Labs Biome Profile SOP** - Added 2 new biome parameter options: temperature, precipitation.
+- [20.0.627](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.627) **Labs Biome Initialize SOP** - Added an option to scale image or PSD input to the height field size.
+- [20.0.627](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.627) **Labs Biome Curve Setup SOP** - Made sure to flatten the input curves to the XZ plane.
+
+**MINOR UPDATES** 
+- [20.0.652](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.652) **SideFXLabs.json** - In the SideFX Labs package definition JSON file, changed the keyword `path` to `hpath` to be in line with the latest Houdini recommendations. Functionally, both are shortcuts to set `$HOUDINI_PATH`.
+- [20.0.627](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.627) **Labs Biome utility script** - Updated `biomeutils.py` to reflect new biome parameters.
+- [20.0.627](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.627) **Changelog** - Started an official, curated changelog on SideFX Labs GitHub repo. This changelog used to be posted on the SideFX forum once every two weeks. The new changelog will be updated once every production release.
+
+**BUG FIXES**
+- [20.0.637](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.637) **Labs Biome Initialize SOP** - Fixed an issue where biomes were improperly applied to height field layers.
+- [20.0.632](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.632) **Labs Flowmap Shader SHOP** - Fixed an incompatibility bug in the fragment shader GLSL code related to native Houdini changes. This bug crippled *Labs Flowmap Visualize SOP* because that node depends on *Labs Flowmap Shader SHOP*. This fix requires updating both Labs and Houdini as the viewport visualization only animates properly in Houdini 19.5.805+ and 20.0.627+.
+- [20.0.632](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.632) **Labs JSON Exporter ROP** - Fixed an issue where the Export Node parameter does not work with relative node paths.
+- [20.0.628](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.628) **Labs Physical Ambient Occlusion SOP 1.1** - Fixed a critical bug with *Physical Ambient Occlusion SOP 1.0* where the sample weights were computed incorrectly due to a typo in the code. To avoid breaking existing project files, the fix is only implemented in *Physical Ambient Occlusion SOP 1.1*. Also slightly improved the UI and added the missing Help page. Added a new example HIP.
+
+
 ### Production Release [20.0.625](https://github.com/sideeffects/SideFXLabs/releases/tag/20.0.625) - Feb 22, 2024
 
 **NEW TOOLS**
