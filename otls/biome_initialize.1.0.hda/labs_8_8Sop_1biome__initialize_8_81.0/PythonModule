@@ -102,7 +102,37 @@ def generateColors(node):
         HDAnode.parm(colR).set(color[0])
         HDAnode.parm(colG).set(color[1])
         HDAnode.parm(colB).set(color[2])
+        
+#######################################################################
+#Generate biomes from curve input
+#######################################################################  
+def generateCurveBiomes(node):
 
+    HDAnode = hou.node(".")
+    inputs = node.inputs()
+    uniqueVals = []
+    
+    if inputs[1]:
+        geo = inputs[1].geometry()
+        
+        if geo:
+            prims = geo.prims()
+            
+            for p in prims:
+                attrVal = p.attribValue("_bin_biome_tag")
+                
+                if attrVal not in uniqueVals:
+                    uniqueVals.append(attrVal)
+
+    HDAnode.parm('fd_curvebiomeviz').set(len(uniqueVals))
+    
+    count = 1
+    for val in uniqueVals:
+        HDAnode.parm('biomename_curve' + str(count)).set(val)
+        count += 1
+
+        
+        
 def setBiomeName(node):
     file_path = node.parm('biomeprofile').eval()
   

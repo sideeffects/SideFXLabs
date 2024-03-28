@@ -689,14 +689,6 @@
                 grouptag { "sidefx::look" "blank" }
 
                 parm {
-                    name    "sepparm4"
-                    label   "Spacer"
-                    type    separator
-                    default { "" }
-                    parmtag { "sidefx::layout_height" "small" }
-                    parmtag { "sidefx::look" "blank" }
-                }
-                parm {
                     name    "createcurvehda"
                     label   "Create Curve Setup HDA"
                     type    button
@@ -704,6 +696,79 @@
                     parmtag { "script_callback" "hou.phm().createCurveNode(hou.pwd())" }
                     parmtag { "script_callback_language" "python" }
                 }
+                parm {
+                    name    "sepparm4"
+                    label   "Spacer"
+                    type    separator
+                    default { "" }
+                    parmtag { "sidefx::layout_height" "small" }
+                    parmtag { "sidefx::look" "blank" }
+                }
+                groupsimple {
+                    name    "fd_curveviz"
+                    label   "Biome Visualization"
+                    tabbreak
+
+                    parm {
+                        name    "curveregion"
+                        label   "Load Biomes"
+                        type    button
+                        default { "0" }
+                        parmtag { "script_callback" "hou.phm().generateCurveBiomes(kwargs['node'])" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sepparm9"
+                        label   "Spacer"
+                        type    separator
+                        default { "" }
+                        parmtag { "sidefx::layout_height" "small" }
+                        parmtag { "sidefx::look" "blank" }
+                    }
+                    multiparm {
+                        name    "fd_curvebiomeviz"
+                        label    "Number of Biomes"
+
+                        parm {
+                            name    "biomename_curve#"
+                            label   "Biome Name"
+                            type    string
+                            default { "" }
+                            menu {
+                                [ "list = hou.phm().setBiomeName(kwargs['node'])" ]
+                                [ "" ]
+                                [ "#Next four lines gets the current value of the menu" ]
+                                [ "#And if it's empty, sets it as \"default\" to the first value of list" ]
+                                [ "id = kwargs['script_multiparm_index']" ]
+                                [ "value = hou.pwd().parm(\"biomename_curve\" + str(id)).eval()" ]
+                                [ "if value == '' and list != '':" ]
+                                [ "    hou.pwd().parm(\"biomename_curve\" + str(id)).set(list[0])" ]
+                                [ "    " ]
+                                [ "    " ]
+                                [ "return list" ]
+                                language python
+                            }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "curvevizcol#"
+                            label   "Visualization Color"
+                            type    color
+                            size    3
+                            default { "1" "1" "1" }
+                            range   { 0 1 }
+                            parmtag { "script_callback_language" "python" }
+                        }
+                        parm {
+                            name    "sepparm9_#"
+                            label   "Separator"
+                            type    separator
+                            default { "" }
+                        }
+                    }
+
+                }
+
             }
 
             groupsimple {
