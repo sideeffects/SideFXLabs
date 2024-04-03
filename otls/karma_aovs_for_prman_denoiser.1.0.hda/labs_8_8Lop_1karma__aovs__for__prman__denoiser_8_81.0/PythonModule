@@ -1,0 +1,27 @@
+# Sets `husk_legacyexr` to 1 on the USD Render ROP LOP specified in `pathtorenderrop`
+def setLegacy(node):
+
+    path = node.parm('pathtorenderrop').evalAsNodePath()
+    usd_render_rop = node.node(path)
+    is_rop_valid = 0
+
+    if type(usd_render_rop) is hou.RopNode:
+        if usd_render_rop.type().name() == 'usdrender_rop':
+
+            is_rop_valid = 1
+            legacyparm = usd_render_rop.parm("husk_legacyexr")
+
+            if legacyparm:
+                if legacyparm.evalAsInt() == 0:
+                    legacyparm.set(1)
+                    print("Enable EXR Legacy Mode is now turned on:", path)
+                else:
+                    print("Enable EXR Legacy Mode is already turned on:", path)
+
+            else:
+                print ("Unexpected Error: Cannot find the parameter \"husk_legacyexr\" on: {0}. Please contact SideFX support.".format(path))
+
+    if not is_rop_valid:
+        print ("Error: \"{0}\" does not point to a USD Render ROP.".format(node.parm('pathtorenderrop').evalAsString()))
+
+    return
