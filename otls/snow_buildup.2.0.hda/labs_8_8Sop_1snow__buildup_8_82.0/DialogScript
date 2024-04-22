@@ -1,0 +1,209 @@
+# Dialog script for labs::snow_buildup::2.0 automatically generated
+
+{
+    name	labs::snow_buildup::2.0
+    script	gamedev::sop_snow_buildup
+    label	"Labs Snow Buildup"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to Accumulate Snow On"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Snow Accumulation"
+    outputlabel	2	"Snow Accumulation"
+
+    groupsimple {
+        name    "fd_scatteringoptions"
+        label   "Snow Scattering"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "keeporiginal"
+            label   "Keep Original"
+            type    toggle
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "seed"
+            label   "Seed"
+            type    integer
+            default { "0" }
+            range   { 0 1000 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "dir"
+            label   "Snow Direction"
+            type    direction
+            size    3
+            default { "0" "1" "0" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "occludemesh"
+            label   "Occlude Mesh"
+            type    toggle
+            default { "off" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "angle"
+            label   "Coverage"
+            type    angle
+            default { "60" }
+            range   { 0.01! 90! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "resolution"
+            label   "Voxel Size"
+            type    log
+            default { "0.005" }
+            range   { 0.001 0.1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_snowsurface"
+        label   "Snow Surface"
+
+        parm {
+            name    "unit"
+            label   "Unit"
+            type    ordinal
+            default { "off" }
+            menu {
+                "0" "Relative "
+                "1" "World"
+            }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "baseheight"
+            label   "Base Height"
+            type    float
+            default { "0.5" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "snowheight"
+            label   "Noise Height"
+            type    float
+            default { "0" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "snowfrequency"
+            label   "Noise Frequency"
+            type    float
+            default { "1" }
+            range   { 0! 10 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "minarea"
+            label   "Minimum Patch Area"
+            type    float
+            default { "0.2" }
+            range   { 0! 2 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "smoothiterations"
+            label   "Smoothing Iterations"
+            type    integer
+            default { "1" }
+            range   { 0 25 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_edgedetail"
+        label   "Edge Detail"
+
+        parm {
+            name    "meltborder"
+            label   "Melt Border"
+            type    toggle
+            default { "off" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "meltiterations"
+            label   "Melt Iterations"
+            type    integer
+            default { "3" }
+            disablewhen "{ meltborder == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "typenoise"
+            label   "Type"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Simple"
+                "1" "Stratification and Melted"
+                "2" "Shoveled"
+                "3" "Stratification With Holes"
+                "4" "Melted with Holes"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "intensitynoise"
+            label   "Intensity"
+            type    float
+            default { "1" }
+            disablewhen "{ typenoise == 0 }"
+            range   { 0.001! 5 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "scalenoise"
+            label   "Element Size"
+            type    float
+            default { "1" }
+            disablewhen "{ typenoise == 0 }"
+            range   { 0! 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "addbluriteration"
+            label   "Additional Blurring"
+            type    integer
+            default { "0" }
+            disablewhen "{ typenoise == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
