@@ -1,0 +1,117 @@
+#type:     node
+#context:  sop
+#internal: labs::snow_buildup::2.0
+#icon:     SOP/labs::snow_buildup::2.0
+
+= Labs Snow Buildup =
+
+""" Creates geometry to an input mesh that mimics snow build up. """
+
+This node generates snow buildup by extruding specified faces upwards. The selection of these faces are determined by facing-direction, thickness and curvature attributes of the input mesh.
+Noise is added to the geometry, deforming the snow surface differently than the edges.
+
+@parameters
+
+    == Snow Scattering ==
+
+    Keep Original:
+        #id: keeporiginal
+	When enabled, merges result with input mesh.
+
+    Seed:
+        #id: seed
+	All generated values depend (pseudo)randomly on this value. This random seed is used for determining the entire noise distribution.
+        
+    Snow Direction:
+        #id: dir
+	Direction from which the snow is coming.
+        
+    Occlude Mesh:
+        #id: occludemesh
+	When activated, snow will only appear on the surface which is directly hit by snow.
+        
+    Coverage:
+        #id: angle
+	Deviation from the snow direction where snow might fall. If __Coverage__ parameter is too wide, __Occlude Mesh__ might become useless.
+        
+    Voxel Size:
+        #id: resolution
+	The desired voxel size of the new VDB points grid. The lower this value, the more detail the mesh will have.
+        
+    == Snow Surface ==
+
+    Unit:
+        #id: unit
+	Choose whether parameter values are relative to the input mesh size or to the world.
+
+    Base Height:
+        #id: baseheight
+	Height of the initial snowfall. 
+        
+    Noise Height:
+        #id: snowheight
+	The maximum amount of random height added to __Base Height__.
+        
+    Noise Frequency:
+        #id: snowfrequency
+        Frequency in which __Noise Height__ will randomize: the smaller the value, the larger the bump size.
+
+    Minimum Patch Area:
+        #id: minarea
+	The minimum area allowed for snow patches. Patches with area smaller than this value will be removed.
+        
+    Smoothing Iterations:
+        #id: smoothiterations
+	Amount to smooth edges of of the snow surface. Higher values move the points farther from their original positions. 
+        
+    == Edge Detail ==
+
+    Melt Border:
+        #id: meltborder
+	When enabled, lowers the border of the mesh to mimic melting.
+        
+    Melt Iterations:
+        #id: meltiterations
+        How melted the surface snow is. Higher values move the points farther down.
+
+    Type:
+        #id: typenoise
+	Select between different noise types.       
+
+        Simple:
+	Keep snow edges as is.
+            
+        Stratification and Melted:
+	Mimics bands of snow that melted.
+
+	[Image:/images/snb_stratification_melted.png]
+            
+        Shoveled:
+	Mimics bands of snow that was shoveled.
+
+	[Image:/images/snb_shoveled.png]
+            
+        Stratification With Holes:
+	Mimics bands of snow that melted with additional holes.
+
+	[Image:/images/snb_stratification_holes.png]
+            
+        Melted with Holes:
+	Mimics snow that has naturally melted.
+
+	[Image:/images/snb_melted_holes.png]
+	
+            
+    Intensity:
+        #id: intensitynoise
+	The intensity of the noise. Higher values move the points farther from their original positions. 
+        
+    Element Size:
+        #id: scalenoise
+	Uniform scale of elements in the noise. Lower value means more 'tiling'.
+        
+    Additional Blurring:
+        #id: addbluriteration
+	Amount to smooth edges. Higher values may result in a loss of details. 
+        
+
