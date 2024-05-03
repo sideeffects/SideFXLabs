@@ -351,7 +351,7 @@
                     name    "imgmatchsize"
                     label   "Match Size to Terrain"
                     type    toggle
-                    default { "1" }
+                    default { "0" }
                     parmtag { "script_callback_language" "python" }
                 }
                 parm {
@@ -409,15 +409,6 @@
                         }
                     }
 
-                    parm {
-                        name    "generatecolors"
-                        label   "Extract Regions"
-                        type    button
-                        default { "0" }
-                        parmtag { "export_disable" "1" }
-                        parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
-                        parmtag { "script_callback_language" "python" }
-                    }
                 }
 
                 parm {
@@ -432,6 +423,23 @@
                     name    "fd_biomeassignmentimg2"
                     label   "Biome Assignment"
 
+                    parm {
+                        name    "generatecolors"
+                        label   "Extract Regions"
+                        type    button
+                        default { "0" }
+                        parmtag { "export_disable" "1" }
+                        parmtag { "script_callback" "hou.phm().generateColors(kwargs['node'].node('END_color_generating'))" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "sepparm02___2"
+                        label   "Spacer"
+                        type    separator
+                        default { "" }
+                        parmtag { "sidefx::layout_height" "small" }
+                        parmtag { "sidefx::look" "blank" }
+                    }
                     multiparm {
                         name    "fd_extractcol"
                         label    "Extracted Colors"
@@ -519,7 +527,7 @@
                     name    "psdmatchsize"
                     label   "Match Size to Terrain"
                     type    toggle
-                    default { "1" }
+                    default { "0" }
                     parmtag { "script_callback_language" "python" }
                 }
                 parm {
@@ -707,7 +715,6 @@
                 groupsimple {
                     name    "fd_curveviz"
                     label   "Biome Visualization"
-                    tabbreak
 
                     parm {
                         name    "curveregion"
@@ -743,9 +750,11 @@
                                 [ "value = hou.pwd().parm(\"biomename_curve\" + str(id)).eval()" ]
                                 [ "if value == '' and list != '':" ]
                                 [ "    hou.pwd().parm(\"biomename_curve\" + str(id)).set(list[0])" ]
+                                [ "    return list" ]
                                 [ "    " ]
+                                [ "else:" ]
+                                [ "    return [value, value]" ]
                                 [ "    " ]
-                                [ "return list" ]
                                 language python
                             }
                             parmtag { "script_callback_language" "python" }

@@ -1,14 +1,17 @@
 #type:     node
 #context:  sop
-#internal: labs::biome_adjust_settings::1.0
-#icon:     SOP/labs::biome_adjust_settings::1.0
+#internal: labs::biome_profile::1.0
+#icon:     SOP/labs::biome_profile::1.0
 
-= Labs Biome Adjust Settings (Beta) =
+= Labs Biome Profile (Beta) =
 
 """An interface to change underlying biome parameters and related settings of the Labs Biome system."""
 
 
-The biome settings displayed are saved in an external JSON file, and this interface allows editing of the different biome properties. To change the JSON file being referenced or to create a new file, the file path must be changed in the LabsBiomes package.
+The biome settings displayed are saved in an external JSON file, and this interface allows editing of the different biome properties. 
+
+:note:
+	The biome tools are in beta and are subject to change based off of feedback, testing, and future development. We encourage our users to let us know of any feedback or bugs they encounter while using these tools.
 
 
 @parameters
@@ -16,32 +19,36 @@ The biome settings displayed are saved in an external JSON file, and this interf
 
 	Biome Profile:
 		#id: biomeprofile
-		Path to the biome profile JSON containing biome data such as names, parameters, etc. This data is set through the [Labs Biome Adjust Settings|Node:sop/labs--biome_adjust_settings] node.
-		
-	Environment Variable Set:
-		#id: environmentvar
-		Enabled automatically if the environment variable BIOME exists. This environment variable is a path to a specified directory.
+		Path to the biome profile JSON containing biome data such as names, parameters, etc. This data is set through the [Labs Biome Profile|Node:sop/labs--biome_profile-1.0] node.
 
-    Load Settings:
+    Sync Profile Paths:
+        #id: applysettingsnodes
+	Sets the __Biome Profile__ path on all Biome nodes within this geometry context to the path specified here.
+
+    Reload Profile:
         #id: loadsettings
-	Read in biome settings.
+	Reloads biome profile selected in __Biome Profile__. Reloading before saving any changes will revert parameters back to the saved settings.
         
-    Save Settings:
+    Save Profile:
         #id: savesettings
-	Save biome settings. This will overwrite the current biome settings JSON. To create a new settings file, the JSON file path must be changed in the LabsBiome package.
+	Save biome settings to the JSON specified in __Biome Profile__. This will overwrite the current biome settings JSON. To create a new settings file, the JSON file path must be changed in __Biome Profile__ to a new file name with the .json extension.
         
-    == Folder Name ==
+    == Settings ==
 
     Biome:
         #id: biomename#
 	Biome name to assign to this specified settings list.
         
-    Aridity Index:
-        #id: aridityindex#
-	Aridity index level to give associated biome.
-    
+    Average Temperature:
+        #id: avgtemp#
+	Average temperature of associated biome (in Celcius).
+        
+    Average Precipitation:
+        #id: avgprecip#
+	Average precipitation of associated biome per year (in millimeters).
+
     
 @related
-- [Labs Biome Initialize|Node:sop/labs--biome_initialize]
-- [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup]
+- [Labs Biome Initialize|Node:sop/labs--biome_initialize-1.0]
+- [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup-1.0]
 

@@ -10,6 +10,9 @@
 
 For terrain, Biome Initialize converts input terrain types into a Houdini Heightfield volume. For biome regions, the different options create flat, single-poly regions with primitive attributes and biome settings to deliminate the bounds of the expected biomes. Multiple input types are supported , but the two output types will always be a Houdini Heightfield volume for terrain and polygonal regions for biomes.
 
+:note:
+	The biome tools are in beta and are subject to change based off of feedback, testing, and future development. We encourage our users to let us know of any feedback or bugs they encounter while using these tools.
+
 
 @parameters
 
@@ -17,11 +20,8 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 
 	Biome Profile:
 		#id: biomeprofile
-		Path to the biome profile JSON containing biome data such as names, parameters, etc. This data is set through the [Labs Biome Adjust Settings|Node:sop/labs--biome_adjust_settings] node.
-		
-	Environment Variable Set:
-		#id: environmentvar
-		Enabled automatically if the environment variable BIOME exists. This environment variable is a path to a specified directory.
+		Path to the biome profile JSON containing biome data such as names, parameters, etc. This data is set through the [Labs Biome Profile|Node:sop/labs--biome_profile-1.0] node.
+
 
 == Terrain Input ==
 	Terrain Input Type:
@@ -41,12 +41,12 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 ==== Terrain Settings ====
 
     Grid Spacing:
-		Voxel size of output HeightField in meters. A higher number results in lower resolution.
+		Voxel size of the output HeightField in meters. A higher number results in lower resolution.
         #id: gridspacing*mesh
 
 
     Terrain Size:
-		The width and height of HeightField volume.
+		The width and height of the HeightField volume.
         #id: size2
         
     Center:
@@ -54,12 +54,12 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
         #id: t2
         
     Uniform Scale:
-		Amount to scale HeightField.
+		Amount to scale the HeightField.
         #id: uniformscale2
 
         
     Auto Size Height Field:
-		Enable this parameter to calculates size of HeightField based off of bounding box of geometry. Disable to activate manual controls.
+		Enable this parameter to calculate the size of the HeightField based off of bounding box of geometry. Disable to activate manual controls.
         #id: autosize
 
 
@@ -69,7 +69,7 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 ==== Image Settings ====
 
     File:
-		The path to the image file to import.
+		The path to the image file to import. Tip: for faster calculation times, use a lower resolution image.
         #id: filename
         
     Channel:
@@ -123,11 +123,11 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 		#id: biomeinput
 		Takes in one of the specified input types and converts into polygonal biome regions.
 	
-		*Image File:* Takes in a standard image input such as PNG or JPG. Regions are extracted based on major color groups of image.
+		*Image File:* Takes in a standard image input such as PNG or JPG. Regions are extracted based on major color groups of the image.
 		
 		*Photoshop File:* Takes in a PSD file, using the individual Photoshop layers to extract regions.
 		
-		*Houdini Curves:* Input is Houdini curves used in conjunction with [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup].
+		*Houdini Curves:* Input is Houdini curves used in conjunction with [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup-1.0].
 		
 		*Houdini HeightField Layers:* Converts different HeightField layers into regions.
 		
@@ -146,6 +146,10 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 	COP Input: 
 		Link to a COP Network to use. Remember to set the Render flag on the COP node you wish to process from the network.
         #id: copinput
+
+	Match Size to Terrain: 
+		Enable to automatically match the biome regions to the size of the input terrain.
+        #id: imgmatchsize
 
 ===  ===
 ==== Biome Generation ====
@@ -168,21 +172,24 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 		Number of times to attempt to consolidate primitive neighbors.
         #id: iterations
         
-    Extract Regions:
-		Extracts the regions and generates biome assignment parameters.
-        #id: generatecolors
-        
+
 
 
 ==== Extracted Colors ====
 
+    Extract Regions:
+		Extracts the colors of regions into a menu and generates biome assignment parameters.
+        #id: generatecolors
+        
     Visualization Color:
-		The dominant color extracted from this particular region. Color can be changed for visualization purposes, but will be overwritten if node is cooked again.
         #id: extcolor#
+	The dominant color extracted from this particular region. Color can be changed for visualization purposes, but will be overwritten if node is cooked again.
+
         
     Biome Name:
-		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Adjust Settings|Node:sop/labs--biome_adjust_settings].
         #id: biomename#
+	The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
+
         
     Biome Hierarchy:
 		The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
@@ -206,7 +213,7 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
         #id: layer*name#
         
     Biome Name:
-		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Adjust Settings|Node:sop/labs--biome_adjust_settings].
+		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
         #id: biomename*psd#
         
     Biome Hierarchy:
@@ -218,8 +225,9 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
         #id: thresh#
         
     Visualization Color:
-		Color to assign this region for visualization purposes.
         #id: viscol*psd#
+	Color to assign this region for visualization purposes.
+
         
     === Advanced ===
 
@@ -248,19 +256,32 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 === Houdini Curves ===
 
     Create Curve Setup HDA:
-		Creates a [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup] node.
         #id: createcurvehda
+	Creates a [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup-1.0] node.
+
+
+    Load Biomes:
+        #id: curveregion
+	Loads in the set biomes for the curve regions.
+
+
+    Biome Name:
+        #id: biomename_curve#
+	Loads in the set biomes for the curve regions.
+
+
+    Visualization Color:
+        #id: curvevizcol#
+	Loads in the set biomes for the curve regions.
+
+
         
 === Houdini HeightField Layers ===
 
     Layer Hierarchy Type:
 		Determines how to assign hierarchy values to regions. *Dominant Layer Value* assigns a higher priority to layers that have the highest value at the sampled location, while *Manual Hierarchy Value* enables a parameter to manually assign hierarchy values to individual regions. A lower number will give the biome priority when using Biome Overlap resolution.
         #id: layerhierarchy
-        
-        Dominant Layer Value:
-            
-        Manual Hierarchy Value:
-            
+
 
 
     === Layers ===
@@ -270,7 +291,7 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
         #id: layername#
         
     Biome Name:
-		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Adjust Settings|Node:sop/labs--biome_adjust_settings].
+		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
         #id: biomename*hf*#
         
     Biome Hierarchy:
@@ -295,7 +316,7 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
         #id: attrvalue#
         
     Biome Name:
-		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Adjust Settings|Node:sop/labs--biome_adjust_settings].
+		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
         #id: biomename*meshattr#
         
     Biome Hierarchy:
@@ -323,6 +344,6 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
     
     
 @related
-- [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup]
-- [Labs Biome Adjust Settings|Node:sop/labs--biome_adjust_settings]
+- [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup-1.0]
+- [Labs Biome Profile|Node:sop/labs--biome_profile-1.0]
 
