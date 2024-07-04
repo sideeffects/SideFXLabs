@@ -1,0 +1,98 @@
+import csv
+import os
+
+def export(kwargs):
+
+    node = kwargs['node']
+    child_node = node.node('convert_attribs')
+    child_node.cook(force=True)
+    geo = child_node.geometry()
+    point_count = geo.intrinsicValue('pointcount') 
+
+
+    if node.parm('enablemesh').evalAsInt():
+
+        fname = node.parm('file_mesh').evalAsString()
+
+        if fname == '':
+            Print ("Mesh export path is undefined.")
+            return
+
+        directory = os.path.dirname(fname)
+        if not os.path.exists(directory):
+            try:
+                os.makedirs(os.path.dirname(fname))
+            except Exception as e:
+                raise hou.NodeError("Unable to create directory at: %s" % (fname))
+
+        with hou.InterruptableOperation("Exporting PCG Mesh File", open_interrupt_dialog=True) as operation:
+            with open(fname, "w", newline="") as csvfile:
+
+                # Creates a CSV writer
+                writer = csv.writer(csvfile)
+                # Writes the header row
+                writer.writerow(["Row Name", "Px", "Py", "Pz", "Nx", "Ny", "Nz", "UVx", "UVy", "UVz", "pscale"])
+                
+                for point in geo.points():
+
+                    Row_Name = point.number()
+                    P        = point.attribValue('P')
+                    orient   = point.attribValue("out_orient")
+                    scale    = point.attribValue("out_scale")
+                    mesh_id  = point.attribValue('out_mesh')
+                    csv_line = Row_Name, P[0], P[1], P[2], orient[0], orient[1], orient[2], scale[0], scale[1], scale[2], mesh_id
+                    writer.writerow(csv_line)
+
+                    percent = float(Row_Name) / float(point_count)
+                    operation.updateProgress(percent)
+                    
+            csvfile.close()
+            print ("PCG Mesh File export is complete.")
+
+
+    if node.parm('enablemat').evalAsInt():
+
+        fname = node.parm('file_mat').evalAsString()
+
+        if fname == '':
+            Print ("Material export path is undefined.")
+            return
+
+        directory = os.path.dirname(fname)
+        if not os.path.exists(directory):
+            try:
+                os.makedirs(os.path.dirname(fname))
+            except Exception as e:
+                raise hou.NodeError("Unable to create directory at: %s" % (fname))
+
+        with hou.InterruptableOperation("Exporting PCG Material File", open_interrupt_dialog=True) as operation:
+            with open(fname, "w", newline="") as csvfile:
+
+                # Creates a CSV writer
+                writer = csv.writer(csvfile)
+                # Writes the header row
+                writer.writerow(["Row Name", "Px", "Py", "Pz", "Nx", "Ny", "Nz", "UVx", "UVy", "UVz", "pscale"])
+                
+                for point in geo.points():
+
+                    Row_Name   = point.number()
+                    material   = point.attribValue('out_mat')
+                    material_1 = point.attribValue('out_mat_1')
+                    material_2 = point.attribValue('out_mat_2')
+                    material_3 = point.attribValue('out_mat_3')
+                    material_4 = point.attribValue('out_mat_4')
+                    material_5 = point.attribValue('out_mat_5')
+                    custom     = point.attribValue('out_custom')
+                    custom_1   = point.attribValue('out_custom_1')
+                    custom_2   = point.attribValue('out_custom_2')
+                    custom_3   = point.attribValue('out_custom_3')
+                    csv_line   = Row_Name, material, material_1, material_2, material_3, material_4, material_5, custom, custom_1, custom_2, custom_3
+                    writer.writerow(csv_line)
+
+                    percent = float(Row_Name) / float(point_count)
+                    operation.updateProgress(percent)
+                    
+            csvfile.close()
+            print ("PCG Material File export is complete.")
+
+    return

@@ -1,0 +1,127 @@
+#type:     node
+#context:  sop
+#internal: Labs::pcg_export::1.0
+#icon:     SOP/Labs::pcg_export::1.0
+#since:    20.0
+
+= Labs PCG Export (Beta) =
+
+"""Takes a point cloud with attributes and exports them as a CSV file to be used with Unreal Engine PCG system."""
+
+This node exports two CSV files that are plugged into the (Houdini Data Table) Blueprint inside a PCG graph in Unreal Engine 5.2 and up. It can export attributes such as Positions, Rotation, Scale, Mesh, Material and Custom ones. These attributes are then read inside the Unreal Blueprint to reproduce the (copy to points) functionality with a piece attribute that decides what mesh should be copied to what point.
+
+NOTE:
+    The Unreal Engine (Houdini Data Table) Blueprint needs to be fixed once it is downloaded as part of the Labs Unreal Plugin. The fix is simple, recreate the (Break CSV points) node inside the Blueprint and rewire the connections.
+
+TIP:
+    Use the Alembic workflow instead of CSV Data Tables if you are using Unreal 5.4 and up, it can handle more data, you can follow the SideFX tutorials to learn how to set that up.
+
+@parameters
+
+    Export PCG Data:
+        #id: export
+	Exports 2 CSV files with relevant data for Unreal Engine PCG.
+        
+    == Export Paths ==
+
+    Enable Mesh Export:
+        #id: enablemesh
+	Enables the Mesh Data Table Export.
+        
+    Mesh:
+        #id: file_mesh
+	The file path for the Mesh info CSV file.
+        
+    Enable Material Export:
+        #id: enablemat
+	Enables the Material Override Data Table Export.
+        
+    Material:
+        #id: file_mat
+	The file path for the Material info CSV file.
+        
+    == Input Attribute Names ==
+
+    Mesh ID:
+        #id: mesh
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to Spawn Meshes.
+        
+    Set Rotation By:
+        #id: rotmode
+	Pick the Rotation mode whether you are using Orient or Normal and Up.
+        
+        __Orient Attribute__:
+            
+        __Normal and Up Attributes__:
+            
+    Orient:
+        #id: orient
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to Rotate Meshes.
+        
+    Normal:
+        #id: n
+	The attribute name which will be used as a Normal which will be converted to Orient to be used in Engine.
+        
+    Up:
+        #id: up
+	The attribute name which will be used as Up which will be converted to Orient to be used in Engine.
+        
+    Scale:
+        #id: scale
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to Scale Meshes.
+        
+    Uniform Scale:
+        #id: pscale
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to Scale Meshes uniformly, however, pscale will be multiplied by scale, and only scale will be exported.
+        
+    === Materials ===
+
+    Material 0 ID:
+        #id: material
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to override material slot 0.
+        
+    Material 1 ID:
+        #id: material_1
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to override material slot 1.
+        
+    Material 2 ID:
+        #id: material_2
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to override material slot 2.
+        
+    Material 3 ID:
+        #id: material_3
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to override material slot 3.
+        
+    Material 4 ID:
+        #id: material_4
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to override material slot 4.
+        
+    Material 5 ID:
+        #id: material_5
+	The attribute name which will be used in Unreal PCG (Static Mesh Spawner) to override material slot 5.
+        
+    === Custom Floats ===
+
+    Custom:
+        #id: custom
+	The attribute name which will be used in Unreal PCG for custom purposes.
+        
+    Custom 1:
+        #id: custom_1
+	The attribute name which will be used in Unreal PCG for custom purposes.
+        
+    Custom 2:
+        #id: custom_2
+	The attribute name which will be used in Unreal PCG for custom purposes.
+        
+    Custom 3:
+        #id: custom_3
+	The attribute name which will be used in Unreal PCG for custom purposes.
+        
+    Unreal Engine Content Plugin and Guides:
+        #id: openunrealshaderpath
+	The Unreal Blueprint files required for to import the CSV files into PCG.
+        
+@examples
+
+    - [Example File|https://github.com/sideeffects/SideFXLabs/blob/Development/hip/examples/pcg_export/pcg_export.1.0.hip]
