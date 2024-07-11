@@ -75,12 +75,12 @@ class LabsPreferences(QtWidgets.QDialog):
 
     def build_ui(self):
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-        self.setWindowTitle("Labs Preferences")
+        self.setWindowTitle("Labs Add-ons")
 
         layout = QtWidgets.QVBoxLayout()
 
         # Label
-        config_label = QtWidgets.QLabel("Select optional plugins to enable:\n")
+        config_label = QtWidgets.QLabel("Select add-ons to enable:\n")
         layout.addWidget(config_label)
 
         # OCIO
