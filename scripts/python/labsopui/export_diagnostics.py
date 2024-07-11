@@ -8,6 +8,7 @@ import zipfile
 import hou
 
 def ExportDiagnostics(directory):
+
     StartupInfo = subprocess.STARTUPINFO()
     subprocess.STARTF_USESHOWWINDOW = 1
     StartupInfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -61,9 +62,14 @@ def ExportDiagnostics(directory):
         env_copy = os.environ.copy()
         logfile.write(json.dumps(env_copy, indent = 4))
 
-    zip_file = zipfile.ZipFile(os.path.join(directory, "Diagnostics_Info_SideFX.zip"), 'w', zipfile.ZIP_DEFLATED)
+    from datetime import datetime
+    time_str = datetime.now().strftime('%d-%b-%Y-%I-%M-%p')
+
+    file_name = "Houdini_Diagnostics_{0}.zip".format(time_str)
+
+    zip_file = zipfile.ZipFile(os.path.join(directory, file_name), 'w', zipfile.ZIP_DEFLATED)
     zip_file.write(LicenseDiagnosticFile, "LicenseDiagnostic.txt")
     zip_file.write(AboutHoudiniFile, "AboutHoudini.txt")
     zip_file.close()
 
-    return os.path.join(directory, "Diagnostics_Info_SideFX.zip")
+    return os.path.join(directory, file_name)
