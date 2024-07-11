@@ -90,20 +90,8 @@ else:
                 <insertBefore>help_menu</insertBefore>
             </modifyItem>
             <label>Labs</label>
-            <scriptItem id="h.sidefxlabs">
-                <label>Update Labs</label>
-                <scriptCode>
-                    <![CDATA[
-import sidefxlabs
-sidefxlabs.SideFXLabsUpdater(updater_dialog=True)
-print ("Labs Daily Builds are recommended over Production Builds.\n")
-if hou.applicationVersion()[0] + 0.5 * hou.applicationVersion()[1] < 19.5:
-    print ("Installing Labs via Houdini Launcher is now preferred over installing it via the old Update Toolset window.\n")
-                    ]]>
-                </scriptCode>
-            </scriptItem>
             <scriptItem id="labs_pref">
-                <label>Labs Preferences</label>
+                <label>Labs Add-ons</label>
                 <scriptCode>
                     <![CDATA[
 import labprefs
@@ -133,7 +121,7 @@ viewer = stateutils.findSceneViewer()
 network = viewer.pwd()
 if network.childTypeCategory() != hou.sopNodeTypeCategory():
     # The user pressed Enter without selecting an object
-    raise hou.Error("You must be in a sop network to use this tool.")
+    raise hou.Error("You must be in the Geometry (SOP) context to use this tool.")
 if network.displayNode() == None:
     raise hou.Error("You must have the display flag set on a node.")
 # Set the viewer's current state to my state
@@ -163,26 +151,34 @@ temp_goz_node.destroy()
                     ]]>
                 </scriptCode>
             </scriptItem>
-            <separatorItem id="labs_menu_sep2"/>
             <scriptItem id="export_diagnostics">
                 <label>Export Diagnostics</label>
                 <scriptCode>
                     <![CDATA[
 from labsopui import export_diagnostics
 import hou
+print ("Please select a directory to save the diagnostics ZIP file to...")
 directory = hou.ui.selectFile(start_directory=None, title="Save Diagnostics Information", collapse_sequences=False, file_type=hou.fileType.Directory, pattern=None, default_value=None, multiple_select=False, image_chooser=None, chooser_mode=hou.fileChooserMode.ReadAndWrite, width=0, height=0)
-file = export_diagnostics.ExportDiagnostics(directory)
-hou.ui.showInFileBrowser(file)
+if directory and directory != '':
+    print ("Please wait a moment for Houdini to export the diagnostics...")
+    file = export_diagnostics.ExportDiagnostics(directory)
+    hou.ui.showInFileBrowser(file)
+    print ("The diagnostics ZIP file has been saved to: {0}".format(directory))
+else:
+    print ("No directory has been selected.")
                     ]]>
                 </scriptCode>
             </scriptItem>
-			<scriptItem id="quick_tip">
-                <label>Quick Tips</label>
-                <insertAtIndex>9</insertAtIndex>
+            <separatorItem id="labs_menu_sep2"/>
+            <scriptItem id="h.sidefxlabs">
+                <label>Update Labs</label>
                 <scriptCode>
                     <![CDATA[
-from labsopui import quicktip
-quicktip.ShowQuickTip()
+import sidefxlabs
+sidefxlabs.SideFXLabsUpdater(updater_dialog=True)
+print ("For all installation and update options, please visit:\nhttps://github.com/sideeffects/SideFXLabs?tab=readme-ov-file#installation")
+if hou.applicationVersion()[0] + 0.5 * hou.applicationVersion()[1] < 19.5:
+    print ("Installing Labs via Houdini Launcher is now preferred over installing it via the old Update Toolset window.\n")
                     ]]>
                 </scriptCode>
             </scriptItem>
