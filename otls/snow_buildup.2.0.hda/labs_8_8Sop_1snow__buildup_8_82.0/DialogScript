@@ -20,16 +20,8 @@
         name    "fd_scatteringoptions"
         label   "Snow Scattering"
         grouptag { "group_type" "simple" }
+        grouptag { "sidefx::look" "blank" }
 
-        parm {
-            name    "keeporiginal"
-            label   "Keep Original"
-            type    toggle
-            default { "1" }
-            range   { 0! 10 }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "script_callback_language" "python" }
-        }
         parm {
             name    "seed"
             label   "Seed"
@@ -142,27 +134,8 @@
         label   "Edge Detail"
 
         parm {
-            name    "meltborder"
-            label   "Melt Border"
-            type    toggle
-            default { "off" }
-            range   { 0! 10 }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
-            name    "meltiterations"
-            label   "Melt Iterations"
-            type    integer
-            default { "3" }
-            disablewhen "{ meltborder == 0 }"
-            range   { 0! 10 }
-            parmtag { "autoscope" "0000000000000000" }
-            parmtag { "script_callback_language" "python" }
-        }
-        parm {
             name    "typenoise"
-            label   "Type"
+            label   "Noise Type"
             type    ordinal
             default { "0" }
             menu {
@@ -182,6 +155,7 @@
             type    float
             default { "1" }
             disablewhen "{ typenoise == 0 }"
+            hidewhen "{ typenoise == 0 }"
             range   { 0.001! 5 }
             parmtag { "script_callback_language" "python" }
         }
@@ -191,6 +165,7 @@
             type    float
             default { "1" }
             disablewhen "{ typenoise == 0 }"
+            hidewhen "{ typenoise == 0 }"
             range   { 0! 1 }
             parmtag { "script_callback_language" "python" }
         }
@@ -200,6 +175,62 @@
             type    integer
             default { "0" }
             disablewhen "{ typenoise == 0 }"
+            hidewhen "{ typenoise == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "meltborder"
+            label   "Melt Border"
+            type    toggle
+            default { "off" }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "meltiterations"
+            label   "Melt Iterations"
+            type    integer
+            default { "3" }
+            disablewhen "{ meltborder == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_outputgroup"
+        label   "Output Groups"
+
+        parm {
+            name    "snow"
+            label   "Snowgroup"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "snowgroupname"
+            label   "Snow"
+            type    string
+            default { "snow" }
+            disablewhen "{ snow == 0 }"
+            menureplace {
+                [ "opmenu -l -a group_snow groupname" ]
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "keeporiginal"
+            label   "Keep Original"
+            type    toggle
+            default { "1" }
             range   { 0! 10 }
             parmtag { "autoscope" "0000000000000000" }
             parmtag { "script_callback_language" "python" }
