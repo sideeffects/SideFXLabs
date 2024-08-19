@@ -1,0 +1,132 @@
+#type:     node
+#context:  sop
+#internal: labs::biome_plant_define::1.0
+#icon:     SOP/labs::biome_plant_define::1.0
+#since:    20.5
+
+= Labs Biome Plant Define (Alpha) =
+
+"""Defines the plant attributes for the Biome Toolset."""
+
+This node creates the dictionary attribute `plant_definition` used in the rest of the Biome Toolset. It is used to define all the preferences of an individual plant species including __Temperature__, __Precipitation__, and __Spacing__. The __Species Variants__ tab is where different growth stages or variations of meshes are defined alongside dead version meshes. This tab is also where the ranges of random variation per variant are defined. Multiple of these nodes can be chained together to define a full library of plants. The _Biome Plant Definitions File SOP_ can take a chain of these nodes as input to help read and write the plant library from a .json or .bgeo file. The first input of the _Biome Plant Scatter SOP_ expects a chain of _Biome Plant Define SOP_ nodes or the output of the _Biome Plant Definitions File SOP_ set to create geometry.
+
+
+@parameters
+
+=== Species Settings ===
+
+=== Species ID ===
+
+Name:
+    #id: plantname
+    Name of the plant.
+
+Color:
+    #id: plantcolor
+    Color to apply on the plant's visualizer.
+
+=== Temperature ===
+
+Lower:
+    #id: templower
+    Lowest temperature (in °C) that the plant can endure.
+
+Preferred:
+    #id: temppref
+    Preferred temperature (in °C) of the plant.
+
+Upper:
+    #id: tempupper
+    Highest temperature (in °C) that the plant can endure.
+
+
+=== Precipitation ===
+
+Lower:
+    #id: preclower
+    Lowest average annual precipitation (in mm) that the plant can endure.
+
+Preferred:
+    #id: precpref
+    Preferred average annual precipitation (in mm) of the plant.
+
+Upper:
+    #id: precupper
+    Highest average annual precipitation (in mm) that the plant can endure.
+
+=== Spacing ===
+
+Type:
+    #id: type
+    Select the plant's type. If a plant's type is __Shrub__, it will be permitted to spawn beneath nearby plants with a plant type of __Tree__. In this case, the nearby __Tree__ spacing __Radii__ are ignored by __Shrubs__.
+
+Radius:
+    #id: radius
+    Minimum radius needed for this plant to grow.
+
+Density:
+    #id: densitymax
+    The density of the plant when its viability is at its highest.
+
+=== Advanced ===
+
+Randomize Scale:
+    #id: randscale
+    Plants are scaled by viability. If this __Randomize Scale__ is enabled, the plants will instead scale randomly following the __Scale Range__.
+
+Hardiness:
+    #id: hardiness
+    Plants' ability to endure difficult conditions. Higher values extend the ideal growth conditions to its higher and lower tolerance levels.
+
+Normal from Terrain:
+    #id: normterrain
+    Ratio of alignment to match the terrain. Plants with values of 1 will follow the terrain surface, and values of 0 will be aligned to the up vector.
+
+=== Species Variants ===
+
+Include Engine Asset Paths:
+    #id: enginepaths
+    Enable the __Asset Path__ references. This is useful if you are importing the point scatter into a game engine.
+
+=== Number Of Variants ===
+
+Mesh Variant # :
+    #id: meshvariant#
+    A path to the healthy plant geometry. 
+
+Mesh (Dead) Variant #:
+    #id: meshdeadvariant#
+    A path to the dead plant geometry. 
+
+Weight:
+    #id: weight#
+    Weight of the mesh distribution. If there are multiple variants with the same __Age Range__, __Weight__ will prioritize which variant is scattered. A mesh variant with a higher weight will have a greater probability of being spawned. 
+
+Normalized Age Range:
+    #id: agemin#
+    The age range when the mesh variant is spawned. 0 is the youngest and 1 is the oldest. For example, a sapling mesh variant might appear for the first third of a tree's lifespan and have an age range of 0 to .33, while a medium version of the tree could appear between the ages of .33 and .66, and a large, mature tree could appear between .66 and 1. 
+
+Scale Range:
+    #id: scalemin#
+    Range in which the uniform scale can jitter.
+
+Dead Ratio:
+    #id: deadratio#
+    The ratio of __Mesh (Dead) Variant__ meshes to __Mesh Variant__ meshes.
+
+=== Unreal Engine ===
+
+Asset Path #:
+    #id: unrealassetpath#
+    The path to the healthy plant mesh in the engine. To get the correct path from Unreal Engine, right click on an asset and use Copy reference. Unreal Paths will look like this: /Script/Engine.StaticMesh'/Game/Models/MyAsset.MyAsset'
+
+Asset (Dead) Path #:
+    #id: unrealassetdeadpath#
+    The path to the dead plant mesh in the engine. To get the correct path from Unreal Engine, right click on an asset and use Copy reference. Unreal Paths will look like this: /Script/Engine.StaticMesh'/Game/Models/MyAsset.MyAsset'
+
+@locals
+
+
+@related
+- [Labs Biome Plant Definitions File|Node:sop/labs--biome_plant_definitions_file-1.0]
+- [Labs Biome Plant Scatter|Node:sop/labs--biome_plant_scatter-1.0]

@@ -1,0 +1,758 @@
+# Dialog script for labs::biome_plant_scatter::1.0 automatically generated
+
+{
+    name	labs::biome_plant_scatter::1.0
+    script	labs::objpath_instance::1.0
+    label	"Labs Biome Plant Scatter (Alpha)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Plant Types Input"
+    inputlabel	2	"Terrain Input"
+    inputlabel	3	"Geometry and/or HeightField Mask to Subtract From Soil"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Plant Points Output"
+
+    parm {
+        name    "mode"
+        label   "Mode"
+        type    ordinal
+        default { "0" }
+        menu usetokenvalue {
+            "0" "Scatter on Input Terrain"
+            "1" "Scatter on Test Terrain"
+            "2" "Display Plant Inventory"
+        }
+        parmtag { "script_callback" "if kwargs[\"node\"].parm('mode').eval() == 1 and kwargs[\"node\"].parm('biomeattributes').eval() == 1: hou.phm().changeBiome(kwargs[\"node\"],kwargs[\"node\"].parm('biome').evalAsString()) " }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "spacing"
+        label   "Spacing"
+        type    float
+        default { "10" }
+        disablewhen "{ mode != 2 }"
+        hidewhen "{ mode != 2 }"
+        range   { 0! 2000 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_testterrain"
+        label   "Test Terrain"
+        disablewhen "{ mode != 1 }"
+        hidewhen "{ mode != 1 }"
+
+        parm {
+            name    "size"
+            label   "Size"
+            type    float
+            default { "1000" }
+            disablewhen "{ mode != 1 }"
+            hidewhen "{ mode != 1 }"
+            range   { 0! 2000 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "biomeattributes"
+            label   "Biome Attributes"
+            type    ordinal
+            default { "0" }
+            disablewhen "{ mode != 1 }"
+            hidewhen "{ mode != 1 }"
+            menu usetokenvalue {
+                "0" "Specified"
+                "1" "From Existing Biome"
+            }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "pathtobiomes"
+            label   "Path to Biomes"
+            type    oppath
+            default { "" }
+            disablewhen "{ mode != 1 } { biomeattributes != 1 }"
+            hidewhen "{ mode != 1 } { biomeattributes != 1 }"
+            parmtag { "oprelative" "." }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "biome"
+            label   "Biome"
+            type    ordinal
+            default { "0" }
+            disablewhen "{ mode != 1 } { biomeattributes != 1 }"
+            hidewhen "{ mode != 1 } { biomeattributes != 1 }"
+            menu {
+                [ "node = kwargs[\"node\"]" ]
+                [ "biomenode = node.parm(\"pathtobiomes\").evalAsNode()" ]
+                [ "#biomenode = node.node(node.parm(\"pathtobiomes\").evalAsString())" ]
+                [ "#print(biomenode)" ]
+                [ "names = []" ]
+                [ "biomemenu = []" ]
+                [ "" ]
+                [ "if biomenode:" ]
+                [ "    geo = biomenode.geometry()" ]
+                [ "    if geo:" ]
+                [ "        #print(geo)" ]
+                [ "        for point in geo.points():   " ]
+                [ "            biomedict = point.attribValue(\"biome_definition\")    " ]
+                [ "            biomename = biomedict.get(\"biomename\")" ]
+                [ "            if(biomename not in biomemenu):" ]
+                [ "                biomemenu.append(biomename)" ]
+                [ "                biomemenu.append(biomename)" ]
+                [ "" ]
+                [ "        return biomemenu" ]
+                [ "    else:" ]
+                [ "        return[\"\", \"No Geometry Connected\"]" ]
+                [ "else:" ]
+                [ "    return[\"\", \"No Input Connected\"]" ]
+                language python
+            }
+            parmtag { "script_callback" "hou.phm().changeBiome(kwargs['node'],kwargs[\"node\"].parm('biome').evalAsString())" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "temperature"
+            label   "Temperature"
+            type    float
+            default { "14" }
+            disablewhen "{ mode >= 0 }"
+            hidewhen "{ mode != 1 } { biomeattributes != 1 }"
+            range   { -10 33 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "precipitation"
+            label   "Precipitation"
+            type    float
+            default { "700" }
+            disablewhen "{ mode >= 0 }"
+            hidewhen "{ mode != 1 } { biomeattributes != 1 }"
+            range   { 0! 4300 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "temperaturemanual"
+            label   "Temperature"
+            type    float
+            default { "14" }
+            disablewhen "{ mode != 1 } { biomeattributes != 0 }"
+            hidewhen "{ mode != 1 } { biomeattributes != 0 }"
+            range   { -10 33 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "precipitationmanual"
+            label   "Precipitation"
+            type    float
+            default { "700" }
+            disablewhen "{ mode != 1 } { biomeattributes != 0 }"
+            hidewhen "{ mode != 1 } { biomeattributes != 0 }"
+            range   { 0! 4300 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "scatter"
+        label   "Scatter"
+
+        groupsimple {
+            name    "fd_postprocessing"
+            label   "Post-processing"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "scalemult"
+                label   "Scale Multiplier"
+                type    float
+                default { "1" }
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "densitymultiplier"
+            label   "Density Multiplier"
+            type    float
+            default { "1" }
+            range   { 0.0001! 2 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "units" "m-2" }
+        }
+        parm {
+            name    "agejitter"
+            label   "Age Jitter"
+            type    float
+            default { "0.2" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "seed"
+            label   "Random Seed"
+            type    integer
+            default { "0" }
+            range   { 0 10 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        groupsimple {
+            name    "culling"
+            label   "Culling"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "enableculling"
+                label   "Enable Culling"
+                type    toggle
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "culltype"
+                label   "Cull Type"
+                type    ordinal
+                default { "0" }
+                disablewhen "{ enableculling == 0 }"
+                hidewhen "{ enableculling == 0 }"
+                menu {
+                    "0" "Percentage to Keep"
+                    "1" "Maximum Number"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "maxnum"
+                label   "Maximum Number"
+                type    integer
+                default { "100000" }
+                disablewhen "{ culltype != 1 } { enableculling == 0 }"
+                hidewhen "{ culltype != 1 } { enableculling == 0 }"
+                range   { 0! 200000 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "percentagetokeep"
+                label   "Percentage to Keep"
+                type    float
+                default { "100" }
+                disablewhen "{ culltype > 0 } { enableculling == 0 }"
+                hidewhen "{ culltype > 0 } { enableculling == 0 }"
+                range   { 0! 100! }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "enablemask"
+            label   "Enable Mask"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        groupcollapsible {
+            name    "fd_incompleteagecoverage"
+            label   "Incomplete Age Coverage"
+
+            parm {
+                name    "replacewith2"
+                label   "Replace With"
+                type    ordinal
+                default { "1" }
+                menu usetokenvalue {
+                    "0" "No Geometry"
+                    "1" "Debug Spheres"
+                    "2" "Closest Age Mesh Variant"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "debugspherecol2"
+                label   "Debug Sphere Color"
+                type    color
+                size    3
+                default { "1" "0" "1" }
+                disablewhen "{ replacewith2 != 1 }"
+                hidewhen "{ replacewith2 != 1 }"
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "debugspherescale2"
+                label   "Debug Sphere Scale"
+                type    float
+                default { "1" }
+                disablewhen "{ replacewith2 != 1 }"
+                hidewhen "{ replacewith2 != 1 }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupcollapsible {
+            name    "fd_invalidmeshpath"
+            label   "Invalid Mesh Path"
+
+            parm {
+                name    "replacewith"
+                label   "Replace With"
+                type    ordinal
+                default { "1" }
+                menu usetokenvalue {
+                    "0" "No Geometry"
+                    "1" "Debug Spheres"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "debugspherecol"
+                label   "Debug Sphere Color"
+                type    color
+                size    3
+                default { "0" "1" "1" }
+                disablewhen "{ replacewith != 1 }"
+                hidewhen "{ replacewith != 1 }"
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "debugspherescale"
+                label   "Debug Sphere Scale"
+                type    float
+                default { "1" }
+                disablewhen "{ replacewith != 1 }"
+                hidewhen "{ replacewith != 1 }"
+                range   { 0! 10 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "scatter_1"
+        label   "Input"
+
+        groupsimple {
+            name    "fd_heightfieldlayers3"
+            label   "HeightField Layers"
+
+            parm {
+                name    "tempname"
+                label   "Temperature"
+                type    string
+                default { "temperature" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "precname"
+                label   "Precipitation"
+                type    string
+                default { "precipitation" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "soilname"
+                label   "Soil"
+                type    string
+                default { "soil" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "uenonename"
+                label   "Unreal None"
+                type    string
+                invisible
+                default { "Layer_ue_none" }
+                menureplace {
+                    [ "import terraintoolutils" ]
+                    [ "" ]
+                    [ "return terraintoolutils.buildNameMenu(kwargs['node'])" ]
+                    language python
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "uevizname"
+                label   "Unreal Viz"
+                type    string
+                invisible
+                default { "Layer_ue_viz" }
+                menureplace {
+                    [ "import terraintoolutils" ]
+                    [ "" ]
+                    [ "return terraintoolutils.buildNameMenu(kwargs['node'])" ]
+                    language python
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "scatter_2"
+        label   "Output"
+
+        groupsimple {
+            name    "fd_detail_attributes"
+            label   "Detail Attributes"
+
+            parm {
+                name    "meshvariantsdetailarray"
+                label   "meshvariantsdetailarray"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "meshvariantsname"
+                label   "Mesh Variants"
+                type    string
+                default { "meshvariants" }
+                disablewhen "{ meshvariantsdetailarray == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "ueassetdetailarray"
+                label   "ueassetdetailarray"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "ueassetpathsname"
+                label   "Unreal Asset Paths"
+                type    string
+                default { "unrealinstances" }
+                disablewhen "{ ueassetdetailarray == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_pointattributes"
+            label   "Point Attributes"
+
+            parm {
+                name    "meshpathname"
+                label   "Mesh Path"
+                type    string
+                default { "meshpath" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outputunrealpath"
+                label   "outputunrealpath"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "unrealassetpath"
+                label   "Unreal Asset Path"
+                type    string
+                default { "unreal_instance" }
+                disablewhen "{ outputunrealpath == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outputage"
+                label   "outputage"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "agename"
+                label   "Age "
+                type    string
+                default { "age" }
+                disablewhen "{ outputage == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "outputviability"
+                label   "outputviability"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "viabilityname"
+                label   "Viability"
+                type    string
+                default { "viability" }
+                disablewhen "{ outputviability == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "enablemeshid"
+                label   "Enable Mesh ID"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "meshidname"
+                label   "Mesh ID"
+                type    string
+                default { "meshid" }
+                disablewhen "{ enablemeshid == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "enableuemeshid"
+                label   "Enable Unreal Mesh ID"
+                type    toggle
+                nolabel
+                joinnext
+                default { "0" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "uemeshidname"
+                label   "Unreal Mesh ID"
+                type    string
+                default { "unrealmeshid" }
+                disablewhen "{ enableuemeshid == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_pointgroups"
+            label   "Point Groups"
+
+            parm {
+                name    "outputplantpointsgroup"
+                label   "Plant Points Group"
+                type    toggle
+                nolabel
+                joinnext
+                default { "1" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "plantpointsname"
+                label   "Plant Points"
+                type    string
+                default { "plantpoints" }
+                disablewhen "{ outputplantpointsgroup == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_heightfieldlayers"
+            label   "HeightField Layers"
+
+            parm {
+                name    "outputplantviabilitylayers"
+                label   "Output Plant Viability Layers"
+                type    toggle
+                default { "0" }
+                disablewhen "{ keepinputterrain == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "prefixname"
+                label   "Prefix"
+                type    string
+                default { "plantviability_" }
+                disablewhen "{ keepinputterrain == 0 } { outputplantviabilitylayers == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    group {
+        name    "scatter_3"
+        label   "Visualize"
+
+        parm {
+            name    "sep_ueviz"
+            label   "Separator"
+            type    separator
+            invisible
+            default { "" }
+            hidewhen "{ vizterrain == 0 }"
+        }
+        parm {
+            name    "uevizualize"
+            label   "uevizualize"
+            type    toggle
+            invisible
+            nolabel
+            joinnext
+            default { "0" }
+            disablewhen "{ vizterrain == 0 }"
+            hidewhen "{ vizterrain == 0 }"
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uepath"
+            label   "Unreal Material Path"
+            type    string
+            invisible
+            default { "/Script/Engine.Material'/Game/BiomeDemo/Materials/M_Visualise.M_Visualise'" }
+            disablewhen "{ uevizualize == 0 } { vizterrain == 0 }"
+            hidewhen "{ vizterrain == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_points"
+            label   "Points"
+
+            parm {
+                name    "vizpoints"
+                label   "Visualize Points"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback" "kwargs[\"node\"].setOutputForViewFlag(-1 if kwargs[\"node\"].parm('vizterrain').eval() != 0 or kwargs[\"node\"].parm('vizpoints').eval() != 0 else 0)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "colorby"
+                label   "Color By"
+                type    ordinal
+                default { "0" }
+                disablewhen "{ vizpoints == 0 }"
+                hidewhen "{ vizpoints == 0 }"
+                menu usetokenvalue {
+                    "0" "Plant Species"
+                    "1" "Viability"
+                    "2" "Age"
+                }
+            }
+            parm {
+                name    "assignrandomcolors"
+                label   "Assign Random Colors"
+                type    toggle
+                default { "0" }
+                disablewhen "{ colorby != 0 } { vizpoints == 0 }"
+                hidewhen "{ colorby != 0 } { vizpoints == 0 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "seed2"
+                label   "Seed"
+                type    float
+                default { "0" }
+                disablewhen "{ colorby != 0 } { vizpoints == 0 } { assignrandomcolors == 0 }"
+                hidewhen "{ colorby != 0 } { vizpoints == 0 } { assignrandomcolors == 0 }"
+                range   { 0 10 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "ramp"
+                label   "Normalized Color Ramp"
+                type    ramp_rgb
+                default { "5" }
+                disablewhen "{ colorby == 0 } { vizpoints == 0 }"
+                hidewhen "{ colorby == 0 } { vizpoints == 0 }"
+                range   { 1! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "parmvop" "1" }
+                parmtag { "rampbasis_var" "vecramp_the_basis_strings" }
+                parmtag { "rampbasisdefault" "linear" }
+                parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0.20000000298023224 0 1 ) 1interp ( linear ) 2pos ( 0.25 ) 2c ( 0 0.8500000238418579 1 ) 2interp ( linear ) 3pos ( 0.5 ) 3c ( 0 1 0.10000000149011612 ) 3interp ( linear ) 4pos ( 0.75 ) 4c ( 0.949999988079071 1 0 ) 4interp ( linear ) 5pos ( 1 ) 5c ( 1 0 0 ) 5interp ( linear )" }
+                parmtag { "rampcolortype" "rgb" }
+                parmtag { "rampkeys_var" "vecramp_the_key_positions" }
+                parmtag { "rampshowcontrolsdefault" "0" }
+                parmtag { "rampvalues_var" "vecramp_the_key_values" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_heightfieldlayers2"
+            label   "HeightField Layers"
+
+            parm {
+                name    "vizterrain"
+                label   "Visualize Terrain"
+                type    toggle
+                default { "1" }
+                parmtag { "script_callback" "kwargs[\"node\"].setOutputForViewFlag(-1 if kwargs[\"node\"].parm('vizterrain').eval() != 0 or kwargs[\"node\"].parm('vizpoints').eval() != 0 else 0)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "vizspeciesviability"
+                label   "Visualize Species Viability"
+                type    toggle
+                default { "0" }
+                disablewhen "{ vizterrain == 0 }"
+                hidewhen "{ vizterrain == 0 }"
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "species"
+                label   "Species"
+                type    ordinal
+                default { "0" }
+                disablewhen "{ vizterrain == 0 } { vizspeciesviability == 0 }"
+                hidewhen "{ vizterrain == 0 } { vizspeciesviability == 0 }"
+                menu {
+                    [ "node = kwargs[\"node\"]" ]
+                    [ "input = node.input(0)" ]
+                    [ "" ]
+                    [ "" ]
+                    [ "names = []" ]
+                    [ "plantmenu = []" ]
+                    [ "" ]
+                    [ "if input:" ]
+                    [ "    geo = input.geometry()" ]
+                    [ "    if geo:" ]
+                    [ "        names = geo.pointStringAttribValues(\"plant_name\")" ]
+                    [ "" ]
+                    [ "        for name in names:" ]
+                    [ "            if(name not in plantmenu):" ]
+                    [ "                plantmenu.append(name)" ]
+                    [ "                plantmenu.append(name)" ]
+                    [ "" ]
+                    [ "        return plantmenu" ]
+                    [ "    else:" ]
+                    [ "        return[\"\", \"No Geometry Connected\"]" ]
+                    [ "else:" ]
+                    [ "    return[\"\", \"No Input Connected\"]" ]
+                    language python
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}

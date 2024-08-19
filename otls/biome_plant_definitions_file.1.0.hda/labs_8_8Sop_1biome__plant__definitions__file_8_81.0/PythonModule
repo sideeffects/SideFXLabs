@@ -1,0 +1,331 @@
+import re
+import json, os
+from collections import OrderedDict
+
+def writeJson(data, file_path):
+    out_file = open(file_path, "w")
+    json.dump(data, out_file, indent = 4, default = lambda d: d.__dict__)    #Serializes as JSON file format
+    out_file.close()
+
+#Useful function to read a JSON-formatted file
+def readJson(file_path):
+    f = open(file_path)
+    data = json.load(f)
+    f.close()
+    return data
+
+def orderedDict(node, *folder):
+
+    json_title = node.parmsInFolder(('JSON Dictionary Key Mappings', *folder,))
+    dict_parameters = OrderedDict()
+
+    for title in json_title:
+        name= title.name()
+        dict_parameters.update({name:""})
+    return dict_parameters
+
+def loadProfile(node):
+    file_path = node.parm('librarypath').eval()
+    
+    # if node is on read switch 
+    if file_path.endswith('.json'):
+        node.parm('jsongeo').set(0)
+    elif file_path.endswith('.bgeo'):
+        node.parm('jsongeo').set(1)
+    elif file_path == '' or file_path == '.json' or file_path == '.bgeo':    
+        return
+    # Create directory if it doesn't exist already
+    elif not os.path.exists(os.path.dirname(file_path)):
+        os.makedirs(os.path.dirname(file_path))
+   
+def getAttrib(node):
+
+    file_path = node.parm('librarypath').eval()
+     
+    #reference node
+    type_to_find = 'labs::biome_plant_define::1.0'
+    
+    #template dictionnaries
+    parm_dict = orderedDict(node, 'Species Settings')   
+    multiparm_dict = orderedDict(node, 'Species Variants','Number Of Variants')
+    parm = {}
+    
+    # get the titles input
+    json_title = node.parmsInFolder(('JSON Dictionary Key Mappings',))
+    title = [title.eval() for title in json_title]
+    parm_name = [title.name() for title in json_title]
+    
+    input_points = node.input(0).geometry().points()
+
+    # processs normal parameters
+    for pt in input_points:
+        attr_to_find = pt.attribValue("plant_definition")
+        title_list = {}
+        plant = {}
+        
+        for key in parm_dict:
+           # find which title it should be assigned to
+            index = parm_name.index(key)
+            new_title = title[index]
+            #create new title and add 
+            txt= {new_title: attr_to_find[key]}                
+            title_list.update(txt)
+        plant.update(title_list)
+        
+        #manually add the include asset path
+        iter = attr_to_find["enginepaths"]
+        inc_title = {node.parm("enginepaths").eval():attr_to_find["enginepaths"]}
+        plant.update(inc_title)
+        
+        #manually add the variation in dictionnary
+        iter = attr_to_find["variants"]
+        var_title = {node.parm("variants").eval():attr_to_find["variants"]}
+        plant.update(var_title)        
+
+        #process multiparm similarly
+        title_list = {}
+            
+        # order multiparm in json, by variant number then parameter sort     
+        for i in range(iter):
+            for key in multiparm_dict:
+                name_to_find = key + str(i+1)
+                value = attr_to_find[name_to_find]
+                new_title = str(node.parm(key).eval()) + '-' + str(i+1)
+                txt= {new_title: value}
+                title_list.update(txt)
+             
+        plant.update(title_list)
+        parm[attr_to_find["plantname"]]= plant          
+        
+    # if empty, don't rewrite
+    if len(parm)==0:
+        print("Processing skipped, no attributes were found")
+    else:  
+        # write json file
+        file_path = node.parm('librarypath').eval()
+        
+        loadProfile(node)
+        
+        writeJson(parm, file_path)
+        print("Input node processed")
+    
+    return 
+        
+def exportGeo(node):
+        export = node.node('bgeo_export')
+        export.parm('execute').pressButton()
+        print("Input node processed")
+
+def recreateNodesfromGeo(node):
+
+    if node.parm('create').eval() == 0:
+        node.node('file_bgeo').parm('reload').pressButton() 
+        print('Geometry reloaded')
+        
+    else:
+        # read the json file
+        file_path = node.parm('librarypath').eval()
+    
+        # dont read attributes if reload geo from geo
+        if node.parm("create").eval() ==0:
+            #disconnect the type nodes that are connected
+            for output in node.outputs():
+                output.setInput(0, None,0)
+            return
+            
+        # type of node to create
+        type_to_create = 'labs::biome_plant_define::1.0'
+        parent = node.parent()
+        input_node = node
+        
+        # get points from geo node
+        points = node.node("file_bgeo")
+        points = points.geometry().points()
+        attribs = [pt.attribValue("plant_definition") for pt in points]
+        
+        #create data
+        data = {}
+        for index in range(len(attribs)):
+        
+            name = attribs[index]["plantname"]
+            data[name] = attribs[index]
+            
+        #disconnect the type nodes that are connected
+        for output in node.outputs():
+            output.setInput(0, None,0)
+            
+        # create node with Biome name and right parameters
+        for parms in iter(data):
+        
+            node_name= parms
+            parm_list= {}
+            
+            #name node by plant name        
+            if node_name == "":
+                new_node = parent.createNode(type_to_create)
+            else:
+                new_node = parent.createNode(type_to_create, node_name)
+            
+            #connect nodes
+            new_node.setInput(0,input_node,0)
+            new_node.moveToGoodPosition()
+            input_node = new_node
+            
+           #initialize multiparm
+            value= data[parms]["variants"] 
+            new_node.parm("variants").set(value)
+            
+            #initialize otherparameters
+            for parm in data[parms]:
+                new_node.parm(parm).set(data[parms][parm])
+            
+        
+def recreateNodes(node):
+        
+    # read the json file
+    file_path = node.parm('librarypath').eval()
+
+    data = readJson(file_path)
+
+    # type of node to create
+    type_to_create = 'labs::biome_plant_define::1.0'
+    
+    # references for connections
+    if node.parm("create").eval()==0:
+        parent = hou.pwd().node("point_create")
+        input_node = parent.node("IN")
+        for el in iter(parent.children()):
+            if el.type().name() == type_to_create:
+                el.destroy()
+    else:
+        parent = hou.pwd().parent()
+        input_node = node
+    
+    #disconnect the type nodes that are connected
+    for output in node.outputs():
+        if output:
+            output.setInput(0, None,0)
+
+    # get the titles input
+    json_title = node.parmsInFolder(('JSON Dictionary Key Mappings',))
+    title_variant_index = len(node.parmsInFolder(('JSON Dictionary Key Mappings','Species Settings',)))+2
+    title = [title.eval() for title in json_title]
+    parm_name = [title.name() for title in json_title] 
+
+    # create node with Biome name and right parameters
+    for parms in iter(data):
+        
+        parm_list= {}
+        
+        for name in iter(data[parms]): 
+            
+
+            number = re.findall("-"r"\d",name) 
+            name1 = re.sub('-'r"\d", "" , name)
+
+            
+            # find which title it should be assigned to
+            if name1 in title:
+                index = title.index(name1)
+            else:
+                print("Dictionary Label do not match:", name)
+                return
+                      
+            #if multiparm put number
+            if len(number)==0:
+                new_title = parm_name[index]
+            else:
+                digit = str(''.join(number))
+                digit = digit[1:]
+                new_title = parm_name[index] + digit
+
+            # recreate dictionnary new txt file with right names
+            txt= {new_title: data[parms][name]}                
+            parm_list.update(txt)
+            
+
+        parms = parm_list    
+        node_name = str(parms["plantname"])
+        
+        #name node by plant name        
+        if node_name == "":
+            new_node = parent.createNode(type_to_create)
+        else:
+            new_node = parent.createNode(type_to_create, node_name)
+        
+        #connect nodes
+        new_node.setInput(0,input_node,0)
+        new_node.moveToGoodPosition()
+        input_node = new_node
+        
+        #initialize multiparm
+        value= parms["variants"] 
+        new_node.parm("variants").set(value)
+        
+        #initialize otherparameters
+        for parm in parms:
+            new_node.parm(parm).set(parms[parm])
+            
+    if node.parm("create").evalAsInt()==0:
+        output = parent.node("output0")
+        output.setInput(0,new_node,0)
+        print('Geometry reloaded')
+
+    return
+    
+def reloadFromDisk(node):
+
+    file_path = node.parm('librarypath').eval()
+    
+    if not os.path.exists(file_path):
+        print("Couldn't find library")
+        return
+
+    if file_path.endswith('.json'):
+        if file_path == ".json":
+            print("Library path is empty")
+            return
+        node.node('if_read_geo').parm('input').set(0)
+        recreateNodes(node) 
+        
+    elif file_path.endswith('.bgeo'):
+        if file_path == ".bgeo" :
+            print("Library path is empty")
+            return
+        node.node('if_read_geo').parm('input').set(1)
+        recreateNodesfromGeo(node)
+    elif file_path == "" :
+        print("Library path is empty")
+        return
+    else:
+        print("Library path incompatible")
+        return
+    
+def saveToDisk(node):
+    file_path = node.parm('librarypath').eval()
+    
+    #check if geo exists
+    geo = node.node('get_geo')
+    if len(geo.geometry().points()):     
+        # save to file depending on extension
+        if file_path.endswith('.json'):
+            if file_path == ".json":
+                print("Library path is empty")
+                return
+            getAttrib(node)
+            
+        elif file_path.endswith('.bgeo'):
+            if file_path == ".bgeo":
+                print("Library path is empty")
+                return
+            exportGeo(node)
+                
+        elif file_path == "" :
+            print("Library path is empty")
+            return
+            
+        else:
+            print("Library path incompatible")
+            return
+    else:
+        print('No input points found')

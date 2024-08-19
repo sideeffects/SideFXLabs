@@ -1,0 +1,183 @@
+# Dialog script for labs::biome_definitions_file::1.0 automatically generated
+
+{
+    name	labs::biome_definitions_file::1.0
+    script	labs::adjust_biome_settings::1.0
+    label	"Labs Biome Definitions File (Alpha)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Biome Define Nodes"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Biome Define Nodes"
+
+    groupsimple {
+        name    "fd_biomedefinitions"
+        label   "Biome Definitions"
+
+        parm {
+            name    "mode"
+            label   "Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Write"
+                "1" "Read"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "labelparm"
+            label   "Message"
+            type    label
+            default { "Two file types supported: .json and .bgeo" }
+            parmtag { "sidefx::look" "block" }
+        }
+        parm {
+            name    "jsongeo"
+            label   "natureOfFile"
+            type    toggle
+            invisible
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "librarypath"
+            label   "Biome Definitions"
+            type    file
+            default { "$HIP/data/biome/biomedefinitions.json" }
+            parmtag { "filechooser_pattern" "*.json *.bgeo" }
+            parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "processnodes"
+            label   "Save to Disk"
+            type    button
+            default { "0" }
+            hidewhen "{ mode == 1 }"
+            parmtag { "script_callback" "hou.phm().saveToDisk(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_read"
+            label   "READ"
+            hidewhen "{ mode == 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "reload"
+                label   "Reload from Disk"
+                type    button
+                default { "0" }
+                parmtag { "script_callback" "hou.phm().reloadFromDisk(kwargs['node'])" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "create"
+                label   "Create"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Geometry"
+                    "1" "Biome Define Nodes"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "fd_dictkeys"
+        label   "JSON Dictionary Key Mappings"
+
+        groupsimple {
+            name    "fd_biomesettings"
+            label   "Biome ID"
+
+            parm {
+                name    "biomename"
+                label   "Name"
+                type    string
+                default { "Biome Name" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomecolorr"
+                label   "Color"
+                type    string
+                joinnext
+                default { "Color R" }
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomecolorg"
+                label   "Color"
+                type    string
+                nolabel
+                joinnext
+                default { "Color G" }
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomecolorb"
+                label   "Color"
+                type    string
+                nolabel
+                default { "Color B" }
+                range   { 0 1 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_temperature"
+            label   "Temperature"
+
+            parm {
+                name    "tempaverage"
+                label   "Average"
+                type    string
+                default { "Average Temperature" }
+                range   { -35 35 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_precipitation"
+            label   "Precipitation"
+
+            parm {
+                name    "precaverage"
+                label   "Average"
+                type    string
+                default { "Average Precipitation" }
+                range   { 100 5000 }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        groupsimple {
+            name    "fd_tags"
+            label   "Tags"
+
+            parm {
+                name    "soil"
+                label   "Soil"
+                type    string
+                default { "Soil" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+}
