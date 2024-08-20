@@ -1,0 +1,425 @@
+# Dialog script for labs::biome_plant_definitions_file::1.0 automatically generated
+
+{
+    name	labs::biome_plant_definitions_file::1.0
+    script	labs::adjust_biome_settings::1.0
+    label	"Labs Biome Plant Definitions File (Alpha)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Biome Plant Profile"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Biome Plant Profile"
+
+    groupsimple {
+        name    "fd_plantdefinitions"
+        label   "Plant Definitions"
+
+        parm {
+            name    "mode"
+            label   "Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Write"
+                "1" "Read"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "labelparm"
+            label   "Message"
+            type    label
+            default { "Two file types supported: .json and .bgeo" }
+            parmtag { "sidefx::look" "block" }
+        }
+        parm {
+            name    "jsongeo"
+            label   "natureOfFile"
+            type    toggle
+            invisible
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "librarypath"
+            label   "Plant Definitions"
+            type    file
+            default { "$HIP/data/biome/plantdefinitions.json" }
+            parmtag { "filechooser_pattern" "*.json *.bgeo" }
+            parmtag { "script_callback" "hou.phm().loadProfile(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "processnodes"
+            label   "Save to Disk"
+            type    button
+            default { "0" }
+            hidewhen "{ mode == 1 }"
+            parmtag { "button_icon" "" }
+            parmtag { "script_callback" "hou.phm().saveToDisk(kwargs['node'])" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_read"
+            label   "READ"
+            hidewhen "{ mode == 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "reload"
+                label   "Reload from Disk"
+                type    button
+                default { "0" }
+                parmtag { "script_callback" "hou.phm().reloadFromDisk(kwargs['node'])" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "create"
+                label   "Create"
+                type    ordinal
+                default { "0" }
+                menu {
+                    "0" "Geometry"
+                    "1" "Plant Define Nodes"
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "fd_dictlabels"
+        label   "JSON Dictionary Key Mappings"
+
+        groupsimple {
+            name    "fd_speciessettings"
+            label   "Species Settings"
+            grouptag { "sidefx::look" "blank" }
+
+            groupsimple {
+                name    "fd_speciesid"
+                label   "Species ID"
+
+                parm {
+                    name    "plantname"
+                    label   "Name"
+                    type    string
+                    default { "Plant Name" }
+                    parmtag { "autoscope" "1000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "plantcolorr"
+                    label   "Color"
+                    type    string
+                    joinnext
+                    default { "Color R" }
+                    range   { 0 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "plantcolorg"
+                    label   "Color"
+                    type    string
+                    nolabel
+                    joinnext
+                    default { "Color G" }
+                    range   { 0 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "plantcolorb"
+                    label   "Color"
+                    type    string
+                    nolabel
+                    default { "Color B" }
+                    range   { 0 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_temperature"
+                label   "Temperature"
+
+                parm {
+                    name    "templower"
+                    label   "Lower"
+                    type    string
+                    default { "Lower Temperature" }
+                    range   { -10 33 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "temppref"
+                    label   "Preferred"
+                    type    string
+                    default { "Preferred Temperature" }
+                    range   { -10 33 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "tempupper"
+                    label   "Upper"
+                    type    string
+                    default { "Upper Temperature" }
+                    range   { -10 33 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_precipitation"
+                label   "Precipitation"
+
+                parm {
+                    name    "preclower"
+                    label   "Lower"
+                    type    string
+                    default { "Lower Precipitation" }
+                    range   { 10 4300 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "precpref"
+                    label   "Preferred"
+                    type    string
+                    default { "Preferred Precipitation" }
+                    range   { 10 4300 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "precupper"
+                    label   "Upper"
+                    type    string
+                    default { "Upper Precipitation" }
+                    range   { 10 4300 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_spacing"
+                label   "Spacing"
+
+                parm {
+                    name    "type"
+                    label   "Type"
+                    type    string
+                    default { "Type" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "export_disable" "1" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "radius"
+                    label   "Radius"
+                    type    string
+                    default { "Radius" }
+                    range   { 0.0001! 20 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "densitymax"
+                    label   "Density"
+                    type    string
+                    default { "Density" }
+                    range   { 0.0001! 0.2 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_advanced"
+                label   "Advanced"
+
+                parm {
+                    name    "randscale"
+                    label   "Randomize Scale"
+                    type    string
+                    default { "Randomize Scale" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "hardiness"
+                    label   "Hardiness"
+                    type    string
+                    default { "Hardiness" }
+                    range   { 0! 1! }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "normterrain"
+                    label   "Normal from Terrain"
+                    type    string
+                    default { "Normal from Terrain" }
+                    range   { 0! 1! }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        groupsimple {
+            name    "fd_speciesvariant"
+            label   "Species Variants"
+
+            parm {
+                name    "enginepaths"
+                label   "Include Engine Asset Paths"
+                type    string
+                default { "Include Engine Asset Paths" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "variants"
+                label   "Number Of Variants"
+                type    string
+                default { "Number Of Variants" }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "fd_variations"
+                label   "Number Of Variants"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "reftype"
+                    label   "Reference Type"
+                    type    string
+                    default { "Reference Type" }
+                    parmtag { "script_callback" "" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "meshvariant"
+                    label   "Mesh Variant"
+                    type    string
+                    default { "Mesh Variant" }
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "meshdeadvariant"
+                    label   "Mesh (Dead) Variant"
+                    type    string
+                    default { "Mesh (Dead) Variant " }
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "filemeshvariant"
+                    label   "File Mesh Variant"
+                    type    string
+                    default { "File Mesh Variant" }
+                    parmtag { "opfilter" "!!OBJ!!" }
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "filemeshdeadvariant"
+                    label   "File Mesh (Dead) Variant"
+                    type    string
+                    default { "File Mesh (Dead) Variant" }
+                    parmtag { "opfilter" "!!OBJ!!" }
+                    parmtag { "oprelative" "." }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "weight"
+                    label   "Weight"
+                    type    string
+                    default { "Weight" }
+                    range   { 0! 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "agemin"
+                    label   "Normalized Age Range"
+                    type    string
+                    joinnext
+                    default { "Normalized Age Min" }
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                    parmtag { "sidefx::slider" "none" }
+                }
+                parm {
+                    name    "agemax"
+                    label   "Normalized Age Range"
+                    type    string
+                    nolabel
+                    default { "Normalized Age Max" }
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                    parmtag { "sidefx::slider" "none" }
+                }
+                parm {
+                    name    "scalemin"
+                    label   "Scale Range"
+                    type    string
+                    joinnext
+                    default { "Scale Min" }
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                    parmtag { "sidefx::slider" "none" }
+                }
+                parm {
+                    name    "scalemax"
+                    label   "Scale Range"
+                    type    string
+                    nolabel
+                    default { "Scale Max" }
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                    parmtag { "sidefx::slider" "none" }
+                }
+                parm {
+                    name    "deadratio"
+                    label   "Dead Ratio"
+                    type    string
+                    default { "Dead Ratio" }
+                    range   { 0 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupsimple {
+                    name    "fd_unrealengine"
+                    label   "Unreal Engine"
+
+                    parm {
+                        name    "unrealassetpath"
+                        label   "Asset Path"
+                        type    string
+                        default { "Asset Path" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "unrealassetdeadpath"
+                        label   "Asset (Dead) Path"
+                        type    string
+                        default { "Asset (Dead) Path" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+}

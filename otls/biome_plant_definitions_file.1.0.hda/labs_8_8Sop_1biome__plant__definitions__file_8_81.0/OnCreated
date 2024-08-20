@@ -1,0 +1,31 @@
+#If the settings file doesn't exist, create it and populate it with default settings
+
+import json, os
+
+def writeJson(data, file_path):
+    out_file = open(file_path, "w")
+    json.dump(data, out_file, indent = 4, default = lambda d: d.__dict__)    #Serializes as JSON file format
+    out_file.close()
+
+def readJson(file_path):
+    f = open(file_path)
+    data = json.load(f)
+    f.close()
+    return data
+
+#check if file exists, if not, write it
+file_path = kwargs['node'].parm('librarypath').eval()
+
+if not os.path.exists(file_path):
+    writeJson('', file_path)
+else: 
+    readJson(file_path)
+
+# delete type of older created node
+type_to_create = 'labs::biome_plant_define::1.0'
+    
+point_create =kwargs['node'].node("point_create")  
+for el in iter(point_create.children()):
+            if el.type().name() == type_to_create:
+                el.destroy()
+    

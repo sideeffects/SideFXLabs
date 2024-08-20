@@ -1,0 +1,151 @@
+# Dialog script for labs::biome_curve_label::1.0 automatically generated
+
+{
+    name	labs::biome_curve_label::1.0
+    script	Labs::dev::dryad_curve_setup::1.0
+    label	"Labs Biome Curve Label (Alpha)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Curve Input"
+    inputlabel	2	"Previous Output"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Merged Curve Output"
+
+    parm {
+        name    "biomedeftype"
+        label   "Biome Definitions from"
+        type    ordinal
+        invisible
+        default { "0" }
+        menu {
+            "0" "File"
+            "1" "Operator Path"
+        }
+        parmtag { "script_callback" "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "biomeprofile"
+        label   "Biome Profile"
+        type    file
+        invisible
+        default { "$HIP/data/biome/biomeprofile.json" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "pathtobiomes"
+        label   "Path to Biomes"
+        type    oppath
+        default { "" }
+        parmtag { "oprelative" "." }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "biome"
+        label   "Biome"
+        type    ordinal
+        default { "0" }
+        menu {
+            [ "node = kwargs[\"node\"]" ]
+            [ "biomenode = node.parm(\"pathtobiomes\").evalAsNode()" ]
+            [ "#biomenode = node.node(node.parm(\"pathtobiomes\").evalAsString())" ]
+            [ "#print(biomenode)" ]
+            [ "names = []" ]
+            [ "biomemenu = []" ]
+            [ "" ]
+            [ "if biomenode:" ]
+            [ "    geo = biomenode.geometry()" ]
+            [ "    if geo:" ]
+            [ "        #print(geo)" ]
+            [ "        for point in geo.points():   " ]
+            [ "            biomedict = point.attribValue(\"biome_definition\")    " ]
+            [ "            biomename = biomedict[\"biomename\"]" ]
+            [ "            if(biomename not in biomemenu):" ]
+            [ "                biomemenu.append(biomename)" ]
+            [ "                biomemenu.append(biomename)" ]
+            [ "" ]
+            [ "        return biomemenu" ]
+            [ "    else:" ]
+            [ "        return[\"\", \"No Geometry Connected\"]" ]
+            [ "else:" ]
+            [ "    return[\"\", \"No Path to Biomes Defined\"]" ]
+            language python
+        }
+        parmtag { "script_callback" "hou.phm().changeBiome(kwargs['node'],kwargs[\"node\"].parm('biome').evalAsString())" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "temperature"
+        label   "Temperature"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "precipitation"
+        label   "Precipitation"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "biomecolorr"
+        label   "Biome Color R"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "biomecolorg"
+        label   "Biome Color G"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "biomecolorb"
+        label   "Biome Color B"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "soil"
+        label   "Soil"
+        type    integer
+        invisible
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "biomehierarchy"
+        label   "Biome Hierarchy"
+        type    integer
+        default { "0" }
+        range   { 1! 10 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "createnext"
+        label   "Create Next "
+        type    button
+        default { "0" }
+        parmtag { "script_callback" "hou.pwd().hdaModule().createNext(hou.pwd())" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

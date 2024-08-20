@@ -1,0 +1,14 @@
+def changeBiome(node, biomename):
+    biomenode = node.parm('pathtobiomes').evalAsNode()
+    
+    if biomenode:
+        geo = biomenode.geometry()
+        if geo:
+            for point in geo.points():   
+                biomedict = point.attribValue("biome_definition")    
+                if biomename == biomedict.get("biomename"):
+                    temperature =  biomedict.get("tempaverage")
+                    precipitation = biomedict.get("precaverage")
+                    break           
+    node.parm('temperature').set(temperature)
+    node.parm('precipitation').set(precipitation)

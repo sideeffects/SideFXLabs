@@ -1,0 +1,81 @@
+#If the settings file doesn't exist, create it and populate it with default settings
+
+import json, os
+#default file for biomes
+txt = {
+    "Default_Tundra": {
+        "Biome Name": "Default_Tundra",
+        "Color R": 0.34437325596809387,
+        "Color G": 1.092374324798584,
+        "Color B": 1.1473731994628906,
+        "Average Temperature": -9.2,
+        "Average Precipitation": 347.5,
+        "Soil": 1,
+    },
+    "Default_Desert": {
+        "Biome Name": "Default_Desert",
+        "Color R": 0.7410351634025574,
+        "Color G": 0.7879999876022339,
+        "Color B": 0.08352800458669662,
+        "Average Temperature": 23.3,
+        "Average Precipitation": 358.7,
+        "Soil": 1,
+    },
+    "Default_Savannah": {
+        "Biome Name": "Default_Savannah",
+        "Color R": 0.47479677200317383,
+        "Color G": 0.590847373008728,
+        "Color B": 0.017318248748779297,
+        "Average Temperature": 23.5,
+        "Average Precipitation": 1584.3,
+        "Soil": 1,
+    },
+    "Default_AlpineForest": {
+        "Biome Name": "Default_AlpineForest",
+        "Color R": 0.02151418849825859,
+        "Color G": 0.8029999732971191,
+        "Color B": 0.0927627757191658,
+        "Average Temperature": -0.9,
+        "Average Precipitation": 979.5,
+        "Soil": 1,
+    },
+    "Default_TemperateForest": {
+        "Biome Name": "Default_TemperateForest",
+        "Color R": 0.05375000089406967,
+        "Color G": 0.2150000035762787,
+        "Color B": 0.0,
+        "Average Temperature": 12.8,
+        "Average Precipitation": 2448.9,
+        "Soil": 1,
+    }
+}
+
+def writeJson(data, file_path):
+    out_file = open(file_path, "w")
+    json.dump(data, out_file, indent = 4, default = lambda d: d.__dict__)    #Serializes as JSON file format
+    out_file.close()
+
+def readJson(file_path):
+    f = open(file_path)
+    data = json.load(f)
+    f.close()
+    return data
+
+#check if file already exists, if not, write it
+file_path = kwargs['node'].parm('librarypath').eval()
+
+if not os.path.exists(file_path):
+    writeJson('', file_path)
+    if not os.path.exists(file_path[:len(file_path)-5]+"_default.json") :
+        writeJson(txt, file_path[:len(file_path)-5]+"_default.json")
+        print("Created a default biome library "+ file_path[:len(file_path)-5]+"default.json")    
+else:
+    readJson(file_path)
+
+# delete type of older created node
+type_to_create = 'labs::biome_define::1.0'
+    
+point_create =kwargs['node'].node("point_create")  
+for el in iter(point_create.children()):
+            if el.type().name() == type_to_create:
+                el.destroy()

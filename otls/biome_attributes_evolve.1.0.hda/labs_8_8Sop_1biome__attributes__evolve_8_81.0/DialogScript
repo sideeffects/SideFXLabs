@@ -1,0 +1,731 @@
+# Dialog script for labs::biome_attributes_evolve::1.0 automatically generated
+
+{
+    name	labs::biome_attributes_evolve::1.0
+    script	labs::objpath_instance::1.0
+    label	"Labs Biome Attributes Evolve (Alpha)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Terrain
+    inputlabel	2	Mask
+    inputlabel	3	"Water Regions Input"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Evolved Terrain Output"
+
+    groupsimple {
+        name    "fd_visualisation"
+        label   "Visualize"
+        grouptag { "sidefx::look" "blank" }
+
+        parm {
+            name    "display"
+            label   "Display"
+            type    ordinal
+            joinnext
+            default { "0" }
+            menu usetokenvalue {
+                "0" "Input"
+                "1" "Temperature"
+                "2" "Precipitation"
+                "3" "Soil"
+            }
+            parmtag { "export_disable" "1" }
+            parmtag { "script_callback" "kwargs[\"node\"].setOutputForViewFlag(-1 if kwargs[\"node\"].parm(\"display\").eval() != 0 else 0)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "autoremap"
+            label   "Auto Remap"
+            type    ordinal
+            nolabel
+            default { "0" }
+            hidewhen "{ display == 0 }"
+            menu {
+                "0" "Use Real-World Range"
+                "1" "Auto Normalize Range"
+                "2" "Manual Range"
+            }
+            range   { 0! 10 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "minmaxmessage"
+            label   "Message"
+            type    label
+            default { "Min: `detail(\"s_auto\",\"_bae_in_min\",0)`\nMax: `detail(\"s_auto\",\"_bae_in_max\",0)`" }
+            hidewhen "{ autoremap == 2 } { display == 0 }"
+            parmtag { "sidefx::look" "block" }
+        }
+        groupsimple {
+            name    "fd_autoremap"
+            label   "AUTOREMAP"
+            disablewhen "{ autoremap != 2 } { display == 0 }"
+            hidewhen "{ autoremap != 2 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "computerange"
+                label   "Compute Range"
+                type    button
+                default { "0" }
+                hidewhen "{ display == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback" "hou.pwd().hdaModule().computeRange(kwargs)" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "inputmin0"
+                label   "Min"
+                type    float
+                invisible
+                default { "0" }
+                hidewhen "{ display != 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inputmax0"
+                label   "Max"
+                type    float
+                invisible
+                default { "1" }
+                hidewhen "{ display != 0 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inputmin1"
+                label   "Min"
+                type    float
+                default { "-10" }
+                hidewhen "{ display != 1 }"
+                range   { -10 33 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inputmax1"
+                label   "Max"
+                type    float
+                default { "33" }
+                hidewhen "{ display != 1 }"
+                range   { -10 33 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inputmin2"
+                label   "Min"
+                type    float
+                default { "0" }
+                hidewhen "{ display != 2 }"
+                range   { 0 4300 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inputmax2"
+                label   "Max"
+                type    float
+                default { "4300" }
+                hidewhen "{ display != 2 }"
+                range   { 0 4300 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inputmin3"
+                label   "Min"
+                type    float
+                default { "0" }
+                hidewhen "{ display != 3 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "inputmax3"
+                label   "Max"
+                type    float
+                default { "1" }
+                hidewhen "{ display != 3 }"
+                range   { 0 1 }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+        }
+
+    }
+
+    groupsimple {
+        name    "fd_parameter"
+        label   "Parameters"
+        grouptag { "sidefx::look" "blank" }
+
+        group {
+            name    "fd_temperature"
+            label   "Temperature"
+
+            groupsimple {
+                name    "fd_tempelevation"
+                label   "Elevation"
+
+                parm {
+                    name    "evolvetemp"
+                    label   "Evolve with Elevation"
+                    type    toggle
+                    default { "1" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "lapserate"
+                    label   "Lapse Rate"
+                    type    float
+                    default { "9.8" }
+                    disablewhen "{ evolvetemp == 0 }"
+                    hidewhen "{ evolvetemp == 0 }"
+                    range   { 0 10 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_diffusion"
+                label   "Diffusion"
+
+                parm {
+                    name    "evolvetempxz"
+                    label   "Blur between Regions"
+                    type    toggle
+                    default { "0" }
+                    range   { 0! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "tempsiter"
+                    label   "Blur Iterations"
+                    type    integer
+                    default { "150" }
+                    disablewhen "{ evolvetempxz == 0 }"
+                    hidewhen "{ evolvetempxz == 0 }"
+                    range   { 0! 500 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        group {
+            name    "fd_temperature_1"
+            label   "Precipitation"
+
+            groupsimple {
+                name    "fd_topography"
+                label   "Topography"
+
+                parm {
+                    name    "removebyocclusion"
+                    label   "Remove by Convexity"
+                    type    toggle
+                    default { "off" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "occlusionramp"
+                    label   "Removal Amount over Convexity"
+                    type    ramp_flt
+                    default { "3" }
+                    hidewhen "{ removebyocclusion == 0 }"
+                    range   { 1! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( linear ) 2pos ( 0.800000011920929 ) 2value ( 1 ) 2interp ( linear ) 3pos ( 1 ) 3value ( 0 ) 3interp ( linear )" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_rainshadow"
+                label   "Rain Shadow"
+
+                parm {
+                    name    "removebydir"
+                    label   "Remove by Direction"
+                    type    toggle
+                    default { "on" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "startxz"
+                    label   "Rain XZ Direction"
+                    type    vector2
+                    size    2
+                    default { "1" "0" }
+                    disablewhen "{ removebydir == 0 }"
+                    hidewhen "{ removebydir == 0 }"
+                    range   { -1 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "goalangle"
+                    label   "Rotate Direction"
+                    type    float
+                    default { "0" }
+                    disablewhen "{ removebydir == 0 }"
+                    hidewhen "{ removebydir == 0 }"
+                    range   { 0 360 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "anglespread"
+                    label   "Falloff Angle"
+                    type    float
+                    default { "30" }
+                    disablewhen "{ removebydir == 0 }"
+                    hidewhen "{ removebydir == 0 }"
+                    range   { 0 180 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "anglefallofframp"
+                    label   "Removal Amount over Falloff  Angle"
+                    type    ramp_flt
+                    default { "4" }
+                    disablewhen "{ removebydir == 0 }"
+                    hidewhen "{ removebydir == 0 }"
+                    range   { 1! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 1 ) 1interp ( bezier ) 2pos ( 0.20000000298023224 ) 2value ( 1 ) 2interp ( bezier ) 3pos ( 0.699999988079071 ) 3value ( 1 ) 3interp ( bezier ) 4pos ( 1 ) 4value ( 0 ) 4interp ( bezier )" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        group {
+            name    "fd_temperature_2"
+            label   "Soil"
+
+            groupsimple {
+                name    "fd_cliffs"
+                label   "Cliffs"
+
+                parm {
+                    name    "removebyslope"
+                    label   "Remove by Slope"
+                    type    toggle
+                    default { "on" }
+                    range   { 0 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "minslopeangle"
+                    label   "Min Slope Angle"
+                    type    float
+                    default { "40" }
+                    hidewhen "{ removebyslope == 0 }"
+                    range   { 0 90 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "maxslopeangle"
+                    label   "Max Slope Angle"
+                    type    float
+                    default { "70" }
+                    hidewhen "{ removebyslope == 0 }"
+                    range   { 0 90 }
+                    parmtag { "autoscope" "0000000000000000" }
+                }
+                parm {
+                    name    "sloperamp"
+                    label   "Removal Amount over Slope Angle"
+                    type    ramp_flt
+                    default { "4" }
+                    hidewhen "{ removebyslope == 0 }"
+                    range   { 1! 10 }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "rampfloatdefault" "1pos ( 0 ) 1value ( 0 ) 1interp ( linear ) 2pos ( 1 ) 2value ( 1 ) 2interp ( linear ) " }
+                    parmtag { "rampshowcontrolsdefault" "0" }
+                }
+            }
+
+            groupsimple {
+                name    "fd_combine"
+                label   "Mask"
+
+                parm {
+                    name    "enablemask"
+                    label   "Enable Mask"
+                    type    toggle
+                    default { "0" }
+                    parmtag { "script_callback" "" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupsimple {
+                    name    "fd_mask"
+                    label   "MASK"
+                    hidewhen "{ enablemask == 0 }"
+                    grouptag { "sidefx::look" "blank" }
+
+                    parm {
+                        name    "soilmaskname"
+                        label   "Mask Layer"
+                        type    string
+                        default { "mask" }
+                        menureplace {
+                            "height"                "height"
+                            "_bie_precipitation"    "_bie_precipitation"
+                            "_bie_temperature"      "_bie_temperature"
+                            "_bie_biomeid"          "_bie_biomeid"
+                            "_bie_color.x"          "_bie_color.x"
+                            "_bie_color.y"          "_bie_color.y"
+                            "_bie_color.z"          "_bie_color.z"
+                            "_bie_averageheight"    "_bie_averageheight"
+                            "_bie_water"            "_bie_water"
+                            "_bie_soil"             "_bie_soil"
+                            "mask"                  "mask"
+                            "_bie_soil2"            "_bie_soil2"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "layermode"
+                        label   "Combine with Noise"
+                        type    ordinal
+                        default { "replace" }
+                        disablewhen "{ removebynoise == 0 }"
+                        menu {
+                            "replace"   "Replace"
+                            "add"       "Add"
+                            "subtract"  "Subtract"
+                            "diff"      "Difference"
+                            "multiply"  "Multiply"
+                            "max"       "Maximum"
+                            "min"       "Minimum"
+                            "blend"     "Blend"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback" "if kwargs[\"node\"].parm(\"removebynoise\").eval() == 0: kwargs[\"node\"].parm(\"layermode\").set(0) " }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "blend"
+                        label   "Blend Mask"
+                        type    float
+                        default { "0.5" }
+                        disablewhen "{ removebynoise == 0 }"
+                        hidewhen "{ layermode != blend }"
+                        range   { 0 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                    }
+                }
+
+            }
+
+            groupsimple {
+                name    "fd_soilqualitynoise"
+                label   "Soil Noise"
+
+                parm {
+                    name    "removebynoise"
+                    label   "Remove by Noise"
+                    type    toggle
+                    default { "1" }
+                    parmtag { "script_callback" "kwargs[\"node\"].parm(\"layermode\").set(0 if kwargs[\"node\"].parm(\"enablemask\").eval() == 0 or kwargs[\"node\"].parm(\"removebynoise\").eval() == 0 else kwargs[\"node\"].parm(\"layermode\").eval())" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupsimple {
+                    name    "fd_noise"
+                    label   "NOISE"
+                    disablewhen "{ removebynoise == 0 }"
+                    hidewhen "{ removebynoise == 0 }"
+                    grouptag { "sidefx::look" "blank" }
+
+                    parm {
+                        name    "basesoil"
+                        label   "Constant Value"
+                        type    float
+                        default { "0" }
+                        range   { 0! 1! }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "input"
+                        label   "Invert Noise"
+                        type    toggle
+                        default { "0" }
+                        disablewhen "{ removebynoise == 0 }"
+                        range   { 0! 10 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "intensity"
+                        label   "Intensity"
+                        type    float
+                        default { "1" }
+                        range   { 0! 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "amp"
+                        label   "Amplitude"
+                        type    float
+                        default { "5" }
+                        disablewhen "{ removebynoise == 0 }"
+                        range   { 0.001! 20 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "parmvop" "1" }
+                        parmtag { "shaderparmcontexts" "cvex" }
+                        parmtag { "units" "m1" }
+                    }
+                    parm {
+                        name    "elementsize"
+                        label   "Element Size"
+                        type    float
+                        default { "75" }
+                        disablewhen "{ removebynoise == 0 }"
+                        range   { 0 500 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "parmvop" "1" }
+                        parmtag { "shaderparmcontexts" "cvex" }
+                        parmtag { "units" "m1" }
+                    }
+                    parm {
+                        name    "basis"
+                        label   "Noise Type"
+                        type    string
+                        default { "worleyFA" }
+                        disablewhen "{ removebynoise == 0 }"
+                        menu {
+                            "sine"      "Sinusoid"
+                            "perlin"    "Perlin"
+                            "pperlin"   "Periodic Perlin"
+                            "simplex"   "Simplex"
+                            "sparse"    "Sparse Convolution"
+                            "flow"      "Perlin Flow"
+                            "pflow"     "Periodic Perlin Flow"
+                            "worleyFA"  "Worley Cellular F1"
+                            "worleyFB"  "Worley Cellular F2-F1"
+                            "mworleyFA" "Manhattan Cellular F1"
+                            "mworleyFB" "Manhattan Cellular F2-F1"
+                            "cworleyFA" "Chebyshev Cellular F1"
+                            "cworleyFB" "Chebyshev Cellular F2-F1"
+                            "alligator" "Alligator"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "parmvop" "1" }
+                        parmtag { "shaderparmcontexts" "cvex" }
+                    }
+                    parm {
+                        name    "fractal"
+                        label   "Fractal"
+                        type    string
+                        default { "hmfT" }
+                        disablewhen "{ removebynoise == 0 }"
+                        menu {
+                            "none"  "None"
+                            "fBm"   "Standard (fBm)"
+                            "mfT"   "Terrain"
+                            "hmfT"  "Hybrid Terrain"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "parmvop" "1" }
+                        parmtag { "shaderparmcontexts" "cvex" }
+                    }
+                    parm {
+                        name    "oct"
+                        label   "Max Octaves"
+                        type    float
+                        default { "8" }
+                        disablewhen "{ removebynoise == 0 }"
+                        hidewhen "{ fractal == none }"
+                        range   { 0 16 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "parmvop" "1" }
+                        parmtag { "shaderparmcontexts" "cvex" }
+                    }
+                    parm {
+                        name    "lac"
+                        label   "Lacunarity"
+                        type    float
+                        default { "2" }
+                        hidewhen "{ fractal == none }"
+                        range   { 0 4 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "parmvop" "1" }
+                        parmtag { "shaderparmcontexts" "cvex" }
+                    }
+                    parm {
+                        name    "rough"
+                        label   "Roughness"
+                        type    float
+                        default { "1" }
+                        disablewhen "{ removebynoise == 0 }"
+                        hidewhen "{ fractal == none }"
+                        range   { 0 1 }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "parmvop" "1" }
+                        parmtag { "shaderparmcontexts" "cvex" }
+                    }
+                }
+
+            }
+
+        }
+
+        group {
+            name    "fd_temperature_3"
+            label   "Input"
+
+            parm {
+                name    "uenonename"
+                label   "Unreal None"
+                type    string
+                invisible
+                default { "Layer_uenone" }
+                menureplace {
+                    [ "import terraintoolutils" ]
+                    [ "" ]
+                    [ "return terraintoolutils.buildNameMenu(kwargs['node'])" ]
+                    language python
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "uevizname"
+                label   "Unreal Viz"
+                type    string
+                invisible
+                default { "Layer_ueviz" }
+                menureplace {
+                    [ "import terraintoolutils" ]
+                    [ "" ]
+                    [ "return terraintoolutils.buildNameMenu(kwargs['node'])" ]
+                    language python
+                }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "fd_hflayers"
+                label   "HeightField Layers"
+
+                parm {
+                    name    "tempname"
+                    label   "Temperature"
+                    type    string
+                    default { "temperature" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "precname"
+                    label   "Precipitation"
+                    type    string
+                    default { "precipitation" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "soilname"
+                    label   "Soil"
+                    type    string
+                    default { "soil" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "biomeidname"
+                    label   "Biome ID"
+                    type    string
+                    default { "biomeid" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "biomecolorrname"
+                    label   "Biome Color R"
+                    type    string
+                    default { "biomecolor.x" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "biomecolorgname"
+                    label   "Biome Color G"
+                    type    string
+                    default { "biomecolor.y" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "biomecolorbname"
+                    label   "Biome Color B"
+                    type    string
+                    default { "biomecolor.z" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "biomeavgheightname"
+                    label   "Biome Average Height"
+                    type    string
+                    default { "biomeaverageheight" }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+        group {
+            name    "fd_temperature_4"
+            label   "Output"
+
+            parm {
+                name    "uevizualise"
+                label   "uevizualise"
+                type    toggle
+                invisible
+                nolabel
+                joinnext
+                default { "0" }
+                range   { 0! 10 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "uepath"
+                label   "Unreal Material Path"
+                type    string
+                invisible
+                default { "" }
+                disablewhen "{ uevizualise == 0 }"
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            groupsimple {
+                name    "fd_hflayers2"
+                label   "HeightField Layers"
+
+                parm {
+                    name    "generatecliff"
+                    label   "Generate Cliff"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "0" }
+                    disablewhen "{ removebyslope == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "cliffname"
+                    label   "Cliff"
+                    type    string
+                    default { "cliff" }
+                    disablewhen "{ generatecliff == 0 } { removebyslope == 0 }"
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
+        }
+
+    }
+
+}

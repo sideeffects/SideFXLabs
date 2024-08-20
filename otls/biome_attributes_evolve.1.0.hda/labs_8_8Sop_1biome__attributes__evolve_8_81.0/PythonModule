@@ -1,0 +1,18 @@
+import terraintoolutils 
+
+def computeRange(kwargs):
+    node = kwargs['node'] 
+    
+    # creating an array with the names of mask to visualize
+    display = ['mask', '_bae_temperature','_bae_precipitation','_bae_soil']
+    num = node.parm('display').eval()
+    #read the value of the layer on the output of the node
+    range = terraintoolutils.computeInputRange(node.node('get_layer_range'), fieldname= display[num]) 
+    
+    #set the min and max manual range
+    parm_min = 'inputmin'+str(num)
+    parm_max = 'inputmax'+str(num)
+    node.parm(parm_min).set(range[0])
+    node.parm(parm_max).set(range[1])
+
+
