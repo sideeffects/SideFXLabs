@@ -32,19 +32,18 @@ Content-Type: text/plain
 
 sopflags sopflags = 
 comment ""
-position -1.85622 1.30522
+position -29.7997 75.843
 connectornextid 1
 flags =  lock off model off template off footprint off xray off bypass off display off render off highlight off unload off savedata off compress on colordefault on exposed on
 outputsNamed3
 {
+0 "output1"
 }
 inputsNamed3
 {
-0 	null2 0 1 "input1"
 }
 inputs
 {
-0 	null2 0 1
 }
 stat
 {
@@ -325,8 +324,8 @@ Content-Type: text/plain
             baseparm
             label   "Group"
             export  none
-            bindselector points "Modify Points"
-                "Select the points to affect and press Enter to complete."
+            bindselector uvselect "Modify Attribs"
+                "Select the geometry to affect and press Enter to complete."
                 0 1 0xffffffff 0 grouptype 0
         }
         parm {
@@ -726,7 +725,7 @@ string newpath;
 string newdeadpath;
 string reftypevariant;
 string reftypedeadvariant;
-
+float deadratio;
 
 if(isvalidindex(d@plant_definition, \"variants\"))
 {
@@ -749,13 +748,19 @@ for (int i = 1; i <= numvariations; i++)
     
     meshpath = d@plant_definition[reftypevariant + itoa(i)];
     meshdeadpath = d@plant_definition[reftypedeadvariant + itoa(i)];
-
+    deadratio = d@plant_definition[\"deadratio\" + itoa(i)];
+    
+    if(startswith(meshpath, \"../\") || startswith(meshpath, \"/obj\") && reftypevariant == \"filemeshvariant\")
+    {
+        warning(\"Mesh Variant \" + itoa(i) + \" is an operator path. Switch 'Mesh Variant from' to 'Operator Path'.\");
+    }
+    
     newpath = opfullpath(meshpath);
     if(startswith(newpath,\"/obj\"))
     {
         newpath = \"op:\" + opfullpath(newpath);   
     }
-    if(npoints(newpath)==0)
+    if(npoints(newpath) == 0)
     {
         warning(\"Invalid SOP or file specified for Mesh Variant \" + itoa(i));
     }
@@ -765,7 +770,7 @@ for (int i = 1; i <= numvariations; i++)
     {
         newdeadpath = \"op:\" + opfullpath(newdeadpath);  
     }
-    if(npoints(newdeadpath)==0)
+    if(npoints(newdeadpath) == 0 && deadratio > 0)
     {
         warning(\"Invalid SOP or file specified for Mesh (Dead) Variant \" + itoa(i));
     }
