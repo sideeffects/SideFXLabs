@@ -1,225 +1,538 @@
-#
-# This file contains functions dealing with notes dedicated to Education purposes
-# Like color coded sticky notes...
-#
-
 import os
+import shutil
+import contextlib
+import json
+import zipfile
+import platform
 import hou
-import importlib
+import ssl
+import glob
+import sys
+import getopt
+import re
 
-from past.utils import old_div
-import nodegraphutils
+if sys.version_info.major >= 3:
+    from urllib.request import urlopen, Request
+else:
+    from urllib2 import urlopen, Request
 
-import nodegraphview
-try:
-  reload(nodegraphview)
-except NameError:
-  from importlib import reload
-  reload(nodegraphview)
+from hutil.Qt.QtCore import *
+from hutil.Qt.QtGui import *
+from hutil.Qt.QtWidgets import *
 
-import labutils
-try:
-  reload(labutils)
-except NameError:
-  from importlib import reload
-  reload(labutils)
+########################################################################################################################
+# GLOBAL VARIABLES #####################################################################################################
 
-# define colors
-COLOR_BG = {
-    "bestpractice": (255, 119, 0),
-    "info": (162, 84, 255),
-    "tip": (105, 204, 0),
-    "warning": (255, 51, 0)
-}
-COLOR_TXT = {
-    "bestpractice": (255, 255, 255),
-    "info": (255, 255, 255),
-    "tip": (255, 255, 255),
-    "warning": (255, 255, 255)
-}
-SIDEFXEDU_QUICKMARK_KEY = 'sidefxedu_quickmark_'
-IMAGE_BOUNDING_RECT = hou.BoundingRect(0.0, -0.2, -1.0, 0.8)
-# NUMBER_STICKER_ROOT_PATH='${SIDEFXLABS}/misc/stickers/Font/SIDEFX_CUSTOM_EMBLEMS '
-NUMBER_STICKER_ROOT_PATH='${SIDEFXLABS}/misc/stickers/Edu/number_'
+REPO_URL = 'https://raw.githubusercontent.com/sideeffects/SideFXEDU/Experimental/releases/releases.json'
 
-def normalize_color(color):
-    return tuple(x/255.0 for x in color)
+# store the major and minor version of Houdini (aka XX.YY)
+APP_VERSION = ".".join(map(str, hou.applicationVersion()[:2]))
 
-# create a sticky info in current node
-def createNotes(kwargs, stickytype="info"):
+SETTINGS_FILE = os.path.join(os.getenv("HOUDINI_USER_PREF_DIR"), "packages", "SideFXEDU%s.json" % APP_VERSION)
+HOUDINI_ENV = os.path.join(os.getenv("HOUDINI_USER_PREF_DIR"), "houdini.env")
 
-    ctrlclick = kwargs['ctrlclick']
-    shiftclick = kwargs['shiftclick']
-    altclick = kwargs['altclick']
-    cmdclick = kwargs['cmdclick']
+LOCAL_ZIPS = glob.glob(os.path.normpath(os.path.join(hou.getenv("HH"), "public", "SideFXEDU*.zip")))
+LOCAL_TOOLSET_ZIP = LOCAL_ZIPS[0] if LOCAL_ZIPS else None
+LOCAL_TOOLSET_VERSION = ".".join(re.findall(r'\d+', os.path.split(LOCAL_TOOLSET_ZIP)[-1])) if LOCAL_TOOLSET_ZIP else None
 
-    stickytype = 'info'
-    if(ctrlclick):
-        stickytype = 'warning'
-    elif(shiftclick):
-        stickytype = 'bestpractice'
-    elif(altclick):
-        stickytype = 'tip'
+HOU_TEMP_PATH = os.path.normpath(os.path.join(os.getenv("HOUDINI_USER_PREF_DIR"), "SideFXEDU"))
+ONLINE_ZIP_DICT = {}
 
-    # get the network editor pane
-    pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+def get_launcher_bin_file_path(launcher_path):
+    if platform.system() == "Darwin":
+        bin_path = os.path.join(launcher_path, "Contents", "MacOS", "houdini_launcher")
+    elif platform.system() == "Linux":
+        bin_path = os.path.join(launcher_path, "bin", "houdini_launcher")
+    else:
+        bin_path = os.path.join(launcher_path, "bin", "houdini_launcher.exe")
+    return bin_path
 
-    # get the current node in the network editor pane
-    node = pane.pwd()
-    position = pane.visibleBounds().center()
+class LauncherDialog(QDialog):
+    def __init__(self, launcher_path, settings, parent=None):
+        super(LauncherDialog, self).__init__(parent)
 
-    sticky = node.createStickyNote()
-    sticky.setBounds(hou.BoundingRect(0, 0, 4, 4))
-    sticky.setPosition(position)
-    sticky.setText(("#%s" % stickytype))
-    sticky.setColor(hou.Color(normalize_color(COLOR_BG[stickytype])))
-    sticky.setTextColor(hou.Color(normalize_color(COLOR_TXT[stickytype])))
+        self.setWindowTitle("No Houdini Launcher Found")
+        spacer = QLabel("")
 
-class Quickmarks(object):
+        self.settings = settings
 
-    def __init__(self):
-        super(Quickmarks, self).__init__()
-        self._pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
-        self._qmlist = []
-        self._qmcurrent = 0
+        self.path_label = QLabel("Installed elsewhere? Houdini Launcher installation path: ")
+        self.launcher_path_lineedit = QLineEdit(self)
+        self.launcher_path_lineedit.setText(launcher_path)
+        self.resize(500, 150)
 
-    def reset(self):
-        self._qmcurrent = 0
+        self.url_label = QLabel()
+        self.url_label.setOpenExternalLinks(True)
+        self.url_label.setText("Get latest Houdini Launcher <a href=\"https://www.sidefx.com/download/daily-builds/?show_launcher=true\">here</a>")
 
-    def updateQmlist(self, keyword=SIDEFXEDU_QUICKMARK_KEY):
-        self._qmlist = [int(qm.replace(keyword, '')) for qm in self.listQuickmarks()]
-        self._qmlist.sort()
 
-    def listQuickmarks(self, keyword=SIDEFXEDU_QUICKMARK_KEY):
-        qmlist = [key for key in hou.node('/').userDataDict().keys() if keyword in key]
-        return qmlist
+        self.launch_button = QPushButton("Launch")
+        self.cancel_button = QPushButton("Cancel")
 
-    def createQuickMark(self, item, index, quickMarkKey):
-        # Define the network
-        net = item.parent() # net = self._pane.pwd()
+        self.launch_button.clicked.connect(self.on_launchbtn_press)
+        self.cancel_button.clicked.connect(self.on_cancelbtn_press)
 
-        # Define the visualization bounds (frame the item in the network)
-        pos = item.position() + hou.Vector2(0, item.size().y())
-        bounds = hou.BoundingRect(pos[0], pos[1], pos[0], pos[1])
-        # Adjust the bounds so we end up at roughly the "default" zoom level.
-        minwidth = old_div(self._pane.screenBounds().size().x(), nodegraphutils.getDefaultScale())
-        minheight = old_div(self._pane.screenBounds().size().y(), nodegraphutils.getDefaultScale())
-        if bounds.size().x() < minwidth:
-            expandVec = hou.Vector2((minwidth - bounds.size().x()) * 0.5, 0.0)
-        if bounds.size().y() < minheight:
-            expandVec += hou.Vector2(0.0, (minheight - bounds.size().y()) * 0.5)
-        bounds.expand(expandVec)
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(spacer)
+        button_layout.addWidget(self.cancel_button)
+        button_layout.addWidget(self.launch_button)
 
-        # Define the items to
-        items = [item]
-        currentnode = item if isinstance(item, hou.Node) else None
-        nodegraphview.setQuickMark(index, nodegraphview.QuickMark(net, bounds, items, currentnode), qmKey=SIDEFXEDU_QUICKMARK_KEY)
-        self.updateQmlist()
+        layout = QVBoxLayout()
+        layout.addWidget(self.path_label)
+        layout.addWidget(self.launcher_path_lineedit)
+        layout.addWidget(spacer)
+        layout.addWidget(self.url_label)
+        layout.addLayout(button_layout)
 
-    def deleteQuickmarks(self, keyword=SIDEFXEDU_QUICKMARK_KEY):
-        self.updateQmlist()
+        self.setLayout(layout)
 
-        # get the network editor
-        pane = self._pane
 
-        # collect background images
-        images = []
-        bgimages = pane.backgroundImages()
-        bgimagepaths = [image.path() for image in bgimages]
-        images.extend(bgimages)
+    def on_launchbtn_press(self):
+        p = QProcess()
+        launcher_path = get_launcher_bin_file_path(self.launcher_path_lineedit.text())
+        if os.path.isfile(launcher_path):
+            p.setProgram(launcher_path)
+            p.startDetached()
+            self.settings.setValue("launcher_install_path", self.launcher_path_lineedit.text())
+            self.close()
+        else:
+            message = launcher_path + " is not a valid Launcher path."
+            hou.ui.displayMessage(message, title= "Invalid Launcher Path")
 
-        for k in hou.node('/').userDataDict().keys():
-            if keyword in k:
-                hou.node('/').destroyUserData(k)
+    def on_cancelbtn_press(self):
+        self.close()
 
-                index = int(k.replace(keyword, ''))
-                fullpath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % index)
-                # here we use a datablock path because we know for sure our images are stored in data blocks when we set them up.
-                datablockpath = "opdatablock:/obj/{}".format(os.path.basename(fullpath))
-                # NOTE: we are only unreferencing the data block, not deleting it from the hip file.
-                # TODO: delete the original data block to free allocated space
 
-                try:
-                    # if the image is used, remove it from the list
-                    id = bgimagepaths.index(datablockpath)
-                    images.pop(id)
-                    bgimagepaths.pop(id)
-                except:
-                    # if not, don't do anything
-                    pass
+# UPDATE DIALOG ########################################################################################################
+class UpdateDialog(QDialog):
+    def __init__(self, parent, updater_object):
+        super(UpdateDialog, self).__init__(parent)
 
-            # set the background images
-            pane.setBackgroundImages(images)
+        self.setWindowFlags(self.windowFlags() ^ Qt.WindowContextHelpButtonHint)
 
-    def numberItems(self, append=False):
-        """ This code attaches number background images to the selected network items. """
+        self.setWindowTitle("SideFX EDU")
+        self.updater_object = updater_object
 
-        # get the network editor
-        pane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
+        self.current_version = None
+        self.current_file_path = None
+        self.settings = QSettings("SideFX", "EDU Shelf Tool")
 
-        if not append:
-            # first delete all quickmarks
-            self.clearQuickmarks()
+        if self.updater_object.current_version:
+            self.current_version = self.updater_object.current_version
+        if self.updater_object.current_file_path:
+            self.current_file_path = self.updater_object.current_file_path
 
-        # collect already existing images
-        images = []
-        bgimages = pane.backgroundImages()
-        bgimagepaths = [image.path() for image in bgimages]
-        images.extend(bgimages)
-        # collect nodes with background image attached to them
-        itemswithimage = [image.relativeToPath() for image in bgimages]
-        # update quickmark list
-        self.updateQmlist()
+        self.build_ui()
 
-        # create images
-        index = self._qmlist[-1]+1 if self._qmlist else 1
-        selectedItems = hou.selectedItems()
-        for item in selectedItems:
-            # only do something if the item does not already have an image attached to it
-            # this is needed to manage the case when the user keeps in their selection an item that already has an image number attached to it.
-            if item.path() not in itemswithimage:
-                # define image path (must be full path)
-                imagepath = os.path.expandvars(NUMBER_STICKER_ROOT_PATH+'%02d.png' % (index))
-                # create a background image and add it to the list
-                labutils.add_network_image(pane, imagepath, embedded=True, relativeto_path=item.path(), bounds=IMAGE_BOUNDING_RECT)
-                # create a quickmark
-                self.createQuickMark(item, index, SIDEFXEDU_QUICKMARK_KEY)
-                # move index forward
-                index += 1
+    def build_ui(self):
+        installed_group = QGroupBox("Installed Release")
+        change_group = QGroupBox("Change To")
+        spacer = QLabel("")
 
-    def clearQuickmarks(self):
-        # delete all quickmarks
-        self.deleteQuickmarks()
+        # Current Version
+        current_version_layout = QHBoxLayout()
+        current_version_lbl = QLabel("Version: ")
+        current_version = self.current_version
+        if not current_version:
+            current_version = "None"
 
-    def jumpToNext(self):
-        self.updateQmlist()
-        if len(self._qmlist):
-            value = min(self._qmlist[-1], self._qmcurrent+1)
-            self.jumpTo(value)
+        # Current File Path
+        current_file_path_layout = QHBoxLayout()
+        current_file_path_lbl = QLabel("File path: ")
+        current_file_path = self.current_file_path
+        if not current_file_path:
+            current_file_path = "None"
 
-    def jumpToPrev(self):
-        self.updateQmlist()
-        if len(self._qmlist):
-            value = max(self._qmlist[0], self._qmcurrent-1)
-            self.jumpTo(value)
+        current_version_value_lbl = QLabel(current_version)
+        current_file_path_value_lbl = QLabel(current_file_path)
+        current_file_path_value_lbl.setWordWrap(True)
 
-    def jumpToFirst(self):
-        self.updateQmlist()
-        if len(self._qmlist):
-            value = self._qmlist[0]
-            self.jumpTo(value)
+        current_version_layout.addWidget(current_version_lbl)
+        current_version_layout.addWidget(current_version_value_lbl)
+        current_file_path_layout.addWidget(current_file_path_lbl)
+        current_file_path_layout.addWidget(current_file_path_value_lbl)
 
-    def jumpToLast(self):
-        self.updateQmlist()
-        if len(self._qmlist):
-            value = self._qmlist[-1]
-            self.jumpTo(value)
+        installedgroup_layout = QVBoxLayout(installed_group)
 
-    def jumpTo(self, value):
-        self._qmcurrent = value
-        # TODO: this function should be used instead, once it is fixed in nodegraphview module
-        # nodegraphview.jumpToQuickMark(self._pane, value, SIDEFXEDU_QUICKMARK_KEY)
-        quickmark = nodegraphview.getQuickMark(value, SIDEFXEDU_QUICKMARK_KEY)
-        nodegraphview.createUndoQuickMark(self._pane)
-        if quickmark is not None:
-            quickmark.jump(self._pane)
+        installedgroup_layout.addLayout(current_version_layout)
+        installedgroup_layout.addLayout(current_file_path_layout)
+
+        # Update
+        version_layout = QHBoxLayout()
+        update_version_label = QLabel("Release:")
+
+        self.version_combo = QComboBox(self)
+        for release in self.updater_object.production_releases[:10]:
+            self.version_combo.addItem(release)
+
+        self.production_builds_check = QCheckBox("Production Builds Only")
+        self.production_builds_check.setChecked(True)
+        self.production_builds_check.stateChanged.connect(self.on_production_check)
+
+        version_layout.addWidget(update_version_label)
+        version_layout.addWidget(self.version_combo)
+        version_layout.addWidget(self.production_builds_check)
+
+        changedgroup_layout = QVBoxLayout(change_group)
+        changedgroup_layout.addLayout(version_layout)
+        self.button = QPushButton("Update")
+        self.uninstallButton = QPushButton("Uninstall")
+        self.launcherButton = QPushButton("Start Launcher")
+
+        self.button.clicked.connect(self.on_updatebtn_press)
+        self.uninstallButton.clicked.connect(self.on_uninstallbtn_press)
+        self.launcherButton.clicked.connect(self.on_launcherbtn_press)
+        layout = QVBoxLayout()
+
+        layout.addWidget(installed_group)
+        layout.addWidget(change_group)
+
+        layout.addWidget(spacer)
+
+
+        if hou.getenv("SIDEFXEDU_ADMIN_UPDATES", "0") == "1":
+            warning_layout = QHBoxLayout()
+            admin_warninglabel = QLabel(self)
+            admin_warninglabel.setText("The system administrator has disabled updating on this machine.\nPlease contact the administrator for any changes")
+            admin_warninglabel.setStyleSheet('color: red')
+            warning_layout.addWidget(admin_warninglabel)
+            layout.addLayout(warning_layout)
+            self.button.setEnabled(False)
+            self.uninstallButton.setEnabled(False)
+
+        button_layout = QHBoxLayout()
+        button_layout.addWidget(self.launcherButton)
+        button_layout.addWidget(spacer)
+        button_layout.addWidget(self.button)
+        button_layout.addWidget(self.uninstallButton)
+        
+        layout.addLayout(button_layout)
+    
+        self.setLayout(layout)
+
+    def show_success_dialog(self, mode):        
+        message = ""
+        
+        if mode == "change":
+            message = "SideFX EDU updated successfully"
+            message += "\nPlease Restart Houdini to load all of the new tools"
+        
+        elif mode == "uninstall":
+            message = "SideFX EDU uninstalled successfully"
+            message += "\nPlease restart Houdini for changes to take effect"
+        
+        elif mode == "localbuild":
+            message = "SideFX EDU installed successfully"
+            message += "\nA local copy has been installed. If you wish to update to a newer (online) version, update again"
+            message += "\nPlease restart Houdini to load all of the new tools"
+
+        elif mode == "help":
+            message = "Unable to uninstall EDU?"
+            message += "\n\nEDU shelf tool could have difficulty to remove those EDU not installed by itself."
+            message += "\nWe suggest Houdini Launcher for better Houdini Package management."
+            message += "\nYou could download Houdini Launcher from:"
+            message += "\nhttps://www.sidefx.com/download/daily-builds/?show_launcher=true"
+
+        hou.ui.displayMessage(message, title= "Help" if mode == "help" else "Success")
+
+    def on_production_check(self, state=None):
+        self.version_combo.clear()
+        if not self.production_builds_check.isChecked():
+            for release in self.updater_object.development_releases[:10]:
+                self.version_combo.addItem(release)
+        for release in self.updater_object.production_releases[:10]:
+            self.version_combo.addItem(release)
+
+    def on_updatebtn_press(self):
+        version = str(self.version_combo.currentText())
+        if version != "":
+            if LOCAL_TOOLSET_VERSION != version:
+                self.updater_object.update_toolset_version(version)
+                self.show_success_dialog("change")
+            else:
+                self.updater_object.update_toolset_version(version)
+                self.show_success_dialog("localbuild")
+        self.close()
+
+    def on_uninstallbtn_press(self):
+        version = self.current_version
+        if version is not None:
+            self.updater_object.uninstall_toolset()
+            self.show_success_dialog("uninstall")
+        self.close()
+
+    def on_helpbtn_press(self):
+        self.show_success_dialog("help")
+
+    def on_launcherbtn_press(self):
+        p = QProcess()
+        if self.settings.value('launcher_install_path'):
+            launcher_path = self.settings.value('launcher_install_path')
+        elif platform.system() == "Darwin":
+            launcher_path =  "/Applications/Houdini Launcher"
+        elif platform.system() == "Linux":
+            launcher_path = "/opt/sidefx/launcher"
+        else:
+            launcher_path = "C:/Program Files/Side Effects Software/Launcher"
+        launcher_bin_file_path = get_launcher_bin_file_path(launcher_path)
+        if os.path.isfile(launcher_bin_file_path):
+            p.setProgram(launcher_bin_file_path)
+            p.startDetached()
+            self.close()
+        else:
+            dialog = LauncherDialog(launcher_path, self.settings, self)
+            dialog.show()
+
+
+# UPDATER ##############################################################################################################
+class SideFXEDUUpdater(object):
+    """
+        Main updater object, gets called with the shelf button press
+
+
+    """
+
+    def __init__(self, updater_dialog=False):
+        # Store Releases and Production Releases
+        self.development_releases = []
+        self.production_releases = []
+        
+        self.current_version = self.get_current_version()
+        self.current_file_path = self.get_current_file_path()
+        self.get_available_releases()
+
+        disabling_message = os.getenv("SIDEFXEDU_NOINSTALL_MESSAGE")
+        if disabling_message:
+            if updater_dialog:
+                hou.ui.displayMessage(disabling_message)
+                return
+            else:
+                return disabling_message
+
+        if updater_dialog:
+            self.show_updater_dialog()
+            self.clean_old_installs()
+
+
+    def clean_old_installs(self):
+        if not os.path.isdir(HOU_TEMP_PATH):
+            return
+        for item in os.listdir(HOU_TEMP_PATH):
+            if os.path.isdir(os.path.join(HOU_TEMP_PATH, item)):
+                if item != self.current_version:
+                    shutil.rmtree(os.path.join(HOU_TEMP_PATH, item), ignore_errors=True)
+
+    # This functions is used to clean edu installed by H18.0.499
+    def clean_18_0_499_installs(self):
+        packages_dir = os.path.join(os.getenv("HOUDINI_USER_PREF_DIR"), "packages")
+        edu_contents_path = os.path.join(packages_dir, "SideFXEDU%s" % APP_VERSION)
+        if os.path.isdir(edu_contents_path):
+            shutil.rmtree(edu_contents_path, ignore_errors=True)
+
+    # We've renamed the SideFXEDU.json to be SideFXEDU[VER_MM].json, so need to 
+    # remove previous SideFXEDU.json file. Otherwise, we end up with having two EDU
+    def clean_sidefxedu_json(self):
+        packages_dir = os.path.join(os.getenv("HOUDINI_USER_PREF_DIR"), "packages")
+        json_file_path = os.path.join(packages_dir, "SideFXEDU.json")
+        if os.path.isfile(json_file_path):       
+            os.remove(json_file_path)
+
+    def get_available_releases(self):
+        # Attempt to download things from github
+        try:
+            with contextlib.closing(urlopen(Request(REPO_URL), context=ssl._create_unverified_context())) as response:
+                data = response.read()
+                if data == "":
+                    raise ValueError("Unable to get the release list")
+        except:
+            if LOCAL_TOOLSET_VERSION is not None:
+                self.production_releases.append(LOCAL_TOOLSET_VERSION)
+                self.development_releases.append(LOCAL_TOOLSET_VERSION)
+            return
+
+        if LOCAL_TOOLSET_VERSION is not None:
+            self.production_releases.append(LOCAL_TOOLSET_VERSION)
+
+        # Parse the data and filter out versions we don't care about
+        j_data = json.loads(data)
+        for release in j_data['packages']:
+            version_of_release = str(release['version'])
+            if version_of_release[0:4] == str(APP_VERSION):
+                if release['display_name'].endswith("Production Build"):
+                    self.production_releases.append(version_of_release)
+                    ONLINE_ZIP_DICT[version_of_release] = release['url']
+                elif release['display_name'].endswith("Daily Build"):
+                    self.development_releases.append(version_of_release)
+                    ONLINE_ZIP_DICT[version_of_release] = release['url']
+        if self.production_releases:
+            self.production_releases.reverse()
+        if self.development_releases:
+            self.development_releases.reverse()
+
+    def show_updater_dialog(self):
+        dialog = UpdateDialog(hou.qt.mainWindow(), self)
+        dialog.show()
+
+    def download_url(self, url):
+        """
+            Download the zip file from sidefx.com
+        :param url:
+        :return:
+        """
+        local_path = os.path.join(HOU_TEMP_PATH, "SideFXEDU_tmp.zip")
+        if not os.path.exists(os.path.dirname(local_path)):
+            os.makedirs(os.path.dirname(local_path))
+
+        try:
+            zipfile = urlopen(url, context=ssl._create_unverified_context())
+            with open(local_path, 'wb') as output:
+                output.write(zipfile.read())
+        except:
+            raise ValueError("Unable to download the package file :" + url)
+            return
+
+        return local_path
+
+    def unzip_file(self, zip_file, destination_path):
+        zipf = zipfile.ZipFile(zip_file, 'r', zipfile.ZIP_DEFLATED)
+        zipf.extractall(destination_path)
+        zipf.close()
+
+    def get_current_version(self):
+        package_info = json.loads(hou.ui.packageInfo())
+        for package, info in package_info.items():
+            if package.startswith('SideFXEDU'):
+                if 'Version' in info:
+                    return info['Version']
+                elif 'sidefxedu_current_version' in info:
+                    return info['sidefxedu_current_version']
+        return None
+
+    def get_current_file_path(self):
+        package_info = json.loads(hou.ui.packageInfo())
+        for package, info in package_info.items():
+            if package.startswith('SideFXEDU'):
+                if 'File path' in info:
+                    return info['File path']
+        return None
+
+    def generate_settings_file(self, target_version, dst_path, unzip_dst_path):
+        sidefxedu_json = {}
+        contents_folder = ""
+        compatiable_hou_version = ""
+        try:
+            if os.path.isdir(unzip_dst_path):
+                for file_name in os.listdir(unzip_dst_path):
+                    abs_path = os.path.join(unzip_dst_path, file_name)
+                    if os.path.isdir(abs_path) and re.match("SideFXEDU[0-9][0-9].[0-9]", file_name):
+                        contents_folder = file_name
+                        compatiable_hou_version = file_name.split("SideFXEDU")[-1]
+                    if os.path.isfile(abs_path) and re.match("SideFXEDU[0-9][0-9].[0-9].json", file_name):
+                        with open(abs_path) as json_data:
+                            sidefxedu_json = json.load(json_data)
+        except:
+            print("unabled to load json file in: %s" % unzip_dst_path)
+        
+        sidefxedu_contents_dir = \
+            os.path.join("$HOUDINI_PACKAGE_PATH/../SideFXEDU/%s" % target_version, contents_folder)
+        sidefxedu_json['env'] = \
+                [ {'SIDEFXEDU': sidefxedu_contents_dir },
+                  {'PATH': {'method': "prepend",
+                            'value': ["$SIDEFXEDU/bin"]
+                           }
+                  }
+                ]
+        sidefxedu_json['version'] = target_version
+        sidefxedu_json['path'] = "$SIDEFXEDU"
+        if 'enable' not in sidefxedu_json:
+            if compatiable_hou_version == "":
+                compatiable_hou_version = APP_VERSION
+            sidefxedu_json['enable'] = \
+                "houdini_version >= '%s'" % compatiable_hou_version + \
+                " and houdini_version < '%s'" % str((float(compatiable_hou_version) + 0.1))
+        JSON = json.dumps(sidefxedu_json, indent=4)
+        f = open(dst_path, 'w')
+        f.write(JSON)
+        f.close()
+
+    # Delete Installed Files -- EXPOSED TO USER
+    def uninstall_toolset(self):
+        if self.current_version is not None:
+            removedir = os.path.join(HOU_TEMP_PATH, self.current_version)
+            if os.path.exists(removedir):
+                shutil.rmtree(removedir, ignore_errors=True)
+
+            if os.path.isfile(SETTINGS_FILE):
+                os.remove(SETTINGS_FILE)
+
+        self.clean_old_installs()
+
+    # Install embedded toolset Files -- EXPOSED TO USER
+    def install_latest_production_toolset(self):
+        version = self.production_releases[0]
+        self.update_toolset_version(version)
+
+    # Install latest development build -- EXPOSED TO USER
+    def install_latest_development_toolset(self):
+        version = self.development_releases[0]
+        self.update_toolset_version(version)
+
+    # Install embedded toolset Files -- EXPOSED TO USER
+    def install_embedded_toolset(self):
+        self.update_toolset_version(LOCAL_TOOLSET_VERSION)
+
+    def update_toolset_version(self, target_version):
+        """ Call back from the Updater Dialog """
+
+        is_local_zip = 0
+        if LOCAL_TOOLSET_VERSION == target_version:
+            is_local_zip = 1
+
+        # Create Packages Folder if non-existent
+        packages_dir = os.path.join(os.getenv("HOUDINI_USER_PREF_DIR"), "packages")
+        if not os.path.exists(packages_dir):
+            os.makedirs(packages_dir)
+
+        with hou.InterruptableOperation("Installing SideFX EDU", open_interrupt_dialog=True) as Operation:
+
+            if is_local_zip == 0:
+                download_url = ONLINE_ZIP_DICT[target_version]
+                local_path = self.download_url(download_url)
+            else:
+                local_path = LOCAL_TOOLSET_ZIP
+
+            if not os.path.isdir(os.path.join(HOU_TEMP_PATH, target_version)):
+                self.unzip_file(local_path, os.path.join(HOU_TEMP_PATH, target_version))
+
+            if is_local_zip == 0:
+                os.remove(local_path)
+
+            InstallPath = os.path.join(HOU_TEMP_PATH, target_version).replace("\\", "/")
+
+            self.generate_settings_file(target_version, SETTINGS_FILE, InstallPath)
+            self.clean_18_0_499_installs()
+            self.clean_sidefxedu_json()
+
+        self.current_version = target_version
+
+
+def main(argv):
+    try:
+        updater = SideFXEDUUpdater()
+        optlist, args = getopt.getopt(argv, "pdev:u", ['latestproduction', 'latestdevelopment', 'embedded', 'version=', 'uninstall'])
+        for opt, arg in optlist:
+            if opt in ["--latestproduction", "-p"]:
+                updater.install_latest_production_toolset()
+            if opt in ["--latestdevelopment", "-d"]:
+                updater.install_latest_development_toolset()
+            if opt in ["--embedded", "-e"]:
+                updater.install_embedded_toolset()
+            if opt in ["--version", "-v"]:
+                updater.update_toolset_version(arg)
+            if opt in ["--uninstall", "-u"]:
+                updater.uninstall_toolset()
+    except:
+        pass
+
+if __name__ == "__main__":
+    main(sys.argv[1:])
