@@ -1,0 +1,95 @@
+= Labs PolySlice =
+
+#type: node
+#context: sop
+#internal: labs::polyslice::1.2
+#icon: polyslice
+#tags: sidefxlabs,  model
+
+""" Slice polygons into polygons or polylines """
+
+This HDA slices polygons into strips of polygons or polylines. 
+It handles large numbers of slices well, and propagates most data onto new created geometry, allowing for geometry attributes like UV to work correctly once processed.
+There are options to keep the individual strips together or separate them and the slices can be defined by a rest point attribute to allow for effects such as: patterns, curves, orientation changes and slice sizes.
+
+The HDA can create Slice ID attributes, useful in driving downstream modelling operations and variation of the spacing is achievable via a ramp.
+    
+@parameters
+    Group:
+        The group of primitives to be sliced.
+    Mode:
+        Slice the polygons into polylines (lines) or polygons (faces).
+    Use Rest:
+        Use a point attribute for the slice position.
+    Rest:
+        The point attribute used as the slicing position.
+
+    == Visualize ==
+    Show Guide:
+        Show a guide that illustrates slice spacing.
+    Color Slices:
+        Randomly colorize slices with a primitive Cd to show individual slices.
+    Show Rest:
+        Visualize the rest position used as the position for slicing.
+
+    == Dimensions ==
+    Number Of Slices:
+        The number of slices to create within slicing bounding box.
+    Constrain to BBox:
+	Constrains the slicing bounding box to the bounding box of the input geometry.	
+    Set To BBox:
+        Automatically set the slicing bounding box based on the bounding box of the input geometry.
+    Center:
+        Center of the slicing bounding box.
+    Size:
+        Size of the slicing bounding box.
+    Uniform Scale:
+        Uniform scale of the slicing bounding box.
+    Rotate:
+        Euler rotations of the slicing bounding box. Used to create to different orientations of slices.
+
+    == Topology ==
+    Enable Divide Convex:
+        Enable Divide convex polygons to improve slicing accuracy on non-planar faces.
+    Divide Convex Threshold:
+        Threshold to divide convex polygons.
+    Slice Connectivity:
+            Type of connectivity of the sliced polygons. Skip Connecting skips any form of connection of polygons and is the fastest, Slices Together connects all slices together, and Slice Separate keeps the slices separated from each other as if cut by a knife.
+    Slice Group Border Edge:
+        If enabled, the neighbouring polygons to those specified in Group, will have their shared bordering edges sliced to match the edges of primitives inside Group allowing for proper connection.
+    Connect Group Border Edge:
+        Reconnect polygon primitives not in Group back to Group. Only available with Slice Connectivity mode set to Slices Together.
+    Export Slice ID:
+        Export a primitive integer attribute of the slice it is part of.
+    Slice ID:
+        Name of slice ID primitive attribute.
+    Export Norm Slice ID:
+        Export a float primitive attribute between 0 and 1 of the slice it is part of.
+    Norm Slice ID:
+        Name of normalized Slice ID primitive attribute.
+    Enable Export Slice Group:
+        Create a primitive group of sliced polygons.
+    Export Slice Group:
+        Name of primitive group of sliced polygons.
+
+    == Cap ==
+    Enable Start Cap:
+    	Output primitives outside of the start bounds of the slicing bounding box.
+    Start Cap:
+        Primitive Group's name of start cap.
+    Enable End Cap:
+        Output primitives outside of the end bounds of the slicing bounding box.
+    End Cap:
+        Primitive Group's name of end cap.
+
+    == Advanced ==
+    Point Slice Threshold:
+    	Fraction of slice thickness to treat pre-existing points as slice points. Default value is usually good. Changing it can create interesting effects.
+    Fuse Distance Threshold:
+        Fraction of slice thickness to fuse back polygons’ points together. Default expression compensates for floating precision errors that can occur in small slices and or large objects. Extremely distorted geometry may require lower values to keep connections accurate.
+ 
+    == Remap ==
+    Enable:
+        Enable remapping of the slice spacing across the slicing bounding box. Output is influenced by the resolution of input geometry. 
+    Remap:
+        Ramp to remap the spacing of slices across the slicing bounding box. This useful creating more organic and irregular effects.
