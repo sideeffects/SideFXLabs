@@ -1,0 +1,79 @@
+= Labs MapBox =
+
+#type: node
+#context: sop
+#internal: labs::mapbox
+#icon: mapbox
+#tags: sidefxlabs,  terrain
+
+""" Generate color, height and Open Street Map (OSM) curves using data provided by Mapbox.com. """
+
+:video:
+    #src: /movies/mapboxhelpcard3.mp4
+    
+The website mapbox.com provides methods to browse and download map data in a variety of formats. This sop provides a wrapper around the mapbox.com API so that you can browse for a location, and quickly have a heightfield setup with height and colour data, as well as OSM data ready to process.
+
+@parameters
+    Refresh:
+        Re-download the maps with the current co-ordinates.
+    
+    == API Key ==
+    Mapbox API Key:
+        The API key required by Mapbox. Get it using the following steps: 
+        <p>1. Register an account at [MapBox |https://account.mapbox.com/].</p>
+        <p>2. Log into your mapbox.com account and copy the API key seen on the [Account Page |https://account.mapbox.com/].</p>
+        <p>3. Paste that key into the Mapbox API Key parameter.</p>
+        <p>4. Optionally, set the environment variable MAPBOX_API with this key to skip these steps.</p>
+    
+    == Base Settings ==
+    Lat Lon Zoom:
+        The coordinates of the map region to download. Can be set manually, or automatically filled out with the GUI browser launched from the 'Look Up' button.
+    Look Up:
+        Launch the GUI to select the map region to download.
+    Offsets:
+        Offset from the latlong in tile units, useful for setting up tiles of downloads. Eg, make 3 copies of a mapbox sop, and set the other 3 sops to have offset of (1,0), (0,1), (1,1) to create a 4x4 region.
+    
+    == Style ==
+    Style:
+        This parameter allows you to specify what style of map should be downloaded from Mapbox. Choose a default style of provide a custom one.
+    Mapbox Style:
+        This parameter takes a mapbox style you or someone else has created in [Mapbox Studio|https://studio.mapbox.com/].
+        To create a style, please refer to the official [Mapbox Studio|https://docs.mapbox.com/studio-manual/guides/] documentation. Once you have created a style, "publish it" and provide the "Style URL" in this parameter.  
+    Attribution:
+	Enable or disable the attribution watermark on the downloaded color maps. If you disable this, you need to refer to Mapbox elsewhere as described [HERE|https://docs.mapbox.com/help/how-mapbox-works/attribution/].
+
+    == Data Processing ==
+    Terrain Mode:
+        Set if terrain should be heighfield or polygon. Polygons are more general, but much slower to compute.
+    Resolution Scale:
+        Multiplier on heighfield resolution. Default is 2048x2048, setting resolution scale to 0.25 will reduce the heightfield resolution to 512x512, resolution scale 2 will set heighfield resolution to 4096x4096. Note that it won't increase or decrease the quality of the downloaded maps, only the underlying heightfield.
+    Height Scale:
+        A height multiplier, can artificially boost or lower the terrain height read from mapbox data.
+    Height Blur Strength:
+        Blur applied to the heightmap to reduce fine detail.
+    
+    == OSM Settings ==
+    Download OSM Data:
+        This checkbox controls if OSM data should be downloaded. Disabling this significantly speeds up download speeds for Mapbox terrain data, but will not provide you with OSM curve data in the second output.
+    Offset:
+        Vertical offset applied to OSM data.
+    Snap To Terrain:
+        Project OSM data onto the heightfield, when this toggle is disabled the OSM data will be flat.
+    Building Height From Terrain:
+        Set a height attribute if it exists in the OSM data (otherwise calculate it from projecting onto the terrain).
+    Color From Terrain:
+        Use the downloaded colour map to set a primitive colour for the buildings.
+    Resample OSM Curves:
+        Enable extra points to be inserted into the building curves.
+    Segment Length:
+        Length used to generate extra curve points for the buildings.
+    
+    == Local Download Paths ==
+    Download Path Color:
+        Location and name of the downloaded color map.
+    Download Path Height:
+        Location and name of the downloaded height map.
+    Download Path OSM:
+        Location and name of the downloaded OSM path data.
+    Retry on Download Fail:
+        Controls if the tool is supposed to keep trying to download OSM data when failed. Reasons to turn this off is to make sure the node doesn't fail when you get rate-limited by the server. This does however mean that cooking can take very long.
