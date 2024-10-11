@@ -1,0 +1,289 @@
+# Dialog script for labs::biome_attributes_to_terrain::1.0 automatically generated
+
+{
+    name	labs::biome_attributes_to_terrain::1.0
+    script	labs::objpath_instance::1.0
+    label	"Labs Biome Attributes to Terrain"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Terrain
+    inputlabel	2	"Points with Biome Definitions"
+    inputlabel	3	"Biome Regions"
+    inputlabel	4	"No Soil Zones"
+    inputlabel	5	"Water Zones"
+
+    parm {
+        name    "display"
+        label   "Display"
+        type    ordinal
+        joinnext
+        default { "0" }
+        menu usetokenvalue {
+            "0" "Input"
+            "1" "Temperature"
+            "2" "Precipitation"
+            "3" "Soil"
+            "4" "Biome Color"
+        }
+        parmtag { "export_disable" "1" }
+        parmtag { "script_callback" "kwargs[\"node\"].setOutputForViewFlag(-1 if kwargs[\"node\"].parm(\"display\").eval() != 0 else 0)" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "autoremap"
+        label   "Auto Remap"
+        type    ordinal
+        nolabel
+        default { "0" }
+        hidewhen "{ display == 0 } { display == 4 }"
+        menu {
+            "0" "Use Real-World Range"
+            "1" "Auto Normalize Range"
+            "2" "Manual Range"
+        }
+        range   { 0! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback" "" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "minmaxmessage"
+        label   "Message"
+        type    label
+        default { "Min: `detail(\"s_auto\",\"_bat_in_min\",0)`\nMax: `detail(\"s_auto\",\"_bat_in_max\",0)`" }
+        hidewhen "{ autoremap == 2 } { display == 0 } { display == 4 }"
+        parmtag { "sidefx::look" "block" }
+    }
+    groupsimple {
+        name    "fd_autoremap"
+        label   "AUTOREMAP"
+        disablewhen "{ autoremap != 2 } { display == 0 }"
+        hidewhen "{ autoremap != 2 }"
+        grouptag { "sidefx::look" "blank" }
+
+        parm {
+            name    "computerange"
+            label   "Compute Range"
+            type    button
+            default { "0" }
+            hidewhen "{ display == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "hou.pwd().hdaModule().computeRange(kwargs)" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "inputmin0"
+            label   "Min"
+            type    float
+            invisible
+            default { "0" }
+            hidewhen "{ display != 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "inputmax0"
+            label   "Max"
+            type    float
+            invisible
+            default { "1" }
+            hidewhen "{ display != 0 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "inputmin1"
+            label   "Min"
+            type    float
+            default { "-10" }
+            hidewhen "{ display != 1 }"
+            range   { -10 33 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "inputmax1"
+            label   "Max"
+            type    float
+            default { "33" }
+            hidewhen "{ display != 1 }"
+            range   { -10 33 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "inputmin2"
+            label   "Min"
+            type    float
+            default { "0" }
+            hidewhen "{ display != 2 }"
+            range   { 0 4300 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "inputmax2"
+            label   "Max"
+            type    float
+            default { "4300" }
+            hidewhen "{ display != 2 }"
+            range   { 0 4300 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "inputmin3"
+            label   "Min"
+            type    float
+            default { "0" }
+            hidewhen "{ display != 3 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "inputmax3"
+            label   "Max"
+            type    float
+            default { "1" }
+            hidewhen "{ display != 3 }"
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    group {
+        name    "fd_default_attributes"
+        label   "Default Attributes"
+
+        parm {
+            name    "biomecolor"
+            label   "Color"
+            type    color
+            size    3
+            default { "1" "1" "1" }
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "temperature"
+            label   "Temperature"
+            type    float
+            default { "14" }
+            range   { -10 33 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "precipitation"
+            label   "Precipitation"
+            type    float
+            default { "700" }
+            range   { 10 4300 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    group {
+        name    "fd_default_attributes_1"
+        label   "Output"
+
+        parm {
+            name    "uenonename"
+            label   "Unreal None"
+            type    string
+            invisible
+            default { "Layer_uenone" }
+            menureplace {
+                [ "import terraintoolutils" ]
+                [ "" ]
+                [ "return terraintoolutils.buildNameMenu(kwargs['node'])" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "uevizname"
+            label   "Unreal Viz"
+            type    string
+            invisible
+            default { "Layer_ueviz" }
+            menureplace {
+                [ "import terraintoolutils" ]
+                [ "" ]
+                [ "return terraintoolutils.buildNameMenu(kwargs['node'])" ]
+                language python
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_hflayers"
+            label   "HeightField Layers"
+
+            parm {
+                name    "tempname"
+                label   "Temperature"
+                type    string
+                default { "temperature" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "precname"
+                label   "Precipitation"
+                type    string
+                default { "precipitation" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "soilname"
+                label   "Soil"
+                type    string
+                default { "soil" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomeidname"
+                label   "Biome ID"
+                type    string
+                default { "biomeid" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomecolorrname"
+                label   "Biome Color R"
+                type    string
+                default { "biomecolor.x" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomecolorgname"
+                label   "Biome Color G"
+                type    string
+                default { "biomecolor.y" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomecolorbname"
+                label   "Biome Color B"
+                type    string
+                default { "biomecolor.z" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "biomeavgheightname"
+                label   "Biome Average Height"
+                type    string
+                default { "biomeaverageheight" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+    }
+
+    parm {
+        name    "uepath"
+        label   "Unreal Material Path"
+        type    string
+        invisible
+        default { "/Script/Engine.Material'/Game/BiomeDemo/Materials/M_Visualise.M_Visualise'" }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

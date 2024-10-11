@@ -31,6 +31,7 @@
                 "1" "Temperature"
                 "2" "Precipitation"
                 "3" "Soil"
+                "4" "Biome Color"
             }
             parmtag { "export_disable" "1" }
             parmtag { "script_callback" "kwargs[\"node\"].setOutputForViewFlag(-1 if kwargs[\"node\"].parm(\"display\").eval() != 0 else 0)" }
@@ -42,7 +43,7 @@
             type    ordinal
             nolabel
             default { "0" }
-            hidewhen "{ display == 0 }"
+            hidewhen "{ display == 0 } { display == 4 }"
             menu {
                 "0" "Use Real-World Range"
                 "1" "Auto Normalize Range"
@@ -58,7 +59,7 @@
             label   "Message"
             type    label
             default { "Min: `detail(\"s_auto\",\"_bae_in_min\",0)`\nMax: `detail(\"s_auto\",\"_bae_in_max\",0)`" }
-            hidewhen "{ autoremap == 2 } { display == 0 }"
+            hidewhen "{ autoremap == 2 } { display == 0 } { display == 4 }"
             parmtag { "sidefx::look" "block" }
         }
         groupsimple {
@@ -351,80 +352,6 @@
             }
 
             groupsimple {
-                name    "fd_combine"
-                label   "Mask"
-
-                parm {
-                    name    "enablemask"
-                    label   "Enable Mask"
-                    type    toggle
-                    default { "0" }
-                    parmtag { "script_callback" "" }
-                    parmtag { "script_callback_language" "python" }
-                }
-                groupsimple {
-                    name    "fd_mask"
-                    label   "MASK"
-                    hidewhen "{ enablemask == 0 }"
-                    grouptag { "sidefx::look" "blank" }
-
-                    parm {
-                        name    "soilmaskname"
-                        label   "Mask Layer"
-                        type    string
-                        default { "mask" }
-                        menureplace {
-                            "height"                "height"
-                            "_bie_precipitation"    "_bie_precipitation"
-                            "_bie_temperature"      "_bie_temperature"
-                            "_bie_biomeid"          "_bie_biomeid"
-                            "_bie_color.x"          "_bie_color.x"
-                            "_bie_color.y"          "_bie_color.y"
-                            "_bie_color.z"          "_bie_color.z"
-                            "_bie_averageheight"    "_bie_averageheight"
-                            "_bie_water"            "_bie_water"
-                            "_bie_soil"             "_bie_soil"
-                            "mask"                  "mask"
-                            "_bie_soil2"            "_bie_soil2"
-                        }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "layermode"
-                        label   "Combine with Noise"
-                        type    ordinal
-                        default { "replace" }
-                        disablewhen "{ removebynoise == 0 }"
-                        menu {
-                            "replace"   "Replace"
-                            "add"       "Add"
-                            "subtract"  "Subtract"
-                            "diff"      "Difference"
-                            "multiply"  "Multiply"
-                            "max"       "Maximum"
-                            "min"       "Minimum"
-                            "blend"     "Blend"
-                        }
-                        parmtag { "autoscope" "0000000000000000" }
-                        parmtag { "script_callback" "if kwargs[\"node\"].parm(\"removebynoise\").eval() == 0: kwargs[\"node\"].parm(\"layermode\").set(0) " }
-                        parmtag { "script_callback_language" "python" }
-                    }
-                    parm {
-                        name    "blend"
-                        label   "Blend Mask"
-                        type    float
-                        default { "0.5" }
-                        disablewhen "{ removebynoise == 0 }"
-                        hidewhen "{ layermode != blend }"
-                        range   { 0 1 }
-                        parmtag { "autoscope" "0000000000000000" }
-                    }
-                }
-
-            }
-
-            groupsimple {
                 name    "fd_soilqualitynoise"
                 label   "Soil Noise"
 
@@ -571,6 +498,72 @@
                         parmtag { "autoscope" "0000000000000000" }
                         parmtag { "parmvop" "1" }
                         parmtag { "shaderparmcontexts" "cvex" }
+                    }
+                }
+
+            }
+
+            groupsimple {
+                name    "fd_combine"
+                label   "Soil Mask"
+
+                parm {
+                    name    "enablemask"
+                    label   "Enable Mask"
+                    type    toggle
+                    default { "0" }
+                    parmtag { "script_callback" "" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                groupsimple {
+                    name    "fd_mask"
+                    label   "MASK"
+                    hidewhen "{ enablemask == 0 }"
+                    grouptag { "sidefx::look" "blank" }
+
+                    parm {
+                        name    "soilmaskname"
+                        label   "Mask Layer"
+                        type    string
+                        default { "mask" }
+                        menureplace {
+                            [ "import terraintoolutils" ]
+                            [ "" ]
+                            [ "return terraintoolutils.buildNameMenu(hou.pwd().node(\"get_user_mask\"))" ]
+                            language python
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "layermode"
+                        label   "Combine with Noise"
+                        type    ordinal
+                        default { "replace" }
+                        disablewhen "{ removebynoise == 0 }"
+                        menu {
+                            "replace"   "Replace"
+                            "add"       "Add"
+                            "subtract"  "Subtract"
+                            "diff"      "Difference"
+                            "multiply"  "Multiply"
+                            "max"       "Maximum"
+                            "min"       "Minimum"
+                            "blend"     "Blend"
+                        }
+                        parmtag { "autoscope" "0000000000000000" }
+                        parmtag { "script_callback" "if kwargs[\"node\"].parm(\"removebynoise\").eval() == 0: kwargs[\"node\"].parm(\"layermode\").set(0) " }
+                        parmtag { "script_callback_language" "python" }
+                    }
+                    parm {
+                        name    "blend"
+                        label   "Blend Mask"
+                        type    float
+                        default { "0.5" }
+                        disablewhen "{ removebynoise == 0 }"
+                        hidewhen "{ layermode != blend }"
+                        range   { 0 1 }
+                        parmtag { "autoscope" "0000000000000000" }
                     }
                 }
 
