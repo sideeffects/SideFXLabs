@@ -4,6 +4,7 @@ from pathlib import Path
 from labs_vat_importer import Settings, import_vat
 
 WIDGET='/SideFX_Labs/Editor/VATImporter/EUW_VATImporter.EUW_VATImporter_C'
+BLUEPRINT='/SideFX_Labs/Editor/VATImporter/EUW_VATImporter.EUW_VATImporter'
 _widget=None
 _session={}
 _busy=False
@@ -11,9 +12,42 @@ last_result=None
 _restoring=False
 _refreshing=False
 
+def active_widget():
+    global _widget
+    if _widget is not None and not unreal.SystemLibrary.is_valid(_widget):
+        _widget=None
+    return _widget
+
+def widget_constructed(path):
+    global _widget,_restoring
+    widget=unreal.find_object(None,path)
+    if widget is None or not unreal.SystemLibrary.is_valid(widget):
+        raise RuntimeError('Could not initialize the VAT importer widget')
+    _widget=widget
+    _restoring=True
+    try:
+        for name,value in _session.items():
+            if name=='Destination' and value=='/Game/VATPythonPrototype': value='/Game/VAT'
+            field=widget.get_editor_property(name)
+            if name=='Mode': field.set_selected_option(value)
+            elif name=='Interpolate': field.set_is_checked(value)
+            else: field.set_text(value)
+    finally:
+        _restoring=False
+    settings_changed()
+
+def widget_destructed(path):
+    global _widget
+    widget=active_widget()
+    if widget is None or widget.get_path_name()!=path: return
+    try:
+        remember_settings()
+    finally:
+        if _widget is widget: _widget=None
+
 def refresh_file_lists():
     global _refreshing
-    if not _widget or _refreshing: return
+    if not active_widget() or _refreshing or _restoring: return
     _refreshing=True
     try:
         from labs_vat_importer import ROLES
@@ -35,28 +69,31 @@ def refresh_file_lists():
     finally: _refreshing=False
 
 def toggle_manual():
+    if not active_widget(): return
     panel=_widget.get_editor_property('ManualPaths')
     visible=panel.get_visibility()!=unreal.SlateVisibility.COLLAPSED
     panel.set_visibility(unreal.SlateVisibility.COLLAPSED if visible else unreal.SlateVisibility.VISIBLE)
 
 def remember_settings():
     global _session
-    if not _widget or _restoring: return
+    if not active_widget() or _restoring: return
+    values={}
     for name in ['Mode','Meshes','Textures','Destination','MaterialName','FPS','Interpolate']:
         field=_widget.get_editor_property(name)
-        _session[name]=field.get_selected_option() if name=='Mode' else (field.is_checked() if name=='Interpolate' else str(field.get_text()))
+        values[name]=field.get_selected_option() if name=='Mode' else (field.is_checked() if name=='Interpolate' else str(field.get_text()))
+    _session=values
     if _session.get('Destination')=='/Game/VATPythonPrototype':
         _session['Destination']='/Game/VAT'
     refresh_file_lists()
 
 def settings_changed():
-    if _restoring or not _widget: return
+    if _restoring or not active_widget(): return
     remember_settings()
     _widget.get_editor_property('Interpolate').set_is_enabled(_session['Mode']!='Fluid')
     _widget.get_editor_property('InterpolationHelp').set_text('Fluid uses its existing playback decoding; this function has no interpolation switch.' if _session['Mode']=='Fluid' else 'Blend between animation frames.')
 
 def browse(kind):
-    if _busy or not _widget: return
+    if _busy or not active_widget(): return
     try:
         from labs_vat_picker import choose_files
         mode=_widget.get_editor_property('Mode').get_selected_option()
@@ -72,24 +109,27 @@ def browse(kind):
 def open_widget():
     global _widget,_restoring
     remember_settings()
-    _restoring=True
-    cls=unreal.load_class(None,WIDGET)
-    _widget=unreal.get_editor_subsystem(unreal.EditorUtilitySubsystem).spawn_and_register_tab_generated_class(cls)
-    if not _widget: raise RuntimeError('Could not open VAT Python utility')
-    for name,value in _session.items():
-        if name=='Destination' and value=='/Game/VATPythonPrototype': value='/Game/VAT'
-        field=_widget.get_editor_property(name)
-        if name=='Mode': field.set_selected_option(value)
-        elif name=='Interpolate': field.set_is_checked(value)
-        else: field.set_text(value)
-    _restoring=False
-    settings_changed()
-    return _widget
+    try:
+        blueprint=unreal.load_asset(BLUEPRINT)
+        if not isinstance(blueprint,unreal.EditorUtilityWidgetBlueprint):
+            raise RuntimeError('Missing VAT importer widget asset: '+BLUEPRINT)
+        subsystem=unreal.get_editor_subsystem(unreal.EditorUtilitySubsystem)
+        old_tab=unreal.Name(WIDGET+'_ActiveTab')
+        if subsystem.does_tab_exist(old_tab):
+            subsystem.unregister_tab_by_id(old_tab)
+        widget=subsystem.spawn_and_register_tab(blueprint)
+        if not widget:
+            raise RuntimeError('Could not open VAT Importer; finish changing levels and try again')
+        if active_widget()!=widget:
+            widget_constructed(widget.get_path_name())
+        return widget
+    finally:
+        _restoring=False
 
 def import_from_open_widget():
     global _busy,last_result,_session
     if _busy: return None
-    if not _widget: raise RuntimeError('Open the VAT importer through its SideFX Labs menu entry')
+    if not active_widget(): raise RuntimeError('Open the VAT importer through its SideFX Labs menu entry')
     fields={name:_widget.get_editor_property(name) for name in ['Mode','Meshes','Textures','Destination','MaterialName','FPS','Status','Import','Interpolate']}
     remember_settings()
     _busy=True;fields['Import'].set_is_enabled(False)
