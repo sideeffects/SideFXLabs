@@ -16,7 +16,7 @@
         nolabel
         joinnext
         default { "0" }
-        parmtag { "script_callback" "kwargs[\"node\"].hm().cookAndRender(kwargs[\"node\"]); kwargs[\"node\"].hm().setupSkeletal(kwargs[\"node\"])" }
+        parmtag { "script_callback" "kwargs[\"node\"].hm().cookAndRender(kwargs[\"node\"])" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
@@ -58,7 +58,7 @@
             "4" "Skeletal Animation (Bone)"
         }
         range   { 0 10 }
-        parmtag { "script_callback" "kwargs[\"node\"].hm().switchMode(kwargs[\"node\"]); kwargs[\"node\"].hm().setupSkeletal(kwargs[\"node\"])" }
+        parmtag { "script_callback" "kwargs[\"node\"].hm().switchMode(kwargs[\"node\"])" }
         parmtag { "script_callback_language" "python" }
     }
     parm {
@@ -83,6 +83,7 @@
         size    2
         default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] }
         disablewhen "{ mode == 2 fluidpass == 1 }"
+        hidewhen "{ mode == 4 packmultipleclips == 1 }"
         range   { 0 10 }
     }
     parm {
@@ -90,7 +91,9 @@
         label   "Input Geometry"
         type    oppath
         default { "" }
+        help    "The path to the geometry node that you want to render. For Skeletal Animation (Bone) mode, this should be the character’s rest geometry, which has the `boneCapture` point capture attribute, and typically the first output from an FBX Character Import SOP."
         disablewhen "{ mode == 2 fluidpass == 1 }"
+        hidewhen "{ mode == 4 multisoppath == 1 }"
         parmtag { "opfilter" "!!SOP!!" }
         parmtag { "oprelative" "." }
     }
@@ -231,6 +234,15 @@
                 disablewhen "{ mode == 2 fluidpass == 1 }"
                 parmtag { "script_callback" "if kwargs[\"node\"].evalParm(\"fluiduvinrg\") == 1 : kwargs[\"node\"].setParms({\"override_c\": 0})" }
                 parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "enable_velocity"
+                label   "Export Velocity Texture"
+                type    toggle
+                default { "0" }
+                help    "Export signed local-space point v (Houdini units/second) to a separate EXR. Requires valid v on every frame. Does not estimate velocity from point numbers."
+                disablewhen "{ fluidpass == 1 }"
+                hidewhen "{ mode != 2 }"
             }
             groupcollapsible {
                 name    "fd_fluid_clean"
@@ -447,6 +459,43 @@
             hidewhentab "{ mode != 4 }"
 
             parm {
+                name    "f_s"
+                label   "Saved Frame Range / Previous Multi-Clip State (Internal)"
+                type    integer
+                invisible
+                size    3
+                default { [ "$RFSTART" hscript-expr ] [ "$RFEND" hscript-expr ] "0" }
+                help    "f_s1: Saved Start Frame; f_s2: Saved End Frame; f_s3: Previous Multi-Clip State (0/1)"
+                range   { 0 10 }
+            }
+            parm {
+                name    "multisoppath"
+                label   "Batch Process Multiple Input Geometries"
+                type    toggle
+                default { "0" }
+                help    "Turn this on to process several character meshes in one render. This is useful when you need to export multiple different characters that share the same skeleton and animation data. Each input geometry is exported as a separate static mesh with its own bone indices and weights, and all of them share a single set of animation textures, so adding more geometries does not increase texture memory consumption. All input geometries must be captured to the same skeleton as the (Rest Pose) input, their topology and skin weights may differ. This is independent of (Pack Multiple Animation Clips) - every geometry can drive every clip."
+                hidewhen "{ mode != 4 }"
+                parmtag { "script_callback_language" "python" }
+            }
+            multiparm {
+                name    "fd_addl_soppaths"
+                label    "Input Geometries"
+                default 0
+                hidewhen "{ mode != 4 } { multisoppath != 1 }"
+
+                parm {
+                    name    "soppath#"
+                    label   "Input Geometry #"
+                    type    oppath
+                    default { "" }
+                    help    "The path to the geometry node that you want to render. For Skeletal Animation (Bone) mode, this should be the character’s rest geometry, which has the `boneCapture` point capture attribute, and typically the first output from an FBX Character Import SOP."
+                    disablewhen "{ mode == 2 fluidpass == 1 }"
+                    parmtag { "opfilter" "!!SOP!!" }
+                    parmtag { "oprelative" "." }
+                }
+            }
+
+            parm {
                 name    "bone_rest"
                 label   "Rest Pose"
                 type    oppath
@@ -463,15 +512,62 @@
                 default { "" }
                 help    "The character’s animated pose, which is represented in the same manner as the Rest Pose. Typically the third output from an FBX Character Import SOP."
                 disablewhen "{ mode != 4 }"
+                hidewhen "{ packmultipleclips == 1 }"
                 parmtag { "opfilter" "!!SOP!!" }
                 parmtag { "oprelative" "." }
+            }
+            parm {
+                name    "packmultipleclips"
+                label   "Pack Multiple Animation Clips"
+                type    toggle
+                default { "0" }
+                help    "Turn this on to pack multiple skeletal animation clips into a shared set of animation textures. This is useful when you need to provide multiple animation clips for the same input geometry/gometries without generating a separate texture set for each clip. When this is on, each clip uses its corresponding **Anim Pose #** and **Start/End #** parameters below. This is independent of **Batch Process Multiple Input Geometries** - every clip can be driven by every geometry. "
+                parmtag { "script_callback" "kwargs[\"node\"].hm().sync_f(kwargs[\"node\"])" }
+                parmtag { "script_callback_language" "python" }
+            }
+            multiparm {
+                name    "fd_pack_clip_num"
+                label    "Pack Animation Clips"
+                default 2
+                hidewhen "{ packmultipleclips == 0 }"
+                parmtag { "script_callback" "kwargs[\"node\"].hm().sync_f(kwargs[\"node\"])" }
+                parmtag { "script_callback_language" "python" }
+
+                parm {
+                    name    "bone_anim#"
+                    label   "Anim Pose #"
+                    type    oppath
+                    default { "" }
+                    help    "The character’s animated pose, which is represented in the same manner as the Rest Pose. Typically the third output from an FBX Character Import SOP."
+                    disablewhen "{ mode != 4 }"
+                    parmtag { "opfilter" "!!SOP!!" }
+                    parmtag { "oprelative" "." }
+                }
+                parm {
+                    name    "f#_"
+                    label   "Start/End #"
+                    type    integer
+                    size    2
+                    default { [ "if(opexist(chs(\"bone_anim#\")), detail(chs(\"bone_anim#\"), \"clipinfo.range\",0) * $FPS +1, 1)" hscript-expr ] [ "if(opexist(chs(\"bone_anim#\")), detail(chs(\"bone_anim#\"), \"clipinfo.range\",1) * $FPS +1, 30)" hscript-expr ] }
+                    disablewhen "{ mode == 2 fluidpass == 1 }"
+                    range   { 0 10 }
+                }
+            }
+
+            parm {
+                name    "skel_reltrans"
+                label   "Encode in Relative Transform Mode "
+                type    toggle
+                default { "0" }
+                help    "Controls how animation transforms are encoded in the Position texture and reconstructed in the real-time shader. Both modes reproduce normal playback and support clip blending when Animation Transition is enabled in the shader. Because the bone hierarchy is lost, neither can reproduce perfect transitions. For best results, blend between matching animation phases is recommended. The real-time material has a matching Relative Transform Mode toggle that must be set the same way. Off - Joint Position: Stores joint rotation, Animated Pose position, and Rest Pose pivot. Has better performance. During large-angle blending, it preserves limb length and local rigid rotation, but large rotational changes can cause sliding or separation between joints, such as at the wrists. On - Relative Transform: Stores the translation component of each joint’s Rest Pose-to-Animated Pose transform. During large-angle blending, it preserves mesh continuity between joints, but linear transform interpolation can cause deformation, such as limb shortening."
+                parmtag { "script_callback" "" }
+                parmtag { "script_callback_language" "python" }
             }
         }
 
         groupsimple {
             name    "fd_general"
             label   "All Modes"
-            grouptag { "group_type" "simple" }
 
             parm {
                 name    "inputiscached"
@@ -573,7 +669,7 @@
                 label   "Include Hidden Debug Plane in Geometry"
                 type    toggle
                 default { "1" }
-                disablewhen "{ engine != unreal } { mode == 2 fluidpass == 1 }"
+                disablewhen "{ engine != unreal } { mode == 2 fluidpass == 1 } { mode == 1 }"
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -1246,7 +1342,6 @@
         name    "fd_settings_1_1_2"
         label   "Export"
         disablewhentab "{ mode == 2 fluidpass == 1 }"
-        grouptag { "group_type" "simple" }
 
         parm {
             name    "exportpath"
@@ -1289,7 +1384,6 @@
             label   "Include"
             type    string
             default { "gprc" }
-            disablewhen "{ mode == 4 }"
             hidewhen "{ mode == 3 }"
             menu {
                 "gprc"      "Geometry, Position(s), Rotation, Color(s)"
@@ -1539,6 +1633,14 @@
             parmtag { "script_callback" "kwargs[\"node\"].hm().setSubDirectories(kwargs[\"node\"])" }
             parmtag { "script_callback_language" "python" }
         }
+        parm {
+            name    "path_velocity"
+            label   "Velocity Texture Path"
+            type    file
+            default { "`chs(\"exportpath\")`/`chs(\"subdir_tex\")`/`chs(\"assetname\")`_vel.exr" }
+            disablewhen "{ enable_velocity == 0 }"
+            hidewhen "{ mode != 2 }"
+        }
     }
 
     group {
@@ -1614,7 +1716,7 @@
                 label   "Export LODs"
                 type    toggle
                 default { "0" }
-                hidewhen "{ mode > 1 }"
+                hidewhen "{ mode > 1 mode < 4 }"
                 parmtag { "script_callback_language" "python" }
             }
             parm {
@@ -1623,7 +1725,7 @@
                 type    integer
                 default { "2" }
                 disablewhen "{ exportlods == 0 }"
-                hidewhen "{ mode > 1 }"
+                hidewhen "{ mode > 1 mode < 4 }"
                 range   { 2! 10! }
                 parmtag { "script_callback_language" "python" }
             }
@@ -1634,14 +1736,6 @@
                 nolabel
                 default { "LODs cannot share the same set of textures in this mode. Export each LOD separately." }
                 hidewhen "{ mode < 2 } { mode == 4 }"
-            }
-            parm {
-                name    "lb_lods_sk"
-                label   "lb_lods"
-                type    label
-                nolabel
-                default { "LODs is natively supported in this mode." }
-                hidewhen "{ mode != 4 }"
             }
         }
 

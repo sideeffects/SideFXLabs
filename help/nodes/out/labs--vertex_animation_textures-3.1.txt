@@ -18,7 +18,7 @@ The limitations of VAT include: texture memory budget on lower-end hardwares, th
 
 Compared to previous versions, VAT 3.0 offers more streamlined workflows, additional advanced features, and a lot more customizability.
 
-VAT 3.1 adds a Skeletal Animation mode for rigged characters. It bakes per-joint transforms into textures instead of per-vertex offsets as in Soft-Body Deformation mode. This reduces texture size but slightly increases the runtime load. Currently, the runtime Skeletal Animation shader support is available only for Unreal Engine and requires Enable Nanite to be turned off on the static mesh.
+VAT 3.1 adds a Skeletal Animation mode for rigged characters. It bakes per-joint transforms into textures instead of per-vertex offsets as in Soft-Body Deformation mode. This reduces texture size but slightly increases the runtime load. It supports up to 128 joints and clamps capture weights to the four highest per vertex. Currently, the runtime shader support is available only for Unreal Engine and requires `Enable Nanite` to be turned off on the static mesh.
 
 
 @parameters
@@ -30,10 +30,11 @@ VAT 3.1 adds a Skeletal Animation mode for rigged characters. It bakes per-joint
         <p>*Rigid-Body Dynamics (Rigid)*: packed pieces with RBD simulation data.</p>
         <p>*Dynamic Remeshing (Fluid)*: the surfaces are potentially remeshed every frame with dynamic topologies.</p>
         <p>*Particle Sprites (Sprite)*: points with particle simulation data.</p>
+	<p>*Skeletal Animation (Bone)*: character mesh and skeleton animation data, typically the three outputs from an FBX Character Import SOP (Rest Geometry, Capture Pose, and Animated Pose).</p>
     Start/End:
         The first frame and last frame of the animation to export. Both ends are inclusive.
     Input Geometry:
-        The path to the geometry node that you want to render.
+        The path to the geometry node that you want to render. For Skeletal Animation (Bone) mode, this should be the character’s rest geometry, which has the boneCapture point capture attribute, and typically the first output from an FBX Character Import SOP.
     ==Settings: Soft-Body Deformation==
     Export Compressed Normals in Position Alpha:
         Compresses the normals from the vector type to the float type and stores them in Position Texture's alpha channel. This is a lossy compression resulting in medium-quality normals. If you do not plan to apply (tangent-space) surface normal maps to your real-time asset, this is a more memory-efficient alternative as it bypasses the cost of sampling Rotation Texture. But if you want to apply surface normal maps, turn this off and use Rotation Texture instead. Turning this on also precludes you from exporting a custom attribute through Position Texture's alpha channel.
@@ -99,10 +100,19 @@ VAT 3.1 adds a Skeletal Animation mode for rigged characters. It bakes per-joint
         Turn this on only if the particle cards have the wrong normals in your real-time engine, in which case, they may appear to be invisible but if you select the object, you can see the outlines. This is unlikely to happen, however.
     ==Settings: Skeletal Animation==
         Character mesh and skeleton animation data, typically the three outputs from an FBX Character Import SOP (Rest Geometry, Capture Pose, and Animated Pose).
+    Batch Process Multiple Input Geometries:
+        Turn this on to process several character meshes in one render. This is useful when you need to export multiple different characters that share the same skeleton and animation data. Each input geometry is exported as a separate static mesh with its own bone indices and weights, and all of them share a single set of animation textures, so adding more geometries does not increase texture memory consumption. All input geometries must be captured to the same skeleton as the (Rest Pose) input, their topology and skin weights may differ. This is independent of (Pack Multiple Animation Clips) - every geometry can drive every clip.
+    Input Geometry:
+	The path to the geometry node that you want to render. For Skeletal Animation (Bone) mode, this should be the character’s rest geometry, which has the boneCapture point capture attribute, and typically the first output from an FBX Character Import SOP.
     Rest Pose:
         The character’s capture pose, where the P and transform (matrix3) attributes contain the joint’s transform. The point’s name attribute contains the joint’s name, and is matched up with the capture paths in the rest geometry’s boneCapture attribute when deforming the skin. Typically the second output from an FBX Character Import SOP.
     Anim Pose:
         The character’s animated pose, which is represented in the same manner as the Rest Pose. Typically the third output from an FBX Character Import SOP.
+    Pack Multiple Animation Clips:
+	Turn this on to pack multiple skeletal animation clips into a shared set of animation textures. This is useful when you need to provide multiple animation clips for the same input geometry/geometries without generating a separate texture set for each clip. When this is on, each clip uses its corresponding Anim Pose # and Start/End # parameters below. This is independent of Batch Process Multiple Input Geometries - every clip can be driven by every geometry.
+    Encode in Relative Transform Mode:
+	Controls how animation transforms are encoded in the Position texture and reconstructed in the real-time shader. Both modes reproduce normal playback and support clip blending when Animation Transition is enabled in the shader. Because the bone hierarchy is lost, neither can reproduce perfect transitions. For best results, blend between matching animation phases is recommended. The real-time material has a matching Relative Transform Mode toggle that must be set the same way. Off - Joint Position: Stores joint rotation, Animated Pose position, and Rest Pose pivot. Has better performance. During large-angle blending, it preserves limb length and local rigid rotation, but large rotational changes can cause sliding or separation between joints, such as at the wrists. On - Relative Transform: Stores the translation component of each joint’s Rest Pose-to-Animated Pose transform. During large-angle blending, it preserves mesh continuity between joints, but linear transform interpolation can cause deformation, such as limb shortening.
+
     ==Settings: All Modes==
     Input Geometry Is Cached to Integer Frames:
         Set this according to whether or not the input geometry is cached to integer frames and loaded from disk. Caching the input geometry is the recommended workflow as it shortens this node's render time, especially if the input depends on expensive simulations or nodes that are slow to recook.
@@ -205,7 +215,7 @@ VAT 3.1 adds a Skeletal Animation mode for rigged characters. It bakes per-joint
     Export LODs:
         Exports a single FBX containing multiple LODs and a single set of textures compatible with all the LODs. All non-zero LODs simply share LOD0's textures through point-mapping (described below in requirement 1), so adding more LODs does not increase the texture memory consumption.
         <p>The input geometry must meet the following requirements:</p>
-        <p>1. all LODs must have the integer point attribute "lod0_ptnum". This attribute maps all the points in every non-zero LOD to a subset of points in LOD0, enabling subsequent LODs to share the point data exported with LOD0. In Rigid-Body Dynamics (Rigid) mode, this attribute should be on packed points.</p>
+        <p>1. in all modes except Skeletal Animation (Bone) mode, all LODs must have the integer point attribute "lod0_ptnum". This attribute maps all the points in every non-zero LOD to a subset of points in LOD0, enabling subsequent LODs to share the point data exported with LOD0. In Rigid-Body Dynamics (Rigid) mode, this attribute should be on packed points. In Skeletal Animation (Bone) mode, all LODs must have a valid “boneCapture” point capture attribute, and the “lod0_ptnum” attribute is not required.</p>
         <p>2. in each LOD, all the points must be assigned to the respective point group "lod#" with "#" being the LOD number starting with 0. In Rigid-Body Dynamics (Rigid) mode, this group should be on packed points instead of points.</p>
         <p>3. all LODs must already have the desired UVs and normals on vertices; this node cannot reliably auto-generate missing UVs and normals that are consistent across all LODs; therefore, it will not attempt to do so.</p>
     Number of LODs:
