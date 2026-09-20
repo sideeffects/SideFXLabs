@@ -12,7 +12,7 @@ ROLES={'pos':'Position Texture','rot':'Rotation Texture','col':'Color Texture',
 
 @dataclass
 class Settings:
-    mode: str='Fluid'
+    mode: str='Soft'
     meshes: list=field(default_factory=list)
     textures: list=field(default_factory=list)
     destination: str='/Game/VAT'
@@ -20,6 +20,8 @@ class Settings:
     fps: float=24.0
     interpolate: bool=True
     loop: bool=True
+    shared_dependencies: str=''
+    reuse_master_material: bool=True
 
 
 def canonical_files(paths):
@@ -69,6 +71,13 @@ def preflight(settings):
         if textures['Velocity Texture'].suffix.lower()!='.exr': raise ValidationError('Velocity must be EXR')
         velocity=velocity_info(textures['Velocity Texture'],textures['Position Texture'],settings.fps)
     template=f'/SideFX_Labs/Editor/VATImporter/Materials/M_Import_{settings.mode}'
+    if settings.shared_dependencies:
+        from labs_vat_library import ensure_library,master_path,validate_interface
+        if settings.destination==settings.shared_dependencies or settings.destination.startswith(settings.shared_dependencies+'/'):
+            raise ValidationError('Import destination must be outside the Shared Dependencies Folder')
+        ensure_library(settings.shared_dependencies)
+        template=master_path(settings.shared_dependencies,settings.mode)
+        validate_interface(unreal.load_asset(template),settings.mode,textures)
     if not unreal.load_asset(template): raise ValidationError('Missing prewired importer template: '+template)
     available={str(n) for n in LIB.get_texture_parameter_names(unreal.load_asset(template))}
     if not set(textures).issubset(available):
@@ -150,18 +159,15 @@ def import_vat(settings):
                 configure_texture(tex,path,role=='Velocity Texture');textures[role]=tex
             name=settings.material_name
             if not name.startswith('M_'): name='M_'+name
-            material_path,material_name=unique_path(settings.destination,name)
-            material=unreal.EditorAssetLibrary.duplicate_asset(template,material_path)
-            if not material: raise RuntimeError('Material duplication failed')
-            created.append(material)
-            if settings.mode=='Fluid':
-                calls=[e for e in LIB.get_material_expressions(material) if isinstance(e,unreal.MaterialExpressionMaterialFunctionCall)]
-                if len(calls)!=1: raise RuntimeError('Expected one Fluid function call')
-                node=LIB.create_material_expression(material,unreal.MaterialExpressionStaticBool,-950,500)
-                node.set_editor_property('value',velocity is not None)
-                if not LIB.connect_material_expressions(node,'',calls[0],'Velocity Texture Available'):
-                    raise RuntimeError('Missing Velocity Texture Available input')
-            LIB.recompile_material(material)
+            if settings.reuse_master_material:
+                material=unreal.load_asset(template)
+                material_name=name
+            else:
+                material_path,material_name=unique_path(settings.destination,name)
+                material=unreal.EditorAssetLibrary.duplicate_asset(template,material_path)
+                if not material: raise RuntimeError('Material duplication failed')
+                created.append(material)
+                LIB.recompile_material(material)
             progress.enter_progress_frame(1,'Material')
             _,instance_name=unique_path(settings.destination,'MI_'+material_name.removeprefix('M_'))
             instance=ASSETS.create_asset(instance_name,settings.destination,unreal.MaterialInstanceConstant,unreal.MaterialInstanceConstantFactoryNew())
@@ -187,6 +193,7 @@ def import_vat(settings):
             switch('Support Legacy Parameters and Instancing',False)
             switch('Auto Playback',True)
             if settings.mode=='Fluid':
+                switch('Velocity Texture Available',velocity is not None)
                 switch('Support Custom Motion Blur',velocity is not None)
                 scalar('Velocity Source FPS',velocity['fps'] if velocity else settings.fps)
             elif settings.mode=='Skeletal':
@@ -206,6 +213,9 @@ def import_vat(settings):
             for mesh in imported_meshes: assign_instance(mesh,instance)
             for asset in created:
                 if not unreal.EditorAssetLibrary.save_loaded_asset(asset,only_if_is_dirty=False): raise RuntimeError('Failed to save '+asset.get_path_name())
+            if settings.shared_dependencies:
+                from labs_vat_library import dependencies
+                dependencies([a.get_path_name().split('.')[0] for a in created])
             progress.enter_progress_frame(1,'Saved')
         result={'mode':settings.mode,'meshes':[m.get_path_name() for m in imported_meshes],
             'material':material.get_path_name(),'instance':instance.get_path_name(),
