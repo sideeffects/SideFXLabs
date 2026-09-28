@@ -19,6 +19,8 @@ def switchMode(node):
     node.setParms({"fluidpass": 0, "fluiduvinalphas": 0, "fluiduvinrg": 0, "enable_lookup": 1})
     node.parm("resetinclude").pressButton()
     
+    setupSkeletal(node)
+    
     return 
     
 
@@ -351,15 +353,11 @@ def setEnginePreset(node):
 
     return
     
-def setupSkeletal(node):
-
-    if node.evalParm('mode') == 4:
-        
-        node.parm('targettexsize').set('128')
-        
-        node.parm('include').set('gpr')
-        hou.hscript(f"opparm -c {node.path()} include")        
     
+    
+def setupSkeletal(node):
+    # reset disabled parms for skel mode
+    if node.evalParm('mode') == 4:
         parms_to_reset = [
             'engine', 'normalizedata', 'splitpos', 'addsparecol', 
             'exportvtxcol', 'override_pa', 'override_c', 'override_a', 
@@ -371,5 +369,133 @@ def setupSkeletal(node):
             if p:
                 p.revertToDefaults()
                 hou.hscript(f"opparm -c {node.path()} {parm_name}")
+        
+        node.parm('targettexsize').set('128')
+        # node.parm('debugplane').set(0)
+        
+        node.parm('include').set('gpr')
+        hou.hscript(f"opparm -c {node.path()} include")
+        
+    sync_f(node);
                 
     return
+    
+
+def sync_f(node):
+    # store and calculate packed f
+    f1, f2 = node.parmTuple("f")
+    fs1, fs2, fs3 = node.parmTuple("f_s")
+    
+    enabled = node.evalParm("mode") == 4 and node.evalParm("packmultipleclips") == 1
+    
+    clip_num = int(node.evalParm("fd_pack_clip_num"))    
+    state_cur = clip_num + 1 if enabled else 0
+    state_prev = int(fs3.eval())
+    
+    if state_cur != state_prev:
+        if state_cur == 0: #restore f from f_s
+            f1.deleteAllKeyframes()
+            f1.setFromParm(fs1)
+            f2.deleteAllKeyframes()
+            f2.setFromParm(fs2)
+        
+        else:
+            if state_prev == 0:
+                #save user f to f_s
+                fs1.deleteAllKeyframes()
+                fs1.setFromParm(f1)
+                fs2.deleteAllKeyframes()
+                fs2.setFromParm(f2)
+        
+                f1.deleteAllKeyframes()
+                f1.set("1")
+        
+            #cal packed frame sum to f
+            hexp = [ '(ch("f{0}_2") - ch("f{0}_1") + 1)'.format(i)
+                     for i in range(1, clip_num + 1) ]
+            f2_expression = " + ".join(hexp) if hexp else "0"
+    
+            f2.deleteAllKeyframes()
+            f2.setExpression(f2_expression, hou.exprLanguage.Hscript)
+        
+        
+    fs3.deleteAllKeyframes()
+    fs3.set(state_cur)
+                
+    return
+
+def validateVelocity(node):
+    """Validate the complete input range before any export outputs are written."""
+    if node.evalParm('mode') != 2 or not node.evalParm('enable_velocity'):
+        return
+    import math
+    import os
+    velocity_path = os.path.normcase(os.path.abspath(node.evalParm('path_velocity')))
+    if os.path.splitext(velocity_path)[1].lower() != '.exr':
+        raise hou.NodeError('Velocity export requires a separate .exr file.')
+    for parm in node.parms():
+        if parm.name().startswith('path_') and parm.name() != 'path_velocity' and parm.parmTemplate().type() == hou.parmTemplateType.String:
+            value = parm.evalAsString()
+            if value and os.path.normcase(os.path.abspath(value)) == velocity_path:
+                raise hou.NodeError('Velocity path must not overwrite another VAT output: ' + parm.name())
+    source = hou.node(node.evalParm('soppath'))
+    if source is None:
+        raise hou.NodeError('Velocity export: input geometry does not exist.')
+    for frame in range(int(node.evalParm('f1')), int(node.evalParm('f2')) + 1):
+        geo = source.geometryAtFrame(frame)
+        attr = geo.findPointAttrib('v')
+        if attr is None or attr.dataType() != hou.attribData.Float or attr.size() != 3:
+            raise hou.NodeError('Velocity export requires a float3 point v attribute at frame %d.' % frame)
+        if not all(math.isfinite(v) for v in geo.pointFloatAttribValues('v')):
+            raise hou.NodeError('Velocity export: non-finite v at frame %d.' % frame)
+
+
+def exportVelocity(node):
+    """Write a signed, full-float atlas without changing color texture semantics."""
+    if node.evalParm('mode') != 2 or not node.evalParm('enable_velocity') or node.evalParm('fluidpass') != 1:
+        return
+    import json
+    import os
+    import numpy as np
+    import OpenImageIO as oiio
+    cop = node.node('textures/velocity')
+    pixels = np.asarray(cop.allPixels('C'), dtype=np.float32)
+    width, height = cop.xRes(), cop.yRes()
+    pixels = pixels.reshape(height, width, 3)
+    if not np.isfinite(pixels).all():
+        raise hou.NodeError('Velocity atlas contains non-finite values.')
+    path = node.evalParm('path_velocity')
+    # Position's final export can append bottom padding beyond its data COP.
+    # Reuse its final extent while leaving its data rows at the same coordinates.
+    position = oiio.ImageInput.open(node.evalParm('path_pos'))
+    if not position:
+        raise hou.NodeError('Velocity export requires the completed Position texture.')
+    position_spec = position.spec()
+    final_width, final_height = position_spec.width, position_spec.height
+    position.close()
+    if final_width != width or final_height < height:
+        raise hou.NodeError('Velocity and Position atlas extents are incompatible.')
+    atlas = np.zeros((final_height, final_width, 3), dtype=np.float32)
+    atlas[:height] = pixels[::-1]
+    width, height = final_width, final_height
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    spec = oiio.ImageSpec(width, height, 3, oiio.FLOAT)
+    spec.attribute('compression', 'zip')
+    metadata = {
+        'schema': 'sidefx-labs-fluid-velocity-1',
+        'velocity': {'present': True, 'file': os.path.basename(path),
+                     'coordinates': 'houdini-local', 'units': 'houdini-units-per-second',
+                     'width': width, 'height': height,
+                     'frame_start': int(node.evalParm('f1')), 'frame_end': int(node.evalParm('f2')),
+                     'fps': hou.fps(), 'layout': 'position-atlas'},
+    }
+    spec.attribute('sidefx_labs_velocity', json.dumps(metadata, separators=(',', ':')))
+    output = oiio.ImageOutput.create(path)
+    if not output or not output.open(path, spec):
+        raise hou.NodeError('Cannot write velocity EXR: ' + path)
+    # COP pixels are bottom-up; EXR scanlines are top-down, as with the other VAT exports.
+    if not output.write_image(atlas):
+        output.close()
+        raise hou.NodeError('Failed to write velocity EXR: ' + path)
+    output.close()
+    ReportResult(node, path)

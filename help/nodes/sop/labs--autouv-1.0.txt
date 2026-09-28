@@ -1,0 +1,163 @@
+#type:      node
+#context:   sop
+#internal:  labs::autouv
+#icon:      /labs_icons/sidefx_labs_default.svg
+
+= Labs Auto UV =
+
+"""Automatically generates UV attributes using one of multiple algorithmic methods."""
+
+This node provides several methods for generating UV layouts on polygonal geometry.
+It analyzes curvature, surface orientation, and spatial relationships to create UV seams, islands, and packed layouts suitable for real-time and offline workflows.
+
+@parameters
+
+    Group:
+        #id: group
+        The polygonal faces to flatten in texture space. If this is empty, the node works on all incoming polygons.
+
+
+    UV Attribute:
+        #id: uvattrib
+        The name of the attribute to store the UV coordinates (uv by default). You can enter a different name if you want to have multiple sets of UVs on the same geometry.
+    
+    == Seams ==
+
+    Method:
+        #id: method
+        The algorithm used to create the UV seams.
+
+        Shortest Path:
+            Identifies regions of high curvature and computes shortest paths between them to define the seams.
+
+        Cluster:
+            Clusters primitives based on spatial position and normal orientation to create UV islands.
+
+        Angle Based:
+            Works by using an angle threshold between primitive normals.
+            
+        Curvature Based:
+            Works by starting from a set of small “grain” seed islands and merging them up to get the larger islands.
+
+    === Shortest Path ===
+
+    Collapse Distance:
+        #id: collapsedist
+        Fuse threshold used when computed paths are too close together.
+
+    Number of Paths:
+        #id: numpaths
+        Number of high-curvature points used as path endpoints.
+
+    Convex Multiplier:
+        #id: convexmultiplier
+        Biases seam placement toward highly convex regions. Useful for hard-surface geometry.
+
+    Occlusion Multiplier:
+        #id: occlusionmultiplier
+        Biases seam placement toward regions of high ambient occlusion. Useful for organic geometry.
+
+    === Cluster ===
+
+    Number of Clusters:
+        #id: numclusters
+        Number of UV islands to generate.
+
+    Normal Blur Amount:
+        #id: normalblur
+        Amount of normal blurring applied when evaluating similarity. Higher values merge nearby islands.
+
+    Random Seed:
+        #id: randomseed
+        Seed used to vary the clustering result.
+
+    === Angle Based ===
+
+    Edge Angle:
+        #id: edgeangle
+        The angle between primitive normals that will split the seams.
+
+    === Curvature Based ===
+
+    Grain Tolerance:
+        #id: graintol
+        When *Splitting* is `Curvature Based`, controls how sensitive grains are to changes in normal direction across surfaces. A value of zero is very sensitive and produces tiny grains. Larger values up to 1 are less sensitive and produce larger grains.
+
+    Merge Threshold:
+        #id: mergethreshold
+        Controls how often smaller grains merge to become larger islands. `0` never merges (giving the initial grains as output), `1` merges all connected grains together (giving no seams in the output). You can tweak this control, centering around `0.5`, to get more or fewer seams.
+
+    == Flatten ==
+
+    Flattening Method:
+        #id: flatteningmethod
+        How to flatten 3D geometry into 2D texture space. The node has two different methods that allow different hints (constraints) and have different efficiencies. Both methods are designed to minimize angular distortion, meaning that angles in the texture image should appear correct when projected onto the textured 3D surface. The methods differ mainly in how to handle area distortion, that is keeping polygons roughly the same size in texture space.
+
+        Spectral (SCP):
+            The default. Faster, more robust, slightly lower quality than Angle Based.
+
+        Angle Based (ABF):
+            Slower, may not always solve, higher quality (less area distortion).
+
+    Merge Small Islands:
+        #id: mergesmallislands
+        Merges small UV islands into neighboring larger islands.
+
+    Small Island Cutoff:
+        #id: smallislandcutoff
+        Size threshold of the islands that will be merged back into larger pieces
+
+    Optimize UV Border:
+        #id: optimizeuvborder
+        Attempts at merging the islands together. Higher values produce smoother results. May cause small islands to reappear.
+
+    == Layout ==
+
+    Enable Layout:
+        #id: enablelayout
+        Packs UV islands efficiently into a limited area.
+
+    Island Rotation Step:
+        #id: rotstep
+        The node can try different island rotations to get better packing (some islands may be able to fit into a smaller available space if they are rotated slightly). Setting this parameter is a tradeoff between allowing rotations reducing axis alignment, trying more rotations giving more efficient packing, and trying lots of rotations being slow.
+
+        No rotation:
+            Packs islands using the rotation they get from the *Axis* alignment parameter.
+
+        Rotation step:
+            Tries rotating the island by this number of degrees around a full circle. For example, 180 tries the island two ways (right-side-up and upside-down). 90 tries the island four ways (right-side-up, rotated left, rotated right, and upside-down), and so on. Each choice halves the degrees and so doubles the number of rotations that must tried.
+
+        Custom:
+            Lets you enter a custom number of divisions of 360 degrees.
+
+        Bear in mind that 6 divisions of the circle may result in a packing inferior to 4 (90 degree steps) because only two of the attempted rotations are common and therefore one can not always expect the a tighter packing with 6 rotations compared to 4.
+
+    Island Padding:
+        #id: islandpadding
+        The amount of padding to use to separates islands.
+
+    Packing Iterations:
+        #id: packingterations
+        Number of packing attempts used to fit islands together.
+
+    Padding Resolution:
+        #id: resolution
+        Reference resolution used to compute *Island Padding*.
+
+    Stack Identical Islands:
+        #id: stackislands
+        Detect and stack identical islands over each other.
+
+    Shape Tolerance:
+        #id: overlaytolerance
+        When *Stack Identical Islands* is on, how close the shapes need to be for them to be stacked. You can tweak this number until the islands you want to stack start stacking.
+
+    UDIM Target Tile:
+        #id: udimtarget
+        The UDIM tile used as the starting location for the generated UVs. The generated UV layout is offset so that the first island begins in the specified UDIM tile (for example, 1001).
+
+@related
+- [Labs UV Unwrap Cylinder SOP|Node:sop/labs--uv_unwrap_cylinder-1.0]
+- [UV Flatten SOP|Node:sop/uvflatten]
+- [UV Unwrap SOP|Node:sop/uvunwrap]
+- [UV Auto Seam SOP|Node:sop/uvautoseam]
