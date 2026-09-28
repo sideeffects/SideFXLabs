@@ -1,0 +1,330 @@
+# Dialog script for labs::autouv::1.0 automatically generated
+
+{
+    name	labs::autouv::1.0
+    script	gamedev::sop_autouv
+    label	"Labs Auto UV"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Mesh to UV Unwrap"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "r = []" ]
+            [ "node = hou.pwd()" ]
+            [ "inputs = node.inputs()" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    if geo:" ]
+            [ "        attrs = []           " ]
+            [ "        for g in geo.primGroups():" ]
+            [ "            r.extend([g.name(), g.name()])                   " ]
+            [ "return r" ]
+            language python
+        }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Primitives\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_help" "Select geometry from an available viewport." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+    }
+    parm {
+        name    "uvattrib"
+        label   "UV Attribute"
+        type    string
+        default { "uv" }
+        menureplace {
+            [ "r = []" ]
+            [ "node = hou.pwd()" ]
+            [ "inputs = node.inputs()" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    if geo:" ]
+            [ "        attrs = []          " ]
+            [ "        for a in geo.vertexAttribs():" ]
+            [ "            r.extend([a.name(), a.name()])              " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "sidefx::attrib_access" "write" }
+    }
+    groupsimple {
+        name    "fd_seams"
+        label   "Seams"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "method"
+            label   "Method"
+            type    ordinal
+            default { "3" }
+            menu {
+                "0" "Shortest Path"
+                "1" "Cluster"
+                "2" "Angle Based"
+                "3" "Curvature Based"
+            }
+        }
+        parm {
+            name    "collapsedist"
+            label   "Collapse Distance"
+            type    float
+            default { "0.01" }
+            hidewhen "{ method != 0 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "numpaths"
+            label   "Number of Paths"
+            type    integer
+            default { "25" }
+            hidewhen "{ method != 0 }"
+            range   { 1 100 }
+        }
+        parm {
+            name    "convexmultiplier"
+            label   "Convex Multiplier"
+            type    float
+            default { "0.1" }
+            hidewhen "{ method != 0 }"
+            range   { -10 10 }
+        }
+        parm {
+            name    "occlusionmultiplier"
+            label   "Occlusion Multiplier"
+            type    float
+            default { "1" }
+            hidewhen "{ method != 0 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "numclusters"
+            label   "Number of Clusters"
+            type    integer
+            default { "30" }
+            hidewhen "{ method != 1 }"
+            range   { 1 100 }
+        }
+        parm {
+            name    "normalblur"
+            label   "Normal Blur"
+            type    integer
+            default { "1" }
+            hidewhen "{ method != 1 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "randomseed"
+            label   "Random Seed"
+            type    integer
+            default { "0" }
+            hidewhen "{ method != 1 }"
+            range   { 0 10 }
+        }
+        parm {
+            name    "edgeangle"
+            label   "Edge Angle"
+            type    angle
+            default { "30" }
+            hidewhen "{ method != 2 }"
+            range   { 0! 360! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "graintol"
+            label   "Grain Tolerance"
+            type    float
+            default { "0.12" }
+            hidewhen "{ method != 3 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "mergethreshold"
+            label   "Merge Threshold"
+            type    float
+            default { "0.5" }
+            hidewhen "{ method != 3 }"
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_flatten"
+        label   "Flatten"
+
+        parm {
+            name    "flatteningmethod"
+            label   "Method"
+            type    ordinal
+            default { "abf" }
+            menu {
+                "scp"   "Spectral (SCP)"
+                "abf"   "Angle-Based (ABF)"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "mergesmallislands"
+            label   "Merge Small Islands"
+            type    toggle
+            default { "0" }
+        }
+        parm {
+            name    "smallislandcutoff"
+            label   "Small Island CutOff"
+            type    float
+            default { "0.01" }
+            disablewhen "{ mergesmallislands == 0 }"
+            range   { 0 0.5 }
+        }
+        parm {
+            name    "optimizeuvborder"
+            label   "Optimize UV Border"
+            type    toggle
+            default { [ "on" hscript-expr ] }
+            help    "Attempts to remove triangles that are sticking to the side of the UV island. May cause small islands to reappear"
+            disablewhen "{ mergesmallislands == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_layout"
+        label   "Layout"
+        grouptag { "group_type" "simple" }
+
+        parm {
+            name    "enablelayout"
+            label   "Enable Layout"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        groupsimple {
+            name    "fd_enablelayout"
+            label   "Enable Layout"
+            disablewhen "{ enablelayout == 0 }"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "rotstep"
+                label   "Island Rotation Step"
+                type    ordinal
+                default { "none" }
+                menu {
+                    "none"      "No Rotations"
+                    "PI"        "180º"
+                    "PI2"       "90º"
+                    "PI4"       "45º"
+                    "PI8"       "22.5º"
+                    "PI16"      "11.25º"
+                    "PI32"      "5.626º"
+                    "custom"    "Custom"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "islandpadding"
+                label   "Island Padding"
+                type    integer
+                default { "2" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "resolution"
+                label   "Padding Resolution"
+                type    ordinal
+                default { "res3" }
+                help    "Reference Resolution for Island Padding"
+                menu {
+                    "res1"  "256"
+                    "res2"  "512"
+                    "res3"  "1024"
+                    "res4"  "2048"
+                    "res5"  "4096"
+                }
+                parmtag { "autoscope" "0000000000000000" }
+            }
+            parm {
+                name    "packingiterations"
+                label   "Packing Iterations"
+                type    integer
+                default { "1" }
+                range   { 0 10 }
+            }
+            parm {
+                name    "sepparm3"
+                label   "Spacer"
+                type    separator
+                default { "" }
+                parmtag { "sidefx::layout_height" "small" }
+                parmtag { "sidefx::look" "blank" }
+            }
+            parm {
+                name    "stackislands"
+                label   "Stack Identical Islands"
+                type    toggle
+                default { "off" }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+            parm {
+                name    "overlaytolerance"
+                label   "Shape Tolerance"
+                type    float
+                default { "0.02" }
+                disablewhen "{ stackislands == 0 }"
+                range   { 0! 0.1 }
+                parmtag { "autoscope" "0000000000000000" }
+                parmtag { "script_callback_language" "python" }
+            }
+        }
+
+        parm {
+            name    "sepparm4"
+            label   "Separator"
+            type    separator
+            default { "" }
+        }
+        parm {
+            name    "udimtarget"
+            label   "UDIM Target Tile"
+            type    integer
+            default { "1001" }
+            range   { 1001! 1099 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    parm {
+        name    "cusp_angle"
+        label   "__UNUSED"
+        type    float
+        invisible
+        default { "0" }
+        range   { 0 10 }
+    }
+}
