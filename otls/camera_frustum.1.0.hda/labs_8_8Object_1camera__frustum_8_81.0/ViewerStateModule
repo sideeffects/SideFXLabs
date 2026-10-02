@@ -1,0 +1,106 @@
+import hou
+import viewerstate.utils as su
+
+class State(object):
+    def __init__(self, state_name, scene_viewer):
+        self.state_name = state_name
+        self.scene_viewer = scene_viewer
+        self.bboxnear = hou.Handle(self.scene_viewer, "BBox Near")
+        self.bboxfar = hou.Handle(self.scene_viewer, "BBox Far")
+        self.bboxsize = hou.Handle(self.scene_viewer, "BBox Size")
+        self.camera = None
+        self.cam_near = 0
+        self.cam_far = 0
+
+    def onEnter(self, kwargs):
+        node = kwargs["node"]
+
+        self.camera = node.input(0)
+        self.cam_near = self.camera.parm("near").eval()
+        self.cam_far = self.camera.parm("far").eval()
+
+        self.bboxnear.show(True)
+        hou.Handle.update(self.bboxnear)
+
+        self.bboxfar.show(True)
+        hou.Handle.update(self.bboxfar)
+
+        self.bboxsize.show(True)
+        hou.Handle.update(self.bboxsize)
+
+    def onHandleToState(self, kwargs):
+        node = kwargs["node"]
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]
+        mod_parms = kwargs["mod_parms"]
+
+        if handle == self.bboxnear.name():
+            val = min(parms['centerz'], 0) + self.cam_near
+            node.parm('minpadz').set(val)
+            self.bboxnear.update()
+
+        elif handle == self.bboxfar.name():
+            val = - (min(parms['centerz'], 0) + self.cam_far)
+            node.parm('maxpadz').set(val)
+            self.bboxfar.update()
+
+        elif handle == self.bboxsize.name():
+            frustum_near_size = hou.node( node.path()+"/FRUSTUM/NEAR" ).geometry().boundingBox().sizevec()
+
+            deltax = parms["sizex"] - frustum_near_size[0]
+            minpadx = deltax/2 - parms['centerx']
+            maxpadx = deltax/2 + parms['centerx']
+            node.parm('minpadx').set( minpadx )
+            node.parm('maxpadx').set( maxpadx )
+
+            deltay = parms["sizey"] - frustum_near_size[1]
+            minpady = deltay/2 - parms['centery']
+            maxpady = deltay/2 + parms['centery']
+            node.parm('minpady').set( minpady )
+            node.parm('maxpady').set( maxpady )
+
+            self.bboxsize.update()
+
+    def onStateToHandle(self, kwargs):
+        parms = kwargs['parms']
+        handle = kwargs['handle']
+        node = kwargs['node']
+
+        padded_near_pos = hou.node( node.path()+"/PADDED/NEAR" ).geometry().boundingBox().center()
+        padded_far_pos = hou.node( node.path()+"/PADDED/FAR" ).geometry().boundingBox().center()
+        clipped_pos = hou.node( node.path()+"/PADDED/CLIPPED" ).geometry().boundingBox().center()
+        clipped_size = hou.node( node.path()+"/PADDED/CLIPPED" ).geometry().boundingBox().sizevec()
+
+        if handle == self.bboxnear.name():
+            parms["centerx"] = padded_near_pos[0]
+            parms["centery"] = padded_near_pos[1]
+            parms["centerz"] = padded_near_pos[2]
+
+        elif handle == self.bboxfar.name():
+            parms["centerx"] = padded_far_pos[0]
+            parms["centery"] = padded_far_pos[1]
+            parms["centerz"] = padded_far_pos[2]
+
+        elif handle == self.bboxsize.name():
+            parms["centerx"] = clipped_pos[0]
+            parms["centery"] = clipped_pos[1]
+            parms["centerz"] = clipped_pos[2]
+            parms["sizex"] = clipped_size[0]
+            parms["sizey"] = clipped_size[1]
+
+
+def createViewerStateTemplate():
+    state_typename = "labs::camera_frustum"
+    state_label = "Labs Camera Frustum State"
+    state_cat = hou.objNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+    # bind dynamic handles
+    template.bindHandle( "boundingbox", "BBox Near", cache_previous_parms=True, handle_parms=["centerz"])
+    template.bindHandle( "boundingbox", "BBox Far", cache_previous_parms=True, handle_parms=["centerz"])
+    template.bindHandle( "boundingbox", "BBox Size", cache_previous_parms=True, handle_parms=["sizex", "sizey", "centerx", "centery"])
+
+    return template
