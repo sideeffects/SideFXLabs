@@ -1,0 +1,182 @@
+#type:      node
+#context:   lop 
+#internal:  labs::relight_gsplats::1.2
+#icon:      /labs_icons/sidefx_labs_beta.svg
+#since:     22.0 
+
+= Labs Relight GSplats =
+
+"""Relights Gaussian Splats using USD lights and a BSDF shader."""
+
+This node renders Gaussian Splats using USD lights and a BSDF shader, producing physically-based diffuse and specular lighting. It supports Dome, Distant, Sphere, Rectangle, Disk, Cylinder, and Point light types, with optional shadow casting and image-based lighting from HDR environment maps.
+
+When Spherical Harmonic (SPH) coefficients are present on the incoming splats, the node uses them to approximate the original captured lighting. The SPH data is used to estimate diffuse albedo and roughness, and to reconstruct view-dependent specular reflections from a user-defined camera. The relit result can optionally be blended with the captured appearance to better preserve reflective materials.
+
+For datasets without SPH coefficients, the node uses the existing `Cd` or `albedo` attributes together with user-specified material properties.
+
+The computed lighting is written to the `Cd` point attribute, which determines the displayed appearance of the Gaussian Splats. When SPH data is present, the node also updates the Spherical Harmonic coefficients to reflect the new lighting. Because the final lighting is baked directly into the Gaussian Splats, the relit result can be rendered with Karma XPU, third-party renderers that support Gaussian Splats, or exported to other applications with Gaussian Splat support. The relit result can also be imported into Copernicus and used with the [Rasterize GSplats COP|Node:cop/rasterizegsplats] for further 2D image processing.
+
+TIP:
+    If the following point attributes exist, they are used automatically:
+
+    `v@albedo`
+
+    `f@metalness`
+
+    `f@specular`
+
+    `f@roughness`
+
+    `f@emission`
+
+    `v@emission_color`
+
+    The corresponding parameter is multiplied by the attribute value rather than replacing it. For example, if `f@roughness` is `0.5` and the `Roughness` parameter is `1`, the resulting roughness is `0.5`.
+
+    This provides an additional layer of artistic control and is useful in workflows where material attributes are driven by texture maps or generated procedurally in Copernicus, allowing Gaussian Splats to be relit using familiar PBR-style material workflows. 
+
+    NOTE:
+        `f@ao` can also be provided as a point attribute to apply ambient occlusion during the relighting process. Unlike the attributes above, it does not have a corresponding parameter and is used automatically whenever it is present.
+
+NOTE:
+    Not all [Light LOP|Node:lop/light] parameters are currently supported. The following parameters are read and used by this node:
+
+    `Intensity`
+
+    `Exposure`
+
+    `Color`
+
+    `Color Temperature`
+
+    `Diffuse Multiplier`
+
+    `Specular Multiplier`
+
+    `Radius`
+
+    `Environment Texture` (Dome Light only)
+
+@parameters
+
+:include /nodes/lop/_primpattern:
+
+Lights:
+    #id: lights
+    The light primitives used for GSplat re-lighting. By default all lights in the incoming Stage will be used. Specific light primitives can be selected to better control how the GSplats are lit.
+
+Camera:
+    #id: camera 
+    The render camera used for specular lighting calculations.
+
+:include /nodes/sop/lopimport#timesample:
+
+Enable Shadows:
+    #id: enableshadows 
+    Ray-traces shadows against an SDF generated from the input Gaussian Splats, or against user-provided collision geometry connected to the second input.
+
+Auto Compute Self Shadows:
+    #id: computeselfshadows
+    Automatically computes self shadows from the input GSplats. When off, custom objects can be used for self-shadows as well as shadows-casting from other objects in the scene.
+
+Overwrite Shadow Bias:
+    #id: overwriteshadowbias 
+    By default the node will estimate the appropriate shadow bias value based on the input Gaussian Splat's world scale. Enable this if you want to overwrite the shadow bias manually.
+
+Shadow Bias:
+    #id: shadowbias
+    Offsets shadow rays along the Gaussian Splat normal to reduce self-intersection artifacts.
+
+== Base ==
+
+Base:
+    #id: base 
+    Multiplier of the intensity of the diffuse reflection.
+
+    :fig: [Image:/images/nodes/vop/mtlxstandard_surface_base.jpg]
+
+Color:
+    #id: color
+    Color of the diffuse reflection.
+
+    :fig: [Image:/images/nodes/vop/mtlxstandard_surface_base_color.jpg]
+
+Diffuse Roughness:
+    #id: diffuseroughness
+    Roughness of the diffuse reflection. Higher values cause the Gaussian Splats to appear flatter and darker.
+
+Metalness:
+    #id: metallness
+    Specifies how metallic the material appears. At its maximum, the surface behaves like a metal, using fully specular reflection and Fresnel.
+
+    :fig: [Image:/images/nodes/vop/mtlxstandard_surface_metalness.jpg]
+
+Visualize Albedo:
+    #id: visalbedo
+    Overwrites the relit result with a visualization of the albedo used for diffuse reflection calculations. 
+
+== Specular ==
+
+Specular:
+    #id: specular
+    Multiplier on the intensity of the specular reflection.
+
+    :fig: [Image:/images/nodes/vop/mtlxstandard_surface_specular.jpg]
+
+Roughness:
+    #id: roughness 
+    The roughness of the specular reflection. Lower numbers produce sharper reflections, higher numbers produce blurrier reflections.
+
+    :fig: [Image:/images/nodes/vop/mtlxstandard_surface_specular_roughness.jpg]
+
+SPH Roughness Influence:
+    #id: sph_roughnessinfluence
+    Blends between standard roughness, and roughness reconstructed from the SPH coefficients. This parameter only has an effect on the relit result if the `Compute SPH Coefficients` parameter is turned on in the [Bake GSplats SOP|Node:sop/bakegsplat]. 
+
+SPH Specular Influence:
+    #id: sph_specularinfluence
+    Controls how strongly the SPH coefficients influence the reconstructed specular reflections of the Gaussian Splats. Lower values reduce the contribution of the SPH directional coefficients, resulting in rougher-looking reflections. Higher values amplify the contribution of the SPH directional coefficients, resulting in smoother-looking reflections. This parameter only affects the relit result when the `Compute SPH Coefficients` parameter is enabled in the [Bake GSplats SOP|Node:sop/bakegsplat].
+
+Index of Refraction:
+    #id: specular_IOR 
+    [Index of refraction|Wp:Refractive_index] determines how specular reflections bounce back to the camera.
+       
+    :fig: [Image:/images/nodes/vop/mtlxstandard_surface_specular_IOR.jpg] 
+
+Visualize Roughness:
+    #id: visroughness
+    Overwrites the relit result with a visualization of the roughness used for specular reflection calculations. 
+
+== Emission ==
+
+Emission:
+    #id: emission
+    Blends between the relit GSplat result and its captured appearance. Higher values preserve more of the original captured appearance.
+
+Emission Color:
+    #id: emissioncolor
+    Tints the captured appearance of the GSplat.
+
+== Advanced ==
+
+Normal Softness:
+    #id: normalsoftness
+    Blends the GSplat normals toward the view direction before evaluating diffuse lighting.
+
+Diffuse Wrap:
+    #id: diffusewrap
+    Wraps diffuse lighting around the GSplat normals to soften the terminator.
+
+SPH Env Spec Blend:
+    #id: sph_envspecblend
+    Blends between environment-map specular reflections and specular reflections reconstructed from the SPH Coefficients. This parameter only has an effect on the relit result if the `Compute SPH Coefficients` parameter is turned on in the [Bake GSplats SOP|Node:sop/bakegsplat].
+
+@Inputs
+
+    GSplats:
+        The incoming Gaussian Splats to relight.
+
+@Outputs
+
+    GSplats:
+        The relit Gaussian Splats.

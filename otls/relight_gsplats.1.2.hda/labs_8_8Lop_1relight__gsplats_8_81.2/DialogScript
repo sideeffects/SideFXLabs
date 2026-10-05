@@ -1,0 +1,275 @@
+# Dialog script for labs::relight_gsplats::1.2 automatically generated
+
+{
+    name	labs::relight_gsplats::1.2
+    script	Josh::light_gsplats::1.0
+    label	"Labs Relight GSplats (Beta)"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Input Stage"
+    inputlabel	2	"Collision Object"
+    inputlabel	3	"Input 3"
+    inputlabel	4	"Input 4"
+
+    parm {
+        name    "primpattern"
+        label   "Primitives"
+        type    string
+        default { "%type:ParticleField3DGaussianSplat" }
+        menutoggle {
+            [ "opmenu -l -a sopmodify1 primpattern" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, True)" }
+        parmtag { "script_action_help" "Select primitives in the Scene Viewer or Scene Graph Tree pane.\nCtrl-click to select using the primitive picker dialog.\nShift-click to select using the primitive pattern editor.\nAlt-click to toggle movement of the display flag." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sidefx::usdpathtype" "primlist" }
+    }
+    parm {
+        name    "lights"
+        label   "Lights"
+        type    string
+        default { "%type:Light" }
+        menutoggle {
+            [ "opmenu -l -a sopmodify1 primpattern" ]
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, True)" }
+        parmtag { "script_action_help" "Select primitives in the Scene Viewer or Scene Graph Tree pane.\nCtrl-click to select using the primitive picker dialog.\nShift-click to select using the primitive pattern editor.\nAlt-click to toggle movement of the display flag." }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sidefx::usdpathtype" "primlist" }
+    }
+    parm {
+        name    "camera"
+        label   "Camera"
+        type    string
+        default { "/cameras/camera1" }
+        menureplace {
+            [ "hou.phm().getCameras(kwargs)" ]
+            language python
+        }
+        parmtag { "script_action" "import loputils\nloputils.selectPrimsInParm(kwargs, False)\n" }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "sidefx::usdpathinput" "0" }
+        parmtag { "sidefx::usdpathtype" "prim" }
+    }
+    parm {
+        name    "timesample"
+        label   "Time Sample"
+        type    ordinal
+        default { "static" }
+        menu {
+            "static"    "Static"
+            "animated"  "Animated"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "enableshadows"
+        label   "Enable Shadows"
+        type    toggle
+        default { "0" }
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "computeselfshadows"
+        label   "Auto Compute Self Shadows"
+        type    toggle
+        default { "1" }
+        disablewhen "{ enableshadows == 0 }"
+        range   { 0 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "overwriteshadowbias"
+        label   "Overwrite Shadow Bias"
+        type    toggle
+        nolabel
+        joinnext
+        default { "0" }
+        disablewhen "{ enableshadows == 0 }"
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "shadowbias"
+        label   "Shadow Bias"
+        type    float
+        default { "0.1" }
+        disablewhen "{ enableshadows == 0 } { overwriteshadowbias == 0 }"
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupcollapsible {
+        name    "fd_base"
+        label   "Base"
+        parmtag { "group_default" "1" }
+
+        parm {
+            name    "base"
+            label   "Base"
+            type    float
+            default { "1" }
+            range   { 0! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "base_color"
+            label   "Color"
+            type    color
+            size    3
+            default { "1" "1" "1" }
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "diffuse_roughness"
+            label   "Diffuse Roughness"
+            type    float
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "metalness"
+            label   "Metalness"
+            type    float
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "visalbedo"
+            label   "Visualize Albedo"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_specular"
+        label   "Specular"
+
+        parm {
+            name    "specular"
+            label   "Specular"
+            type    float
+            default { "0" }
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "specular_roughness"
+            label   "Roughness"
+            type    float
+            default { "0.2" }
+            disablewhen "{ sph_roughnessinfluence == 1 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sph_roughnessinfluence"
+            label   "SPH Roughness Influence"
+            type    float
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sph_specularinfluence"
+            label   "SPH Specular Influence"
+            type    float
+            default { "1" }
+            disablewhen "{ sph_roughnessinfluence == 0 }"
+            range   { 0! 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "specular_IOR"
+            label   "Index of Refraction"
+            type    float
+            default { "1.5" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "visroughness"
+            label   "Visualize Roughness"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_emission"
+        label   "Emission"
+
+        parm {
+            name    "emission"
+            label   "Emission"
+            type    float
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "emission_color"
+            label   "Emission Color"
+            type    color
+            size    3
+            default { "1" "1" "1" }
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupcollapsible {
+        name    "fd_advanced"
+        label   "Advanced"
+
+        parm {
+            name    "normalsoftness"
+            label   "Normal Softness"
+            type    float
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "diffusewrap"
+            label   "Diffuse Wrap"
+            type    float
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sph_envspecblend"
+            label   "SPH Env Spec Blend"
+            type    float
+            default { "0" }
+            range   { 0! 1! }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
