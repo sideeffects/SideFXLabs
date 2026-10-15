@@ -1,0 +1,120 @@
+#type:      node
+#context:   sop
+#internal:  labs::impostor_baker::1.1
+#icon:      /labs_icons/sidefx_labs_default.svg
+#since:     22.0
+
+= Labs Impostor Baker =
+
+"""Generates impostor texture atlases from geometry."""
+
+This node captures a mesh from multiple viewing angles and bakes the result into texture atlases for use in real-time engines and lightweight rendering workflows.
+
+Impostors are commonly used for distant vegetation, rocks, props, and other assets where full geometry would be too expensive to render. The node generates sprite-based representations of the source geometry along with supporting maps such as normals and base color.
+
+Different impostor capture modes are available depending on whether the asset should be viewed from all directions, only from above, or as a turntable-style billboard.
+
+NOTE:
+    This node replaces [Labs Impostor Texture OUT|Node:out/labs--impostor_texture], [Labs Impostor Camera Rig OBJ|Node:obj/labs--impostor_camera_rig], [Labs Octahedron Lens SHOP|Node:shop/labs--octahedron_impostor_lens], and [Labs Turntable Lens SHOP|Node:shop/labs--impostor_turntable_lens] which will be removed in Houdini 24.0.
+
+@parameters
+
+    == Source ==
+
+    Geometry:
+        #id: sourcegeometry
+        Defines where the geometry used for impostor baking is sourced from.
+        
+        <p>__Input Geometry__: Uses geometry connected to the node input.</p>
+            
+        <p>__Object Path__: Uses geometry from the specified scene object.</p>
+            
+    Object:
+        #id: sourcegeoobj
+        Object path used when sourcing geometry from the scene.
+
+    Material:
+        #id: material
+        Defines whenever a color, or a texture, will be used as the Base Color.
+            
+    Albedo:
+        #id: albedocolor
+        Color used when a texture is not available.
+        
+    Texture:
+        #id: geotexture
+        Texture applied to the source geometry during baking.
+
+    Reload Image:
+        #id: reload
+        Reloads the image used in __Texture__.
+
+    == Texture ==
+
+    Impostor Type:
+        #id: impostortype
+        Controls how viewing angles are captured for the impostor atlas.
+        
+        <p>__Full Sphere__: Captures the asset from all directions around the sphere.</p>
+            
+        <p>__Upper Hemisphere__: Captures only upper viewing angles.</p>
+            
+        <p>__Turntable__: Captures horizontal rotation only.</p>
+            
+    Resolution:
+        #id: resolution
+        Output texture resolution for the generated atlases.
+        
+    Frames XY:
+        #id: framesxy
+        Number of capture frames arranged horizontally and vertically in the atlas.
+
+    == Visualize ==
+
+    Map:
+        #id: vismap
+        Selects which generated map is displayed in the viewport preview.
+        
+        <p>__BaseColor__: Displays the baked base color atlas.</p>
+            
+        <p>__Normal__: Displays the baked normal atlas.</p>
+            
+    Show Grid:
+        #id: showgrid
+        Displays the atlas tile grid in the viewport preview.
+        
+    Show Guides:
+        #id: showguides
+        Displays the cameras as guides in the viewport.
+
+    == Output ==
+
+    Output File:
+        #id: file
+        Output path for the atlas textures.
+        
+    Base Color Map:
+        #id: basecolortoggle
+        Enables generation of the base color atlas.
+        
+    Base Color Map:
+        #id: basecolorname
+        Output layer name for the base color atlas texture.
+        
+    Normals Map:
+        #id: normaltoggle
+        Enables generation of the normal atlas.
+        
+    Normal Map:
+        #id: normalname
+        Output layer name for the normal atlas texture.
+        
+    Render:
+        #id: render
+        Generates and writes the impostor atlases to disk.
+
+
+
+@related
+- [Labs Flipbook Textures|Node:out/labs--flipbook_textures-1.0]
+- [Labs Vertex Animation Textures|Node:out/labs--vertex_animation_textures-3.0]

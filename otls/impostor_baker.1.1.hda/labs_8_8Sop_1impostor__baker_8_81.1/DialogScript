@@ -1,0 +1,229 @@
+# Dialog script for labs::impostor_baker::1.1 automatically generated
+
+{
+    name	labs::impostor_baker::1.1
+    script	labs::impostor_baker::1.0
+    label	"Labs Impostor Baker"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Sub-Network Input #1"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    groupsimple {
+        name    "fd_source"
+        label   "Source"
+
+        parm {
+            name    "sourcegeometry"
+            label   "Geometry"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Input Geometry"
+                "1" "Object Path"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sourcegeoobj"
+            label   "Object"
+            type    oppath
+            default { "" }
+            hidewhen "{ sourcegeometry == 0 }"
+            parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "material"
+            label   "Material"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Color"
+                "1" "Texture"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "albedocolor"
+            label   "Albedo"
+            type    color
+            size    3
+            default { "0.5" "0.5" "0.5" }
+            hidewhen "{ material == 1 }"
+            range   { 0 1 }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "geotexture"
+            label   "Texture"
+            type    file
+            default { "`chs(prims(opinputpath(\".\", 0), 0, \"shop_materialpath\") + \"/basecolor_texture\")`" }
+            hidewhen "{ material == 0 }"
+            parmtag { "filechooser_mode" "read" }
+            parmtag { "opfilter" "!!OBJ/GEOMETRY!!" }
+            parmtag { "oprelative" "." }
+        }
+        parm {
+            name    "reload"
+            label   "Reload Image"
+            type    button
+            default { "0" }
+            hidewhen "{ material == 0 }"
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback" "kwargs['node'].node('impostor_texture/import_texture').parm('reload').pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_impostor"
+        label   "Texture"
+
+        parm {
+            name    "impostortype"
+            label   "Impostor Type"
+            type    ordinal
+            default { "1" }
+            menu {
+                "0" "Full Sphere"
+                "1" "Upper Hemisphere"
+                "2" "Turntable"
+            }
+        }
+        parm {
+            name    "resolution"
+            label   "Resolution"
+            type    ordinal
+            default { "1024" }
+            menu usetokenvalue {
+                "256"   "256^2"
+                "512"   "512^2"
+                "1024"  "1024^2"
+                "2048"  "2048^2"
+                "4096"  "4096^2"
+                "8192"  "8192^2"
+            }
+        }
+        parm {
+            name    "framesxy"
+            label   "Frames XY"
+            type    integer
+            default { "8" }
+            range   { 1! 10 }
+        }
+        parm {
+            name    "message"
+            label   "Message"
+            type    label
+            default { "Frame Resolution: `ftrim(detail(\"GUIDE\",\"tileres\",0))`" }
+            parmtag { "sidefx::look" "block" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_vis"
+        label   "Visualize"
+
+        parm {
+            name    "vismap"
+            label   "Map"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "BaseColor"
+                "1" "Normal"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "showgrid"
+            label   "Show Grid"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "showguides"
+            label   "Show Guides"
+            type    toggle
+            default { "0" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_output"
+        label   "Output"
+
+        parm {
+            name    "file"
+            label   "Output File"
+            type    image
+            default { "$HIP/export/${OS}_<LAYER>.png" }
+            disablewhen "{ basecolortoggle == 0 }"
+        }
+        parm {
+            name    "sepparm2"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "basecolortoggle"
+            label   "Base Color Map"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "basecolorname"
+            label   "Base Color Map"
+            type    string
+            default { "albedocolor" }
+            disablewhen "{ basecolortoggle == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "normaltoggle"
+            label   "Normal Map"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "normalname"
+            label   "Normal Map"
+            type    string
+            default { "N" }
+            disablewhen "{ normaltoggle == 0 }"
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "sepparm"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "render"
+            label   "Render"
+            type    button
+            default { "0" }
+            parmtag { "script_callback" "kwargs['node'].node('impostor_texture').node('render').parm('execute').pressButton()" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}
