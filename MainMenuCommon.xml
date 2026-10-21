@@ -6,16 +6,35 @@
          implicitly "root_menu"
       -->
     <menu>
-        <!-- Set external editor -->
-        <addScriptItem id="set_external_editor">
+        <!-- Set external editor New UI-->
+        <addScriptItem id="set_external_editor_newui">
             <label>Set External Text Editor [Labs]</label>
             <parent>edit_menu</parent>
             <insertAtIndex>17</insertAtIndex>
+            <context>
+                <expression>
+                    <![CDATA[
+return hou.getenv("HOUDINI_USE_NEW_UI") != "0"
+                    ]]>
+                </expression>
+          </context>
             <scriptCode>
                 <![CDATA[
 from HoudiniExprEditor import ParmWatcher
 ParmWatcher.set_external_editor()
                 ]]>
+            </scriptCode>
+        </addScriptItem>
+        <!-- Set external editor Old UI-->
+        <addScriptItem id="set_external_editor_oldui">
+          <label>Set External Text Editor [Labs]</label>
+          <parent>preferences_submenu</parent>
+          <insertAtIndex>26</insertAtIndex>
+          <scriptCode>
+            <![CDATA[
+from HoudiniExprEditor import ParmWatcher
+ParmWatcher.set_external_editor()
+            ]]>
             </scriptCode>
         </addScriptItem>
         <!-- Open session module source watcher -->
