@@ -1,97 +1,164 @@
-= Labs AV Meshing =
-
 #type: node
 #context: sop
 #internal: labs::av_meshing::7.0
-#icon: alicevision.png
-#tags: sidefxlabs,  photogrammetry
+#icon: /labs_icons/sidefx_labs_default.svg
+
+= Labs AV Meshing =
 
 """  Creates a dense geometric surface representation of the scene using Alicevision. """
 
 The objective of this step is to create a dense geometric surface representation of the scene. The output of this node is a high-poly mesh, which can be used for any further processing in Houdini.
 
 TIP:
-    You can provide a bounding box around the output point cloud of the `AV Depth Map` node to isolate regions of the reconstructed scene to refine. Simply feed in a box (no other shape) into the second input.
+    You can provide a bounding box around the output point cloud of the  [Labs AV Depth Map SOP|Node:sop/labs--av_depth_map-7.0] node to isolate regions of the reconstructed scene to refine. Simply feed in a box (no other shape) into the second input.
 
 NOTE:
     Requires Meshroom/AliceVision version 2023.3.0. See [https://alicevision.org/#meshroom|https://alicevision.org/#meshroom] for information on how to download.
 
 @parameters
     == Main ==
+
     Cook:
+        #id: cook
         Start the cooking process for this step.
+
     Use Log:
+        #id: bExportLog
         This toggle controls if the status of the current node should be printed to the console. This is useful for getting a quick overview of the progress.
+    
     == Meshing ==
+
     Max Input Points:
+        #id: maxInputPoints
         Max input points loaded from depth map images.
+
     Max Points:
+        #id: maxPoints
         Max points at the end of the depth maps fusion.
+
     Max Points per Voxel:
+        #id: maxPointsPerVoxel
         Max points per voxel.
+
     Min Step:
+        #id: minStep
         The step used to load depth values from depth maps is computed from maxInputPts. Here we define the minimal value for this step, so on small datasets we will not spend too much time at the beginning loading all depth values.
+   
     Vertex Colors:
+        #id: colorizeOutput
         Whether to colorize output dense point cloud and mesh.
+
     Partitioning:
+        #id: partitioning
         Enable Partitioning.
+
     Repartition:
+        #id: repartition
         Enable Repartitioning.
+
     Angle Factor:
+        #id: angleFactor
         AngleFactor.
+
     Sim Factor:
+        #id: slimFactor
         Sim Factor.
-    pixSizeMarginInitCoef:
+
+    Initial Pixel Margin Coef Size:
+        #id: pixSizeMarginInitCoef
         pixSizeMarginInitCoef.
-    pixSizeMarginFinalCoef:
+
+    Final Pixel Size Margin Coef Size:
+        #id:pixSizeMarginFinalCoef
         pixSizeMarginFinalCoef.
-    voteMarginFactor:
+
+    Vote Margin Factor:
+        #id:voteMarginFactor
         voteMarginFactor.
-    contributeMarginFactor:
+
+    Contribute Margin Factor:
+        #id: contributeMarginFactor
         contributeMarginFactor.
-    simGaussianSizeInit:
+
+    Initial Gaussian Sim Size:
+        #id: simGaussianSizeInit
         simGaussianSizeInit.
-    simGaussianSize:
+
+    Gaussian Sim Size:
+        #id: simGaussianSize
         simGaussianSize.
-    minAngleThreshold:
+
+    Minimum Angle Threshold:
+        #id: minAngleThreshold
         minAngleThreshold.
+
     Refine Fuse:
+        #id: refineFuse
         Refine depth map fusion with the new pixels size defined by angle and similarity scores.
+
     Estimate Space From SfM:
+        #id: estimateSpaceFromSfM
         Estimate the 3d space from the SfM.
+
     Min Observations For SfM Space Estimation:
+        #id: estimateSpaceMinObservations
         Minimum number of observations for SfM space estimation.
+
     Min Observations Angle For SfM Space Estimation:
+        #id: estimateSpaceMinObservationAngle
         Minimum angle between two observations for SfM space estimation.
+
     Add Landmarks To The Dense Point Cloud:
+        #id: addLandmarksToTheDensePointCloud
         Add SfM Landmarks to the dense point cloud.
+
     == Mesh Filter ==
+
     Filter Large Triangles Factor:
+        #id: filterLargeTrianglesFactor
         Remove all large triangles. We consider a triangle as large if one edge is bigger than N times the average edge length. Put zero to disable it.
+   
     Keep Only the Largest Mesh:
+        #id: keepLargestMeshOnly
         Keep only the largest connected triangles group.
-    Num of Iterations:
+
+    Smoothing Iterations:
+        #id: smoothingIterations
         Number of smoothing iterations.
+
     Lambda:
+        #id: smoothingLambda
         Lambda.
 
     == Environment ==
+
     Environment:
+        #id: customenv
 	The environment used for launching the AliceVision utilities command line. Note that this is a python expression and should be modified only through "Edit Expression".
 
 @inputs
-AV Depth Map:
-    This should get the output of AV Depth Map.
-Bounding BOX:
-    This can optionally receive a bounding box to refine the region that should be reconstructed. This is only allowed to be a transformed box, and nothing else.
+    AV Depth Map:
+        This should get the output of [Labs AV Depth Map SOP|Node:sop/labs--av_depth_map-7.0].
+
+    Bounding BOX:
+        This can optionally receive a bounding box to refine the region that should be reconstructed. This is only allowed to be a transformed box, and nothing else.
 
 @outputs
-AV Depth Map:
-    This plugs into AV Texturing, and holds the generated mesh.
-Pointcloud:
-    This is the point cloud generated by the meshing step.
+    AV Depth Map:
+        This plugs into [Labs AV Texturing SOP|labs--av_texturing-7.0], and holds the generated mesh.
+
+    Pointcloud:
+        This is the point cloud generated by the meshing step.
 
 
 @examples
 
     - [Example File|https://github.com/sideeffects/SideFXLabsExamples/tree/main/examples/alicevision]
+
+@related
+- [Labs AV Analyze Images SOP|Node:sop/labs--av_analyze_images-7.0]
+- [Labs AV Depth Map SOP|Node:sop/labs--av_depth_map-7.0]
+- [Labs AV Initialize SOP|Node:sop/labs--av_initialize-7.0]
+- [Labs AV Photogrammetry SOP|labs--av_photogrammetry-7.0]
+- [Labs AV Structure from Motion SOP|labs--av_structure_from_motion-7.0]
+- [Labs AV Texturing SOP|labs--av_texturing-7.0]
