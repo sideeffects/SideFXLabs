@@ -1,79 +1,130 @@
-= Labs AV Texturing =
-
 #type: node
 #context: sop
 #internal: labs::av_texturing::7.0
-#icon: alicevision.png
-#tags: sidefxlabs,  photogrammetry
+#icon: /labs_icons/sidefx_labs_default.svg
 
-"""  Texture the generated mesh using Alicevision. """
+= Labs AV Texturing =
 
-The objective of this step is to texture the generated mesh. The output of this node is a high-poly mesh with very basic UVs and textures. It is highly recommended to reproject the textures on a mesh with custom UVs. (For example using the Games Baker or Simple Baker)
+""" Texture the generated mesh using Alicevision."""
+
+The objective of this step is to texture the generated mesh. The output of this node is a high-poly mesh with very basic UVs and textures. It is highly recommended to reproject the textures on a mesh with custom UVs. (For example using [Labs Simple Baker SOP|Node:sop/labs--simple_baker-2.0])
 
 NOTE:
     Requires Meshroom/AliceVision version 2023.3.0. See [https://alicevision.org/#meshroom|https://alicevision.org/#meshroom] for information on how to download.
 
 TIP:
-    The node allows you to provide a custom mesh to be textured in the second input. For example use the quad remesher to remesh the dense geometry produced by the meshing step and UV it using any of the UV tools. This generally produces better results than letting AV UV the geometry.
+    The node allows you to provide a custom mesh to be textured in the second input. For example use the [Quad Remesher SOP|Node:sop/quadremesh] to remesh the dense geometry produced by the meshing step and UV it using any of the UV tools. This generally produces better results than letting AV UV the geometry.
+
 @parameters
+
     == Main ==
+
     Cook:
+        #id: cook
         Start the cooking process for this step.
+
     Use Log:
+        #id: bExportLog
         This toggle controls if the status of the current node should be printed to the console. This is useful for getting a quick overview of the progress.
+
     == Texturing ==
+
     Texture Side:
+        #id: textureSide
         Output texture size.
+
     Texture Downscale:
+        #id: downscale
         Texture downscale factor.
+
     Texture File Type:
+        #id: colorMappingFileType
         Texture File Type.
+
     Unwrap Method:
+        #id: unwrapMethod
         Method to unwrap input mesh if it does not have UV coordinates.
         ' Basic (> 600k faces) fast and simple. Can generate multiple atlases.
 
         ' LSCM (<= 600k faces): optimize space. Generates one atlas.
 
         ' ABF (<= 300k faces): optimize space and stretch. Generates one atlas.
+
     Fill Holes:
+        #id: fillHoles
         Fill Texture holes with plausible values.
+
     Flip Normals:
+        #id: flipNormals
         Option to flip face normals. It can be needed as it depends on the vertices order in triangles and the convention change from one software to another.
+
     Use UDIM UVs:
+        #id: useUDIMS
         Use UDIM UV mapping.
+
     Padding:
+        #id: padding
         Texture edge padding size in pixels.
+
     Best Score Threshold:
+        #id: bestScoreThreshold
         (0.0 to disable filtering based on threshold to relative best score).
+
     Angle Hard Threshold:
+        #id: angleHardThreshold
         (0.0 to disable angle hard threshold filtering)/
+
     Force Visible By All Vertices:
+        #id: forceVisibleByAllVertices
         Triangle visibility is based on the union of vertices visibility.
+
     Visibility Remapping Method:
+        #id: visibilityRemappingMethod
         Method to remap visibilities from the reconstruction to the input mesh (Pull, Push, PullPush).
+
     Use Custom Images for Texturing:
+        #id: bCustomImages
         Use images from a specific folder instead of those specify in the SfMData file. Filename should be the image uid.
+
     Custom Texturing Images:
+        #id: customTextureImages
         Use images from a specific folder instead of those specify in the SfMData file. Filename should be the image uid.
+
     Correct Exposure:
+        #id: correctEV
         Uniformize images exposure values.
+
     Use Score:
+        #id: useScore
         Use triangles scores for multiband blending.
+
     Process Colorspace:
+        #id: processColorspace
         Colorspace for the texturing internal computation (does not impact the output file colorspace).
+
     Multi Band Downscale:
+        #id: multiBandDownscale
         Width of frequency bands for multiband blending.
 
     == Environment ==
+
     Environment:
+        #id: customenv
 	The environment used for launching the AliceVision utilities command line. Note that this is a python expression and should be modified only through "Edit Expression".
 
 
 @inputs
 Custom Mesh:
-    Optionally provide a custom mesh to be textured in the second input. For example use the quad remesher to remesh the dense geometry produced by the meshing step and UV it using any of the UV tools. This generally produces better results than letting AV UV the geometry.
+    Optionally provide a custom mesh to be textured in the second input. For example use the [Quad Remesher SOP|Node:sop/quadremesh] to remesh the dense geometry produced by the meshing step and UV it using any of the UV tools. This generally produces better results than letting AV UV the geometry.
 
 
 @examples
-
     - [Example File|https://github.com/sideeffects/SideFXLabsExamples/tree/main/examples/alicevision]
+
+@related
+- [Labs AV Analyze Images SOP|Node:sop/labs--av_analyze_images-7.0]
+- [Labs AV Depth Map SOP|Node:sop/labs--av_depth_map-7.0]
+- [Labs AV Initialize SOP|Node:sop/labs--av_initialize-7.0]
+- [Labs AV Meshing SOP|Node:sop/labs--av_meshing-7.0]
+- [Labs AV Photogrammetry SOP|labs--av_photogrammetry-7.0]
+- [Labs AV Structure from Motion SOP|labs--av_structure_from_motion-7.0]
