@@ -1,0 +1,46 @@
+#type:     node
+#context:  cop
+#internal: labs::cluster_colors::1.0
+#icon:     /labs_icons/sidefx_labs_default.svg
+= Labs Cluster Colors =
+
+"""Clusters the dominant colors from a source image."""
+
+This node works similarly to the [Cluster SOP|Node:sop/cluster]. Using the color of an input source, it extracts the given number of cluster centroids using the [k-means clustering algorithm|Wp:K-means]. 
+
+The initial centroids are sampled from the input source itself using [farthest-first traversal|Wp:Farthest-first_traversal] on a subset of pixels to ensure unique colors have a higher chance of being selected.
+
+The final centroid colors are remapped onto the original source or onto an optional target source.
+
+@parameters
+
+    Clusters:
+        #id: clusters
+        The number of dominant colors to extract from the source.
+        
+    Initial Sample Grid:
+        #id: gridsize
+        Number of samples along each side of the source input to pick the starting centroids. Higher values catch smaller, distinct colors but may take longer to compute. Should be at least the square root of the cluster count.
+        
+    Maximum Iterations:
+        #id: maxiterations
+        Maximum number of iterations to converge centroids to their final position. 
+        
+
+@inputs
+    source:
+        The image to source colors from.
+
+    target:
+        Optional: the image to apply the dominant colors to if different from the source image. Each pixel color will map to the centroid it is closest to.
+
+
+@outputs
+    result:
+        The image resulting from mapping each pixel color to the closest generated centroid.
+
+    centroids:
+        The generated centroid colors.
+
+    index:
+        The index of each pixel's assigned centroid.
