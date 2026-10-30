@@ -11,6 +11,8 @@ g_enableTiming = False
 
 if verboseDebug: print("Init Module...")
 
+#__QR_plugin_version__ = "[_QR_MAJ_VER_].[_QR_MIN_VER_]"
+__QR_plugin_version__ = "1.4"
 
 
 # ------------------- Check Progress ---------------------
@@ -136,16 +138,16 @@ def getQREngineFolder():
     isMacOS = (platform.system()=="Darwin") or (platform.system()=="macosx")
     isLinux = (platform.system()=="Linux")
     if (isMacOS):
-        engineFolder = "/Users/Shared/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.2"
+        engineFolder = "/Users/Shared/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_"+__QR_plugin_version__
         return engineFolder
     elif (isLinux):
-        engineFolder = "~/.local/share/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.2"
+        engineFolder = "~/.local/share/Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_"+__QR_plugin_version__
         engineFolder = os.path.expanduser(engineFolder)
         return engineFolder
     else:
         #appData = os.getenv('APPDATA')  windows ... UserName/../Roaming... 
         appData = os.getenv('ALLUSERSPROFILE')  # on windows : C:\Users\All Users == C:\ProgramData\
-        engineFolder = os.path.join(appData, "Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_1.2")
+        engineFolder = os.path.join(appData, "Exoside/QuadRemesher/Datas_Houdini/QuadRemesherEngine_"+__QR_plugin_version__)
         return engineFolder
 
 def getQREnginePath():
@@ -256,11 +258,24 @@ def InstallQuadRemesherEngineIfNeeded(qrnode, ForceInstall=False, DownloadOnly=F
 def InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder):
     global verboseDebug
     if verboseDebug: print("InstallQuadRemesherEngine_FromZip.....")
+
+    isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
+    isLinux = (platform.system()=="Linux")
+
     # unzip
     try:
-        from zipfile import ZipFile
-        with ZipFile(zip_file_name, 'r') as zip: 
-            zip.extractall(engineFolder) 
+        if isMacOSX:
+            # use command line because pythons unzip is losing attributes + from Ventura, macOS says that xrLicenseManager is damaged if unzipped from python
+            #print('unzip "%s" -d "%s"' % (zip_file_name,engineFolder))
+            #os.system('unzip "%s" -d "%s"' % (zip_file_name,engineFolder))
+            # using ditto to keep signature and notarization
+            #print('ditto -x -k "%s" "%s"' % (zip_file_name, engineFolder))
+            os.system('ditto -x -k "%s" "%s"' % (zip_file_name, engineFolder))
+
+        else: # Win + Linux
+            from zipfile import ZipFile
+            with ZipFile(zip_file_name, 'r') as zip: 
+                zip.extractall(engineFolder) 
         
     except :
         import traceback
@@ -272,8 +287,6 @@ def InstallQuadRemesherEngine_FromZip(zip_file_name, engineFolder):
     os.remove(zip_file_name)
         
     # python unzip is losing file modes...
-    isMacOSX = (platform.system()=="Darwin") or (platform.system()=="macosx")
-    isLinux = (platform.system()=="Linux")
     if isMacOSX:
         try:
             fixExecutableMode(os.path.join(engineFolder, 'xremesh'))
@@ -313,11 +326,11 @@ def InstallQuadRemesherEngine_Download():
             zip_file_name = os.path.join(engineFolder, "install_engine.zip")
             if isMacOSX:
                 # NB: https fails on macOS here
-                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.2_macOS.zip"
+                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_"+__QR_plugin_version__+"_macOS.zip"
             elif isLinux:
-                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_1.2_linux.zip"
+                download_url = "http://exoside.com/quadremesherdata/quad_remesher_engine_"+__QR_plugin_version__+"_linux.zip"
             else:
-                download_url = "https://exoside.com/quadremesherdata/quad_remesher_engine_1.2_win.zip"
+                download_url = "https://exoside.com/quadremesherdata/quad_remesher_engine_"+__QR_plugin_version__+"_win.zip"
             if sys.version_info[0] <= 2:
                 import urllib
                 urllib.urlretrieve(download_url, zip_file_name)
@@ -711,7 +724,7 @@ def doRemeshing(node):
     elif isLinux:
         XRTempFolder = tempfile.gettempdir()
     else :
-        XRTempFolder = tempfile.gettempdir() # gettempdir() => c:\users\max\appdata\local\temp\houdini_temp
+        XRTempFolder = tempfile.gettempdir() # gettempdir() => c:\users\USERNAME\appdata\local\temp\houdini_temp
         XRTempFolder = unixifyPath(XRTempFolder)
     XRTempFolder = os.path.join(XRTempFolder, "QuadRemesher")
     if verboseDebug: print("TempFolder = "+ XRTempFolder)
@@ -784,6 +797,7 @@ def doRemeshing(node):
         if verboseDebug: print("Start write settings... in:" + settingsFilename)
         settings_file = open(settingsFilename, "w")
         settings_file.write('HostApp=Houdini\n')
+        settings_file.write('HostAppVer='+getHostAppVer()+'\n')
         settings_file.write('FileIn="%s"\n' % exportFilename)
         settings_file.write('FileOut="%s"\n' % retopoFilename)
         settings_file.write('ProgressFile="%s"\n' % progressData.ProgressFilename)
@@ -925,6 +939,14 @@ def onPaint(args, node):
 #        print(str(traceback.format_exc()) + "\n")
     return None
 
+def getHostAppVer():
+    try:
+        return hou.applicationVersionString()
+    except :
+        return "-1"
+    return "-1"
+
+
 def buttonLicMgr(node):
     InstallQuadRemesherEngineIfNeeded(node)
     
@@ -939,7 +961,7 @@ def buttonLicMgr(node):
         licenseManagerPath = os.path.join(engineFolder, 'xrLicenseManager.exe')
     
     try:
-        subprocess.Popen([licenseManagerPath, "-hostApp", "Houdini"])
+        subprocess.Popen([licenseManagerPath, "-hostApp", "Houdini", "-haVer", getHostAppVer()])
     except :
         print ("ERROR: cannot launch License Manager")
         return
