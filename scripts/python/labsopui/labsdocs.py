@@ -96,8 +96,19 @@ def create_node_help(nodetypename, context, directory):
         txtname += "-"+namecomponents[3]
     txtname += ".txt"
 
+    filepath = os.path.join(hou.text.expandString(directory), txtname)
+
+    if os.path.exists(filepath):
+        msg = "Help file already exists:\n{}\n\nOverwrite it?".format(filepath)
+        confirmed = hou.ui.displayConfirmation(msg, severity=hou.severityType.Warning, title="Overwrite Help File")
+
+    if not confirmed:
+        print("Process cancelled.")
+        return
+
+
     stdout = sys.stdout
-    sys.stdout = open(os.path.join(hou.text.expandString(directory), txtname), 'w')
+    sys.stdout = open(filepath, 'w')
 
     writeHeader(node, nodetypename, context)
     writeTemplates(node.parmTemplateGroup().entries(), "==")
@@ -107,6 +118,7 @@ def create_node_help(nodetypename, context, directory):
 
     # Reset sys.stdout to what it was previously to prevent Python errors with other scripts using it
     sys.stdout = stdout
+    print(filepath + " written successfully.")
 
 
 def create_node_help_auto(node):
