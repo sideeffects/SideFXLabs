@@ -77,6 +77,38 @@ def writeTemplates(templates, indent):
                 for i in range(len(temp.menuLabels())):
                     sys.stdout.write(prefix + prefix + temp.menuLabels()[i] 
                                      + ":\n"+prefix + prefix+ prefix+"\n")
+
+def writeConnectors(node):
+    inputLabelsFormatted = []
+    outputLabelsFormatted = []
+
+    numInputs = node.maxNumInputs()
+    numOutputs = node.maxNumOutputs()
+    nodeProperties = node.definition().sections()["DialogScript"].contents()
+
+    connectorLabels = [line.strip() for line in nodeProperties.splitlines() if line.strip().startswith(("inputlabel", "outputlabel"))]
+    inputLabels = [line for line in connectorLabels if line.startswith("inputlabel")]
+    outputLabels = [line for line in connectorLabels if line.startswith("outputlabel")]
+
+    for i in range(numInputs):
+        inLabel = inputLabels[i].split(None, 2)[2].strip('"')
+        inputLabelsFormatted.append(inLabel)
+
+    for j in range(numOutputs):
+        outLabel = outputLabels[j].split(None, 2)[2].strip('"')
+        outputLabelsFormatted.append(outLabel)
+
+    sys.stdout.write("@inputs\n")
+    for i in inputLabelsFormatted:
+        sys.stdout.write(prefix + i + ":" + "\n" + prefix + prefix + "\n")
+    sys.stdout.write("\n")
+
+    sys.stdout.write("@outputs\n")
+    for j in outputLabelsFormatted:
+        sys.stdout.write(prefix + j + ":" + "\n" + prefix + prefix + "\n")
+    sys.stdout.write("\n")
+
+
                 
 def create_node_help(nodetypename, context, directory):
     if context not in catsubs.keys():
@@ -112,6 +144,7 @@ def create_node_help(nodetypename, context, directory):
 
     writeHeader(node, nodetypename, context)
     writeTemplates(node.parmTemplateGroup().entries(), "==")
+    writeConnectors(node)
     writeFooter()
 
     sys.stdout.close()
