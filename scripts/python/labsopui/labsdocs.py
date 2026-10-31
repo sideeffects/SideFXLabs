@@ -86,9 +86,9 @@ def writeConnectors(node):
     numOutputs = node.maxNumOutputs()
     nodeProperties = node.definition().sections()["DialogScript"].contents()
 
-    connectorLabels = [line.strip() for line in nodeProperties.splitlines() if line.strip().startswith(("inputlabel", "outputlabel"))]
-    inputLabels = [line for line in connectorLabels if line.startswith("inputlabel")]
-    outputLabels = [line for line in connectorLabels if line.startswith("outputlabel")]
+    connectorLabels = [line.strip() for line in nodeProperties.splitlines() if line.strip().startswith(("input", "output"))]
+    inputLabels = [line for line in connectorLabels if line.startswith("input")]
+    outputLabels = [line for line in connectorLabels if line.startswith("output")]
 
     for i in range(numInputs):
         inLabel = inputLabels[i].split(None, 2)[2].strip('"')
@@ -100,12 +100,12 @@ def writeConnectors(node):
 
     sys.stdout.write("@inputs\n")
     for i in inputLabelsFormatted:
-        sys.stdout.write(prefix + i + ":" + "\n" + prefix + prefix + "\n")
+        sys.stdout.write(prefix + i + ":" + "\n" + prefix + prefix + "\n\n")
     sys.stdout.write("\n")
 
     sys.stdout.write("@outputs\n")
     for j in outputLabelsFormatted:
-        sys.stdout.write(prefix + j + ":" + "\n" + prefix + prefix + "\n")
+        sys.stdout.write(prefix + j + ":" + "\n" + prefix + prefix + "\n\n")
     sys.stdout.write("\n")
 
 
@@ -144,7 +144,14 @@ def create_node_help(nodetypename, context, directory):
 
     writeHeader(node, nodetypename, context)
     writeTemplates(node.parmTemplateGroup().entries(), "==")
-    writeConnectors(node)
+
+    # Input and Output writing tested working with SOPs and COPs (Copernicus). 
+    # Any other contexts that don't have the same input/output formatting will be skipped if they throw an error.
+    try:
+        writeConnectors(node)
+    except Exception:
+        pass
+
     writeFooter()
 
     sys.stdout.close()
