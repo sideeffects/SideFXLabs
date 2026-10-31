@@ -102,9 +102,9 @@ def create_node_help(nodetypename, context, directory):
         msg = "Help file already exists:\n{}\n\nOverwrite it?".format(filepath)
         confirmed = hou.ui.displayConfirmation(msg, severity=hou.severityType.Warning, title="Overwrite Help File")
 
-    if not confirmed:
-        print("Process cancelled.")
-        return
+        if not confirmed:
+            print("Process cancelled.")
+            return
 
 
     stdout = sys.stdout
