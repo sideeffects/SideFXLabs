@@ -1,0 +1,200 @@
+# Dialog script for labs::group_curve_corners::1.0 automatically generated
+
+{
+    name	labs::group_curve_corners::1.0
+    script	gamedev::sop_group_curve_corners
+    label	"Labs Group Curve Corners"
+
+    help {
+	""
+    }
+
+    inputlabel	1	Curve
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+
+    parm {
+        name    "group"
+        label   "Group"
+        type    string
+        default { "" }
+        menutoggle {
+            [ "r = []" ]
+            [ "node = hou.pwd()" ]
+            [ "inputs = node.inputs()" ]
+            [ "if inputs and inputs[0]:" ]
+            [ "    geo = inputs[0].geometry()" ]
+            [ "    if geo:" ]
+            [ "        attrs = []        " ]
+            [ "        for g in geo.pointGroups():" ]
+            [ "            r.extend([g.name(), g.name()])             " ]
+            [ "return r" ]
+            language python
+        }
+        parmtag { "Select geometry from an available viewport. Shift-click to turn on Select Groups.script_action" "Select geometry from an available viewport. Shift-click to turn on Select Groups." }
+        parmtag { "script_action" "import soputils\nkwargs['geometrytype'] = hou.geometryType.Points\nkwargs['inputindex'] = 0\nsoputils.selectGroupParm(kwargs)" }
+        parmtag { "script_action_icon" "BUTTONS_reselect" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm2"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "sepparm4"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "mininnerangle"
+        label   "Min Inner Angle"
+        type    float
+        default { "0" }
+        range   { 0 90 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "maxinnerangle"
+        label   "Max Inner Angle"
+        type    float
+        default { "180" }
+        range   { 0 180 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "sepparm"
+        label   "Spacer"
+        type    separator
+        default { "" }
+        parmtag { "sidefx::layout_height" "small" }
+        parmtag { "sidefx::look" "blank" }
+    }
+    parm {
+        name    "minouterangle"
+        label   "Min Outer Angle"
+        type    float
+        default { "0" }
+        range   { 0 90 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "maxouterangle"
+        label   "Max Outer Angle"
+        type    float
+        default { "180" }
+        range   { 0 180 }
+        parmtag { "script_callback_language" "python" }
+    }
+    groupsimple {
+        name    "fd_output"
+        label   "Output"
+
+        parm {
+            name    "enableinsidegroup"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "insidegroup"
+            label   "Inside Group"
+            type    string
+            default { "inside_grp" }
+            disablewhen "{ enableinsidegroup != 1 }"
+        }
+        parm {
+            name    "enableoutsidegroup"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "1" }
+        }
+        parm {
+            name    "outsidegroup"
+            label   "Outside Group"
+            type    string
+            default { "outside_grp" }
+            disablewhen "{ enableoutsidegroup != 1 }"
+        }
+        parm {
+            name    "enableinsideattrib"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "insideattrib"
+            label   "Inside Integer Attribute"
+            type    string
+            default { "inside_attr" }
+            disablewhen "{ enableinsideattrib != 1 }"
+        }
+        parm {
+            name    "enableoutsideattrib"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "outsideattrib"
+            label   "Outside Integer Attribute"
+            type    string
+            default { "outside_attr" }
+            disablewhen "{ enableoutsideattrib != 1 }"
+        }
+        parm {
+            name    "sepparm3"
+            label   "Spacer"
+            type    separator
+            default { "" }
+            parmtag { "sidefx::layout_height" "small" }
+            parmtag { "sidefx::look" "blank" }
+        }
+        parm {
+            name    "enableangleattrib"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "angleattrib"
+            label   "Add Angle Attribute"
+            type    string
+            default { "angle" }
+            disablewhen "{ enableangleattrib != 1 }"
+        }
+        parm {
+            name    "enabledirectionalnormal"
+            label   "Label"
+            type    toggle
+            nolabel
+            joinnext
+            default { "0" }
+        }
+        parm {
+            name    "adddirectionalnormal"
+            label   "Add Directional Normal"
+            type    string
+            default { "dir_normal" }
+            disablewhen "{ enabledirectionalnormal != 1 }"
+        }
+    }
+
+}
