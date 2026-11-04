@@ -1,0 +1,112 @@
+# Dialog script for labs::physical_star_glow::1.0 automatically generated
+
+{
+    name	labs::physical_star_glow::1.0
+    script	labs::physical_star_glow::1.0
+    label	"Labs Physical Star Glow"
+
+    input	input1	source
+    input	input3	mask
+    input	input2	aperture
+    output	output1	starglow
+    output	output2	mask
+    output	output3	aperture
+    signature	default	RGBA	{ RGBA Mono Mono }	{ RGBA Mono Mono }
+    signature	default2	RGB	{ RGB Mono Mono }	{ RGB Mono Mono }
+
+    help {
+	""
+    }
+
+    parm {
+        name    "signature"
+        baseparm
+        label   "Signature"
+        export  none
+    }
+    parm {
+        name    "iterations"
+        label   "Samples"
+        type    integer
+        default { "24" }
+        range   { 1! 64 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "intensity"
+        label   "Intensity"
+        type    float
+        default { "1" }
+        range   { 0 5 }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "luminancemetric"
+        label   "Luminance Metric"
+        type    ordinal
+        default { "ntsclum" }
+        menu {
+            "lum"           "SGI Luminance"
+            "ntsclum"       "NTSC Luminance"
+            "hdtvlum"       "HDTV Luminance"
+            "average"       "Average"
+            "max"           "Maximum Channel"
+            "min"           "Minimum Channel"
+            "magnitude"     "Magnitude / Length"
+            "hue"           "Hue"
+            "saturation"    "Saturation"
+            "value"         "Value"
+            "red"           "Red"
+            "green"         "Green"
+            "blue"          "Blue"
+            "comp4"         "Alpha"
+            "custom"        "Custom"
+        }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "weight"
+        label   "Weights"
+        type    color4
+        size    4
+        default { "1" "1" "1" "0" }
+        hidewhen "{ luminancemetric != custom }"
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "diffractionscale"
+        label   "Diffraction Scale"
+        type    float
+        default { "0.01" }
+        range   { -0.02 0.02 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "threshold"
+        label   "Threshold"
+        type    float
+        default { "0.5" }
+        range   { 0 1 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "script_action" "import cop.stateutils as csu\ncsu.enterPickerState(kwargs[\"node\"], \"threshold\", processor=csu.BufferProcessor.MIN)" }
+        parmtag { "script_action_help" "Click the layer to set the threshold value." }
+        parmtag { "script_action_icon" "BUTTONS_layer_sample" }
+        parmtag { "script_callback_language" "python" }
+    }
+    parm {
+        name    "coloroverwevelength"
+        label   "Color Over Visible Wavelength"
+        type    ramp_rgb
+        default { "5" }
+        range   { 1! 10 }
+        parmtag { "autoscope" "0000000000000000" }
+        parmtag { "rampcolordefault" "1pos ( 0 ) 1c ( 0.20000000298023224 0 1 ) 1interp ( linear ) 2pos ( 0.25 ) 2c ( 0 0.5805 1 ) 2interp ( linear ) 3pos ( 0.5 ) 3c ( 0.075 0.3 0.075 ) 3interp ( linear ) 4pos ( 0.75 ) 4c ( 0.949999988079071 1 0 ) 4interp ( linear ) 5pos ( 1 ) 5c ( 1 0 0 ) 5interp ( linear )" }
+        parmtag { "rampshowcontrolsdefault" "0" }
+        parmtag { "script_callback_language" "python" }
+    }
+}

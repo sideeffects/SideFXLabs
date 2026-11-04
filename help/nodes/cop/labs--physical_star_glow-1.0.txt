@@ -1,0 +1,70 @@
+#type:      node
+#context:   cop
+#internal:  labs::physical_star_glow::1.0
+#icon:      /labs_icons/sidefx_labs_default.svg
+#since:     22.0
+
+= Labs Physical Star Glow =
+
+"""Generates physically based, photorealistic star glow."""
+
+This node intuitively generates physically based, photorealistic glow.
+
+The generated glow can be customized using the aperture input.
+For example, using an image of a polygonal aperture produces the characteristic diffraction spikes associated with that shape.
+Adding noise to the aperture introduces irregularities similar to those caused by dust or imperfections on a lens.
+Arbitary aperture shapes can also be used.
+
+[Star Glow|Node:cop/starglow] is useful when you want more direct artistic control over the shape of the glow.
+
+@parameters
+
+    Signature:
+        #id: signature
+        Source layer type.
+
+    Samples:
+        #id: iterations
+        Number of samples across the visible wavelength.
+
+    Intensity:
+        #id: intensity
+        Post-multiplier applied to the generated glow.
+
+    Luminace Metric:
+        #id: luminancemetric
+        Method used to convert source image to a Mono image.
+        
+    Diffraction Scale:
+        #id: diffractionscale
+        Scale of the frequency components at each sample. Visually, this contols the amount of color separation in the diffraction pattern.
+        
+    Threshold:
+        #id: threshold
+        Threshold used to determine which regions of the source image generate glow.
+        
+    Color Over Visible Wavelength:
+        #id: coloroverwavelength
+        Color map associated with the sampled wavelength. For example, daylight produces a spectrum that approximately follows the colors of a natural rainbow.
+        Because __Diffraction Scale__ can be adjusted independently for artistic control, this parameter allows an arbitrary color map to be used instead of enforcing a physically accurate spectrum.
+   
+@inputs
+    source:
+        Source image to which the glow is applied.
+    mask:
+        Map multiplied with the regions that generate glow.
+    aperture:
+        Aperture shape used to generate the diffraction pattern.
+        
+@outputs
+    starglow:
+        Generated glow. Composite this with the source image.
+    mask:
+        Mask representing the regions affected by the final glow.
+    aperture:
+        Currently passes the aperture input through unchanged.
+
+@related
+- [Fast Fourier Transform|Node:cop/fft]
+- [Convolve Filter|Node:cop/convolvefilter]
+- [Star Glow|Node:cop/starglow]
