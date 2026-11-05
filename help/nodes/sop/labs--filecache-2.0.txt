@@ -1,10 +1,10 @@
-= Labs File Cache =
-
 #type:      node
 #context:   sop
 #internal:  labs::filecache::2.0
-#icon:      SOP/filecache
+#icon:      /labs_icons/sidefx_labs_default.svg
 #since:     19.0
+
+= Labs File Cache =
 
 """Caches (writes out once and then reads from) geometry (possibly animated) to disk."""
 
@@ -40,39 +40,39 @@ When the __File Path__ is set to __Constructed__ the node provides a simple way 
 
 == SOP to TOP ==
 
-Using this node, it is very easy to create a [Labs File Cache TOP|Node:top/labs--filecache-2.0] referencing this node. 
+Using this node, it is very easy to create a [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] referencing this node. 
 
 :task: To create a top network graph of your sop scene:
-    # Select the node and click on the [Icon:NETWORKS/top] icon in the top right corner of it's parameter interface. This will generate a [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] referencing this node. The default location for this is `/obj/topnet1`, but you can change this path using the __Top File Cache In__ parameter on the this node. Now both nodes are synchronized, ensuring that caching will generate the same output for both nodes.
-    # Repeat this step to create a [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] for each of your SOP [File Cache|Node:sop/filecache] nodes in your scene. 
-    # Connect together the generated [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] in the same order as they are created in the sop network. 
-    # After all [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] are connected, cook the last node to cache your entire scene file as one large process.
+    # Select the node and click on the [Icon:NETWORKS/top] icon in the top right corner of it's parameter interface. This will generate a [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] referencing this node. The default location for this is `/obj/topnet1`, but you can change this path using the __Top File Cache In__ parameter on the this node. Now both nodes are synchronized, ensuring that caching will generate the same output for both nodes.
+    # Repeat this step to create a [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] for each of your SOP [File Cache|Node:sop/filecache] nodes in your scene. 
+    # Connect together the generated [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] in the same order as they are created in the sop network. 
+    # After all [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] are connected, cook the last node to cache your entire scene file as one large process.
 
 WARNING:
-        Do not connect any other top nodes in between the [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] nodes, such as [Wedge |Node:top/wedge] or [ROP Geometry Output|Node:top/ropgeometry] to change the work items. [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] has a built in wedging mechanism on it's own. 
+        Do not connect any other top nodes in between the [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] nodes, such as [Wedge |Node:top/wedge] or [ROP Geometry Output|Node:top/ropgeometry] to change the work items. [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] has a built in wedging mechanism on it's own. 
 
-Every node internally contains a [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] in a similar referenced fashion, to cook it's work items when you click the __Save in Background__ button. In an ideal workflow, upon clicking the [Icon:NETWORKS/top] icon, a [TOP Fetch|Node:top/topfetch] node should be generated at the given location, referencing the internal [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] of this node. However the  [TOP Fetch|Node:top/topfetch] node has limitations that currently not support this workflow:
+Every node internally contains a [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] in a similar referenced fashion, to cook it's work items when you click the __Save in Background__ button. In an ideal workflow, upon clicking the [Icon:NETWORKS/top] icon, a [TOP Fetch|Node:top/topfetch] node should be generated at the given location, referencing the internal [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] of this node. However the  [TOP Fetch|Node:top/topfetch] node has limitations that currently not support this workflow:
 
 * [TOP Fetch|Node:top/topfetch] does not behave like you would expect after using similar nodes, such as [Object Merge|Node:sop/object_merge], where you can keep continue working with the merge geometry, like merging never took place. [TOP Fetch|Node:top/topfetch] can not bring in all your work items from a top node as they are, it only generates one work items per fetch, which is not ideal.
-* [TOP Fetch|Node:top/topfetch] only has one input, while multiple inputs are preferred for ease of use, such as on the [ROP Fetch|Node:rop/fetch].
+* [TOP Fetch|Node:top/topfetch] only has one input, while multiple inputs are preferred for ease of use, such as on the [ROP Fetch|Node:top/ropfetch].
 
 NOTE:
-    For the reasons above, the [Labs File Cache TOP|Node:top/labs::topfilecache::2.0] was never designed to be used a standalone tool which would replace the [ROP Geometry Output|Node:top/ropgeometry]. Therefore you should always generate this node using the [Icon:NETWORKS/top] icon of this node.
+    For the reasons above, the [Labs File Cache TOP|Node:top/labs--topfilecache-2.0] was never designed to be used a standalone tool which would replace the [ROP Geometry Output|Node:top/ropgeometry]. Therefore you should always generate this node using the [Icon:NETWORKS/top] icon of this node.
 
 TIP:
-    It is recommended to create your top graph under `/obj`, rather then under `/tasks` [Labs File Cache TOP|Node:top/labs::topfilecache::2.0]. The reason being is, if you need to copy paste your work into other scene files you can do that simply by selecting all the nodes inside your `/obj` context at once, without forgetting anything. Any nodes live under `/tasks`, `/mat`, `/img`, etc... can easily be forgotten and might break the pasted elements in the new scene you are trying to create.
+    It is recommended to create your top graph under `/obj`, rather then under `/tasks` [Labs File Cache TOP|Node:top/labs--topfilecache-2.0]. The reason being is, if you need to copy paste your work into other scene files you can do that simply by selecting all the nodes inside your `/obj` context at once, without forgetting anything. Any nodes live under `/tasks`, `/mat`, `/img`, etc... can easily be forgotten and might break the pasted elements in the new scene you are trying to create.
 
 == SOP to OBJ ==
 
-To render the geometry cache contained by this node, click the [Icon:NETWORKS/sop] icon on the node, which will create a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] node inside `/obj` by default. This way, you can easily generate a renderable object for all your caches needed to be rendered. [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] provides some further quality of live improvements, such as offsetting frames, or merging all frames or wedges without affecting the settings on this node, while has a more compact interface with the most needed parameters for rendering.
+To render the geometry cache contained by this node, click the [Icon:NETWORKS/sop] icon on the node, which will create a [Labs Render Geometry|Node:obj/labs--rendergeo-1.0.html] node inside `/obj` by default. This way, you can easily generate a renderable object for all your caches needed to be rendered. [Labs Render Geometry|Node:obj/labs--rendergeo-1.0.html] provides some further quality of live improvements, such as offsetting frames, or merging all frames or wedges without affecting the settings on this node, while has a more compact interface with the most needed parameters for rendering.
 
 == SOP to LOP ==
 
-Currnetly, there is no straight [File Cache node|Node:sop/filecache] to LOP workflow, the recommended way now is to generate a [Labs Render Geometry|Node:obj/labs::rendergeo::1.0] and use a [SOP Import|Node:lop/sopimport] node to bring that into lop context.
+Currnetly, there is no straight [File Cache node|Node:sop/filecache] to LOP workflow, the recommended way now is to generate a [Labs Render Geometry|Node:obj/labs--rendergeo-1.0.html] and use a [SOP Import|Node:lop/sopimport] node to bring that into lop context.
 
 == File Cache and Karma ==
 
-The [Labs Karma|Node:lop/labs::karma::2.0] was designed to work together with this node. This means that it has similar interface, and provides the same control to setup renders, versioning and wedges. Therefore if you want keep working with these functionalities at the rendering stage of your work, you should be using the [Labs Karma|Node:lop/labs::karma::2.0] node. Similarly, the [Labs Karma|Node:lop/labs::karma::2.0] also has a [Icon:NETWORKS/top] icon to help you easily integrate it in into your top graph. 
+The [Labs Karma|Node:lop/labs--karma-2.0] was designed to work together with this node. This means that it has similar interface, and provides the same control to setup renders, versioning and wedges. Therefore if you want keep working with these functionalities at the rendering stage of your work, you should be using the [Labs Karma|Node:lop/labs--karma-2.0] node. Similarly, the [Labs Karma|Node:lop/labs--karma-2.0] also has a [Icon:NETWORKS/top] icon to help you easily integrate it in into your top graph. 
 
 == Wedging ==
 
@@ -83,9 +83,9 @@ The node only wedges `float` type attributes, which is the most common type one 
 To wedge other type of attributes, there is a new feature, __Attribute Values__, which lets you provide any points or primitive geometry with the desired attribute. This way you can fully customize the wedge values, either with the __Attribute Adjust__ nodes or with your own preferred method. 
 
 :task: To wedge vector attributes:
-        # In SOP context, place down a [Labs File Cache |Node:sop/labs::filecache::2.0] and a [Transform|Node:sop/xform] node.
+        # In SOP context, place down a [Labs File Cache|Node:sop/labs--filecache-2.0] and a [Transform|Node:sop/xform] node.
         # Right click on the Rotate parameter of the [Transform|Node:sop/xform] node and select Expression -> Wedge Value.
-        # From the popup window, select the just created [Labs File Cache |Node:sop/labs::filecache::2.0] node.
+        # From the popup window, select the just created [Labs File Cache |Node:sop/labs--filecache-2.0] node.
         # This will generate a [Point Generate |Node:sop/pointgenerate] node to create points representing the wedge count, while the [Attribute Adjust Vector |Node:sop/attribadjustvector] will randomize the values per point. The [Labs File Cache |Node:sop/labs::filecache::2.0] node is now configured to be able to use this geometry attribute as wedge values.
 
 === Nested Wedging ===
@@ -105,15 +105,15 @@ When both of their __Wedge Count__ is set to `3`, the first [Wedge |Node:top/wed
                             Index 6 ||
                                 Index 7 ||
                                     Index 8 ||
-    0 |
-        0 |
-            0 |
-                1 |
-                    1 |
-                        1 |
-                            2 |
-                                2 |
-                                    2
+    `0` |
+        `0` |
+            `0` |
+                `1` |
+                    `1` |
+                        `1` |
+                            `2` |
+                                `2` |
+                                    `2`
 
 While wedge attributes created on the second [Wedge |Node:top/wedge] node will be generated in a periodic pattern as follows:
 
@@ -126,15 +126,15 @@ While wedge attributes created on the second [Wedge |Node:top/wedge] node will b
                             Index 6 ||
                                 Index 7 ||
                                     Index 8 ||
-    0 |
-        1 |
-            2 |
-                0 |
-                    1 |
-                        2 |
-                            0 |
-                                1 |
-                                    2
+    `0` |
+        `1` |
+            `2` |
+                `0` |
+                    `1` |
+                        `2` |
+                            `0` |
+                                `1` |
+                                    `2`
 
 
 As a drawback however, to create these nested wedge patterns, you have to chain together multiple of these nodes, which in case of the this node would not be a valid workflow. 
@@ -252,20 +252,20 @@ List of Frames:
     Value List ||
         Expanded Values || 
 
-    5 |            
-        5.0 
+    `5` |            
+        `5.0` 
 
-    3;5 7 |            
-        3.0, 5.0, 7.0
+    `3;5 7` |            
+        `3.0, 5.0, 7.0`
 
-    1-3 |        
-        1.0, 2.0, 3.0
+    `1-3` |        
+        `1.0, 2.0, 3.0`
 
-    0-1:0.25 |
-        0.0, 0.25, 0.5, 0.75, 1.0
+    `0-1:0.25` |
+        `0.0, 0.25, 0.5, 0.75, 1.0`
 
-    0-1:0.25 5; 8-12:2 |
-        0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0 
+    `0-1:0.25 5; 8-12:2` |
+        `0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0`
 
 ~~~ Wedging ~~~
 
@@ -300,20 +300,20 @@ List of Wedges:
     Value List ||
         Expanded Values || 
 
-    5 |            
-        5.0 
+    `5` |            
+        `5.0` 
 
-    3;5 7 |            
-        3.0, 5.0, 7.0
+    `3;5 7` |            
+        `3.0, 5.0, 7.0`
 
-    1-3 |        
-        1.0, 2.0, 3.0
+    `1-3` |        
+        `1.0, 2.0, 3.0`
 
-    0-1:0.25 |
-        0.0, 0.25, 0.5, 0.75, 1.0
+    `0-1:0.25` |
+        `0.0, 0.25, 0.5, 0.75, 1.0`
 
-    0-1:0.25 5; 8-12:2 |
-        0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0 
+    `0-1:0.25 5; 8-12:2` |
+        `0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0` 
 
     
 Wedge Range:
@@ -386,20 +386,20 @@ List of Values:
     Value List ||
         Expanded Values || 
 
-    5 |            
-        5.0 
+    `5` |            
+        `5.0` 
 
-    3;5 7 |            
-        3.0, 5.0, 7.0
+    `3;5 7` |            
+        `3.0, 5.0, 7.0`
 
-    1-3 |        
-        1.0, 2.0, 3.0
+    `1-3` |        
+        `1.0, 2.0, 3.0`
 
-    0-1:0.25 |
-        0.0, 0.25, 0.5, 0.75, 1.0
+    `0-1:0.25` |
+        `0.0, 0.25, 0.5, 0.75, 1.0`
 
-    0-1:0.25 5; 8-12:2 |
-        0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0        
+    `0-1:0.25 5; 8-12:2` |
+        `0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0`        
 
 Geometry Path:
     #id: geopath#
@@ -455,24 +455,24 @@ Merge Frames:
         Value List ||
             Expanded Values || 
 
-        5 |            
-            5.0 
+        `5` |            
+            `5.0`
 
-        3;5 7 |            
-            3.0, 5.0, 7.0
+        `3;5 7` |            
+            `3.0, 5.0, 7.0`
 
-        1-3 |        
-            1.0, 2.0, 3.0
+        `1-3` |        
+            `1.0, 2.0, 3.0`
 
-        0-1:0.25 |
-            0.0, 0.25, 0.5, 0.75, 1.0
+        `0-1:0.25` |
+            `0.0, 0.25, 0.5, 0.75, 1.0`
 
-        0-1:0.25 5; 8-12:2 |
-            0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0   
+        `0-1:0.25 5; 8-12:2` |
+            `0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0` 
 
     Merge Wedges:
         #id: domergewedges
-         Merges all the wedges together, creating a single, either `Time Dependent` or `Time Independent` cache without wedging for the output.
+        Merges all the wedges together, creating a single, either `Time Dependent` or `Time Independent` cache without wedging for the output.
 
     Wedges to Merge:
         #id: mergewedges
@@ -498,20 +498,20 @@ Merge Frames:
         Value List ||
             Expanded Values || 
 
-        5 |            
-            5.0 
+        `5` |            
+            `5.0`
 
-        3;5 7 |            
-            3.0, 5.0, 7.0
+        `3;5 7` |            
+            `3.0, 5.0, 7.0`
 
-        1-3 |        
-            1.0, 2.0, 3.0
+        `1-3` |        
+            `1.0, 2.0, 3.0`
 
-        0-1:0.25 |
-            0.0, 0.25, 0.5, 0.75, 1.0
+        `0-1:0.25` |
+            `0.0, 0.25, 0.5, 0.75, 1.0`
 
-        0-1:0.25 5; 8-12:2 |
-            0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0   
+        `0-1:0.25 5; 8-12:2` |
+            `0.0, 0.25, 0.5, 0.75, 1.0, 5.0, 8.0, 10.0, 12.0`
 
 
 :include file#loadtype:
@@ -760,4 +760,4 @@ Output File:
 @related
 
 - [Labs Wedge TOP|Node:top/labs--wedge-1.0]
-- [Labs File Cache TOP|Node:top/labs--filecache-2.0]
+- [Labs File Cache TOP|Node:top/labs--topfilecache-2.0]
