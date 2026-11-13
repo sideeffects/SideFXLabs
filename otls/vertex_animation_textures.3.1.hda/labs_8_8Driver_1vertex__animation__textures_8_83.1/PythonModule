@@ -1,3 +1,8 @@
+def textureDimensions(node):
+    texture = node.node('textures/size')
+    return tuple(texture.evalParm(name) for name in ('size1', 'size2', 'pow2sizex', 'pow2sizey'))
+
+
 def ReportResult(hda_node, file, tag=None):
 
     PDGPrint = hda_node.parm('pdg_logoutput').evalAsInt()
@@ -218,11 +223,7 @@ def postRender(node):
 
     node = hou.pwd().parent()
     pad = node.evalParm("padpowtwo")
-    tex_node = hou.node("../textures/size/")
-    size1 = tex_node.evalParm("size1")
-    size2 = tex_node.evalParm("size2")
-    pow2sizex = tex_node.evalParm("pow2sizex")
-    pow2sizey = tex_node.evalParm("pow2sizey")
+    size1, size2, pow2sizex, pow2sizey = textureDimensions(node)
 
     if pad == 1:
         node.parm("finaltexsizex").set(pow2sizex)
@@ -493,7 +494,7 @@ def exportVelocity(node):
     output = oiio.ImageOutput.create(path)
     if not output or not output.open(path, spec):
         raise hou.NodeError('Cannot write velocity EXR: ' + path)
-    # COP pixels are bottom-up; EXR scanlines are top-down, as with the other VAT exports.
+    # COP buffers are bottom-up; EXR scanlines are top-down, as with the other VAT exports.
     if not output.write_image(atlas):
         output.close()
         raise hou.NodeError('Failed to write velocity EXR: ' + path)

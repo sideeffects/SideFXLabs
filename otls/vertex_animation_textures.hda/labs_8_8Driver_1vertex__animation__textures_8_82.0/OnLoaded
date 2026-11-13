@@ -1,0 +1,24 @@
+import hou
+
+_vat_node = kwargs["node"]
+_vat_notice = u"Labs VAT is deprecated starting with Houdini 23. Use native VAT in Houdini 23 and later."
+_vat_old_notice = u"Labs VAT is deprecated starting with Houdini 23. Use Houdini’s native VAT exporter in Houdini 23 and later."
+_vat_comment = _vat_node.comment()
+_vat_clean_comment = "".join(
+    _vat_line for _vat_line in _vat_comment.splitlines(True)
+    if _vat_line.rstrip("\r\n") != _vat_old_notice
+)
+if hou.applicationVersion()[0] >= 23:
+    if _vat_notice not in _vat_clean_comment.splitlines():
+        _vat_separator = "" if not _vat_clean_comment or _vat_clean_comment.endswith("\n") else "\n"
+        _vat_clean_comment += _vat_separator + _vat_notice
+    if _vat_clean_comment != _vat_comment:
+        _vat_node.setComment(_vat_clean_comment)
+    _vat_node.setGenericFlag(hou.nodeFlag.DisplayComment, True)
+else:
+    _vat_clean_comment = "".join(
+        _vat_line for _vat_line in _vat_clean_comment.splitlines(True)
+        if _vat_line.rstrip("\r\n") != _vat_notice
+    )
+    if _vat_clean_comment != _vat_comment:
+        _vat_node.setComment(_vat_clean_comment)
