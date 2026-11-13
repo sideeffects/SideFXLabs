@@ -7,57 +7,64 @@
 
 """Computes an approximate thickness value for geometry using inward ray casting."""
 
+[Image:/images/calculate_thickness.png]
+
 This node estimates geometric thickness by casting rays inward from the surface, similar in principle to ambient occlusion but inverted in direction.
 The resulting thickness values represent an approximation of how much geometry exists behind a surface point and can be used for effects such as inexpensive subsurface scattering masks, wear masks, or material modulation.
 
 This method is an approximation and trades physical accuracy for performance.
 
-[Image:/images/calculate_thickness.png]
 
 @parameters
-
     == Thickness Settings ==
 
     Number of Rays:
-        #id:
+        #id: numrays
         Number of rays cast per sample. Higher values increase quality at the cost of performance.
     
     Maximum Ray Distance:
-        #id:
+        #id: maxdist
         Maximum distance a ray is allowed to travel, in world units. Increase this value for larger-scale geometry.
     
     == Advanced ==
     
     Ray Direction:
-        #id:
+        #id: raymethod
         Direction used for casting thickness rays. By default, the node computes an appropriate inward direction automatically. Use this parameter to override the direction in special cases. Input normals are expected to point outward.
     
     Minimum Ray Distance:
-        #id:
+        #id: mindist
         Minimum distance a ray must travel before contributing to thickness. Increasing this value increases contrast in the result.
     
     Cone Angle:
-        #id:
+        #id: coneangle
         Maximum angular deviation, in degrees, from the central ray direction.
     
     Seed:
-        #id:
+        #id: seed
         Seed used for ray sampling variation.
     
     == Output ==
     
     Output Thickness as Color ( Cd ):
-        #id:
-        Writes the thickness result to the point attribute Cd.
+        #id: outputcolor
+        Writes the thickness result to the point attribute `Cd`.
     
     Normalized:
-        #id:
-        Outputs thickness values normalized to the 0–1 range instead of world units.
+        #id: normalized
+        Outputs thickness values normalized to the `0`–`1` range instead of world units.
     
     Thickness Attribute:
-        #id:
-        Name of the output attribute when Output Thickness as Color (Cd) is turned off.
+        #id: attrname
+        Name of the output attribute when Output Thickness as Color (`Cd`) is turned off.
     
     Output curve:
-        #id:
+        #id: remap
         Remaps the computed thickness values. This curve allows basic level adjustments without recomputing the thickness rays.
+
+
+@related
+- [Labs Calculate Slope SOP|Node:sop/labs--calculate_slope]
+- [Mask by Feature SOP|Node:sop/maskbyfeature]  
+- [Measure SOP|Node:sop/measure] 
+- [Measure Thickness SOP|Node:sop/measurethickness] 

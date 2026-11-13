@@ -1,0 +1,291 @@
+#type:      node
+#context:   sop
+#internal:  labs::cable_generator::2.0
+#icon:      /labs_icons/sidefx_labs_default.svg
+
+= Labs Cable Generator =
+
+"""Creates and simulates cables based on curve or geometry input."""
+
+This node generates connecting cables and subcables from an input curve or input geometry. The tool includes options for simulating
+gravity, interacting with colliders, cable detangling, and auto UV generation.
+
+@parameters
+
+    Input Type:
+        #id: inputtype
+        Input type is a curve or geometry.
+
+        <p>__Curve:__ Input type is a curve.</p>
+        <p>__Connect Surfaces:__ Generated cables connect disconnected geometry pieces.</p>
+        <p>__Through Geometry:__ Generated cables pass through disconnected geometry pieces.</p>
+
+    == Main Curve Settings ==
+
+    Number of Main Cables:
+        #id: curveamountcable
+        Number of cables to generate.
+
+    Treat Polygons As:
+        #id: treatpolysas
+        Choose curve type for meshing. See [Resample SOP|Node:sop/resample] for more information.
+
+    Spacing:
+        #id: curvespacing
+        Amount to space out curves from each other.
+
+    Spacing Variation:
+        #id: curvevariation
+        Add random variation to spacing.
+
+    Spacing Offset Seed:
+        #id: globalseed
+        Random variation seed.
+
+    == Surface Settings ==
+
+    Connection Distance:
+        #id: surfacedistance
+        Maximum distance to search for a connection.
+
+    Cable Density:
+        #id: surfacedensity
+        Density of generated cables.
+
+    Merge Cable Ends:
+        #id: surfaceblend
+        Merge cable ends to a single point.
+
+    == Through Geometry ==
+
+    Number of Main Cables:
+        #id: geoamountcable
+        Number of cables to generate.
+
+    Treat Curves As:
+        #id: geocurvetype
+        Choose curve type for meshing. See [Resample SOP|Node:sop/resample] for more information.
+
+    == Main Cable Settings ==
+
+    Main Radius:
+        #id: mainscale
+        Base radius of main cables.
+
+    Random Scale:
+        #id: randradius
+        Enables random radius variation.
+
+    Min Scale:
+        #id: minscale
+        Minimum scale of cable radius.
+
+    Max Scale:
+        #id: maxscale
+        Maximum scale of cable radius.
+
+    Seed:
+        #id: scaleseed
+        Random scale seed.
+
+    Resolution:
+        #id: resolutioncable
+        Resolution along the length of the cables.
+
+    Columns:
+        #id: divisions
+        Resolution around the circumference of the cables.
+
+    Add Ends:
+        #id: addends
+        Add cap geometry to ends of cables.
+
+    == Simulation ==
+
+    Simulation Type:
+        #id: simtype
+
+        <p>__None:__ No cable simulation.</p>
+        <p>__Pseudo Gravity:__ Applies a random gravity-like effect to cables.</p>
+        <p>__Wire Simulation:__ Cables are processed through a Vellum (cloth) solver.</p>
+
+    == Pseudo Gravity ==
+
+    Pseudo Gravity Type:
+        #id: pseudogravitytype
+        .
+
+    == Catenary Curve (cosh) ==
+
+    Cable Stretch:
+        #id: targetratio
+        .
+
+    Add Random Stretch:
+        #id: addrandomrestlength
+        .
+
+    Seed:
+        #id: seedcatenary
+        .
+
+    Scale Cable Stretch by Attribute:
+        #id: userestlengthscaleattrib
+        .
+
+    Cable Stretch Scale:
+        #id: restlengthscaleattrib
+        .
+
+    == Quadratic ==
+
+    Min:
+        #id: mingravity
+        Minimum amount of gravity effect applied to cables.
+
+    Max:
+        #id: maxgravity
+        Maximum amount of gravity effect applied to cables.
+
+    Seed:
+        #id: seedgravity
+        Random variation in gravity effect seed.
+
+    Gravity Multiplier:
+        #id: boostgravity
+        Gravity effect multiplier.
+
+    == Wire Simulation ==
+
+    Reset Simulation:
+        #id: resimulate
+        When adjusting simulation settings or turning pre-simulation cables on or off, it may be necessary to re-simulate the cables for changes to take place.
+
+    Simulate Main Cable:
+        #id: maincablesim
+        Turn on to simulate main and subcables. Turn off to only simulate subcables while main cables remain static.
+
+    Frame:
+        #id: framesim
+        Number of frames to run the simulation.
+
+    Cable Stretch:
+        #id: stretch
+        Increases or decreases the stretchiness of the cables.
+
+    Add Random Stretch:
+        #id: scale
+        Adds random variation to cable stretchiness.
+
+    Substeps:
+        #id: substeps
+        Each frame is broken into this number of substeps. A higher number of substeps produces more accurate results.
+
+    Friction:
+        #id: staticthreshold
+        Increases or decreases cable friction.
+
+    == Sub Cables ==
+
+    Enable:
+        #id: subcables
+        Turn on minor cables that are automatically generated around main cables.
+
+    Number of Sub Cables:
+        #id: iterations
+        Number of subcables to generate.
+
+    Sub Radius:
+        #id: subscale
+        Base radius of subcables.
+
+    Random Scale:
+        #id: subrandradius
+        Enables random radius variation.
+
+    Min Scale:
+        #id: subminscale
+        Minimum scale of subcable radius.
+
+    Max Scale:
+        #id: submaxscale
+        Maximum scale of subcable radius.
+
+    Seed:
+        #id: subscaleseed
+        Random scale seed.
+
+    Range:
+        #id: subrange
+        Amount that subcables will lengthen and reach past the main cables.
+
+    Twist:
+        #id: subrings
+        Amount subcables will twist around main cables.
+
+    Resolution:
+        #id: subresolution
+        Resolution along the length of the cables.
+
+    Columns:
+        #id: subcolumns
+        Resolution around the circumference of the cables.
+
+    Treat Polygons As:
+        #id: treatpolysas2
+        Choose curve type for meshing. See [Resample SOP|Node:sop/resample] for more information.
+
+    Add Pre Simulation:
+        #id: presim
+        Add subcables before the simulation step. Generated subcables are affected by the simulation process.
+
+    Add Post Simulation:
+        #id: postsim
+        Add subcables after the simulation step.
+
+    == Detangle ==
+
+    Enable:
+        #id: detangle
+        Turn on SOP-based detangling of main cables and subcables.
+
+    Resolve Collision Clipping:
+        #id: resolveclipping
+        Detangling can move cables past the borders of colliders. Turn on to resolve geometry clipped with colliders.
+
+    Detangle Options:
+        #id: detanglemain
+
+        <p>__Main and Sub Cables:__ Detangles main cables and subcables together.</p>
+        <p>__Sub Cables Only:__ Only detangles subcables. Main cables will remain static.</p>
+
+    Iterations:
+        #id: iterationdetangle
+        Number of iterations for detangle operation.
+
+    Smooth Amount:
+        #id: smoothdetangle
+        Amount to smooth cables after detangle operation.
+
+    == Color ==
+
+    Enable Vertex Color:
+        #id: colors
+        Stores values in the RGB channels of each vertex.
+
+        <p>__Red:__ Random value.</p>
+        <p>__Green:__ The weight of a cable's winding.</p>
+        <p>__Blue:__ Ambient occlusion.</p>
+
+    == UV ==
+
+    Scale:
+        #id: sx
+        The scale modifier applied to the generated UVs.
+
+    Offset:
+        #id: tx
+        The offset modifier applied to the generated UVs.
+
+@related
+- [Resample|Node:sop/resample]
