@@ -1,9 +1,9 @@
-= Labs Decal Projector =
-
 #type:      node
 #context:   sop
 #internal:  labs::decal_projector::1.1
-#icon:      PRIMITIVES/pastesurf
+#icon:      /labs_icons/sidefx_labs_default.svg
+
+= Labs Decal Projector =
 
 """Project a decal (localized piece of geometry and a texture) onto geometry."""
 
@@ -14,45 +14,77 @@ Decals are a common feature in game engines. For example, say a small manhole co
 
 Instead, game engines will provide a decal, providing a wireframe box as a GUI element to the user. The manhole cover is assigned to the decal, and the box UI is rotated, scaled, and intersected with the floor to represent where it needs to go. The manhole cover will be composited into the floor texture.
 
-There are two radio buttons representing two different modes for this tool, 'Project' and 'Place'. 
+There are two radio buttons representing two different modes for this tool, __Project__ and __Place__.
 
-In 'Project' mode, the decal projector sop replicates the manhole cover workflow. Rather than composite the texture, a perfectly fitting polygon 'sticker' or 'decal' is made containing the required texture. This will adapt to any changes of the underlying geometry, and can be merged with the original geometry.
+In __Project__ mode, this node replicates the manhole cover workflow. Rather than composite the texture, a perfectly fitting polygon 'sticker' or 'decal' is made containing the required texture. This will adapt to any changes of the underlying geometry, and can be merged with the original geometry.
 
-In 'Place' mode, the decal projector sop requires the second and third input. The second input requires target points, typically points scattered on the projection mesh. These points must be assigned a 'decal_index' integer, point attribute. This will determine how decals are matched with the target points. The third input expects decal geometry in the form of grid planes with materials. Each plane needs a unique 'decal_index' integer, primitive attribute. The 'Place' mode does not shape the decals to the underlying geometry like the 'Project' mode. 
+In __Place__ mode, this node requires the second and third input. The second input requires target points, typically points scattered on the projection mesh. These points must be assigned a `decal_index` integer, point attribute. This will determine how decals are matched with the target points. The third input expects decal geometry in the form of grid planes with materials. Each plane needs a unique `decal_index` integer, primitive attribute. The __Place__ mode does not shape the decals to the underlying geometry like the __Project__ mode.
 
 
 @parameters
+
     == Transform ==
+
     Translate:
+        #id: t
         Position of projection plane.
+
     Rotate:
+        #id: r
         Rotation of projection plane.
+
     Scale:
+        #id: s
         Scale of projection plane.
+
     == Pivots ==
+
     Pivot Rotate:
+        #id: pr
         Position of rotation pivot of projection plane.
+
     Pivot Translate:
+        #id: p
         Position of translation pivot of projection plane.
+
     Uniform Scale:
+        #id: scale
         Scale of projection plane.
-    Match Image Aspect Ratio: 
+
+    Match Image Aspect Ratio:
+        #id: match_image_aspect_ratio
         Scale the projection by the Image's aspect ratio
+
     Base Color:
-	Texture map used for decal base color. 
+        #id: basecolor
+        Texture map used for decal base color.
+
     Height Map:
+        #id: heightmap
         Texture map used for projection, ideally a grayscale 'heightmap' image. Note that this refers to a texture to be used as a heightmap, not a Houdini heightfield node!
+
     Strength:
+        #id: strength
         Multiplier to alter the strength of the heightmap.
+
     Use Inverted Height as AO:
+        #id: invert_height_for_basecolor
         When enabled the lowest parts of the heightmap will be darkened with a 2d ambient occlusion filter, useful to enhance detail and visually separate high and low parts of the heightmap.
+
     Max Distance:
+        #id: max_distance
         Maximum distance the surface can be away from the projector handle. If the projection is further than this distance, the projection will be clipped.
+
     Floating Distance:
+        #id: floating_distance
         Distance to float the projection above the target surface. Ideally this should be as close as possible, but not so close that it causes flickering or Z-fighting issues.
+
     Clip X:
+        #id: clip_x
         Clip or 'barn doors' for the left and right side of the projection.
+
     Clip Z:
+        #id: clip_z
         Clip or 'barn doors' for the top and bottom of the projection.
 
     
