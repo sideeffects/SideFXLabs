@@ -1,29 +1,51 @@
+#type:      node
+#context:   sop
+#internal:  labs::dissolve_flat_edges::1.0
+#icon:      /labs_icons/sidefx_labs_default.svg
+
 = Labs Dissolve Flat Edges =
 
-#type: node
-#context: sop
-#internal: labs::dissolve_flat_edges::1.0
-#icon: dissolveflatedges
-#tags: sidefxlabs,  model
-
-""" Remove edges on flat surfaces. """
+"""Removes edges on flat surfaces."""
 
 :video:
     #src:/movies/dissolveflat.mp4
 
-This HDA will identify edges that are flat, and dissolve them. The default behavior is to only find perfectly flat edges. The max edge angle slider allows a threshold of 'flatness', so edges which are mostly flat can also be dissolved, or the threshold can be set higher to obtain different effects, say artistically driven decimation.
+This node identifies and dissolves flat edges. By default, it only detects perfectly flat edges. Using Max Edge Angle to adjust the flatness threshold, will allow mostly flat edges to be dissolved or set higher for artistic decimation.
 
 @parameters
+
     Group:
-        Allows for specifying a subset of primitives to dissolve flat edges of.
+        #id: basegroup
+        Subset of primitives to dissolve flat edges.
+
     == Flat Edges ==
+
     Max Edge Angle:
-        Threshold of 'flatness'. 0 means edges have to be perfectly flat, higher numbers will find more edges and dissolve them.
+        #id: maxedgeangle
+        Threshold of flatness. A value of `0` means edges have to be perfectly flat, while higher numbers will find more edges and dissolve them.
+
     Collinearity Tolerance:
+        #id: coltol
         Points within this angle of being on a straight line are considered inline.
+
     == Inline Points ==
+
     Remove Inline Points:
+        #id: removeinline
         Remove inline points of edges that got preserved on the silhouette of the input geometry as a result of the dissolving of flat edges step.
-    Preserve Attribute Boundary:
-        Attributes specified here are used to protect edges that represent boundaries of attribute values. Useful for for example UVs or material assignments.
+
+    Distance:
+        #id: distance
+        Threshold distance for collinearity.
     
+    Preserve Attribute Boundary:
+        #id: useattribute
+        When enabled it will protect edges that represent boundaries of attribute values.
+
+    Attribute:
+        #id: attrib
+        The attribute used to protect edges that represent boundaries of attribute values.
+
+
+@related
+- [Dissolve SOP|Node:sop/dissolve]

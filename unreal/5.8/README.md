@@ -1,6 +1,6 @@
 # SideFX Labs for Unreal Engine
 
-Materials, templates, Blueprint utilities, and editor tools for Unreal Engine 5.6, 5.7, and 5.8. The same package can be used in all three versions.
+One package of materials, templates, Blueprint utilities, and editor tools for Unreal Engine **5.6, 5.7, 5.8, and 5.9**. Copy the same plugin files into any supported engine's project; no custom Labs C++ binaries or per-engine plugin variants are required. The `5.9` repository folder is the maintained release location, not the minimum engine version.
 
 ## Choose a package
 
@@ -28,8 +28,7 @@ The Labs menu and scripted utilities initialize on editor startup. Utilities app
 - **Blueprints:** editor utilities and example playback Blueprints.
 - **Templates:** example assets and demonstration maps under `/SideFX_Labs/Templates`.
 - **Labs menu:** tool access and links to Labs resources.
-- **VAT importer (main package only):** imports Houdini Vertex Animation Textures. See the [VAT Importer Guide](VAT_IMPORTER.md) for shared materials, customization, and project-owned dependencies.
-
+- **VAT importer (main package only):** imports Houdini Vertex Animation Textures.
 ## Game packaging
 
 Labs enables Unreal's built-in **PCG plugin**. Depending on your engine and target platform, packaging may require platform build tools even for a Blueprint-only project.
@@ -47,6 +46,6 @@ Use Labs to create and prototype assets, then keep the content your game needs i
 3. Use **Reference Viewer** to confirm the resulting assets no longer reference `/SideFX_Labs/...`.
 4. Disable Labs, restart Unreal, and package and test your game. Disable PCG only if nothing else requires it.
 
-Copying an asset into `/Game` does not automatically remove its plugin dependencies. For VAT imports, the optional shared-material workflow can create project-owned material dependencies directly; see the [VAT Importer Guide](VAT_IMPORTER.md).
+Copying an asset into `/Game` does not automatically remove its plugin dependencies. For VAT imports, the optional shared-material workflow can create project-owned material dependencies directly.
 
 Keep original plugin assets unchanged where possible so Labs updates do not overwrite your customizations. Use Unreal's asset tools to move or duplicate assets, not File Explorer.

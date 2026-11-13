@@ -1,0 +1,82 @@
+#type:		node
+#context:	sop
+#internal:	labs::color_blend::1.0
+#icon:		/labs_icons/sidefx_labs_default.svg
+#since:     22.0
+
+= Labs Color Blend =
+
+"""Blends the color attributes of two meshes using common blending methods."""
+
+This node blends a color attribute (`Cd` by default) on the first input with a color attribute on the second input. Use __Mode__ to choose how the two colors are combined, and __Blend__ to control how strongly the result is applied.
+
+To vary the blend across the mesh, connect a mask mesh to the third input. Its color attribute is multiplied with __Blend__, so the blend is stronger where the mask is bright and weaker where it is dark.
+
+
+@parameters
+
+    Group:
+        #id: group
+        Limits the operation to a subset of the first input's geometry.
+
+    Group Type:
+        #id: grouptype
+        The geometry type of __Group__.
+
+    Mode:
+        #id: mode
+        The method used to combine the two colors.
+
+        __Linear__:
+            Interpolates between the two colors. At a __Blend__ of 0, the result is the first color. At 1, the result is the second color.
+
+        __Multiply__:
+            Multiplies the two colors. The result is always as dark as or darker than either color.
+
+        __Overlay__:
+            Multiplies dark areas and screens light areas, which increases contrast.
+
+        __Screen__:
+            Brightens the first color as if the second color were projected onto it through a light. The result is always as light as or lighter than either color.
+
+        __Add__:
+            Adds the two colors together.
+
+        __Darken__:
+            Keeps the darker of the two colors.
+
+        __Lighten__:
+            Keeps the lighter of the two colors.
+
+        __Difference__:
+            Subtracts the second color from the first.
+
+    Blend:
+        #id: blend
+        The amount of blending, from 0 to 1. At 0, the first input's color is unchanged. At 1, the blended result is fully applied.
+
+        If a mask mesh is connected to the third input, this value is multiplied by the mask's color attribute.
+
+    Foreground:
+        #id: fgattribute
+        The name of the color attribute to blend from the first input.
+
+    Background:
+        #id: bgattribute
+        The name of the color attribute to blend from the second input.
+
+    Mask:
+        #id: maskattribute
+        The name of the attribute on the mask mesh that is multiplied with __Blend__. Only relevant when a mask mesh is connected to the third input.
+
+
+@inputs
+
+    Foreground:
+        The base mesh whose color attribute is modified.
+
+    Background:
+        The secondary mesh whose color attribute is blended into the base mesh.
+
+    Mask:
+        Optional. A mesh whose color attribute is multiplied with __Blend__ to control how strongly the blend is applied at each location.

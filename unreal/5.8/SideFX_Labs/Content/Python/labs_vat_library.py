@@ -69,7 +69,8 @@ def dependencies(paths):
     return seen
 
 def validate_interface(material,mode,roles=()):
-    scalar={'Houdini FPS','Playback Speed','Game Time at First Frame','Use Playback Controls'}
+    scalar={'Houdini FPS','Playback Speed','Game Time at First Frame'}
+    if mode!='Skeletal': scalar.add('Use Playback Controls')
     switches={'Support Legacy Parameters and Instancing','Auto Playback'}
     if mode=='Fluid':
         scalar.add('Velocity Source FPS')

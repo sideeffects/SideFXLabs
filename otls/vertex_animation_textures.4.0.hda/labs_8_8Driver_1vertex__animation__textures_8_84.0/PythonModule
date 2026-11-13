@@ -1,0 +1,508 @@
+def textureDimensions(node):
+    texture = node.node('textures_new')
+    return tuple(texture.evalParm(name) for name in ('res1', 'res2', 'pow2sizex', 'pow2sizey'))
+
+
+def ReportResult(hda_node, file, tag=None):
+
+    PDGPrint = hda_node.parm('pdg_logoutput').evalAsInt()
+    
+    if PDGPrint:
+        if tag!=None:
+            print ("OUTPUT_FILE: %s; file/%s" % (file, tag))
+        else:
+            print ("OUTPUT_FILE: %s;" % file)
+            
+    return
+
+    
+
+def switchMode(node):
+
+    node.setParms({"override_pa": 0, "override_c": 0, "override_a": 0, "exportvtxcol": 0})
+    node.setParms({"packnorm_soft": 0, "packnorm_fluid": 0})
+    node.setParms({"fluidpass": 0, "fluiduvinalphas": 0, "fluiduvinrg": 0, "enable_lookup": 1})
+    node.parm("resetinclude").pressButton()
+    
+    setupSkeletal(node)
+    
+    return 
+    
+
+
+def toggleCustomShapes(node):
+
+    custom_shapes = node.evalParm("customshapes")
+    multi_shapes = node.evalParm("multishapes")
+    
+    if custom_shapes == 1 and multi_shapes == 1:
+        node.setParms({"supportparticleinterpolate": 1})
+        
+    elif custom_shapes == 0:
+        node.setParms({"exportvtxcol": 0})
+    
+    return
+    
+    
+
+def cookAndRender(node):
+
+    node.setParms({"enablecooking": 1})
+    node.parm("resetsims").pressButton()
+    node.parm("execute").pressButton()
+    
+    return
+
+
+
+def enableCooking(node):
+
+    node.parm("resetsims").pressButton()
+    
+    if node.evalParm("enablecooking") == 0:
+        node.setParms({"persistliveupdate": 0})
+    
+    return
+
+
+
+def setCoordSystem(node):
+
+    system = node.parm("coordsys").evalAsInt()
+
+    if system == 0:
+        node.setParms({"coord_pos": 0, "coord_flip": 0, "coord_rot": 0})
+    
+    elif system == 1:
+        node.setParms({"coord_pos": 1, "coord_flip": 2, "coord_rot": 11})
+        
+    elif system == 2:
+        node.setParms({"coord_pos": 0, "coord_flip": 1, "coord_rot": 8})
+        
+    elif system == 3:
+        node.setParms({"coord_pos": 1, "coord_flip": 0, "coord_rot": 8})
+
+    return
+
+
+
+def geoFileNameAppend(node):
+
+    append_mode = node.evalParm("geosuffixmode")
+
+    if append_mode == 1:
+
+        start = node.evalParm("f1")
+        end = node.evalParm("f2")
+        frame_count = str(end - start + 1)
+        node.parm("geosuffix").set("_" + frame_count + "F")
+    
+    elif append_mode == 2:
+    
+        start = node.evalParm("f1")
+        end = node.evalParm("f2")
+        frame_count = str(end - start + 1)
+        append = "_" + frame_count + "F_"
+        append += str(int(hou.fps())) + "FPS"
+        node.parm("geosuffix").set(append)
+
+    elif append_mode == 3:
+        
+        node.parm("geosuffix").set("_" + str(int(hou.fps())) + "FPS")
+
+    else:
+        node.parm("geosuffix").set("")
+
+    return
+
+
+
+def setSubDirectories(node):
+
+    if hou.evalParm("addsubdir") == 0:
+
+        node.setParms({"subdir_geo": '', "subdir_tex": '',
+                       "subdir_data": '', "subdir_unity": ''})
+
+    else:
+
+        node.parm("subdir_geo").revertToDefaults()
+        node.parm("subdir_tex").revertToDefaults()
+        node.parm("subdir_data").revertToDefaults()
+        node.parm("subdir_unity").revertToDefaults()
+
+    return
+
+
+
+def resetInclude(node):
+
+    if hou.evalParm("mode") != 3:
+
+        include = node.evalParm("include")
+
+        if include == 'gprc':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(1)
+            node.parm("enable_col").set(1)
+
+        elif include == 'gpr':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(1)
+            node.parm("enable_col").set(0)
+
+        elif include == 'gpc':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(1)
+
+        elif include == 'gp':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        elif include == 'g':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(0)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        else:
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(1)
+            node.parm("enable_col").set(1)
+
+    else:
+
+        include = node.evalParm("include_sprite")
+
+        if include == 'gpc':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(1)
+
+        elif include == 'gp':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        elif include == 'g':
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(0)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(0)
+
+        else:
+
+            node.parm("enable_geo").set(1)
+            node.parm("enable_pos").set(1)
+            node.parm("enable_rot").set(0)
+            node.parm("enable_col").set(1)
+    
+    return
+
+
+
+def postRender(node):
+
+    node = hou.pwd().parent()
+    pad = node.evalParm("padpowtwo")
+    size1, size2, pow2sizex, pow2sizey = textureDimensions(node)
+
+    if pad == 1:
+        node.parm("finaltexsizex").set(pow2sizex)
+        node.parm("finaltexsizey").set(pow2sizey)
+    else:
+        node.parm("finaltexsizex").set(size1)
+        node.parm("finaltexsizey").set(size2)    
+
+    if node.evalParm("mode") == 2 and node.evalParm("fluidpass") == 1:
+        pass
+        
+    else:
+        if node.evalParm("engine") == 'unreal':
+
+            geo = node.node("objects/TEXTURE/embed_data_to_bounds_msg").geometry()
+
+            embedded_data = ''
+
+            # Unreal X
+            embedded_data += 'Texture Format / Position Texture Count / ' + '\n'
+            embedded_data += 'Animation UV Row Count Higher Part' + '\n'
+            decoded = geo.attribValue("__bound_decoded")[2]
+            embedded_data += '{:.6f}'.format(decoded) + ' [X]'
+
+            uv_row_count_high = round(decoded * 100.0)
+
+            if uv_row_count_high % 25 < 0.05 or uv_row_count_high % 10 < 0.05:
+                uv_row_count_high = 0
+
+            else:
+                uv_row_count_high = 25 - abs(uv_row_count_high % 50 - 25)
+                uv_row_count_high -= uv_row_count_high // 10
+
+            embedded_data += ' / ' "{:.0f}".format(uv_row_count_high) + ' Hundred Rows \n \n'
+
+            # Unreal Y
+            embedded_data += geo.attribValue("__max_y_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[1]
+            embedded_data += '{:.6f}'.format(decoded) + ' [Y] \n \n'
+
+            # Unreal Z
+            embedded_data += geo.attribValue("__max_x_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[0]
+            embedded_data += '{:.6f}'.format(decoded) + ' [Z] \n \n'
+
+            # Unreal R
+            embedded_data += geo.attribValue("__min_z_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[5]
+            embedded_data += '{:.6f}'.format(decoded) + ' [R] \n \n'
+
+            # Unreal G
+            embedded_data += geo.attribValue("__min_x_data") + '\n'
+            decoded = geo.attribValue("__bound_decoded")[3]
+            embedded_data += '{:.6f}'.format(decoded) + ' [G] \n \n'
+
+            # Unreal B
+            embedded_data += 'Animation Frame Count / ' + '\n'
+            embedded_data += 'Animation UV Row Count Lower Part' + '\n'
+            
+            uv_row_count_low = geo.attribValue("__bound_decoded")[4]
+            uv_row_count = uv_row_count_high * 100.0 + uv_row_count_low
+
+            if uv_row_count != 0:
+                decoded = size2 / uv_row_count
+
+            else:
+                decoded = -1
+
+            decoded = round(decoded)
+            embedded_data += "{:.0f}".format(decoded) + ' Frames [B]'
+            embedded_data += ' / ' "{:.0f}".format(uv_row_count_low) + ' Sub-hundred Row(s)'
+            embedded_data += ' / ' "{:.0f}".format(uv_row_count) + ' Total Row(s)'
+            
+            node.parm("embeddeddata").set(embedded_data)
+
+        else:
+
+            node.parm("embeddeddata").set('')
+
+
+    if node.evalParm("persistliveupdate") == 0:
+        node.parm("enablecooking").set(0)
+    
+    node.parm("previewtexsize").set(0)
+
+    return
+
+
+
+def setEnginePreset(node):
+
+    engine = node.evalParm("engine")
+
+    if engine == 'unreal':
+
+        node.parm("coordsys").set(3)
+        node.parm("scale").set(100)
+        node.parm("coord_pos").set(1)
+        node.parm("coord_flip").set(0)
+        node.parm("coord_rot").set(8)
+        node.parm("shaderengine").set('unreal')
+
+        node.parm("debugplane").set(1)
+        node.parm("autobinormalmode").set(0)
+        node.parm("pivotencoding").set(1)
+
+    elif engine == 'unity':
+        
+        node.parm("coordsys").set(2)
+        node.parm("scale").set(1)
+        node.parm("coord_pos").set(0)
+        node.parm("coord_flip").set(1)
+        node.parm("coord_rot").set(8)
+        node.parm("enable_unitymat").set(1)
+        node.parm("shaderengine").set('unity')
+
+        node.parm("debugplane").set(0)
+        node.parm("autobinormalmode").set(0)
+        node.parm("pivotencoding").set(2)
+
+    elif engine == 'custom':
+        
+        node.parm("debugplane").set(0)
+        node.parm("autobinormalmode").set(0)
+        node.parm("pivotencoding").set(0)
+        
+        pass
+
+    return
+    
+    
+    
+def setupSkeletal(node):
+    # reset disabled parms for skel mode
+    if node.evalParm('mode') == 4:
+        parms_to_reset = [
+            'engine', 'normalizedata', 'splitpos', 'addsparecol', 
+            'exportvtxcol', 'override_pa', 'override_c', 'override_a', 
+            'previewtexsize', 'padpowtwo', 'allowhdrsplitpos',
+        ]
+        
+        for parm_name in parms_to_reset:
+            p = node.parm(parm_name)
+            if p:
+                p.revertToDefaults()
+                hou.hscript(f"opparm -c {node.path()} {parm_name}")
+        
+        node.parm('targettexsize').set('128')
+        # node.parm('debugplane').set(0)
+        
+        node.parm('include').set('gpr')
+        hou.hscript(f"opparm -c {node.path()} include")
+        
+    sync_f(node);
+                
+    return
+    
+
+def sync_f(node):
+    # store and calculate packed f
+    f1, f2 = node.parmTuple("f")
+    fs1, fs2, fs3 = node.parmTuple("f_s")
+    
+    enabled = node.evalParm("mode") == 4 and node.evalParm("packmultipleclips") == 1
+    
+    clip_num = int(node.evalParm("fd_pack_clip_num"))    
+    state_cur = clip_num + 1 if enabled else 0
+    state_prev = int(fs3.eval())
+    
+    if state_cur != state_prev:
+        if state_cur == 0: #restore f from f_s
+            f1.deleteAllKeyframes()
+            f1.setFromParm(fs1)
+            f2.deleteAllKeyframes()
+            f2.setFromParm(fs2)
+        
+        else:
+            if state_prev == 0:
+                #save user f to f_s
+                fs1.deleteAllKeyframes()
+                fs1.setFromParm(f1)
+                fs2.deleteAllKeyframes()
+                fs2.setFromParm(f2)
+        
+                f1.deleteAllKeyframes()
+                f1.set("1")
+        
+            #cal packed frame sum to f
+            hexp = [ '(ch("f{0}_2") - ch("f{0}_1") + 1)'.format(i)
+                     for i in range(1, clip_num + 1) ]
+            f2_expression = " + ".join(hexp) if hexp else "0"
+    
+            f2.deleteAllKeyframes()
+            f2.setExpression(f2_expression, hou.exprLanguage.Hscript)
+        
+        
+    fs3.deleteAllKeyframes()
+    fs3.set(state_cur)
+                
+    return
+
+def validateVelocity(node):
+    """Validate the complete input range before any export outputs are written."""
+    if node.evalParm('mode') != 2 or not node.evalParm('enable_velocity'):
+        return
+    import math
+    import os
+    velocity_path = os.path.normcase(os.path.abspath(node.evalParm('path_velocity')))
+    if os.path.splitext(velocity_path)[1].lower() != '.exr':
+        raise hou.NodeError('Velocity export requires a separate .exr file.')
+    for parm in node.parms():
+        if parm.name().startswith('path_') and parm.name() != 'path_velocity' and parm.parmTemplate().type() == hou.parmTemplateType.String:
+            value = parm.evalAsString()
+            if value and os.path.normcase(os.path.abspath(value)) == velocity_path:
+                raise hou.NodeError('Velocity path must not overwrite another VAT output: ' + parm.name())
+    source = hou.node(node.evalParm('soppath'))
+    if source is None:
+        raise hou.NodeError('Velocity export: input geometry does not exist.')
+    for frame in range(int(node.evalParm('f1')), int(node.evalParm('f2')) + 1):
+        geo = source.geometryAtFrame(frame)
+        attr = geo.findPointAttrib('v')
+        if attr is None or attr.dataType() != hou.attribData.Float or attr.size() != 3:
+            raise hou.NodeError('Velocity export requires a float3 point v attribute at frame %d.' % frame)
+        if not all(math.isfinite(v) for v in geo.pointFloatAttribValues('v')):
+            raise hou.NodeError('Velocity export: non-finite v at frame %d.' % frame)
+
+
+def exportVelocity(node):
+    """Write a signed, full-float atlas without changing color texture semantics."""
+    if node.evalParm('mode') != 2 or not node.evalParm('enable_velocity') or node.evalParm('fluidpass') != 1:
+        return
+    import json
+    import os
+    import numpy as np
+    import OpenImageIO as oiio
+    cop = node.node('textures_new/VELOCITY')
+    if cop is None:
+        raise hou.NodeError('Velocity export: Copernicus VELOCITY output is missing.')
+    layer = cop.layer()
+    if layer.pixelScale() != (1.0, 1.0):
+        raise hou.NodeError('Velocity export requires full-resolution Copernicus pixels.')
+    width, height = layer.bufferResolution()
+    pixels = np.frombuffer(
+        layer.allBufferElements(hou.imageLayerStorageType.Float32, 3),
+        dtype=np.float32).reshape(height, width, 3)
+    if not np.isfinite(pixels).all():
+        raise hou.NodeError('Velocity atlas contains non-finite values.')
+    path = node.evalParm('path_velocity')
+    # Position's final export can append bottom padding beyond its data COP.
+    # Reuse its final extent while leaving its data rows at the same coordinates.
+    position = oiio.ImageInput.open(node.evalParm('path_pos'))
+    if not position:
+        raise hou.NodeError('Velocity export requires the completed Position texture.')
+    position_spec = position.spec()
+    final_width, final_height = position_spec.width, position_spec.height
+    position.close()
+    if final_width != width or final_height < height:
+        raise hou.NodeError('Velocity and Position atlas extents are incompatible.')
+    atlas = np.zeros((final_height, final_width, 3), dtype=np.float32)
+    atlas[:height] = pixels[::-1]
+    width, height = final_width, final_height
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    spec = oiio.ImageSpec(width, height, 3, oiio.FLOAT)
+    spec.attribute('compression', 'zip')
+    metadata = {
+        'schema': 'sidefx-labs-fluid-velocity-1',
+        'velocity': {'present': True, 'file': os.path.basename(path),
+                     'coordinates': 'houdini-local', 'units': 'houdini-units-per-second',
+                     'width': width, 'height': height,
+                     'frame_start': int(node.evalParm('f1')), 'frame_end': int(node.evalParm('f2')),
+                     'fps': hou.fps(), 'layout': 'position-atlas'},
+    }
+    spec.attribute('sidefx_labs_velocity', json.dumps(metadata, separators=(',', ':')))
+    output = oiio.ImageOutput.create(path)
+    if not output or not output.open(path, spec):
+        raise hou.NodeError('Cannot write velocity EXR: ' + path)
+    # COP buffers are bottom-up; EXR scanlines are top-down, as with the other VAT exports.
+    if not output.write_image(atlas):
+        output.close()
+        raise hou.NodeError('Failed to write velocity EXR: ' + path)
+    output.close()
+    ReportResult(node, path)
