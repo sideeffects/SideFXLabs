@@ -189,7 +189,8 @@ def import_vat(settings):
             scalar('Houdini FPS',velocity['fps'] if velocity else settings.fps)
             scalar('Playback Speed',1.0)
             scalar('Game Time at First Frame',0.0)
-            scalar('Use Playback Controls',0.0)
+            if settings.mode!='Skeletal' or 'Use Playback Controls' in scalar_names:
+                scalar('Use Playback Controls',0.0)
             switch('Support Legacy Parameters and Instancing',False)
             switch('Auto Playback',True)
             if settings.mode=='Fluid':

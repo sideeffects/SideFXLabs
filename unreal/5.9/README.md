@@ -22,24 +22,13 @@ Neither package contains a custom C++ module or requires compiling Labs binaries
 
 The Labs menu and scripted utilities initialize on editor startup. Utilities appear in the applicable asset or actor context menus.
 
-## Compatibility notes
-
-Windows validation covers Unreal Engine 5.6.1, 5.7.4, 5.8.2, and 5.9.0 using identical plugin files. The main and Legacy packages retain the same shared content; Legacy excludes the VAT importer. macOS has not been validated on hardware.
-
-See the [compatibility report](COMPATIBILITY.md) for test coverage and remaining limitations.
-
-The distributed assets retain their 5.6-compatible format. Author changes intended for all four engines in UE 5.6, and use separate project copies for newer-engine testing. Saving an asset in a newer engine can prevent older engines from opening that customized copy.
-
-Unreal's **F10 / Sidebar All Tabs** operation can report a Slate `bOverlapsRight` ensure after restoring the docked VAT Importer at startup. The tab remains usable when panels are restored. Use the normal docked layout or reset it through **Window → Load Layout → Default Editor Layout** if affected. This engine docking warning remains unresolved.
-
 ## Content and tools
 
 - **Materials:** reusable materials and material functions.
 - **Blueprints:** editor utilities and example playback Blueprints.
 - **Templates:** example assets and demonstration maps under `/SideFX_Labs/Templates`.
 - **Labs menu:** tool access and links to Labs resources.
-- **VAT importer (main package only):** imports Houdini Vertex Animation Textures. See the [VAT Importer Guide](VAT_IMPORTER.md) for shared materials, customization, and project-owned dependencies.
-
+- **VAT importer (main package only):** imports Houdini Vertex Animation Textures.
 ## Game packaging
 
 Labs enables Unreal's built-in **PCG plugin**. Depending on your engine and target platform, packaging may require platform build tools even for a Blueprint-only project.
@@ -57,6 +46,6 @@ Use Labs to create and prototype assets, then keep the content your game needs i
 3. Use **Reference Viewer** to confirm the resulting assets no longer reference `/SideFX_Labs/...`.
 4. Disable Labs, restart Unreal, and package and test your game. Disable PCG only if nothing else requires it.
 
-Copying an asset into `/Game` does not automatically remove its plugin dependencies. For VAT imports, the optional shared-material workflow can create project-owned material dependencies directly; see the [VAT Importer Guide](VAT_IMPORTER.md).
+Copying an asset into `/Game` does not automatically remove its plugin dependencies. For VAT imports, the optional shared-material workflow can create project-owned material dependencies directly.
 
 Keep original plugin assets unchanged where possible so Labs updates do not overwrite your customizations. Use Unreal's asset tools to move or duplicate assets, not File Explorer.
