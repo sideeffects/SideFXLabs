@@ -1,0 +1,111 @@
+#type:      node
+#context:   cop
+#internal:  labs::physical_star_glow::1.1
+#icon:      /labs_icons/sidefx_labs_default.svg
+#since:     22.0
+
+= Labs Physical Star Glow =
+
+"""Generates physically based, photorealistic star glow."""
+
+This node intuitively generates physically based, photorealistic glow.
+
+The generated glow can be customized using the aperture input.
+For example, using an image of a polygonal aperture produces the characteristic diffraction spikes associated with that shape.
+Adding noise to the aperture introduces irregularities similar to those caused by dust or imperfections on a lens.
+Arbitary aperture shapes can also be used.
+
+[Star Glow|Node:cop/starglow] is useful when you want more direct artistic control over the shape of the glow.
+
+@parameters
+
+    Signature:
+        #id: signature
+        Source layer type.
+        
+    == Sample Resolution ==
+
+    Base Size:
+        :include /nodes/cop/resample#basesize/:
+    
+    Base Resolution:
+        :include /nodes/cop/resample#resolution/:
+        
+    Scale:
+        :include /nodes/cop/resample#scale/:
+        
+    Resolution Scale:
+        :include /nodes/cop/resample#resscale/:
+        
+    Reframe to Destination:
+        :include /nodes/cop/resample#reframe/:
+        
+    Filter:
+        :include /nodes/cop/resample#filter/:
+    
+    == Star Glow ==
+
+    Output Star Glow Only:
+        #id: starglowonly
+        Output only the star glow, which can be used for preview or further tweaking.
+    
+    Samples:
+        #id: iterations
+        Number of samples across the visible wavelength.
+        
+    Threshold:
+        #id: threshold
+        Threshold used to determine which regions of the source image generate glow.
+
+    Luminace Metric:
+        #id: luminancemetric
+        Method used to convert source image to a Mono image.
+        
+    Intensity:
+        #id: intensity
+        Post-multiplier applied to the generated glow.
+        
+    Diffraction Scale:
+        #id: diffractionscale
+        Amount of color separation in the diffraction pattern.
+        
+    Color Over Visible Wavelength:
+        #id: coloroverwavelength
+        Color map associated with the sampled wavelength. For example, daylight produces a spectrum that approximately follows the colors of a natural rainbow.
+
+        Because __Diffraction Scale__ can be adjusted independently for artistic control, this parameter allows an arbitrary color map to be used instead of enforcing a physically accurate spectrum.
+   
+    == Padding ==
+
+    Padding:
+        #id: padding
+        When on, extends the image with a border of extra pixels before the transform and crops it back afterward; the value sets the fraction of the image size to add on each side. Because the [Fast Fourier Transform|Node:cop/fft] convolution is cyclic, the kernel otherwise wraps from one edge of the image to the opposite edge, and padding pushes those wrap-around artifacts outside the cropped region. Larger values suppress more wrap-around at the cost of a larger transform.
+
+    Border:
+        #id: border
+        :include /nodes/cop/convolvefilter#border/:
+        
+@inputs
+    source:
+        Source image to which the glow is applied.
+    
+    aperture:
+        Aperture shape used to generate the diffraction pattern.
+        
+    mask:
+        Map multiplied with the regions that generate glow.
+        
+@outputs
+    starglow:
+        Generated glow.
+    
+    aperture:
+        Passes the aperture input through unchanged. Outputs default aperture shape when aperture input is empty.
+        
+    mask:
+        Post multiplier of thresholded source image.
+
+@related
+- [Convolve Filter|Node:cop/convolvefilter]
+- [Fast Fourier Transform|Node:cop/fft]
+- [Star Glow|Node:cop/starglow]
