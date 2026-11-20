@@ -887,13 +887,19 @@ class P4HoudiniPlugin:
 
         for line in error_lines:
             match = re.match(
-                r"\s*\[Warning\]: '(.+) - no such file\(s\)\.'", line.strip()
+                r"^(?:\s*\[Warning\]:\s*')?(.+?)(?:'?\s+- no such file\(s\)\.?)", line.strip()
             )
             if match:
                 untracked_file = match.group(1)
                 untracked_files.append(untracked_file)
                 if untracked_file in remaining_files:
                     remaining_files.remove(untracked_file)
+
+                else:
+                    for rf in remaining_files[:]:
+                        if rf.replace("\\", "/").lower() == untracked_file.replace("\\", "/").lower():
+                            remaining_files.remove(rf)
+                            break
 
         return untracked_files, remaining_files
 
