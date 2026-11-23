@@ -1,0 +1,161 @@
+# Dialog script for labs::wang_tiles::1.0 automatically generated
+
+{
+    name	labs::wang_tiles::1.0
+    script	labs::wang_tiles::1.0
+    label	"Labs Wang Tiles"
+
+    help {
+	""
+    }
+
+    inputlabel	1	"Point Grid"
+    inputlabel	2	"Sub-Network Input #2"
+    inputlabel	3	"Sub-Network Input #3"
+    inputlabel	4	"Sub-Network Input #4"
+    outputlabel	1	"Wang Tiles"
+    outputlabel	2	"Point Cloud"
+
+    groupsimple {
+        name    "fd_decodersettings"
+        label   "Decoder"
+
+        parm {
+            name    "attributetype"
+            label   "Sample Attribute"
+            type    ordinal
+            joinnext
+            default { "vec" }
+            menu {
+                "float" "Float          "
+                "vec"   "Vector"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "attributename"
+            label   "Attribute Names"
+            type    string
+            nolabel
+            joinnext
+            default { "Cd" }
+            menutoggle {
+                [ "r = []" ]
+                [ "node = hou.pwd()" ]
+                [ "inputs = node.inputs()" ]
+                [ "if inputs and inputs[0]:" ]
+                [ "    geo = inputs[0].geometry()" ]
+                [ "    if geo:" ]
+                [ "        attrs = []        " ]
+                [ "        for a in geo.pointAttribs():" ]
+                [ "            r.extend([a.name(), a.name()])" ]
+                [ "            " ]
+                [ "        attribtype = node.parm('attribtype').evalAsString() " ]
+                [ "        for a in attrs:" ]
+                [ "            if 'float' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 1:" ]
+                [ "                r.extend([a.name(), a.name()])" ]
+                [ "            if 'vec' in attribtype and a.dataType() == hou.attribData.Float and not a.isArrayType() and a.size() == 3:" ]
+                [ "                r.extend([a.name(), a.name()])" ]
+                [ "return r" ]
+                language python
+            }
+            range   { 0 1 }
+        }
+        parm {
+            name    "component"
+            label   "Component Scope"
+            type    buttonstrip
+            nolabel
+            default { "0" }
+            disablewhen "{ attributetype != vec }"
+            menureplace {
+                "x" "X"
+                "y" "Y"
+                "z" "Z"
+            }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "mode"
+            label   "Mode"
+            type    ordinal
+            default { "0" }
+            menu {
+                "0" "Blob"
+                "1" "2-Edge"
+                "2" "2-Corner"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+    groupsimple {
+        name    "fd_tile"
+        label   "Tileset"
+
+        parm {
+            name    "resolution"
+            label   "Tile Resolution"
+            type    ordinal
+            default { "128" }
+            menu usetokenvalue {
+                "64"    "64^2"
+                "128"   "128^2"
+                "256"   "256^2"
+                "512"   "512^2"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "style"
+            label   "Style"
+            type    ordinal
+            invisible
+            default { "0" }
+            hidewhen "{ mode != 0 }"
+            menu {
+                "0" "Straight"
+                "1" "Circle"
+                "2" "Bent"
+                "4" "Bezier"
+            }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "colora"
+            label   "Color A"
+            type    color
+            size    3
+            default { "1" "1" "0" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import cop.stateutils as csu\ncsu.enterPickerState(kwargs[\"node\"], \"f3\")" }
+            parmtag { "script_action_help" "Click a layer to sample its value." }
+            parmtag { "script_action_icon" "BUTTONS_layer_sample" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "colorb"
+            label   "Color B"
+            type    color
+            size    3
+            default { "0" "0.5" "1" }
+            range   { 0 1 }
+            parmtag { "autoscope" "0000000000000000" }
+            parmtag { "script_action" "import cop.stateutils as csu\ncsu.enterPickerState(kwargs[\"node\"], \"f3\")" }
+            parmtag { "script_action_help" "Click a layer to sample its value." }
+            parmtag { "script_action_icon" "BUTTONS_layer_sample" }
+            parmtag { "script_callback_language" "python" }
+        }
+        parm {
+            name    "showtileindex"
+            label   "Show Tile Index"
+            type    toggle
+            default { "1" }
+            parmtag { "script_callback_language" "python" }
+        }
+    }
+
+}

@@ -1,0 +1,122 @@
+#type:     node
+#context:  sop
+#internal: labs::wang_tiles::1.0
+#icon:     /labs_icons/sidefx_labs_default.svg
+#since:    22.0
+
+= Labs Wang Tiles =
+
+"""Computes a Wang tile index for each point of a grid and generates the matching tileset."""
+
+Wang tiles are square tiles whose edges or corners are each assigned one of two colors. Neighboring tiles fit together seamlessly only when their touching edges or corners share the same color. Because of this, a small, fixed set of tiles can be arranged to cover an area of any size without visible seams, which makes Wang tiles useful for terrain layouts, dungeon or level maps, texture bombing, and other tile-based content.
+
+This node reads a grid of points, treats each point as either Color A or Color B based on a float attribute or one component of a vector attribute, and looks at each point's neighbors to determine which tile from the tileset belongs there. The tile index is stored in the point attribute `name`, so you can copy matching tile geometry or textures onto the points downstream, for example with a _Copy to Points SOP_. The decoded result is also written to the point attribute `Cd` so you can preview the layout directly on the points.
+
+The node also outputs a reference tileset that shows every tile the selected __Mode__ can produce, along with its index. Use it to author your own tile geometry or textures in the correct order.
+
+TIP:
+    For best results, feed this node a regular grid of points, such as one created by a _Grid SOP_ with its __Primitive Type__ set to __Points__, and paint or map the attribute you want to sample onto it.
+
+NOTE:
+    This node replaces Labs Wang Tiles Sample SOP and Labs Wang Tiles Decoder SOP, which will be removed in Houdini 24.0.
+
+
+@parameters
+
+    == Decoder ==
+
+    Sample Attribute:
+        #id: attributetype
+
+        The type of the point attribute used to decide whether each input point is Color A or Color B.
+
+        Float:
+            Reads a single float value per point.
+
+        Vector:
+            Reads one component of a vector attribute per point. Choose the component with __Component__.
+
+    Attribute Name:
+        #id: attributename
+
+        The name of the point attribute to sample. It must exist on the input points and match the type set in __Sample Attribute__.
+
+    Component:
+        #id: component
+
+        The component of the vector attribute to sample. For color attributes such as `Cd`, __X__, __Y__, and __Z__ correspond to the red, green, and blue channels.
+
+        Use different components to store several independent layouts in a single vector attribute, and decode each one with a separate instance of this node.
+
+        Only relevant when __Sample Attribute__ is set to __Vector__.
+
+        X:
+            Reads the first component (red for colors).
+
+        Y:
+            Reads the second component (green for colors).
+
+        Z:
+            Reads the third component (blue for colors).
+
+    Mode:
+        #id: mode
+
+        Determines which tileset is used and which neighbors are considered when computing the tile index of a point.
+
+        Blob:
+            Considers all 8 neighbors (edges and corners) of each point. Produces the 47-tile "blob" tileset, which gives the smoothest transitions between Color A and Color B areas, including inner and outer corners.
+
+        2-Edge:
+            Considers only the 4 edge neighbors of each point. Produces a 16-tile tileset in which each tile edge is either Color A or Color B. Useful for paths, pipes, and other connected structures.
+
+        2-Corner:
+            Considers the corners shared with diagonal neighbors. Produces a 16-tile tileset in which each tile corner is either Color A or Color B. Useful for terrain-style transitions between two materials.
+
+    == Tileset ==
+
+    Tile Resolution:
+        #id: resolution
+
+        In pixels, the width and height of each tile in the __Wang Tiles__ output. Higher values make the reference tiles easier to read but take longer to generate.
+
+    Color A:
+        #id: colora
+
+        The color used to draw the Color A areas of the tiles in the __Wang Tiles__ output.
+
+    Color B:
+        #id: colorb
+
+        The color used to draw the Color B areas of the tiles in the __Wang Tiles__ output.
+
+    Show Tile Index:
+        #id: showtileindex
+
+        Displays the index of each tile in the __Wang Tiles__ output. Turn this on to see which tile corresponds to which value of the point attribute `name`.
+
+
+@inputs
+
+    Points:
+        A regular grid of points with the attribute set in __Attribute Name__.
+
+
+@outputs
+
+    Wang Tiles:
+        A reference tileset that shows every tile available in the selected __Mode__, drawn with __Color A__ and __Color B__. When __Show Tile Index__ is on, each tile is labeled with its index.
+
+    Point Cloud:
+        The input points with two added attributes:
+
+        - Point attribute `name`: the tile index computed for each point, which matches a tile in the __Wang Tiles__ output.
+        - Point attribute `Cd`: the decoded Color A or Color B value of each point, for previewing the layout in the viewport.
+
+        Existing point attributes `name` and `Cd` are overwritten. If you sample `Cd` itself, its original values are replaced in this output.
+
+
+@related
+- [Copy to Points | /nodes/sop/copytopoints]
+- [Grid | /nodes/sop/grid]
+- [Attribute from Map | /nodes/sop/attribfrommap]
