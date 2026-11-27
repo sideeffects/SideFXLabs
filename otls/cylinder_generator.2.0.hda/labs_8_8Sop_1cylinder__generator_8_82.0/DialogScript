@@ -18,6 +18,7 @@
     groupsimple {
         name    "fd_body"
         label   "Body"
+        grouptag { "sidefx::look" "blank" }
 
         parm {
             name    "uniformradius"
@@ -32,7 +33,7 @@
             type    float
             default { "0.5" }
             hidewhen "{ uniformradius == 0 }"
-            range   { 0 10 }
+            range   { 0! 10 }
             parmtag { "autoscope" "0000000000000000" }
         }
         parm {
@@ -41,7 +42,7 @@
             type    float
             default { "0.5" }
             hidewhen "{ uniformradius == 1 }"
-            range   { 0 10 }
+            range   { 0! 10 }
             parmtag { "autoscope" "0000000000000000" }
         }
         parm {
@@ -50,7 +51,7 @@
             type    float
             default { "0.5" }
             hidewhen "{ uniformradius == 1 }"
-            range   { 0 10 }
+            range   { 0! 10 }
             parmtag { "autoscope" "0000000000000000" }
         }
         parm {
@@ -59,7 +60,7 @@
             type    float
             default { "1" }
             hidewhen "{ hasinput(0) == 1 }"
-            range   { 0 10 }
+            range   { 0! 10 }
             parmtag { "script_callback_language" "python" }
         }
         parm {
@@ -78,50 +79,71 @@
             range   { 1! 64 }
             parmtag { "autoscope" "0000000000000000" }
         }
-        parm {
-            name    "sepparm3"
-            label   "Separator"
-            type    separator
-            default { "" }
-        }
-        parm {
-            name    "direction"
-            label   "Direction"
-            type    ordinal
-            default { "1" }
-            menu {
-                "0" "X Axis"
-                "1" "Y Axis"
-                "2" "Z Axis"
+        groupsimple {
+            name    "fd_caps"
+            label   "Caps"
+            grouptag { "sidefx::look" "blank" }
+
+            parm {
+                name    "endcaps"
+                label   "End Caps"
+                type    toggle
+                default { [ "off" hscript-expr ] }
+                disablewhen "{ opencylinder == 1 }"
+                parmtag { "autoscope" "0000000000000000" }
             }
-            parmtag { "script_callback_language" "python" }
+            groupsimple {
+                name    "fd_endcaps"
+                label   "End Caps"
+                hidewhen "{ endcaps == 0 } { opencylinder == 1 }"
+                grouptag { "sidefx::look" "blank" }
+
+                parm {
+                    name    "fillmode"
+                    label   "Fill Mode"
+                    type    ordinal
+                    default { "0" }
+                    menu {
+                        "0" "Single Polygon"
+                        "1" "Triangle Fan"
+                        "2" "Quadrilateral Fan"
+                    }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "enableloop"
+                    label   "Enable Edge Loop"
+                    type    toggle
+                    nolabel
+                    joinnext
+                    default { "off" }
+                    disablewhen "{ fillmode == 0 }"
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "loopdistance"
+                    label   "Edge Loop"
+                    type    float
+                    default { "0.25" }
+                    disablewhen "{ fillmode == 0 } { enableloop == 0 }"
+                    range   { 0! 1! }
+                    parmtag { "autoscope" "0000000000000000" }
+                    parmtag { "script_callback_language" "python" }
+                }
+                parm {
+                    name    "corneroffset"
+                    label   "Corner Offset"
+                    type    integer
+                    default { "0" }
+                    disablewhen "{ fillmode < 2 }"
+                    range   { -1 1 }
+                    parmtag { "script_callback_language" "python" }
+                }
+            }
+
         }
-        parm {
-            name    "t"
-            label   "Center"
-            type    vector
-            size    3
-            default { "0" "0" "0" }
-            range   { -1 1 }
-            parmtag { "autoscope" "1110000000000000" }
-        }
-        parm {
-            name    "r"
-            label   "Rotate"
-            type    vector
-            size    3
-            default { "0" "0" "0" }
-            range   { 0 360 }
-            parmtag { "autoscope" "1110000000000000" }
-        }
-        parm {
-            name    "sepparm"
-            label   "Spacer"
-            type    separator
-            default { "" }
-            parmtag { "sidefx::layout_height" "small" }
-            parmtag { "sidefx::look" "blank" }
-        }
+
         groupcollapsible {
             name    "fd_advanced"
             label   "Additional"
@@ -179,75 +201,54 @@
             }
         }
 
-    }
-
-    groupsimple {
-        name    "fd_caps"
-        label   "Caps"
-
         parm {
-            name    "endcaps"
-            label   "End Caps"
-            type    toggle
-            default { [ "off" hscript-expr ] }
-            disablewhen "{ opencylinder == 1 }"
-            parmtag { "autoscope" "0000000000000000" }
+            name    "sepparm3"
+            label   "Separator"
+            type    separator
+            default { "" }
         }
-        groupsimple {
-            name    "fd_endcaps"
-            label   "End Caps"
-            disablewhen "{ endcaps == 0 } { opencylinder == 1 }"
-            grouptag { "sidefx::look" "blank" }
-
-            parm {
-                name    "fillmode"
-                label   "Fill Mode"
-                type    ordinal
-                default { "0" }
-                menu {
-                    "0" "Single Polygon"
-                    "1" "Triangle Fan"
-                    "2" "Quadrilateral Fan"
-                }
-                parmtag { "script_callback_language" "python" }
+        parm {
+            name    "direction"
+            label   "Direction"
+            type    ordinal
+            default { "1" }
+            menu {
+                "0" "X Axis"
+                "1" "Y Axis"
+                "2" "Z Axis"
             }
-            parm {
-                name    "enableloop"
-                label   "Enable Edge Loop"
-                type    toggle
-                nolabel
-                joinnext
-                default { "off" }
-                disablewhen "{ fillmode == 0 }"
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "loopdistance"
-                label   "Edge Loop"
-                type    float
-                default { "0.25" }
-                disablewhen "{ fillmode == 0 } { enableloop == 0 }"
-                range   { 0! 1! }
-                parmtag { "autoscope" "0000000000000000" }
-                parmtag { "script_callback_language" "python" }
-            }
-            parm {
-                name    "corneroffset"
-                label   "Corner Offset"
-                type    integer
-                default { "0" }
-                disablewhen "{ fillmode < 2 }"
-                range   { -1 1 }
-                parmtag { "script_callback_language" "python" }
-            }
+            parmtag { "script_callback_language" "python" }
         }
-
+        parm {
+            name    "t"
+            label   "Center"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            range   { -1 1 }
+            parmtag { "autoscope" "1110000000000000" }
+        }
+        parm {
+            name    "r"
+            label   "Rotate"
+            type    vector
+            size    3
+            default { "0" "0" "0" }
+            range   { 0 360 }
+            parmtag { "autoscope" "1110000000000000" }
+        }
     }
 
+    parm {
+        name    "sepparm"
+        label   "Separator"
+        type    separator
+        default { "" }
+    }
     groupsimple {
         name    "fd_output"
         label   "Output"
+        grouptag { "sidefx::look" "blank" }
 
         parm {
             name    "adduvs"
