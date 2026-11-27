@@ -1,0 +1,216 @@
+import hou
+import viewerstate.utils as su
+
+class State(object):
+
+    
+
+    def __init__(self, **kwargs):
+
+        self.__dict__.update(kwargs)
+        self.capsule_handle = None
+        self.node = None
+
+
+
+    def getRotationMatrix(self):
+
+        #Create Rotation Matrix based on Direction
+        rotation = self.node.parmTuple("r").eval()
+        cap_dir = self.node.parm("direction").evalAsInt()
+
+        if cap_dir == 0:
+            base_rotation = (0, 0.0, 90.0)
+        elif cap_dir == 1:
+            base_rotation = (0.0, 0.0, 0.0)
+        elif cap_dir == 2:
+            base_rotation = (90, 0.0, 0.0)
+        else:
+            base_rotation = (0.0, 0.0, 0.0)
+
+        base_matrix = hou.hmath.buildRotate(base_rotation)
+        rotation_matrix = hou.hmath.buildRotate(rotation)
+
+        return base_matrix*rotation_matrix
+
+   
+
+    def onEnter(self,kwargs):
+
+        self.node = kwargs["node"]
+        state_parms = kwargs["state_parms"]
+        scene_viewer = hou.ui.paneTabOfType(hou.paneTabType.SceneViewer)
+
+        #Initializing Handles
+        handles = ["radius_handle", "top_handle", "bottom_handle"]
+        
+        for x in handles:
+            hou.Handle(self.scene_viewer, x).update()
+
+        #Creating geometry for radius handle ring
+        position = self.node.parmTuple("t").evalAsFloats()
+        radius = self.node.parm("radius").evalAsFloat()
+        rotation = self.node.parmTuple("r").evalAsFloats()
+        self.radiVerb = hou.sopNodeTypeCategory().nodeVerb("circle")
+        self.radiVerb.setParms({
+            "type": 1,
+            "orient": ((self.node.parm("direction").evalAsInt()+1)%3),
+            "rad": (radius,radius),
+            "t": (position[0],position[1],position[2]),
+            "r": (rotation[0],rotation[1],rotation[2]),
+            "divs": 32,
+            })
+
+        self.radiGeo = hou.Geometry()
+        self.radiVerb.execute(self.radiGeo,[])
+
+        #Setting radius handle drawable
+        self.circle = hou.GeometryDrawable(scene_viewer, hou.drawableGeometryType.Line,
+            "radius_drawable", self.radiGeo,
+            params = {
+                "highlight_mode": hou.drawableHighlightMode.Matte,
+                "fade_factor": 0.25,
+                "color1": (1,0,0,1),
+                "line_width": 1.75
+                }
+        )
+
+        self.circle.show(True)
+
+        #HUD Tips
+        HUD_TEMPLATE = {"title": "Labs Capsule", "icon": self.node.type().icon(),
+        "rows":[
+            {"label": "Adjust Sides", "key": "mousewheel"},
+            {"label": "Adjust Body Segments", "key": "Shift mousewheel"},
+            {"label": "Adjust Cap Segments", "key": "Ctrl mousewheel"}
+            ]
+        }
+        
+        self.scene_viewer.hudInfo(template=HUD_TEMPLATE)
+
+
+
+    def onHandleToState(self, kwargs):
+
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]
+        mod_parms = kwargs["mod_parms"]
+        prev_parms = kwargs["prev_parms"]
+        ui_event = kwargs["ui_event"]
+
+        if handle == 'radius_handle':
+
+            #sets minimum value for radius handle
+            if parms["dist"] < 0:
+                hou.Handle(self.scene_viewer, "radius_handle").update()
+
+            #set radius parameter value
+            self.node.parm("radius").set( parms["dist"])
+
+        if handle == 'top_handle' or handle == 'bottom_handle':
+            
+            #sets minimum value for height handles
+            if parms["dist"] < self.node.parm("radius").evalAsFloat():
+                self.log(parms["dist"])
+                hou.Handle(self.scene_viewer, "top_handle").update()
+                hou.Handle(self.scene_viewer, "bottom_handle").update()
+            
+            #set height parameter value
+            self.node.parm("height").set( ((parms["dist"])*2) - (self.node.parm("radius").evalAsFloat()*2))      
+
+
+
+    def onStateToHandle(self, kwargs):
+
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]
+        self.matrix = self.getRotationMatrix()
+        position = self.node.parmTuple("t").evalAsFloats()
+        radius = self.node.parm("radius").evalAsFloat()
+
+        if handle == 'radius_handle':
+            parms["dist"] = radius
+            #orients direction of handle with the rotation matrix
+            direction = hou.Vector3(1,0,0) * self.matrix    
+
+        if handle == 'top_handle':
+            parms["dist"] = (self.node.parm("height").evalAsFloat()/2)+radius
+            #orients direction of handle with the rotation matrix
+            direction = hou.Vector3(0,1,0) * self.matrix    
+            
+        if handle == 'bottom_handle':
+            parms["dist"] = ((self.node.parm("height").evalAsFloat()/2))+radius
+            #orients direction of handle with the rotation matrix
+            direction = hou.Vector3(0,-1,0) * self.matrix  
+
+        #update parms
+        parms.update(zip(["vx", "vy", "vz"], direction))
+        parms.update(zip(["px", "py", "pz"], position))
+
+
+
+    def onMouseWheelEvent(self, kwargs):
+
+        ui_event = kwargs["ui_event"]
+        state_parms = kwargs["state_parms"]
+        dev = ui_event.device()
+        scroll = dev.mouseWheel()
+
+        #checks which key is pressed and adjusts segments based on scroll wheel
+        if dev.isCtrlKey() == 1:
+            self.node.parm('capsegments').set(scroll +  self.node.parm("capsegments").evalAsInt())
+        elif dev.isShiftKey() == 1:
+            self.node.parm('bodysegments').set(scroll +  self.node.parm("bodysegments").evalAsInt())
+        else:
+            self.node.parm('sides').set(scroll +  self.node.parm("sides").evalAsInt())
+
+        return False
+
+
+
+    def onDraw( self, kwargs ):
+        handle = kwargs["draw_handle"]
+        self.circle.draw(handle)
+
+
+
+    def onNodeChangeEvent(self, kwargs):
+        self.scene_viewer.curViewport().draw()
+
+        #updates radius ring parameters with new values
+        position = self.node.parmTuple("t").evalAsFloats()
+        radius = self.node.parm("radius").evalAsFloat()
+        rotation = self.node.parmTuple("r").evalAsFloats()
+
+        self.radiVerb.setParms({
+            "orient": ((self.node.parm("direction").evalAsInt()+1)%3),
+            "rad": (radius,radius),
+            "t": (position[0],position[1],position[2]),
+            "r": (rotation[0],rotation[1],rotation[2]),
+        })
+
+        self.radiVerb.execute(self.radiGeo,[])
+
+
+
+def createViewerStateTemplate():
+
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Capsule"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+    #setting peak handles 
+    peakParms = ['dist','px','py', 'pz', 'vx', 'vy', 'vz']
+
+    template.bindHandle("peak","radius_handle", cache_previous_parms=False, handle_parms = peakParms)
+    template.bindHandle("peak","top_handle", cache_previous_parms=False, handle_parms = peakParms)
+    template.bindHandle("peak","bottom_handle", cache_previous_parms=False, handle_parms = peakParms)
+
+    #setting the requirement for onNodeChangeEvent() to activate
+    template.bindNodeChangeEvent([hou.nodeEventType.ParmTupleChanged])
+
+    return template
