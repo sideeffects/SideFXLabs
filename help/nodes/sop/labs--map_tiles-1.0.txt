@@ -1,0 +1,155 @@
+#type:     node
+#context:  sop
+#internal: labs::map_tiles::1.0
+#icon:     /labs_icons/sidefx_labs_default.svg
+= Labs Map Tiles =
+
+= Labs Map Tiles =
+
+"""Download real-world elevation and satellite imagery to generate terrain and texture maps from geographic locations."""
+
+The Labs Map Tiles downloads geographic elevation and satellite imagery data for use in Houdini.
+
+Specify a location and other configuration then let the tool retrieves elevation data and satellite imagery for the selected area and prepares them for use in terrain generation, procedural environments, and other geographic workflows.
+
+Elevation and texture data can be downloaded through Direct __API__ services or __SpatioTemporal Asset Catalog (STAC)__ services, depending on the selected data access method.
+
+
+@parameters
+
+    == Location ==
+
+    Coordinate Mode:
+        #id: locationmode
+        Determines how the geographic area is defined. The location can be specified using a center coordinate and area size or a geographic bounding box.
+
+    Select on Map:
+        #id: interactivemap
+        Opens an interactive map for selecting a geographic location and defining the area to download. The map requires an internet connection.
+
+    Provider:
+        #id: basemapprovider
+        Selects the map provider used to display the interactive map.
+
+    Latitude:
+        #id: latitude
+        Specifies the latitude of the center of the selected geographic area in decimal degrees.
+
+    Longitude:
+        #id: longitude
+        Specifies the longitude of the center of the selected geographic area in decimal degrees.
+
+    Area Width (km):
+        #id: areasizekm
+        Defines the geographic area to download around the center coordinates, measured in kilometers.
+
+    South:
+        #id: south
+        Define the southern extent of the geographic bounding box in decimal degrees.
+
+    North:
+        #id: north
+        Define the northern extent of the geographic bounding box in decimal degrees.
+
+    West:
+        #id: west
+        Define the western extent of the geographic bounding box in decimal degrees.
+
+    East:
+        #id: east
+        Define the eastern extent of the geographic bounding box in decimal degrees.
+
+    == Data Layers ==
+
+    Elevation:
+        #id: downloadelevation
+        Enables downloading elevation data for the selected geographic area. The elevation data is used to generate terrain height information.
+
+    Texture:
+        #id: downloadtexture
+        Enables downloading satellite imagery for the selected geographic area. The imagery is used to generate RGB texture maps.
+
+    === Elevation Map ===
+
+    Snap To Grid:
+        #id: elevationoffset
+        Snap to Grid
+
+    Normalize Method:
+        #id: elevationremap
+        Selects the method used to normalize elevation values for terrain generation. The options include *COPs Remap* and *Data Driven*. COPs Remap uses the COPs remapping workflow to normalize elevation values for terrain generation.
+
+    === Texture Map ===
+
+    Start Date:
+        #id: texturestartdate
+        Specifies the beginning of the date range (yyyy-mm-dd) used to search for satellite imagery.
+
+    End Date:
+        #id: textureenddate
+        Specifies the end of the date range (yyyy-mm-dd) used to search for satellite imagery.
+
+    Resolution:
+        #id: texturemaxoutputresolution
+        Sets the maximum output resolution of the downloaded texture. Higher resolutions provide more detail but require additional processing time, memory, and disk space.
+
+    Texture Brightness:
+        #id: texturebrightness
+        Adjusts the brightness of the satellite texture used for terrain visualization.
+
+    == Download Data ==
+
+    Download:
+        #id: download
+        Downloads the enabled elevation and texture datasets for the selected geographic area using the configured data access method.
+
+    Output Directory:
+        #id: elevationdldir
+        Specifies the directory used to store downloaded elevation and texture files.
+
+    == Data Sources ==
+
+    Access Method:
+        #id: dataaccessmethod
+        Selects the method used to retrieve elevation and texture data. The options include *Direct API* and *STAC*.
+
+        Direct API:
+            Requires valid API credentials.
+
+            Data Sources:
+        
+            Elevation: OpenTopography — SRTM GL1 (30 m)
+
+            Texture: Copernicus Data Space — Sentinel-2 L2A (10 m)
+
+        Spatio Temporal Asset Catalog (STAC): 
+            Requires Rasterio in Houdini's Python environment.
+
+            Data Sources:
+
+            Catalog:    Earth Search (Element 84)
+
+            Elevation:  Copernicus DEM GLO-30 (30 m)
+
+            Texture:    Sentinel-2 L2A (10 m)
+        
+    === Direct API Configuration ===
+
+    API Key:
+        #id: opentopographyapikey
+        Specifies the API key used to access elevation datasets from OpenTopography. A valid API key is required to download data through this service.
+
+    Client ID:
+        #id: copernicusclientid
+        Specifies the OAuth client ID used to authenticate requests to the Copernicus Data Space Ecosystem.
+
+    Client Secret:
+        #id: copernicusclientsecret
+        Specifies the OAuth client secret used with the client ID to authenticate requests to the Copernicus Data Space Ecosystem.
+
+@locals
+    
+    
+@related
+- [item | /link ]
+

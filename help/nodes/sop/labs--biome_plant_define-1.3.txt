@@ -12,7 +12,7 @@ This node creates the dictionary attribute `plant_definition` used in the rest o
 
 The __Species Variants__ tab is where different growth stages or variations of meshes are defined alongside dead version meshes. This tab is also where the ranges of random variation per variant are defined. 
 
-Multiple of these nodes can be chained together to define a full library of plants. The _Biome Plant Definitions File SOP_ can take a chain of these nodes as input to help read and write the plant library from a .json or .bgeo file. The first input of the _Biome Plant Scatter SOP_ expects a chain of _Biome Plant Define SOP_ nodes or the output of the _Biome Plant Definitions File SOP_ set to create geometry.
+Multiple of these nodes can be chained together to define a full library of plants. The [_Labs Biome Plant Definitions File SOP_|Node:sop/labs--biome_plant_definitions_file-1.3] can take a chain of these nodes as input to help read and write the plant library from a `.json` or `.bgeo` file. The first input of the [_Labs Biome Plant Scatter SOP_|Node:sop/labs--biome_plant_scatter-1.3] expects a chain of _Biome Plant Define SOP_ nodes or the output of the __Biome Plant Definitions File SOP__ set to create geometry.
 
 :box:
     #display: raised
@@ -22,223 +22,214 @@ Multiple of these nodes can be chained together to define a full library of plan
 
 @parameters
 
+        === Species Settings: Species ID ===
 
-=== Species Settings: Species ID ===
+        Name:
+            #id: plantname
+            Name of the plant. Do not include spaces.
 
-Name:
-    #id: plantname
-    Name of the plant. Do not include spaces.
+        Color:
+            #id: plantcolor
+            Color to apply on the plant's visualizer.
 
-Color:
-    #id: plantcolor
-    Color to apply on the plant's visualizer.
+        === Species Settings: Temperature ===
 
-=== Species Settings: Temperature ===
+        Lower:
+            #id: templower
+            Lowest temperature (in °C) that the plant can endure.
 
-Lower:
-    #id: templower
-    Lowest temperature (in °C) that the plant can endure.
+        Preferred:
+            #id: temppref
+            Preferred temperature (in °C) of the plant.
 
-Preferred:
-    #id: temppref
-    Preferred temperature (in °C) of the plant.
+        Upper:
+            #id: tempupper
+            Highest temperature (in °C) that the plant can endure.
 
-Upper:
-    #id: tempupper
-    Highest temperature (in °C) that the plant can endure.
+        === Species Settings: Precipitation ===
 
+        Lower:
+            #id: preclower
+            Lowest average annual precipitation (in mm) that the plant can endure.
 
-=== Species Settings: Precipitation ===
+        Preferred:
+            #id: precpref
+            Preferred average annual precipitation (in mm) of the plant.
 
-Lower:
-    #id: preclower
-    Lowest average annual precipitation (in mm) that the plant can endure.
+        Upper:
+            #id: precupper
+            Highest average annual precipitation (in mm) that the plant can endure.
 
-Preferred:
-    #id: precpref
-    Preferred average annual precipitation (in mm) of the plant.
+        === Species Settings: Spacing ===
 
-Upper:
-    #id: precupper
-    Highest average annual precipitation (in mm) that the plant can endure.
+        Maximum Density:
+            #id: densitymax
+            The number of plants per square meter when the plant viability is at its highest and all bounds radii are zero. The __Bounds Radius__ culls points after this initial density scatter. To improve performance, reduce this value until you visually start to notice a decrease in density.  
 
+        Type:
+            #id: type
+            Select the plant's type. If a plant's type is __Shrub__, it will be permitted to spawn beneath nearby plants with a plant type of __Tree__. In this case, the nearby __Tree__ __Bounds Radii__ are ignored by __Shrubs__.
 
-=== Species Settings: Spacing ===
+        === Species Settings: Scale ===
 
-Maximum Density:
-    #id: densitymax
-    The number of plants per square meter when the plant viability is at its highest and all bounds radii are zero. The __Bounds Radius__ culls points after this initial density scatter. To improve performance, reduce this value until you visually start to notice a decrease in density.  
+        Scale Multiplier:
+            #id: scalemult
+            Factor by which this plant species is scaled. 
 
-Type:
-    #id: type
-    Select the plant's type. If a plant's type is __Shrub__, it will be permitted to spawn beneath nearby plants with a plant type of __Tree__. In this case, the nearby __Tree__ __Bounds Radii__ are ignored by __Shrubs__.
+        === Species Settings: Biomes ===
 
+        Contain in Selected Biomes:
+            #id: containinbiomes
+            When enabled, the plant species will only be scattered in the __Selected Biomes__. For example, if there is a hot and cold biome right next to each other, a plant species that prefers a temperate middle temperature might appear on the border between these two biomes if they are blended together and __Contain in Selected Biomes__ is disabled. If the temperate plant species has __Contain in Selected Biomes__ enabled and only a temperate biome selected in __Selected Biomes__, then this species will not appear in this blurred area between the hot and cold biome. 
 
-=== Species Settings: Scale ===
+        Path to Biomes:
+            #id: pathtobiomes
+            Node path to the last _Labs Biome Define SOP_ in a chain of nodes or a _Biome Definitions File SOP_ set to create geometry from a biome definitions file. A list of biomes defined by this path will populate the __Biome__ drop down menu. 
 
-Scale Multiplier:
-    #id: scalemult
-    Factor by which this plant species is scaled. 
+        Selected Biomes:
+            #id: biomelist
+            List of biomes this plant species could appear in if the species is viable in those biomes. If __Path to Biomes__ is set correctly, the drop down on the right should list all of the biomes to choose from. 
 
+        === Species Settings: Advanced ===
 
-=== Species Settings: Biomes ===
+        Randomize Scale:
+            #id: randscale
+            If this __Randomize Scale__ is enabled, plants are scaled randomly within the variant's __Scale Range__. If disabled, plants are scaled by viability within the variant's __Scale Range__. 
 
-Contain in Selected Biomes:
-    #id: containinbiomes
-    When enabled, the plant species will only be scattered in the __Selected Biomes__. For example, if there is a hot and cold biome right next to each other, a plant species that prefers a temperate middle temperature might appear on the border between these two biomes if they are blended together and __Contain in Selected Biomes__ is disabled. If the temperate plant species has __Contain in Selected Biomes__ enabled and only a temperate biome selected in __Selected Biomes__, then this species will not appear in this blurred area between the hot and cold biome. 
+        Hardiness:
+            #id: hardiness
+            Plants' ability to endure difficult conditions. Higher values extend the ideal growth conditions to its higher and lower tolerance levels.
 
-Path to Biomes:
-    #id: pathtobiomes
-    Node path to the last _Labs Biome Define SOP_ in a chain of nodes or a _Biome Definitions File SOP_ set to create geometry from a biome definitions file. A list of biomes defined by this path will populate the __Biome__ drop down menu. 
+        Normal from Terrain:
+            #id: normterrain
+            Ratio of alignment to match the terrain. Plants with values of `1` will follow the terrain surface, and values of `0` will be aligned to the up vector.
 
-Selected Biomes:
-    #id: biomelist
-    List of biomes this plant species could appear in if the species is viable in those biomes. If __Path to Biomes__ is set correctly, the drop down on the right should list all of the biomes to choose from. 
+        Randomize Yaw:
+            #id: randomizeyaw
+            The range of degrees to randomly rotate around the normal. `180` will provide completely random directions.
 
-=== Species Settings: Advanced ===
+        Material:
+            #id: shop_materialpath
+            An optional point material override for every variant. <p>This is only useful if all variants share the same material. If the variant materials vary, then materials will need to be set in the geometry file or upstream of the variant operator path.</p>
 
-Randomize Scale:
-    #id: randscale
-    If this __Randomize Scale__ is enabled, plants are scaled randomly within the variant's __Scale Range__. If disabled, plants are scaled by viability within the variant's __Scale Range__. 
+        === Species Variants ===
 
-Hardiness:
-    #id: hardiness
-    Plants' ability to endure difficult conditions. Higher values extend the ideal growth conditions to its higher and lower tolerance levels.
+        Autofill Mode:
+            #id: autofillmode
+            <p>__From Directory__ auto-populates the variants multiparm with the appropriate __Mesh Variant #__ file names that match the __Pattern__ and are located in the __Variants Directory__.</p> <p>__From Merge Path__ auto-populates with the operator paths of each input into the __Variants Merge Path__.</p> 
 
-Normal from Terrain:
-    #id: normterrain
-    Ratio of alignment to match the terrain. Plants with values of 1 will follow the terrain surface, and values of 0 will be aligned to the up vector.
+        Variants Directory:
+            #id: variantsdir
+            The directory where mesh variants are read from. 
 
-Randomize Yaw:
-    #id: randomizeyaw
-    The range of degrees to randomly rotate around the normal. 180 will provide completely random directions.
+        Pattern:
+            #id: pattern
+            Space separated list of patterns to filter and select a subset of files within the __Variants Directory__. <p>The underlying script uses filename pattern matching in Python with `fnmatch.filter`. It does not use Houdini's native pattern matching.</p> 
+
+        Search Child Directories:
+            #id: recursive
+            Recursively search for files within the child directories of the __Variants Directory__.
 
-Material:
-    #id: shop_materialpath
-    An optional point material override for every variant. <p>This is only useful if all variants share the same material. If the variant materials vary, then materials will need to be set in the geometry file or upstream of the variant operator path.</p>
+        Variants Merge Path:
+            #id: variantsmergepath
+            The path to a _Merge SOP_ node where multiple mesh variants have been input. Each input will be entered as its own operator path mesh variant.
 
+        Autofill Radii on Load:
+            #id: autofillradii
+            Execute __Autofill Radii from Mesh Bounds__ when __Autofill Variants__ is executed. Save a button click if both operations need to be executed. 
 
-=== Species Variants ===
+        Autofill Variants:
+            #id: autofillvariants
+            Auto-populate the variants multiparm with the appropriate __Mesh Variant #__ file or operator paths. 
 
-Autofill Mode:
-    #id: autofillmode
-    <p>__From Directory__ auto-populates the variants multiparm with the appropriate __Mesh Variant #__ file names that match the __Pattern__ and are located in the __Variants Directory__.</p> <p>__From Merge Path__ auto-populates with the operator paths of each input into the __Variants Merge Path__.</p> 
+        Max Shrub Height:
+            #id: maxshrubheight
+            The height of the tallest shrub. The trunk radius is calculated from the bounds of the geometry that has been clipped between the __Max Shrub Height__ and the __Ground Cover Height__. 
 
-Variants Directory:
-    #id: variantsdir
-    The directory where mesh variants are read from. 
+        Ground Cover Height: 
+            #id: groundcoverheight
+            The height of the ground cover below where the tree's trunk begins. The trunk radius is calculated from the bounds of the geometry that has been clipped between the __Max Shrub Height__ and the __Ground Cover Height__.
 
-Pattern:
-    #id: pattern
-    Space separated list of patterns to filter and select a subset of files within the __Variants Directory__. <p>The underlying script uses filename pattern matching in Python with fnmatch.filter. It does not use Houdini's native pattern matching.</p> 
+        Autofill Radii from Mesh Bounds:
+            #id: calculatebounds
+            Calculate and auto-populate the __Bounds Radius__ and __Trunk Radius__ for each variant in the multiparm.
 
-Search Child Directories:
-    #id: recursive
-    Recursively search for files within the child directories of the __Variants Directory__.
+        Reload Geometry:
+            #id: reload
+            Force a reload of the instance geometry.
+        
+        Include Engine Asset Paths:
+            #id: enginepaths
+            Enable the __Asset Path__ references. This is useful if you are importing the point scatter into a game engine.
 
-Variants Merge Path:
-    #id: variantsmergepath
-    The path to a merge node where multiple mesh variants have been input. Each input will be entered as its own operator path mesh variant.
+        === Species Variants: Variants ===
 
-Autofill Radii on Load:
-    #id: autofillradii
-    Execute __Autofill Radii from Mesh Bounds__ when __Autofill Variants__ is executed. Save a button click if both operations need to be executed. 
+        Mesh Variant from:
+            #id: reftype#
+            __File__ points to a geometry file on disk, while __Operator Path__ points to an operator reference, a node within the hip file.
 
-Autofill Variants:
-    #id: autofillvariants
-    Auto-populate the variants multiparm with the appropriate __Mesh Variant #__ file or operator paths. 
+        Mesh Variant:
+            #id: meshvariant#
+            A path to the healthy plant geometry. 
 
-Max Shrub Height:
-    #id: maxshrubheight
-    The height of the tallest shrub. The trunk radius is calculated from the bounds of the geometry that has been clipped between the __Max Shrub Height__ and the __Ground Cover Height__. 
+        Mesh (Dead) Variant:
+            #id: meshdeadvariant#
+            A path to the dead plant geometry. 
 
-Ground Cover Height: 
-    #id: groundcoverheight
-    The height of the ground cover below where the tree's trunk begins. The trunk radius is calculated from the bounds of the geometry that has been clipped between the __Max Shrub Height__ and the __Ground Cover Height__.
+        Weight:
+            #id: weight#
+            Weight of the mesh distribution. If there are multiple variants with the same __Age Range__, __Weight__ will prioritize which variant is scattered. A mesh variant with a higher weight will have a greater probability of being spawned. 
 
-Autofill Radii from Mesh Bounds:
-    #id: calculatebounds
-    Calculate and auto-populate the __Bounds Radius__ and __Trunk Radius__ for each variant in the multiparm.
+        Bounds Radius:
+            #id: radius
+            Minimum radius needed for this variant to grow. Other trees may not spawn within this radius. 
 
-Reload Geometry:
-    #id: reload
-    Force a reload of the instance geometry.
-  
-Include Engine Asset Paths:
-    #id: enginepaths
-    Enable the __Asset Path__ references. This is useful if you are importing the point scatter into a game engine.
+        Trunk Radius:
+            #id: radius
+            Shrubs may not spawn within this radius. 
+        
+        Normalized Age Range:
+            #id: agemin#
+            The age range when the mesh variant is spawned. `0` is the youngest and `1` is the oldest. <p>For example, a sapling mesh variant might appear for the first third of a tree's lifespan and have an age range of `0` to `.33`, while a medium version of the tree could appear between the ages of `.33` and `.66`, and a large, mature tree could appear between `.66` and 1.</p> 
 
+        Scale Range:
+            #id: scalemin#
+            Range in which the uniform scale can jitter.
 
-=== Species Variants: Variants ===
+        Dead Ratio:
+            #id: deadratio#
+            The ratio of __Mesh (Dead) Variant__ meshes to __Mesh Variant__ meshes. Set to `0` if the __Mesh (Dead) Variant #__ is left blank. 
 
-Mesh Variant from:
-    #id: reftype#
-    __File__ points to a geometry file on disk, while __Operator Path__ points to an operator reference, a node within the hip file.
+        === Species Variants: Unreal Engine ===
 
-Mesh Variant:
-    #id: meshvariant#
-    A path to the healthy plant geometry. 
+        Asset Path #:
+            #id: unrealassetpath#
+            The path to the healthy plant mesh in the engine. <p>To get the correct path from Unreal Engine, right click on an asset and use Copy reference. Unreal Paths will look like this: /Script/Engine.StaticMesh'/Game/Models/MyAsset.MyAsset'</p>
 
-Mesh (Dead) Variant:
-    #id: meshdeadvariant#
-    A path to the dead plant geometry. 
+        Asset (Dead) Path #:
+            #id: unrealassetdeadpath#
+            The path to the dead plant mesh in the engine. <p>To get the correct path from Unreal Engine, right click on an asset and use Copy reference. Unreal Paths will look like this: /Script/Engine.StaticMesh'/Game/Models/MyAsset.MyAsset'</p>
 
-Weight:
-    #id: weight#
-    Weight of the mesh distribution. If there are multiple variants with the same __Age Range__, __Weight__ will prioritize which variant is scattered. A mesh variant with a higher weight will have a greater probability of being spawned. 
+        === Visualize: Graph ===
 
-Bounds Radius:
-    #id: radius
-    Minimum radius needed for this variant to grow. Other trees may not spawn within this radius. 
+        Visualize Graph:
+            #id: vizgraph
+            Enable the visualization of the Whittaker Biome Graph.
 
-Trunk Radius:
-    #id: radius
-    Shrubs may not spawn within this radius. 
- 
-Normalized Age Range:
-    #id: agemin#
-    The age range when the mesh variant is spawned. 0 is the youngest and 1 is the oldest. <p>For example, a sapling mesh variant might appear for the first third of a tree's lifespan and have an age range of 0 to .33, while a medium version of the tree could appear between the ages of .33 and .66, and a large, mature tree could appear between .66 and 1.</p> 
+        === Visualize: Plants ===
 
-Scale Range:
-    #id: scalemin#
-    Range in which the uniform scale can jitter.
+        Visualize Plants:
+            #id: vizplants
+            Enable the visualization of the plant variations and their spacing radii.
 
-Dead Ratio:
-    #id: deadratio#
-    The ratio of __Mesh (Dead) Variant__ meshes to __Mesh Variant__ meshes. Set to 0 if the __Mesh (Dead) Variant #__ is left blank. 
+        Variant Spacing:
+            #id: variantspacing
+            The buffer distance between the plant bounding radii. 
 
-
-
-=== Species Variants: Unreal Engine ===
-
-Asset Path #:
-    #id: unrealassetpath#
-    The path to the healthy plant mesh in the engine. <p>To get the correct path from Unreal Engine, right click on an asset and use Copy reference. Unreal Paths will look like this: /Script/Engine.StaticMesh'/Game/Models/MyAsset.MyAsset'</p>
-
-Asset (Dead) Path #:
-    #id: unrealassetdeadpath#
-    The path to the dead plant mesh in the engine. <p>To get the correct path from Unreal Engine, right click on an asset and use Copy reference. Unreal Paths will look like this: /Script/Engine.StaticMesh'/Game/Models/MyAsset.MyAsset'</p>
-
-
-=== Visualize: Graph ===
-
-Visualize Graph:
-    #id: vizgraph
-    Enable the visualization of the Whittaker Biome Graph.
-
-=== Visualize: Plants ===
-
-Visualize Plants:
-    #id: vizplants
-    Enable the visualization of the plant variations and their spacing radii.
-Variant Spacing:
-    #id: variantspacing
-    The buffer distance between the plant bounding radii. 
-
-@locals
 
 @examples
-    - [Example File|https://github.com/sideeffects/SideFXLabsExamples/projects/dryad/beta/biome_demo/biome_demo.hip]
+- [Example File|https://github.com/sideeffects/SideFXLabsExamples/projects/dryad/beta/biome_demo/biome_demo.hip]
+
 
 @related
 - [Labs Biome Plant Definitions File|Node:sop/labs--biome_plant_definitions_file-1.3]

@@ -8,233 +8,232 @@
 
 """This node reads plant information from the disk file or writes to the disk file from input _Biome Plant Define SOP_ nodes."""
 
-This node has two modes of operation. In __Write__ mode, the node reads the `plant_definition` dictionary attribute output by the _Biome Plant Define SOP_ nodes and writes that information to disk as a .bgeo or .json. In __Read__ mode, the node reads from the .bgeo or .json disk file, and generates geometry or a chain of _Biome Plant Define SOP_ nodes with the `plant_definition` dictionary attributes. It uses the user-defined __JSON Dictionary Key Mappings__ to write the keys of the JSON and these should remain constant to re-create the _Biome Plant Define_ nodes from it. When in __Read__ mode, __JSON Dictionary Key Mappings__ of this node should match those written in the file. For this reason, it is recommended to leave the key mappings as their default values.
+This node has two modes of operation. In __Write__ mode, the node reads the `plant_definition` dictionary attribute output by the [Labs Biome Plant Define SOP|Node:sop/labs--biome_plant_define-1.3] nodes and writes that information to disk as a .bgeo or .json. In __Read__ mode, the node reads from the .bgeo or .json disk file, and generates geometry or a chain of _Biome Plant Define SOP_ nodes with the `plant_definition` dictionary attributes. It uses the user-defined __JSON Dictionary Key Mappings__ to write the keys of the JSON and these should remain constant to re-create the _Biome Plant Define_ nodes from it. When in __Read__ mode, __JSON Dictionary Key Mappings__ of this node should match those written in the file. For this reason, it is recommended to leave the key mappings as their default values.
 
 
 @parameters
 
-== Plant Definitions ==
+    == Plant Definitions ==
 
-Mode:
-    #id: mode
-    <p>__Write__: Writes plant information to disk.</p>
-    <p>__Read__: Reads plant information from the file.</p>
+    Mode:
+        #id: mode
+        <p>__Write__: Writes plant information to disk.</p>
+        <p>__Read__: Reads plant information from the file.</p>
 
-Plant Definitions :
-    #id: librarypath
-    The name of the file to read or write.
+    Plant Definitions:
+        #id: librarypath
+        The name of the file to read or write.
 
-Extension:
-    #id: extension
+    Extension:
+        #id: extension
+        <p>__.json__: Write a JSON file.</p>
+        <p>__.bgeo__: Write a Bgeo file.</p>        
 
-    <p>__.json__: Write a JSON file.</p>
-    <p>__.bgeo__: Write a Bgeo file.</p>
-    
+    Save to Disk:
+        #id: processnodes
+        Write input `plant_definition` dictionary attributes to the defined plant definitions file.
 
-Save to Disk:
-    #id: processnodes
-    Write input `plant_definition` dictionary attributes to the defined plant definitions file.
+    Reload from Disk:
+        #id: reload
+        Read a plant definitions file by following __Dictionary Keys__ and create __Geometry__ or _Biome Plant Define SOP_ node.
 
-Reload from Disk:
-    #id: reload
-    Read a plant definitions file by following __Dictionary Keys__ and create __Geometry__ or __Biome Plant Define Nodes__.
+    Create:
+        #id: create
+        <p>__Geometry__: Creates points with the `plant_definition` dictionary attribute.</p>
+        <p>__Plant Define Nodes__: Creates a _Biome Plant Define SOP_ node from each 'plant_definition'.</p>
 
-Create:
-    #id: create
-    <p>__Geometry__: Creates points with the `plant_definition` dictionary attribute.</p>
-    <p>__Plant Define Nodes__: Creates a _Biome Plant Define SOP_ node from each 'plant_definition'.</p>
+    == Dictionary Keys ==
 
-== Dictionary Keys ==
+    === Species ID ===
 
-=== Species ID ===
+    Name:
+        #id: plantname
+        Label of plant name.
 
-Name:
-    #id: plantname
-    Label of plant name.
+    Color:
+        #id: plantcolorr 
+        Label of red, green, and blue channels of color.
 
-Color:
-    #id: plantcolorr 
-    Label of red, green, and blue channels of color.
+    === Temperature ===
 
-=== Temperature ===
+    Lower:
+        #id: templower
+        Label of the plant's lowest temperature.
 
-Lower:
-    #id: templower
-    Label of the plant's lowest temperature.
+    Preferred:
+        #id: temppref
+        Label of the plant's preferred temperature.
 
-Preferred:
-    #id: temppref
-    Label of the plant's preferred temperature.
+    Upper:
+        #id: tempupper
+        Label of the plant's highest temperature.
 
-Upper:
-    #id: tempupper
-    Label of the plant's highest temperature.
+    === Precipitation ===
 
-=== Precipitation ===
+    Lower:
+        #id: preclower
+        Label of the plant's lowest precipitation level.
 
-Lower:
-    #id: preclower
-    Label of the plant's lowest precipitation level.
+    Preferred:
+        #id: precpref
+        Label of the plant's preferred precipitation level.
 
-Preferred:
-    #id: precpref
-    Label of the plant's preferred precipitation level.
+    Upper:
+        #id: precupper
+        Label of the plant's highest precipitation level.
 
-Upper:
-    #id: precupper
-    Label of the plant's highest precipitation level.
+    === Spacing ===
 
-=== Spacing ===
+    Maximum Density:
+        #id: densitymax
+        Label of the plant's maximum density.
 
-Maximum Density:
-    #id: densitymax
-    Label of the plant's maximum density.
+    Type:
+        #id: type
+        Label of the plant's type.
 
-Type:
-    #id: type
-    Label of the plant's type.
+    === Scale ===
 
-=== Scale ===
+    Scale Multiplier:
+        #id: scalemult
+        Label of scale multiplier. 
 
-Scale Multiplier:
-    #id: scalemult
-    Label of scale multiplier. 
+    === Biomes ===
 
-=== Biomes ===
+    Contain in Selected Biomes:
+        #id: containinbiomes
+        Label of contain in selected biomes.
 
-Contain in Selected Biomes:
-    #id: containinbiomes
-    Label of contain in selected biomes.
-Path to Biomes:
-    #id: pathtobiomes
-    Label of path to biomes.
-Selected Biomes:
-    #id: biomelist
-    Label of selected biomes.
+    Path to Biomes:
+        #id: pathtobiomes
+        Label of path to biomes.
 
-=== Advanced ===
+    Selected Biomes:
+        #id: biomelist
+        Label of selected biomes.
 
-Randomize Scale:
-    #id: randscale
-    Label of randomize scale. 
+    === Advanced ===
 
-Hardiness:
-    #id: hardiness
-    Label of the plant's hardiness.
+    Randomize Scale:
+        #id: randscale
+        Label of randomize scale. 
 
-Normal from Terrain:
-    #id: normterrain
-    Label of normal from terrain.
+    Hardiness:
+        #id: hardiness
+        Label of the plant's hardiness.
 
-Randomize Yaw:
-    #id: randomizeyaw
-    Label of randomize yaw.
+    Normal from Terrain:
+        #id: normterrain
+        Label of normal from terrain.
 
-Material:
-    #id: shop_materialpath
-    Label of material.
+    Randomize Yaw:
+        #id: randomizeyaw
+        Label of randomize yaw.
 
+    Material:
+        #id: shop_materialpath
+        Label of material.
 
-=== Species Variants ===
+    === Species Variants ===
 
-Autofill Mode: 
-    #id: autofillmode
-    Label of autofill mode.
+    Autofill Mode: 
+        #id: autofillmode
+        Label of autofill mode.
 
-Variants Merge Path:
-    #id: variantsmergepath 
-    Label of variants merge path. 
+    Variants Merge Path:
+        #id: variantsmergepath 
+        Label of variants merge path. 
 
-Variants Directory:
-    #id: variantsdir
-    Label of variants directory.
+    Variants Directory:
+        #id: variantsdir
+        Label of variants directory.
 
-Pattern:
-    #id: pattern
-    Label of pattern.
+    Pattern:
+        #id: pattern
+        Label of pattern.
 
-Search Child Directories:
-    #id: recursive
-    Label of search child directories.
+    Search Child Directories:
+        #id: recursive
+        Label of search child directories.
 
-Autofill Radii on Load:
-    #id: autofillradii
-    Label of autofill radii on load.
+    Autofill Radii on Load:
+        #id: autofillradii
+        Label of autofill radii on load.
 
-Max Shrub Height:
-    #id: maxshrubheight
-    Label of max shrub height.
+    Max Shrub Height:
+        #id: maxshrubheight
+        Label of max shrub height.
 
-Ground Cover Height:
-    #id: groundcoverheight
-    Label of ground cover height. 
+    Ground Cover Height:
+        #id: groundcoverheight
+        Label of ground cover height. 
 
-Include Engine Asset Paths:
-    #id: enginepaths
-    Label of include engine asset paths.
+    Include Engine Asset Paths:
+        #id: enginepaths
+        Label of include engine asset paths.
 
-Number Of Variants:
-    #id: variants
-    Label for number of variants multi-parameter folder.
+    Number Of Variants:
+        #id: variants
+        Label for number of variants multi-parameter folder.
 
-Reference Type:
-    #id: reftype
-    Label of reference type. 
+    Reference Type:
+        #id: reftype
+        Label of reference type. 
 
-Mesh Variant:
-    #id: meshvariant
-    Label for healthy plant mesh path.
+    Mesh Variant:
+        #id: meshvariant
+        Label for healthy plant mesh path.
 
-Mesh (Dead) Variant:
-    #id: meshdeadvariant
-    Label for dead plant mesh path.
+    Mesh (Dead) Variant:
+        #id: meshdeadvariant
+        Label for dead plant mesh path.
 
-File Mesh Variant:
-    #id: filemeshvariant
-    Label of file mesh variant.
+    File Mesh Variant:
+        #id: filemeshvariant
+        Label of file mesh variant.
 
-File Mesh (Dead) Variant:
-    #id: filemeshdeadvariant
-    Label of file mesh (dead) variant.
+    File Mesh (Dead) Variant:
+        #id: filemeshdeadvariant
+        Label of file mesh (dead) variant.
 
-Weight:
-    #id: weight
-    Label of the weight.
+    Weight:
+        #id: weight
+        Label of the weight.
 
-Bounds Radius:
-    #id: radius
-    Label of the plant's bounds radius.
+    Bounds Radius:
+        #id: radius
+        Label of the plant's bounds radius.
 
-Trunk Radius:
-    #id: trunkradius
-    Label of the plant's trunk radius.
+    Trunk Radius:
+        #id: trunkradius
+        Label of the plant's trunk radius.
 
-Normalized Age Range:
-    #id: agemin agemax
-    Label for minimum and maximum of the age in range.
+    Normalized Age Range:
+        #id: agemin agemax
+        Label for minimum and maximum of the age in range.
 
-Scale Range:
-    #id: scalemin scalemax
-    Label for minimum and maximum of the scale in range.
+    Scale Range:
+        #id: scalemin scalemax
+        Label for minimum and maximum of the scale in range.
 
-Dead Ratio:
-    #id: deadratio
-    Label for dead ratio.
+    Dead Ratio:
+        #id: deadratio
+        Label for dead ratio.
 
-=== Unreal Engine ===
+    === Unreal Engine ===
 
-Asset Path:
-    #id: unrealassetpath
-    Label for healthy plant mesh in the engine.
+    Asset Path:
+        #id: unrealassetpath
+        Label for healthy plant mesh in the engine.
 
-Asset (Dead) Path:
-    #id: unrealassetdeadpath
-    Label for dead plant mesh in the engine.
+    Asset (Dead) Path:
+        #id: unrealassetdeadpath
+        Label for dead plant mesh in the engine.
 
-@locals
 
 @examples
-    - [Example File|https://github.com/sideeffects/SideFXLabsExamples/projects/dryad/beta/biome_demo/biome_demo.hip]
+- [Example File|https://github.com/sideeffects/SideFXLabsExamples/projects/dryad/beta/biome_demo/biome_demo.hip]
+
 
 @related
 - [Labs Biome Plant Define|Node:sop/labs--biome_plant_define-1.3]
