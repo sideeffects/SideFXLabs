@@ -9,7 +9,7 @@
 """Processes input terrain types and creates biome regions, assigning necessary biome attributes and data used by the suite of biome tools."""
 
 
-For terrain, Biome Initialize converts input terrain types into a Houdini Heightfield volume. For biome regions, the different options create flat, single-poly regions with primitive attributes and biome settings to deliminate the bounds of the expected biomes. Multiple input types are supported , but the two output types will always be a Houdini Heightfield volume for terrain and polygonal regions for biomes.
+For terrain, _Biome Initialize_ converts input terrain types into a Houdini Heightfield volume. For biome regions, the different options create flat, single-poly regions with primitive attributes and biome settings to deliminate the bounds of the expected biomes. Multiple input types are supported , but the two output types will always be a Houdini Heightfield volume for terrain and polygonal regions for biomes.
 
 :note:
 	The biome tools are in beta and are subject to change based off of feedback, testing, and future development. We encourage our users to let us know of any feedback or bugs they encounter while using these tools.
@@ -17,15 +17,13 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 
 @parameters
 
-== ==
-
-	Biome Profile:
+    Biome Profile:
 		#id: biomeprofile
 		Path to the biome profile JSON containing biome data such as names, parameters, etc. This data is set through the [Labs Biome Profile|Node:sop/labs--biome_profile-1.0] node.
 
+    == Terrain Input ==
 
-== Terrain Input ==
-	Terrain Input Type:
+    Terrain Input Type:
 		#id: terraintype
 		
 		Takes in one of the specified height field input types and converts into a Houdini HeightField volume.
@@ -36,91 +34,81 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 		
 		*Heightfield Image:* Input is a greyscale heightfield image.
 
-=== Terrain Mesh ===
+    === Terrain Mesh ===
 
-
-==== Terrain Settings ====
+    ==== Terrain Settings ====
 
     Grid Spacing:
-		Voxel size of the output HeightField in meters. A higher number results in lower resolution.
         #id: gridspacing*mesh
-
+        Voxel size of the output HeightField in meters. A higher number results in lower resolution.
 
     Terrain Size:
-		The width and height of the HeightField volume.
         #id: size2
+        The width and height of the HeightField volume.
         
     Center:
-		Position of the center of the HeightField in world space.
         #id: t2
+        Position of the center of the HeightField in world space.
         
     Uniform Scale:
-		Amount to scale the HeightField.
         #id: uniformscale2
-
+        Amount to scale the HeightField.
         
     Auto Size Height Field:
-		Enable this parameter to calculate the size of the HeightField based off of bounding box of geometry. Disable to activate manual controls.
         #id: autosize
+        Enable this parameter to calculate the size of the HeightField based off of bounding box of geometry. Disable to activate manual controls.
 
+    === Heightfield Image ===
 
-=== Heightfield Image ===
-
-
-==== Image Settings ====
+    ==== Image Settings ====
 
     File:
-		The path to the image file to import.
         #id: filename
+        The path to the image file to import.
         
     Channel:
-		Selects which data channel to use as the value for the height field/mask.
         #id: monoop
+        Selects which data channel to use as the value for the height field/mask.
 
-
-==== Terrain Settings ====
+    ==== Terrain Settings ====
 
     Grid Spacing:
-		Voxel size of output HeightField. A higher number results in lower resolution.
         #id: gridspacing
-		
+        Voxel size of output HeightField. A higher number results in lower resolution.		
         
     Height Scale:
-		Scales the height value from the image.
         #id: heightscale
+        Scales the height value from the image.
         
     Clamp Minimum:
-		Clamps height values to at least this value.
         #id: clampmin
+        Clamps height values to at least this value.
         
     Clamp Maximum:
-		Clamps height values to at most this value.
         #id: clampmax
+        Clamps height values to at most this value.
         
-==== Transform ====
+    ==== Transform ====
 
     Orientation:
-		The initial axis alignment of the 2D volume in world space. The default is ZX, aligned with the “ground” plane.
         #id: orient
+        The initial axis alignment of the 2D volume in world space. The default is ZX, aligned with the “ground” plane.
         
     Sampling:
-		Determines if pixel data from the image represents the center of the pixel or the corner.
         #id: sampling
-
+        Determines if pixel data from the image represents the center of the pixel or the corner.
             
     Center:
-		Position of the center of the HeightField in world space.
         #id: t
-
+        Position of the center of the HeightField in world space.
         
     Uniform Scale:
-		Scales the entire HeightField.
         #id: uniformscale
+        Scales the entire HeightField.
 
+    == Biome Input ==
 
-
-== Biome Input ==
-	Biome Input Type:
+    Biome Input Type:
 		#id: biomeinput
 		Takes in one of the specified input types and converts into polygonal biome regions.
 	
@@ -128,223 +116,204 @@ For terrain, Biome Initialize converts input terrain types into a Houdini Height
 		
 		*Photoshop File:* Takes in a PSD file, using the individual Photoshop layers to extract regions.
 		
-		*Houdini Curves:* Input is Houdini curves used in conjunction with [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup-1.0].
+		*Houdini Curves:* Input is Houdini curves used in conjunction with [_Labs Biome Curve Setup_|Node:sop/labs--biome_curve_setup-1.0].
 		
 		*Houdini HeightField Layers:* Converts different HeightField layers into regions.
 		
 		*Mesh with Attributes:* Converts localized/clustered primitive attributes from a mesh into regions.
 		
 	TIP:
-		To visualize the results of Biome Input, connect a Null node to the second output and enable the Display flag.
+		To visualize the results of Biome Input, connect a Null node to the second output and enable the *Display* flag.
 
+    === Image File ===
 
-=== Image File ===
-
-	Image Input:
-		File path to an input image Tip: for faster calculation times, use a lower resolution image.
+    Image Input:
         #id: imginput
+        File path to an input image Tip: for faster calculation times, use a lower resolution image.
 
-	COP Input: 
-		Link to a COP Network to use. Remember to set the Render flag on the COP node you wish to process from the network.
+    COP Input:
         #id: copinput
+        Link to a COP Network to use. Remember to set the *Render* flag on the COP node you wish to process from the network.
 
-	Match Size to Terrain: 
-		Enable to automatically match the biome regions to the size of the input terrain.
+    Match Size to Terrain:
         #id: imgmatchsize
+        Enable to automatically match the biome regions to the size of the input terrain.
 
-===  ===
-==== Biome Generation ====
+    ==== Biome Generation ====
 
     Number of Colors:
-		The number of dominant colors to cluster and extract from the image.
         #id: numcolors
+        The number of dominant colors to cluster and extract from the image.
         
     Region Smoothing:
-		Amount of smoothing to apply to the generated regions.
         #id: strength
+        Amount of smoothing to apply to the generated regions.
         
-==== Neighbor Consolidation ====
+    ==== Neighbor Consolidation ====
 
     Extended Influence:
-		Search distance to look for primitive neighbors when consolidating clusters.
         #id: extweight
+        Search distance to look for primitive neighbors when consolidating clusters.
         
     Iterations:
-		Number of times to attempt to consolidate primitive neighbors.
         #id: iterations
-        
+        Number of times to attempt to consolidate primitive neighbors.   
 
-
-
-==== Extracted Colors ====
+    ==== Extracted Colors ====
 
     Extract Regions:
-		Extracts the colors of regions into a menu and generates biome assignment parameters.
         #id: generatecolors
+        Extracts the colors of regions into a menu and generates biome assignment parameters.
         
     Visualization Color:
         #id: extcolor#
-	The dominant color extracted from this particular region. Color can be changed for visualization purposes, but will be overwritten if node is cooked again.
+	    The dominant color extracted from this particular region. Color can be changed for visualization purposes, but will be overwritten if node is cooked again.
 
         
     Biome Name:
         #id: biomename#
-	The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
+	    The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [_Labs Biome Profile_|Node:sop/labs--biome_profile-1.0].
 
         
     Biome Hierarchy:
-		The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         #id: biomehierarchy*img#
+        The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         
-=== Photoshop File ===
+    === Photoshop File ===
 
     File:
-		File path to a Photoshop (PSD) file.
         #id: file
+        File path to a Photoshop (PSD) file.
 
     Reload PSD:
-		Refresh the Photoshop file.
         #id: reload
-=== ===
+        Refresh the Photoshop file.
 
-==== Layers To Extract ====
+    ==== Layers To Extract ====
 
     Layer Name:
-		Name of the Photoshop layer to extract (case sensitive).
         #id: layer*name#
+        Name of the Photoshop layer to extract (case sensitive).
         
     Biome Name:
-		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
         #id: biomename*psd#
+        The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [_Labs Biome Profile_|Node:sop/labs--biome_profile-1.0].
         
     Biome Hierarchy:
-		The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         #id: biomehierarchy*psd#
+        The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         
     Brightness Threshold:
-		Controls the point at which to start considering data eligible for the curve
         #id: thresh#
+        Controls the point at which to start considering data eligible for the curve
         
     Visualization Color:
         #id: viscol*psd#
-	Color to assign this region for visualization purposes.
+        Color to assign this region for visualization purposes.
 
-        
     === Advanced ===
 
-    Resample Step:
-		Distance in resampling the curve.
+    Resample Step:		
         #id: step#
+        Distance in resampling the curve.
         
     Inline Point Threshold:
-		Tolerance for removing inline points.
         #id: inlinepointremoval#
+        Tolerance for removing inline points.
         
     Shrink UVs:
-		Shrink the UVs on the curves in order to better sample the interior colors of the image. Sometimes the curves can sit too close to the border and the UVs pick out the color of the background.
         #id: shrink*uvs#
-        
+        Shrink the UVs on the curves in order to better sample the interior colors of the image. Sometimes the curves can sit too close to the border and the UVs pick out the color of the background.
         
     Shape:
-		Option to shrink or expand the shape.
         #id: op#
-
+        Option to shrink or expand the shape.
             
     Size:
-		Distance to shrink or expand the shape
         #id: size*psd#
+        Distance to shrink or expand the shape.
         
-=== Houdini Curves ===
+    === Houdini Curves ===
 
     Create Curve Setup HDA:
         #id: createcurvehda
-	Creates a [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup-1.0] node.
-
+        Creates a [_Labs Biome Curve Setup_|Node:sop/labs--biome_curve_setup-1.0] node.
 
     Load Biomes:
         #id: curveregion
-	Loads in the set biomes for the curve regions.
-
+        Loads in the set biomes for the curve regions.
 
     Biome Name:
         #id: biomename_curve#
-	Loads in the set biomes for the curve regions.
-
+        Loads in the set biomes for the curve regions.
 
     Visualization Color:
         #id: curvevizcol#
-	Loads in the set biomes for the curve regions.
+        Loads in the set biomes for the curve regions.
 
-
-        
-=== Houdini HeightField Layers ===
+    === Houdini HeightField Layers ===
 
     Layer Hierarchy Type:
-		Determines how to assign hierarchy values to regions. *Dominant Layer Value* assigns a higher priority to layers that have the highest value at the sampled location, while *Manual Hierarchy Value* enables a parameter to manually assign hierarchy values to individual regions. A lower number will give the biome priority when using Biome Overlap resolution.
         #id: layerhierarchy
-
-
+        Determines how to assign hierarchy values to regions. *Dominant Layer Value* assigns a higher priority to layers that have the highest value at the sampled location, while *Manual Hierarchy Value* enables a parameter to manually assign hierarchy values to individual regions. A lower number will give the biome priority when using Biome Overlap resolution.
 
     === Layers ===
 
     Layer:
-		Name of the HeightField layer to use to generate a region.
         #id: layername#
+        Name of the HeightField layer to use to generate a region.
         
     Biome Name:
-		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
         #id: biomename*hf*#
+        The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [_Labs Biome Profile_|Node:sop/labs--biome_profile-1.0].
         
     Biome Hierarchy:
-		The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         #id: biomehierarchy*hf#
+        The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         
     Visualization Color:
-		Color to assign this region for visualization purposes.
         #id: vizcol*hf#
+        Color to assign this region for visualization purposes.
         
-=== Mesh with Attributes ===
+    === Mesh with Attributes ===
 
     Attribute Name:
-		Name of the primitive attribute to use to generate regions from. Attribute can be an integer, float, or string.
         #id: attrname
+        Name of the primitive attribute to use to generate regions from. Attribute can be an integer, float, or string.
         
-
     === Attribute Settings ===
 
     Attribute Value:
-		The value of the attribute to extract a region from.
         #id: attrvalue#
+        The value of the attribute to extract a region from.
         
     Biome Name:
-		The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [Labs Biome Profile|Node:sop/labs--biome_profile-1.0].
         #id: biomename*meshattr#
+        The biome to assign this region. To adjust biome names, settings, or add/delete biomes, see [_Labs Biome Profile_|Node:sop/labs--biome_profile-1.0].
         
     Biome Hierarchy:
-		The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         #id: biomehierarchy*mesh#
+        The priority to give this region compared to other regions. A lower number will give the biome priority when using Biome Overlap resolution.
         
     Visualization Color:
-		Color to assign this region for visualization purposes.
         #id: vizcol*mesh#
+        Color to assign this region for visualization purposes.
         
     Load Values:
-		Automatically loads all unique values as region assignments.
         #id: loadvalues
+        Automatically loads all unique values as region assignments.
         
     Refresh Values:
-		Refreshes primitive attribute values if they have been altered.
         #id: refreshvalues
+        Refreshes primitive attribute values if they have been altered.
         
-=== Biome Overlap ===
+    === Biome Overlap ===
 
     Enable Cutout:
-		Enables regions to boolean out of one another. The shape with a higher hierarchy value will override the shapes with lower values when deciding which shape to cut out of.
         #id: cutout
+        Enables regions to boolean out of one another. The shape with a higher hierarchy value will override the shapes with lower values when deciding which shape to cut out of. 
+    
 
-    
-    
 @related
 - [Labs Biome Curve Setup|Node:sop/labs--biome_curve_setup-1.0]
 - [Labs Biome Profile|Node:sop/labs--biome_profile-1.0]
-
