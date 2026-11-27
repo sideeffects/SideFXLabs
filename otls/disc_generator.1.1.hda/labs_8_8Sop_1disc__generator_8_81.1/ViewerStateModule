@@ -1,0 +1,188 @@
+import hou
+import math
+
+class State(object):
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)        
+        self.node = None
+        self.snap_threshold = 0.1
+
+        # Custom handle names
+        self.radius_parms = ["inner_radius_handle", "outer_radius_handle"]
+
+        # Circle geometry
+        self.radius_drawable = hou.GeometryDrawable(
+            self.scene_viewer,
+            hou.drawableGeometryType.Line,
+            "handle_geometry",
+            params={
+                "color1": hou.Color((1, 0, 0)),
+                "line_width": 2,
+                "fade_factor": 0.25
+            }
+        )
+        
+    def onDraw(self, kwargs):
+        self.radius_drawable.draw(kwargs["draw_handle"])
+
+    def onNodeChangeEvent(self, kwargs):
+        if kwargs["event_type"] == hou.nodeEventType.ParmTupleChanged:
+            self.updateGeometry()
+            self.updateHandles()
+
+    def updateGeometry(self):
+        geo = hou.Geometry()
+
+        inner = self.node.parm("innerradius").evalAsFloat()
+        outer = self.node.parm("outerradius").evalAsFloat()
+        orientation = self.node.parm("orientation").evalAsInt()
+
+        tx = self.node.parm("tx").eval()
+        ty = self.node.parm("ty").eval()
+        tz = self.node.parm("tz").eval()
+        rx = self.node.parm("rx").eval()
+        ry = self.node.parm("ry").eval()
+        rz = self.node.parm("rz").eval()
+
+        rotation = hou.hmath.buildRotate((rx, ry, rz))
+        translation = hou.hmath.buildTranslate((tx, ty, tz))
+        transform = rotation * translation
+
+        segments = 32
+        for radius in (inner, outer):
+            circle = geo.createPolygon(is_closed=True)
+
+            for i in range(segments):
+                angle = 2.0 * math.pi * i / segments
+
+                x = radius * math.cos(angle)
+                y = radius * math.sin(angle)
+
+                if orientation == 0:    # XY
+                    pos = hou.Vector3(x, y, 0)
+                elif orientation == 1:  # YZ
+                    pos = hou.Vector3(0, x, y)
+                else:                   # ZX
+                    pos = hou.Vector3(y, 0, x)
+
+                pos = pos * transform
+
+                point = geo.createPoint()
+                point.setPosition(pos)
+                circle.addVertex(point)
+
+        self.radius_drawable.setGeometry(geo)
+
+    def updateHandles(self):
+        for name in self.radius_parms:
+            hou.Handle(self.scene_viewer, name).update()
+
+    def onEnter(self,kwargs):
+        self.node = kwargs["node"]
+        self.updateGeometry()
+        self.updateHandles()
+        self.radius_drawable.show(True)
+
+        self.scene_viewer.hudInfo(
+            template={
+                "title": "Labs Disc",
+                "icon": self.node.type().icon(),
+                "rows": [
+                    {
+                        "id": "sides",
+                        "label": "Adjust Sides",
+                        "key": "mousewheel",
+                    },
+                    {
+                        "id": "divisions",
+                        "label": "Adjust Divisions",
+                        "key": "Shift + mousewheel",
+                    }
+                ]
+            }
+        )
+
+    def onExit(self,kwargs):
+        self.radius_drawable.show(False)
+        self.scene_viewer.hudInfo(show=False)
+
+    def onHandleToState(self, kwargs):
+        if "dist" not in kwargs["mod_parms"]:
+            return
+
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]
+        dist = max(0.0, parms["dist"])
+        
+        if handle == "inner_radius_handle":
+            self.node.parm("innerradius").set(dist)
+
+        elif handle == "outer_radius_handle":
+            self.node.parm("outerradius").set(dist)
+
+        parms["dist"] = dist
+        # self.updateGeometry()
+
+    def onStateToHandle(self, kwargs):
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]
+
+        if handle == "inner_radius_handle":
+            parms["dist"] = self.node.parm("innerradius").eval()
+
+        elif handle == "outer_radius_handle":
+            parms["dist"] = self.node.parm("outerradius").eval()
+
+        parms["px"] = self.node.parm("tx").eval()
+        parms["py"] = self.node.parm("ty").eval()
+        parms["pz"] = self.node.parm("tz").eval()
+
+        rx = self.node.parm("rx").eval()
+        ry = self.node.parm("ry").eval()
+        rz = self.node.parm("rz").eval()
+
+        orientation = self.node.parm("orientation").evalAsInt()
+        rotation = hou.hmath.buildRotate((rx, ry, rz))
+
+        if orientation == 0:    # XY
+            direction = hou.Vector3(1, 0, 0)
+        elif orientation == 1:  # YZ
+            direction = hou.Vector3(0, 1, 0)
+        else:                   # ZX
+            direction = hou.Vector3(0, 0, 1)
+
+        direction = direction * rotation
+
+        parms["vx"] = direction[0]
+        parms["vy"] = direction[1]
+        parms["vz"] = direction[2]
+
+    def onMouseWheelEvent(self, kwargs):
+        dev = kwargs["ui_event"].device()
+        scrollamount = dev.mouseWheel()
+
+        if dev.isShiftKey():
+            parm = self.node.parm("divisions")
+        else:
+            parm = self.node.parm("sides")
+
+        current = parm.evalAsInt()
+        parm.set(max(1, int(current + scrollamount)))
+
+        return False
+
+def createViewerStateTemplate():
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Disc Handles"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+
+    peak_parms = ["dist"]
+    template.bindHandle("peak", "inner_radius_handle", cache_previous_parms=True, handle_parms=peak_parms)
+    template.bindHandle("peak", "outer_radius_handle", cache_previous_parms=True, handle_parms=peak_parms)
+    template.bindNodeChangeEvent([hou.nodeEventType.ParmTupleChanged])
+
+    return template
