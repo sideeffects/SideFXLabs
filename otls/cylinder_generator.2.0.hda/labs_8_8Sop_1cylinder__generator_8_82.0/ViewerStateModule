@@ -1,0 +1,304 @@
+"""
+State:          Labs::cylinder generator::2.0
+State type:     labs::cylinder_generator::2.0
+Description:    Labs::cylinder generator::2.0
+Author:         sudhitib
+Date Created:   November 24, 2026 - 14:29:00
+"""
+
+import hou
+import viewerstate.utils as su
+import math
+
+
+class State(object):
+
+    def __init__(self, **kwargs):
+        # Initialize viewer state variables
+        self.__dict__.update(kwargs)
+        self.node = None
+
+        self.previous_uniform_radius_drawable = None
+        self.uniform_radius_drawable = None
+        self.top_radius_drawable = None
+        self.base_radius_drawable = None
+
+        self.handles = {}
+        
+        # HUD tips
+        HUD_TEMPLATE = {
+            "title": "Labs Cylinder", "desc": "", "icon": "$SideFXLabs/help/labs_icons/sidefx_labs_default.svg",
+            "rows": [
+            {"id": "sides", "label": "Adjust Sides", "key": "mousewheel"},
+            {"id": "divisions", "label": "Adjust Divisions", "key": "Shift+mousewheel"}
+            ]
+        }
+
+        self.scene_viewer.hudInfo(hud_template=HUD_TEMPLATE)
+        
+    def getRotationMatrix(self):
+        # Calculate rotation from cylinder direction and orientation
+        rotation = self.node.parmTuple("r").eval()
+        cylinder_direction = self.node.evalParm("direction")
+
+        if cylinder_direction == 0:
+            base_rotation = (0, 0.0, -90.0)
+        elif cylinder_direction == 1:
+            base_rotation = (0.0, 0.0, 0.0)
+        elif cylinder_direction == 2:
+            base_rotation = (90, 0.0, 0.0)
+        else:
+            base_rotation = (0.0, 0.0, 0.0)
+
+        base_matrix = hou.hmath.buildRotate(base_rotation)
+        rotation_matrix = hou.hmath.buildRotate(rotation)
+
+        return base_matrix * rotation_matrix
+
+    
+    def createCircleGeometry(self, ypos, radius):
+        # Create circle geometry
+        geo = hou.Geometry()
+    
+        center = hou.Vector3(self.node.parmTuple("t").eval())
+    
+        matrix = self.getRotationMatrix()
+    
+        prim = geo.createPolygon()
+        prim.setIsClosed(True)
+    
+        # Generate circle points and apply transformations
+        for i in range(64):
+            angle = 2.0 * math.pi * i / 32
+            pos = hou.Vector3(radius * math.cos(angle), ypos, radius * math.sin(angle))
+            pos = pos * matrix + center
+    
+            point = geo.createPoint()
+            point.setPosition(pos)  
+            prim.addVertex(point)
+    
+        return geo
+
+    def updateDrawable(self, ypos, radius,  geomterytype, drawable=None, name="radius_drawable"):
+        # Create or update a radius drawable
+        circle_geo = self.createCircleGeometry(ypos, radius)
+        
+        if drawable is None:
+            if geomterytype == "Line":
+                drawable = hou.GeometryDrawable(self.scene_viewer, hou.drawableGeometryType.Line,name,params={"color1": (1.0, 0.0, 0.0, 1.0),"line_width": 1.75,"fade_factor": 0.25})
+
+        drawable.setGeometry(circle_geo)
+        drawable.show(True)
+        
+        return drawable
+        
+    def updateRadiusDrawables(self):
+        # Update radius guides based on uniform radius mode.
+        height = self.node.evalParm("height")
+        uniform_radius = self.node.evalParm("uniformradius")
+        
+        # Show uniform radius guides
+        if  uniform_radius == 1:
+            radius = self.node.evalParm("radius")
+            self.uniform_radius_drawable = self.updateDrawable(0, radius, "Line", self.uniform_radius_drawable, "uniform_radius")
+        
+            if self.top_radius_drawable is not None:
+                self.top_radius_drawable.show(False)
+        
+            if self.base_radius_drawable is not None:
+                self.base_radius_drawable.show(False)     
+                
+        # Show separate top and base radius guides
+        else:
+            top_radius = self.node.evalParm("topradius")
+            base_radius = self.node.evalParm("baseradius")
+            self.top_radius_drawable = self.updateDrawable(height / 2, top_radius, "Line", self.top_radius_drawable, "top_radius")
+            self.base_radius_drawable = self.updateDrawable(-height / 2, base_radius, "Line", self.base_radius_drawable, "base_radius")
+        
+            if self.uniform_radius_drawable is not None:
+                self.uniform_radius_drawable.show(False)
+
+    def updateHandles(self):
+        # Update handle visibility based on uniform radius mode
+        uniform_radius = self.node.evalParm("uniformradius")
+    
+        # Skip visibility updates if the mode is unchanged
+        if uniform_radius == self.previous_uniform_radius_drawable:
+            return
+            
+        self.previous_uniform_radius_drawable = uniform_radius
+    
+        for name, handle in self.handles.items():
+            if  uniform_radius == 1:
+                if name in ("top_radius_handle", "base_radius_handle"):
+                    handle.show(False)
+                else:
+                    handle.show(True)
+            elif uniform_radius == 0:
+                if name in ("uniform_radius_handle"):
+                    handle.show(False)      
+                else:
+                    handle.show(True)         
+            else:
+                handle.update()
+
+    def onEnter(self, kwargs):
+        # Initialize drawables and handles 
+        self.node = kwargs["node"]
+
+        self.updateRadiusDrawables()
+
+        for name in ("top_handle","base_handle","uniform_radius_handle","top_radius_handle","base_radius_handle"):
+            handle = hou.Handle(self.scene_viewer, name)
+            self.handles[name] = handle
+
+        self.updateHandles()
+
+        for handle in self.handles.values():
+            handle.update()
+
+        self.scene_viewer.hudInfo(show=True)
+        
+    def onMouseWheelEvent(self, kwargs):
+        # Adjust sides and divisions using the mouse wheel
+        ui_event = kwargs["ui_event"]
+        dev = ui_event.device()
+        
+        scrollamount = dev.mouseWheel()
+        
+        sides =  self.node.parm("sides")
+        currentsides = sides.evalAsInt()
+
+        divisions =  self.node.parm("divisions")
+        currentdivisions = divisions.evalAsInt()
+
+        if dev.isShiftKey():
+            divisions.set(int(max(1, currentdivisions + scrollamount)))
+        else:
+            sides.set(int( max(3,currentsides+scrollamount)))
+
+        return True
+
+    def onStateToHandle(self, kwargs):
+        # Update handles from node parameter values
+        handle = kwargs["handle"]
+        parms = kwargs["parms"]          
+
+        position = hou.Vector3(self.node.parmTuple("t").eval())
+        height = self.node.evalParm("height")
+        matrix = self.getRotationMatrix()
+
+        # Calculate rotated handle directions
+        axis = hou.Vector3(0, 1, 0) * matrix
+        radius_direction = hou.Vector3(1, 0, 0)*matrix
+
+        # Set position, direction and distance for each handle
+        if handle == "top_handle":
+            direction = axis 
+            distance =  height / 2.0
+
+        elif handle == "base_handle":
+            direction = -axis 
+            distance =  height / 2.0
+
+        elif handle == "uniform_radius_handle":
+            direction = radius_direction
+            distance = self.node.evalParm("radius")
+
+        elif handle == "top_radius_handle":
+            direction = radius_direction
+            distance = self.node.evalParm("topradius")
+            position = position+axis*(height / 2.0)
+
+        elif handle == "base_radius_handle":
+            direction = radius_direction
+            distance = self.node.evalParm("baseradius")
+            position = position-axis*(height / 2.0)
+
+        else:
+            return
+
+        # Apply parameter values to handles
+        parms["px"] = position[0]
+        parms["py"] = position[1]
+        parms["pz"] = position[2]
+
+        parms["vx"] = direction[0]
+        parms["vy"] = direction[1]
+        parms["vz"] = direction[2]
+
+        parms["dist"] = max(0.0,distance)
+
+    def onHandleToState(self, kwargs):
+        # Update node parameters when a handle is modified.
+        if "dist" not in kwargs["mod_parms"]:
+            return
+        
+        handle_name = kwargs["handle"]
+        parms = kwargs["parms"]
+
+        distance = max(0.0, parms["dist"])
+
+        if handle_name in ("top_handle", "base_handle"):
+            self.node.parm("height").set(2.0 * distance)
+
+        elif handle_name == "uniform_radius_handle":
+            self.node.parm("radius").set(distance)
+
+        elif handle_name == "top_radius_handle":
+            self.node.parm("topradius").set(distance)
+
+        elif handle_name == "base_radius_handle":
+            self.node.parm("baseradius").set(distance)
+
+        # Refresh the handle near its minimum distance
+        if distance < 0.00001:
+            self.handles[handle_name].update()
+
+    def onDraw(self, kwargs):
+        # Draw radius guides in the viewport
+        for drawable in (self.uniform_radius_drawable, self.top_radius_drawable, self.base_radius_drawable):
+            if drawable is not None:
+                drawable.draw(kwargs["draw_handle"])
+
+    def onNodeChangeEvent(self, kwargs):
+        # Refresh guides and handles when parameters change
+        if kwargs["event_type"] == hou.nodeEventType.ParmTupleChanged:
+            self.updateRadiusDrawables()
+            self.updateHandles()
+            self.scene_viewer.curViewport().draw()
+
+    def onExit(self, kwargs):
+        # Hide drawables and handles on state exit
+        self.previous_uniform_radius_drawable = None
+
+        for drawable in (self.uniform_radius_drawable, self.top_radius_drawable, self.base_radius_drawable):
+            if drawable is not None:
+                drawable.show(False)
+
+        for handle in self.handles.values():
+            handle.show(False)
+        
+        self.handles.clear()
+
+def createViewerStateTemplate():
+    # Create the viewer state template
+    state_typename = kwargs["type"].definition().sections()["DefaultState"].contents()
+    state_label = "Labs Cylinder"
+    state_cat = hou.sopNodeTypeCategory()
+
+    template = hou.ViewerStateTemplate(state_typename, state_label, state_cat)
+    template.bindFactory(State)
+    template.bindIcon(kwargs["type"].icon())
+    
+    # Define peak handle parameters
+    peak_parms = ["px", "py", "pz", "vx", "vy", "vz", "dist"]
+
+    # Bind height and radius handles
+    for name in ("top_handle", "base_handle", "uniform_radius_handle", "top_radius_handle", "base_radius_handle"):
+        template.bindHandle("peak", name, cache_previous_parms=False, handle_parms=peak_parms)
+
+    # Bind node parameter change events
+    template.bindNodeChangeEvent([hou.nodeEventType.ParmTupleChanged])
+
+    return template
